@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("verbigem_llamacpp")
 
+# Disable FP16 in ggml-cpu to avoid vld1q_f16 errors on older NDK Clang (17.x).
+# GGML will fall back to FP32 (slightly slower, fully compatible).
+add_compile_definitions(GGML_NO_FP16)
+
 # llama.cpp as a subdirectory (provides llama library)
 add_subdirectory(llama.cpp)
 

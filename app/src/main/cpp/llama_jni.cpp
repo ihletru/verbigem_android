@@ -64,7 +64,8 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_loadModelNative(
     }
 
     llama_context_params cparams = llama_context_default_params();
-    cparams.n_ctx = 4096;
+    // Smaller context for translation (short sentences) -> less RAM, faster start.
+    cparams.n_ctx = 2048;
     cparams.n_threads = ctx->n_threads;
 
     ctx->ctx = llama_init_from_model(ctx->model, cparams);
