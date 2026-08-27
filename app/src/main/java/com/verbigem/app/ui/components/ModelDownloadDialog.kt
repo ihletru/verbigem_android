@@ -48,7 +48,7 @@ fun ModelDownloadDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Do natywnego tłumaczenia offline na Twoim telefonie pobierz raz pakiet modelu Szybki (~1 GB). Po pobraniu działa w 100% bez internetu.",
+                    text = "Do natywnego tłumaczenia offline na Twoim telefonie pobierz raz pakiet modelu Szybki (~440 MB). Po pobraniu działa w 100% bez internetu.",
                     fontSize = 14.sp,
                     color = VerbigemTheme.colors.muted,
                     lineHeight = 20.sp
@@ -64,7 +64,7 @@ fun ModelDownloadDialog(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Pobierz teraz (~1 GB)", fontWeight = FontWeight.Bold)
+                            Text("Pobierz teraz (~440 MB)", fontWeight = FontWeight.Bold)
                         }
                     }
                     is ModelDownloadState.Downloading -> {

@@ -15,7 +15,7 @@ class HyMt2NativeEngine(private val context: Context) {
 
     companion object {
         private const val TAG = "HyMt2NativeEngine"
-        const val MODEL_FILENAME_FAST = "Hy-MT2-1.8B-Q4_0.gguf"
+        const val MODEL_FILENAME_FAST = "Hy-MT2-1.8B-1.25Bit.gguf"
         const val MODEL_FILENAME_ACCURATE = "Hy-MT2-1.8B-Q4_K_M.gguf"
 
         fun getModelFile(context: Context, isAccurate: Boolean): File {
