@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">Verbigem</string>
+    <string name="app_tagline">Kolay Çeviri</string>
+    <string name="nav_translate">Çevirmen</string>
+    <string name="nav_conversation">Konuşma</string>
+    <string name="nav_chat">Sohbet</string>
+    <string name="nav_contacts">Kişiler</string>
+    <string name="nav_profile">Profil</string>
+
+    <string name="login_subtitle">Çevirmek ve sohbet etmek için giriş yap</string>
+    <string name="email">E-posta</string>
+    <string name="password">Şifre (en az 6 karakter)</string>
+    <string name="sign_in">Giriş yap</string>
+    <string name="sign_up">Hesap oluştur</string>
+    <string name="toggle_to_signin">Zaten hesabın var mı? Giriş yap →</string>
+    <string name="toggle_to_signup">Hesabın yok mu? Oluştur →</string>
+    <string name="google_signin">Google ile giriş yap</string>
+    <string name="google_signup">Google ile kayıt ol</string>
+    <string name="auth_error_password">Şifre en az 6 karakter olmalı</string>
+
+    <string name="app_title">Mini Verbigem</string>
+    <string name="ocr_shortcut">Fotoğraftan (OCR)</string>
+    <string name="translate_hint">Çevrilecek metni gir…</string>
+    <string name="translate_button">Çevir (Hızlı)</string>
+    <string name="accurate_label">Yavaş ama doğru ~1.1 GB</string>
+    <string name="copied_clipboard">Panoya kopyalandı</string>
+    <string name="recent_translations">SON ÇEVİRİLER</string>
+    <string name="no_history">Çeviri geçmişi yok</string>
+    <string name="swap_direction">Yönü değiştir</string>
+
+    <string name="profile_title">Profil</string>
+    <string name="nick_label">TAKMA AD</string>
+    <string name="save">Kaydet</string>
+    <string name="ui_lang_label">ARAYÜZ DİLİ</string>
+    <string name="speak_langs_label">KONUŞMA DİLLERİN</string>
+    <string name="account_status">HESAP DURUMU</string>
+    <string name="pro_status">💎 PRO</string>
+    <string name="free_status">🆓 Ücretsiz</string>
+    <string name="api_wallet">API cüzdanı: $%.2f</string>
+    <string name="theme_label">TEMA</string>
+    <string name="theme_calm">🌊 Calm</string>
+    <string name="theme_sharp">⚡ Sharp</string>
+    <string name="theme_playful">🎨 Playful</string>
+    <string name="mode_day">Gündüz</string>
+    <string name="mode_night">Gece</string>
+    <string name="logout">Çıkış yap</string>
+
+    <string name="conv_title">Konuşma</string>
+    <string name="conv_subtitle">İki kişi, bir cihaz. Konuş veya yaz — karşı taraf çeviriyi duyar ve görür.</string>
+    <string name="side_a_label">🅰 A Tarafı</string>
+    <string name="side_b_label">🅱 B Tarafı</string>
+    <string name="switch_to_b">A → B</string>
+    <string name="switch_to_a">B → A</string>
+    <string name="recognizing_speech">KONUŞMA TANIMA (%s)…</string>
+    <string name="listening_hint">🎙 Dinleniyor…</string>
+    <string name="now_speaking">👆 Şu an %1$s tarafı (%2$s) konuşuyor</string>
+    <string name="tap_to_stop">Durdurmak için dokun</string>
+    <string name="tap_to_speak">Konuşmak için dokun (%s)</string>
+    <string name="or_type_text">VEYA METİN YAZ:</string>
+    <string name="type_as_side">%s tarafı olarak yaz…</string>
+    <string name="speak_again">Yeniden oku</string>
+
+    <string name="chat_title">Sohbet</string>
+    <string name="chat_select_contact">Çevrilen sohbete başlamak için Kişiler\'den bir arkadaş seç.</string>
+    <string name="original_prefix">orijinal: %s</string>
+    <string name="message_hint">Mesaj yaz…</string>
+    <string name="send">Gönder</string>
+
+    <string name="contacts_title">Kişiler</string>
+    <string name="invitations">DAVETLER</string>
+    <string name="find_people">KİŞİ BUL</string>
+    <string name="search_hint">Takma ad veya e-posta…</string>
+    <string name="friends">ARKADAŞLAR</string>
+    <string name="no_friends">Henüz arkadaş yok. Yukarıdan kişi ara.</string>
+    <string name="sent_request">✓ Gönderildi</string>
+    <string name="add_friend">+ Ekle</string>
+    <string name="accept">Kabul et</string>
+    <string name="decline">Reddet</string>
+
+    <string name="ocr_title">Kamera OCR</string>
+    <string name="ocr_subtitle">Bir tabela, menü veya etiket fotoğrafı çek — motor metni çevrimdışı tanır ve anında çevirir.</string>
+    <string name="camera">Kamera</string>
+    <string name="gallery">Galeri</string>
+    <string name="ocr_photo">OCR fotoğrafı</string>
+    <string name="remove">Kaldır</string>
+    <string name="recognized_text">TANINAN METİN:</string>
+    <string name="ocr_translation">ÇEVİRİ (Hy-MT2):</string>
+    <string name="copied">Kopyalandı</string>
+</resources>

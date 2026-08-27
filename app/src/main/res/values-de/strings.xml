@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">Verbigem</string>
+    <string name="app_tagline">Einfach übersetzen</string>
+    <string name="nav_translate">Übersetzer</string>
+    <string name="nav_conversation">Gespräch</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_contacts">Kontakte</string>
+    <string name="nav_profile">Profil</string>
+
+    <string name="login_subtitle">Anmelden zum Übersetzen und Chatten</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Passwort (min. 6 Zeichen)</string>
+    <string name="sign_in">Anmelden</string>
+    <string name="sign_up">Konto erstellen</string>
+    <string name="toggle_to_signin">Bereits ein Konto? Anmelden →</string>
+    <string name="toggle_to_signup">Kein Konto? Erstellen →</string>
+    <string name="google_signin">Mit Google anmelden</string>
+    <string name="google_signup">Mit Google registrieren</string>
+    <string name="auth_error_password">Passwort muss mindestens 6 Zeichen haben</string>
+
+    <string name="app_title">Mini Verbigem</string>
+    <string name="ocr_shortcut">Aus Foto (OCR)</string>
+    <string name="translate_hint">Text zum Übersetzen eingeben…</string>
+    <string name="translate_button">Übersetzen (Schnell)</string>
+    <string name="accurate_label">Langsam aber genau ~1.1 GB</string>
+    <string name="copied_clipboard">In Zwischenablage kopiert</string>
+    <string name="recent_translations">LETZTE ÜBERSETZUNGEN</string>
+    <string name="no_history">Keine Übersetzungshistorie</string>
+    <string name="swap_direction">Richtung tauschen</string>
+
+    <string name="profile_title">Profil</string>
+    <string name="nick_label">NICKNAME</string>
+    <string name="save">Speichern</string>
+    <string name="ui_lang_label">OBERFLÄCHENSPRACHE</string>
+    <string name="speak_langs_label">DEINE GESPRÄCHSSPRACHEN</string>
+    <string name="account_status">KONTOSTATUS</string>
+    <string name="pro_status">💎 PRO</string>
+    <string name="free_status">🆓 Kostenlos</string>
+    <string name="api_wallet">API-Guthaben: $%.2f</string>
+    <string name="theme_label">THEMA</string>
+    <string name="theme_calm">🌊 Calm</string>
+    <string name="theme_sharp">⚡ Sharp</string>
+    <string name="theme_playful">🎨 Playful</string>
+    <string name="mode_day">Tag</string>
+    <string name="mode_night">Nacht</string>
+    <string name="logout">Abmelden</string>
+
+    <string name="conv_title">Gespräch</string>
+    <string name="conv_subtitle">Zwei Personen, ein Gerät. Sprich oder schreib — die andere Seite hört und sieht die Übersetzung.</string>
+    <string name="side_a_label">🅰 Seite A</string>
+    <string name="side_b_label">🅱 Seite B</string>
+    <string name="switch_to_b">A → B</string>
+    <string name="switch_to_a">B → A</string>
+    <string name="recognizing_speech">SPRACHERKENNUNG (%s)…</string>
+    <string name="listening_hint">🎙 Hören…</string>
+    <string name="now_speaking">👆 Seite %1$s (%2$s) spricht gerade</string>
+    <string name="tap_to_stop">Zum Stoppen tippen</string>
+    <string name="tap_to_speak">Zum Sprechen tippen (%s)</string>
+    <string name="or_type_text">ODER TEXT EINGEBEN:</string>
+    <string name="type_as_side">Als Seite %s eingeben…</string>
+    <string name="speak_again">Erneut vorlesen</string>
+
+    <string name="chat_title">Chat</string>
+    <string name="chat_select_contact">Wähle einen Freund unter Kontakte, um einen übersetzten Chat zu starten.</string>
+    <string name="original_prefix">Original: %s</string>
+    <string name="message_hint">Nachricht schreiben…</string>
+    <string name="send">Senden</string>
+
+    <string name="contacts_title">Kontakte</string>
+    <string name="invitations">EINLADUNGEN</string>
+    <string name="find_people">PERSONEN SUCHEN</string>
+    <string name="search_hint">Nick oder E-Mail…</string>
+    <string name="friends">FREUNDE</string>
+    <string name="no_friends">Noch keine Freunde. Suche oben nach Personen.</string>
+    <string name="sent_request">✓ Gesendet</string>
+    <string name="add_friend">+ Hinzufügen</string>
+    <string name="accept">Annehmen</string>
+    <string name="decline">Ablehnen</string>
+
+    <string name="ocr_title">Kamera-OCR</string>
+    <string name="ocr_subtitle">Mach ein Foto von einem Schild, Menü oder Etikett — die Engine erkennt Text offline und übersetzt ihn sofort.</string>
+    <string name="camera">Kamera</string>
+    <string name="gallery">Galerie</string>
+    <string name="ocr_photo">OCR-Foto</string>
+    <string name="remove">Entfernen</string>
+    <string name="recognized_text">ERKANNTER TEXT:</string>
+    <string name="ocr_translation">ÜBERSETZUNG (Hy-MT2):</string>
+    <string name="copied">Kopiert</string>
+</resources>

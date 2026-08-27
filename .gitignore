@@ -1,0 +1,29 @@
+# Android / Gradle
+*.iml
+.gradle/
+/build/
+app/build/
+local.properties
+*.log
+
+# Native build intermediates
+app/.cxx/
+.externalNativeBuild/
+cmake-build-*/
+
+# IDE
+.idea/
+*.jks
+*.keystore
+captures/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hermes composer images
+AppData/
+composer-images/
+
+# Vendored llama.cpp (pobierany przez scripts/fetch_llama.sh)
+app/src/main/cpp/llama.cpp/

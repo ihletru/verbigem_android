@@ -1,0 +1,96 @@
+<resources>
+    <string name="app_name">Verbigem</string>
+    <string name="app_tagline">Tłumacz Hy-MT2 bez granic</string>
+    <string name="nav_translate">Translator</string>
+    <string name="nav_conversation">Rozmowa</string>
+    <string name="nav_chat">Czat</string>
+    <string name="nav_contacts">Kontakty</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- Auth / Login -->
+    <string name="login_subtitle">Zaloguj się, aby tłumaczyć i rozmawiać</string>
+    <string name="email">E-mail</string>
+    <string name="password">Hasło (min. 6 znaków)</string>
+    <string name="sign_in">Zaloguj się</string>
+    <string name="sign_up">Utwórz konto</string>
+    <string name="toggle_to_signin">Masz już konto? Zaloguj się →</string>
+    <string name="toggle_to_signup">Nie masz konta? Utwórz konto →</string>
+    <string name="google_signin">Zaloguj się przez Google</string>
+    <string name="google_signup">Zarejestruj się przez Google</string>
+    <string name="auth_error_password">Hasło musi mieć co najmniej 6 znaków</string>
+
+    <!-- Translator -->
+    <string name="app_title">Mini Verbigem</string>
+    <string name="ocr_shortcut">Ze zdjęcia (OCR)</string>
+    <string name="translate_hint">Wpisz tekst do przetłumaczenia…</string>
+    <string name="translate_button">Tłumacz (Szybki)</string>
+    <string name="accurate_label">Wolny ale dokładny ~1.1 GB</string>
+    <string name="copied_clipboard">Skopiowano do schowka</string>
+    <string name="recent_translations">OSTATNIE TŁUMACZENIA</string>
+    <string name="no_history">Brak historii tłumaczeń</string>
+    <string name="swap_direction">Zamień kierunek</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profil</string>
+    <string name="nick_label">NICK</string>
+    <string name="save">Zapisz</string>
+    <string name="ui_lang_label">JĘZYK INTERFEJSU</string>
+    <string name="speak_langs_label">TWOJE JĘZYKI ROZMOWY</string>
+    <string name="account_status">STATUS KONTA</string>
+    <string name="pro_status">💎 PRO</string>
+    <string name="free_status">🆓 Darmowe (Free)</string>
+    <string name="api_wallet">Portfel API: $%.2f</string>
+    <string name="theme_label">MOTYW</string>
+    <string name="theme_calm">🌊 Calm</string>
+    <string name="theme_sharp">⚡ Sharp</string>
+    <string name="theme_playful">🎨 Playful</string>
+    <string name="mode_day">Dzień</string>
+    <string name="mode_night">Noc</string>
+    <string name="logout">Wyloguj się</string>
+
+    <!-- Conversation -->
+    <string name="conv_title">Rozmowa</string>
+    <string name="conv_subtitle">Dwie osoby, jedno urządzenie. Mów lub pisz — druga strona usłyszy i zobaczy tłumaczenie.</string>
+    <string name="side_a_label">🅰 Strona A</string>
+    <string name="side_b_label">🅱 Strona B</string>
+    <string name="switch_to_b">A → B</string>
+    <string name="switch_to_a">B → A</string>
+    <string name="recognizing_speech">ROZPOZNAWANIE MOWY (%s)…</string>
+    <string name="listening_hint">🎙 Słucham…</string>
+    <string name="now_speaking">👆 Teraz mówi strona %1$s (%2$s)</string>
+    <string name="tap_to_stop">Dotknij, aby zatrzymać</string>
+    <string name="tap_to_speak">Dotknij, aby mówić (%s)</string>
+    <string name="or_type_text">ALBO NAPISZ TEKST:</string>
+    <string name="type_as_side">Pisz jako strona %s…</string>
+    <string name="speak_again">Przeczytaj ponownie</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Czat</string>
+    <string name="chat_select_contact">Wybierz znajomego w zakładce Kontakty, aby rozpocząć tłumaczony czat.</string>
+    <string name="original_prefix">oryginał: %s</string>
+    <string name="message_hint">Napisz wiadomość…</string>
+    <string name="send">Wyślij</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Kontakty</string>
+    <string name="invitations">ZAPROSZENIA</string>
+    <string name="find_people">ZNAJDŹ LUDZI</string>
+    <string name="search_hint">Nick lub e-mail…</string>
+    <string name="friends">ZNAJOMI</string>
+    <string name="no_friends">Brak znajomych. Wyszukaj osoby powyżej.</string>
+    <string name="sent_request">✓ Wysłano</string>
+    <string name="add_friend">+ Dodaj</string>
+    <string name="accept">Przyjmij</string>
+    <string name="decline">Odrzuć</string>
+
+    <!-- OCR -->
+    <string name="ocr_title">OCR z aparatu</string>
+    <string name="ocr_subtitle">Zrób zdjęcie szyldu, menu lub etykiety — silnik rozpozna tekst offline i natychmiast go przetłumaczy.</string>
+    <string name="camera">Aparat</string>
+    <string name="gallery">Galeria</string>
+    <string name="ocr_photo">Zdjęcie OCR</string>
+    <string name="remove">Usuń</string>
+    <string name="recognized_text">ROZPOZNANY TEKST:</string>
+    <string name="ocr_translation">TŁUMACZENIE (Hy-MT2):</string>
+    <string name="copied">Skopiowano</string>
+</resources>

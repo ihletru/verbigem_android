@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1064156518963",
+    "project_id": "mini-verbigem",
+    "storage_bucket": "mini-verbigem.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064156518963:android:6a6a253851d82049eea146",
+        "android_client_info": {
+          "package_name": "com.verbigem.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1064156518963-jopnhicdo039jin5q5v235ld88l8ka45.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.verbigem.app",
+            "certificate_hash": "ec9deb58cdf2483a7efe2b73c2c7901b9d6d3ccc"
+          }
+        },
+        {
+          "client_id": "1064156518963-mi47hcntbfc14270n1dkjr0ssfrgrj1r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXpE19wr9jUu69oe5yhgYQFfDOEKrgKqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1064156518963-mi47hcntbfc14270n1dkjr0ssfrgrj1r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

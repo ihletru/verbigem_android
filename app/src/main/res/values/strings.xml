@@ -1,0 +1,96 @@
+<resources>
+    <string name="app_name">Verbigem</string>
+    <string name="app_tagline">Easy Translation</string>
+    <string name="nav_translate">Translator</string>
+    <string name="nav_conversation">Talk</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_contacts">Contacts</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Auth / Login -->
+    <string name="login_subtitle">Sign in to translate and chat</string>
+    <string name="email">E-mail</string>
+    <string name="password">Password (min. 6 characters)</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Create account</string>
+    <string name="toggle_to_signin">Already have an account? Sign in →</string>
+    <string name="toggle_to_signup">No account? Create one →</string>
+    <string name="google_signin">Sign in with Google</string>
+    <string name="google_signup">Sign up with Google</string>
+    <string name="auth_error_password">Password must be at least 6 characters</string>
+
+    <!-- Translator -->
+    <string name="app_title">Mini Verbigem</string>
+    <string name="ocr_shortcut">From photo (OCR)</string>
+    <string name="translate_hint">Enter text to translate…</string>
+    <string name="translate_button">Translate (Fast)</string>
+    <string name="accurate_label">Slow but accurate ~1.1 GB</string>
+    <string name="copied_clipboard">Copied to clipboard</string>
+    <string name="recent_translations">RECENT TRANSLATIONS</string>
+    <string name="no_history">No translation history</string>
+    <string name="swap_direction">Swap direction</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="nick_label">NICKNAME</string>
+    <string name="save">Save</string>
+    <string name="ui_lang_label">INTERFACE LANGUAGE</string>
+    <string name="speak_langs_label">YOUR CONVERSATION LANGUAGES</string>
+    <string name="account_status">ACCOUNT STATUS</string>
+    <string name="pro_status">💎 PRO</string>
+    <string name="free_status">🆓 Free</string>
+    <string name="api_wallet">API wallet: $%.2f</string>
+    <string name="theme_label">THEME</string>
+    <string name="theme_calm">🌊 Calm</string>
+    <string name="theme_sharp">⚡ Sharp</string>
+    <string name="theme_playful">🎨 Playful</string>
+    <string name="mode_day">Day</string>
+    <string name="mode_night">Night</string>
+    <string name="logout">Sign out</string>
+
+    <!-- Conversation -->
+    <string name="conv_title">Conversation</string>
+    <string name="conv_subtitle">Two people, one device. Speak or type — the other side hears and sees the translation.</string>
+    <string name="side_a_label">🅰 Side A</string>
+    <string name="side_b_label">🅱 Side B</string>
+    <string name="switch_to_b">A → B</string>
+    <string name="switch_to_a">B → A</string>
+    <string name="recognizing_speech">SPEECH RECOGNITION (%s)…</string>
+    <string name="listening_hint">🎙 Listening…</string>
+    <string name="now_speaking">👆 Side %1$s (%2$s) is speaking now</string>
+    <string name="tap_to_stop">Tap to stop</string>
+    <string name="tap_to_speak">Tap to speak (%s)</string>
+    <string name="or_type_text">OR TYPE TEXT:</string>
+    <string name="type_as_side">Type as side %s…</string>
+    <string name="speak_again">Read again</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_select_contact">Pick a friend in Contacts to start a translated chat.</string>
+    <string name="original_prefix">original: %s</string>
+    <string name="message_hint">Type a message…</string>
+    <string name="send">Send</string>
+
+    <!-- Contacts -->
+    <string name="contacts_title">Contacts</string>
+    <string name="invitations">INVITATIONS</string>
+    <string name="find_people">FIND PEOPLE</string>
+    <string name="search_hint">Nick or e-mail…</string>
+    <string name="friends">FRIENDS</string>
+    <string name="no_friends">No friends yet. Search for people above.</string>
+    <string name="sent_request">✓ Sent</string>
+    <string name="add_friend">+ Add</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+
+    <!-- OCR -->
+    <string name="ocr_title">Camera OCR</string>
+    <string name="ocr_subtitle">Snap a sign, menu or label — the engine recognizes text offline and translates it instantly.</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="ocr_photo">OCR photo</string>
+    <string name="remove">Remove</string>
+    <string name="recognized_text">RECOGNIZED TEXT:</string>
+    <string name="ocr_translation">TRANSLATION (Hy-MT2):</string>
+    <string name="copied">Copied</string>
+</resources>
