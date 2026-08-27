@@ -28,9 +28,11 @@ class ModelDownloader(private val context: Context) {
     companion object {
         private const val TAG = "ModelDownloader"
         // HuggingFace direct URLs for Hy-MT2-1.8B GGUF.
-        // FAST = 1.25Bit (~440 MB, najlżejszy, zgodny z README "Szybki") — domyślny.
-        // ACCURATE = Q4_K_M (~1.1 GB, oficjalny Tencent repo).
-        const val URL_HYMT2_FAST = "https://huggingface.co/tencent/Hy-MT2-1.8B-1.25Bit-GGUF/resolve/main/Hy-MT2-1.8B-1.25Bit.gguf"
+        // NOTE: 1.25Bit (Tencent) is NOT supported by stock llama.cpp (custom quant scheme),
+        // so we use standard GGUF quants that llama.cpp can load:
+        // FAST = Q4_0 (~1 GB, smallest standard quant, from unsloth mirror) — default.
+        // ACCURATE = Q4_K_M (~1.1 GB, official Tencent repo).
+        const val URL_HYMT2_FAST = "https://huggingface.co/unsloth/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q4_0.gguf"
         const val URL_HYMT2_ACCURATE = "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q4_K_M.gguf"
     }
 
