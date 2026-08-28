@@ -136,15 +136,42 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_generateNative(
 
     const llama_vocab * vocab = llama_model_get_vocab(ctx->model);
 
-    // Tokenize the prompt (BOS added by model if needed)
+    // Hy-MT2 uses a chat template (hunyuan-dense). Must apply it before tokenizing,
+    // otherwise llama_tokenize fails with negative error codes (-19/-20).
+    // Build a user message and apply the model's chat template (from GGUF metadata).
+    llama_chat_message msg;
+    msg.role = "user";
+    msg.content = prompt.c_str();
+
+    const char * tmpl = llama_model_chat_template(ctx->model, nullptr);
+    if (!tmpl) {
+        LOGE("No chat template found in model");
+        return env->NewStringUTF("");
+    }
+
+    // First call: get required buffer size (negative on error).
+    int fmt_len = llama_chat_apply_template(tmpl, &msg, 1, true, nullptr, 0);
+    if (fmt_len <= 0) {
+        LOGE("Failed to apply chat template (size %d)", fmt_len);
+        return env->NewStringUTF("");
+    }
+    std::string formatted;
+    formatted.resize(fmt_len);
+    llama_chat_apply_template(tmpl, &msg, 1, true, formatted.data(), fmt_len);
+    // llama_chat_apply_template writes a null-terminated string; resize to actual length.
+    formatted.resize(strlen(formatted.c_str()));
+
+    LOGI("Applied chat template, formatted prompt len: %zu", formatted.length());
+
+    // Tokenize the formatted prompt (model adds BOS; parse special tokens)
     std::vector<llama_token> tokens;
-    int n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), nullptr, 0, false, false);
+    int n_tokens = llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), nullptr, 0, false, true);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (size %d)", n_tokens);
         return env->NewStringUTF("");
     }
     tokens.resize(n_tokens);
-    n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), tokens.data(), (int)tokens.size(), false, false);
+    n_tokens = llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), tokens.data(), (int)tokens.size(), false, true);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (final %d)", n_tokens);
         return env->NewStringUTF("");

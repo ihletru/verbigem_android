@@ -12,12 +12,8 @@
 - [x] Model FAST = 1.25Bit ~440MB (Tencent Hy-MT2-1.8B-1.25Bit-GGUF)
 
 ### Problemy rozwiązane w tym cyklu
-- [x] **1.25Bit GGUF nie laduje sie (tensor offset mismatch / failed to read tensor data)**
-  - Przyczyna: stock llama.cpp (master) nie ma STQ1_0 kernela (PR #22836, niezmergowany do mastera).
-  - Rozwiazanie: vendored llama.cpp z galezi `sjl623/llama.cpp:STQ_0` (GGML_TYPE_STQ1_0 + block_tq1_0).
-  - Dodatkowe latki dla NDK 26 (Clang 17):
-    - `sgemm.cpp`: fp16 load -> scalar `GGML_CPU_FP16_TO_FP32` fallback (brak `__ARM_FEATURE_FP16_VECTOR_ARITHMETIC`)
-    - usuniete `armeabi-v7a` z abiFilters (vzip1q_u8/vqtbl1q_u8 to aarch64-only intrinsics)
+- [x] **Model się ładuje i tokenizuje** (STQ1_0=42 fix + add_bos=false)
+  - Weryfikacja na telefonie w toku (PL->EN test)
 - [x] **Error text generyczny** (bez nazwy modelu): "Model nie jest zaladowany. Pobierz model w aplikacji."
 
 ### Do zrobienia / odlozone
