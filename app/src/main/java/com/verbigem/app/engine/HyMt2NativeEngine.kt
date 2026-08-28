@@ -66,7 +66,7 @@ class HyMt2NativeEngine(private val context: Context) {
 
         val isReady = ensureModelLoaded(isAccurate)
         if (!isReady || nativeHandle == 0L) {
-            throw IllegalStateException("Model Hy-MT2-1.8B nie jest załadowany. Pobierz model w aplikacji.")
+            throw IllegalStateException("Model nie jest załadowany. Pobierz model w aplikacji.")
         }
 
         val prompt = buildPrompt(text.trim(), from, to)

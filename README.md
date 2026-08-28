@@ -11,7 +11,7 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`lingua-line/mini`).
 1. **Translator (Ekran główny)**:
    - Tłumaczenie pomiędzy 6 językami: **Polski (PL)**, **Angielski (EN)**, **Hiszpański (ES)**, **Chiński (ZH)**, **Niemiecki (DE)**, **Turecki (TR)**.
    - Wybór silników:
-     - ⚡ **Hy-MT2 Szybki** (Q4_0 / AngelSlim ~440 MB) — natychmiastowe tłumaczenie na urządzeniu,
+     - ⚡ **Hy-MT2 Szybki** (TQ1.25 / 1.25Bit ~440 MB) — najlżejszy, działa na słabszych telefonach,
      - 🎯 **Hy-MT2 Dokładny** (Q4_K_M ~1.1 GB) — bezkompromisowa jakość WMT,
      - ⚖️ **Oba (porównaj)** — jednoczesne generowanie obu wersji,
      - ☁️ **API online** — chmurowy fallback DeepSeek z portfelem.
@@ -50,9 +50,11 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`lingua-line/mini`).
 
 ```
 app/src/main/
-├── cpp/
-│   ├── CMakeLists.txt              # Kompilacja biblioteki współdzielonej libverbigem_llama.so
-│   └── llama_jni.cpp               # Mostek JNI C++ do wnioskowania GGUF
+│   ├── cpp/
+│   │   ├── CMakeLists.txt              # Kompilacja biblioteki współdzielonej libverbigem_llama.so
+│   │   ├── llama_jni.cpp               # Mostek JNI C++ do wnioskowania GGUF
+│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), latest master
+│   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
 ├── java/com/verbigem/app/
 │   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose
 │   ├── VerbigemApplication.kt      # Inicjalizacja Firebase

@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <android/log.h>
+#include <sys/stat.h>
 
 #include "llama.h"
 
@@ -46,6 +47,16 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_loadModelNative(
     }
 
     LOGI("Loading native Hy-MT2 GGUF model from: %s (threads: %d, gpu_layers: %d)", path, n_threads, n_gpu_layers);
+
+    // Diagnostics: verify file exists and size before attempting load.
+    {
+        struct stat st;
+        if (stat(path, &st) != 0) {
+            LOGE("Model file does NOT exist at: %s", path);
+        } else {
+            LOGI("Model file exists, size: %lld bytes", (long long)st.st_size);
+        }
+    }
 
     llama_backend_init();
 
