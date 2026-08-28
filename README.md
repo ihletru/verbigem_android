@@ -53,7 +53,7 @@ app/src/main/
 │   ├── cpp/
 │   │   ├── CMakeLists.txt              # Kompilacja biblioteki współdzielonej libverbigem_llama.so
 │   │   ├── llama_jni.cpp               # Mostek JNI C++ do wnioskowania GGUF
-│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), latest master
+│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), branch STQ_0 (PR #22836 STQ1_0 kernel)
 │   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
 ├── java/com/verbigem/app/
 │   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose
