@@ -32,8 +32,9 @@ class HyMt2NativeEngine(private val context: Context) {
 
     suspend fun ensureModelLoaded(isAccurate: Boolean): Boolean = withContext(Dispatchers.IO) {
         val modelFile = getModelFile(context, isAccurate)
+        Log.i(TAG, "ensureModelLoaded: path=${modelFile.absolutePath}, exists=${modelFile.exists()}, size=${modelFile.length()}")
         if (!modelFile.exists()) {
-            Log.w(TAG, "Model file does not exist at: ${modelFile.absolutePath}")
+            Log.w(TAG, "Model file missing at: ${modelFile.absolutePath}")
             return@withContext false
         }
 
