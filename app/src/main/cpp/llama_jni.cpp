@@ -12,6 +12,17 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
+// Capture llama.cpp internal logs (GGML) so load failures are visible in logcat.
+static void llama_log_callback(enum ggml_log_level level, const char * text, void * user_data) {
+    (void)user_data;
+    switch (level) {
+        case GGML_LOG_LEVEL_ERROR:   __android_log_print(ANDROID_LOG_ERROR,   TAG, "[llama] %s", text); break;
+        case GGML_LOG_LEVEL_WARN:    __android_log_print(ANDROID_LOG_WARN,    TAG, "[llama] %s", text); break;
+        case GGML_LOG_LEVEL_INFO:    __android_log_print(ANDROID_LOG_INFO,    TAG, "[llama] %s", text); break;
+        default:                     __android_log_print(ANDROID_LOG_DEBUG,   TAG, "[llama] %s", text); break;
+    }
+}
+
 struct LlamaModelContext {
     llama_model * model = nullptr;
     llama_context * ctx = nullptr;
@@ -47,6 +58,9 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_loadModelNative(
     }
 
     LOGI("Loading native Hy-MT2 GGUF model from: %s (threads: %d, gpu_layers: %d)", path, n_threads, n_gpu_layers);
+
+    // Capture llama.cpp internal logs so load failures show in logcat.
+    llama_log_set(llama_log_callback, nullptr);
 
     // Diagnostics: verify file exists and size before attempting load.
     {
