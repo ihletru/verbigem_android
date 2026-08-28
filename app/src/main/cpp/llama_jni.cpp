@@ -136,33 +136,10 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_generateNative(
 
     const llama_vocab * vocab = llama_model_get_vocab(ctx->model);
 
-    // Hy-MT2 uses a chat template (hunyuan-dense). Must apply it before tokenizing,
-    // otherwise llama_tokenize fails with negative error codes (-19/-20).
-    // Build a user message and apply the model's chat template (from GGUF metadata).
-    llama_chat_message msg;
-    msg.role = "user";
-    msg.content = prompt.c_str();
-
-    const char * tmpl = llama_model_chat_template(ctx->model, nullptr);
-    if (!tmpl) {
-        LOGE("No chat template found in model");
-        return env->NewStringUTF("");
-    }
-
-    // First call: get required buffer size (negative on error).
-    int fmt_len = llama_chat_apply_template(tmpl, &msg, 1, true, nullptr, 0);
-    if (fmt_len <= 0) {
-        LOGE("Failed to apply chat template (size %d)", fmt_len);
-        return env->NewStringUTF("");
-    }
-    std::string formatted;
-    formatted.resize(fmt_len);
-    llama_chat_apply_template(tmpl, &msg, 1, true, formatted.data(), fmt_len);
-    // llama_chat_apply_template writes a null-terminated string; resize to actual length.
-    formatted.resize(strlen(formatted.c_str()));
-
-    LOGI("Applied chat template, formatted prompt: [%s]", formatted.c_str());
-    LOGI("Applied chat template, formatted prompt len: %zu", formatted.length());
+    // Skip llama_chat_apply_template - it has a UTF-8 corruption bug in this
+    // build that corrupts both special tokens (<|...|>) and Polish chars (ą,ę).
+    // Use raw prompt directly - Hy-MT2 works with raw instruction text.
+    const std::string & formatted = prompt;
 
     // Tokenize the formatted prompt.
     // llama_tokenize with NULL buffer returns negative required size (not an error).

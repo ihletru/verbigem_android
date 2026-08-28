@@ -12,7 +12,7 @@
 - [x] Model FAST = 1.25Bit ~440MB (Tencent Hy-MT2-1.8B-1.25Bit-GGUF)
 
 ### Problemy rozwiązane w tym cyklu
-- [x] **Model się ładuje i tokenizuje** (STQ1_0=42 fix + chat template)
+- [x] **Model się ładuje i tokenizuje** (master + STQ1_0 kernel)
   - Weryfikacja na telefonie w toku (PL->EN test)
 - [x] **Error text generyczny** (bez nazwy modelu): "Model nie jest zaladowany. Pobierz model w aplikacji."
 
