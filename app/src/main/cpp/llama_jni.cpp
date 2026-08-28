@@ -161,17 +161,20 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_generateNative(
     // llama_chat_apply_template writes a null-terminated string; resize to actual length.
     formatted.resize(strlen(formatted.c_str()));
 
+    LOGI("Applied chat template, formatted prompt: [%s]", formatted.c_str());
     LOGI("Applied chat template, formatted prompt len: %zu", formatted.length());
 
-    // Tokenize the formatted prompt (model adds BOS; parse special tokens)
+    // Tokenize the formatted prompt.
+    // llama_tokenize with NULL buffer returns negative required size (not an error).
+    // Negate to get the required size, per examples/simple-chat/simple-chat.cpp.
     std::vector<llama_token> tokens;
-    int n_tokens = llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), nullptr, 0, false, true);
+    int n_tokens = -llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), nullptr, 0, true, true);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (size %d)", n_tokens);
         return env->NewStringUTF("");
     }
     tokens.resize(n_tokens);
-    n_tokens = llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), tokens.data(), (int)tokens.size(), false, true);
+    n_tokens = llama_tokenize(vocab, formatted.c_str(), (int)formatted.size(), tokens.data(), (int)tokens.size(), true, true);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (final %d)", n_tokens);
         return env->NewStringUTF("");
