@@ -136,15 +136,15 @@ Java_com_verbigem_app_jni_LlamaNativeBridge_generateNative(
 
     const llama_vocab * vocab = llama_model_get_vocab(ctx->model);
 
-    // Tokenize the prompt (with BOS)
+    // Tokenize the prompt (BOS added by model if needed)
     std::vector<llama_token> tokens;
-    int n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), nullptr, 0, true, false);
+    int n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), nullptr, 0, false, false);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (size %d)", n_tokens);
         return env->NewStringUTF("");
     }
     tokens.resize(n_tokens);
-    n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), tokens.data(), (int)tokens.size(), true, false);
+    n_tokens = llama_tokenize(vocab, prompt.c_str(), (int)prompt.size(), tokens.data(), (int)tokens.size(), false, false);
     if (n_tokens <= 0) {
         LOGE("Failed to tokenize prompt (final %d)", n_tokens);
         return env->NewStringUTF("");
