@@ -88,24 +88,26 @@ app/src/main/
 │   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), branch STQ_0 (PR #22836 STQ1_0 kernel)
 │   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
 ├── java/com/verbigem/app/
-│   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose
-│   ├── VerbigemApplication.kt      # Inicjalizacja Firebase
+│   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose + dialog auto-update
+│   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager)
 │   ├── data/
-│   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao) + DataStore Preferences
-│   │   ├── model/                  # LangCode, UserProfile, ChatMessage, Friendship, EngineChoice
-│   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository
+│   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao, TtsConfigEntity, TtsConfigDao) + DataStore Preferences
+│   │   ├── model/                  # LangCode, UserProfile, ChatMessage, Friendship, EngineChoice, TranslationHistory, TtsConfig
+│   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository, ProTtsRepository, SyncManager, TtsConfigSync
 │   ├── engine/
-│   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2 z promptem /no_think i czyszczeniem
+│   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2 z promptem  i czyszczeniem
 │   │   ├── ModelDownloader.kt      # Pobieranie i cache modeli GGUF z Hugging Face
 │   │   ├── SpeechManager.kt        # Natywne Android STT (SpeechRecognizer) + TTS
 │   │   ├── OcrManager.kt           # Google ML Kit Text Recognition
-│   │   └── OnlineApiEngine.kt      # Chmurowy proxy DeepSeek
+│   │   ├── OnlineApiEngine.kt      # Chmurowy proxy DeepSeek
+│   │   ├── ProTtsEngine.kt         # Płatne TTS przez OpenRouter (/audio/speech)
+│   │   └── UpdateManager.kt        # Auto-update: Firestore → DownloadManager → instalacja APK
 │   ├── jni/
 │   │   └── LlamaNativeBridge.kt    # JNI deklaracje external fun
 │   └── ui/
-│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog
+│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView
 │       ├── navigation/             # AppNavigation, Screen
-│       ├── screens/                # TranslatorScreen, ConversationScreen, ChatScreen, ContactsScreen, OcrScreen, ProfileScreen, LoginScreen
+│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatScreen, ContactsScreen, OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
@@ -169,6 +171,91 @@ TranslatorScreen  —  Text() z nowym wyrazem (recompose, bez migotania)
 
 ---
 
+## 💎 Czytaj Pro (płatne TTS przez OpenRouter)
+
+Funkcja dostępna tylko dla użytkowników Pro (`UserProfile.isPro`). Zamiast darmowego
+`TextToSpeech` (offline) używa chmurowego API OpenRouter (`/v1/audio/speech`).
+
+**Komponenty:**
+- `ProTtsEngine.speak(text, lang, config)` — wysyła POST do `https://openrouter.ai/api/v1/audio/speech`
+  z `model`, `input`, `voice`, `response_format=mp3`; odtwarza zwrócony mp3 przez `MediaPlayer`.
+- `TtsConfig` (model domenowy) — `apiKey`, `defaultModelId`, `chineseModelId`, `defaultVoice`,
+  `chineseVoice`, `updatedAt`. Metody `modelIdFor(lang)` / `voiceFor(lang)` wybierają
+  osobny model dla `LangCode.ZH`.
+- `ProTtsRepository` + `TtsConfigDao`/`TtsConfigEntity` — cache w Room (`tts_config`, 1 wiersz, id=1).
+- `TtsConfigSync` — przy starcie pobiera `app_config/tts` z Firestore i nadpisuje lokalne
+  (jeśli `remote.updatedAt >= local.updatedAt`).
+
+**Wybrane modele (sierpień 2026, stosunek cena/jakość):**
+- Domyślny (PL/EN/ES/DE/TR): `google/gemini-3.1-flash-tts-preview` (~$1/M in + $20/M out tokens, 70+ języków).
+- Chiński (osobny): `fish-audio/s2.1-pro` (chiński-native, wysoka jakość ZH; jest też darmowy `fish-audio/s2.1-pro-free`).
+- Odrzucone: `hexgrad/kokoro-82m` (tani, ale brak PL/TR).
+
+**Konfiguracja:** `apiKey` wpisuje się ręcznie do Firestore (`app_config/tts`) do czasu
+powstania webappu admina. App nie ma UI do wpisywania klucza (zgodnie ze specyfikacją:
+"ręcznie do bazy teraz, webapp później").
+
+---
+
+## 🔄 Synchronizacja danych (startup sync, last-write-wins)
+
+`SyncManager.syncNow()` uruchamiany w `VerbigemApplication.onCreate()` (korutyna IO,
+`SupervisorJob`). Wykonuje się raz przy starcie (po zalogowaniu Firebase).
+
+**Zakres (per użytkownik, `uid = FirebaseAuth.currentUser.uid`):**
+1. **Profil** (`users/{uid}`) — odczyt (plan/wallet determinują `isPro`; real-time sync
+   i tak idzie przez `ProfileViewModel.watchProfile`).
+2. **Historia** (`users/{uid}/history/{syncId}`) — każdy wiersz ma stabilny `syncId` (UUID),
+   używany jako document id. Merge:
+   - Lokalne → remote: jeśli `remote` nie istnieje LUB `local.updatedAt >= remote.updatedAt`,
+     `set(merge)` lokalnego wiersza.
+   - Remote → local: jeśli `remote.updatedAt > local.updatedAt`, `upsertFromRemote`.
+   - Usuwanie: lokalne wiersze, których `syncId` zniknął z remote (tylko gdy remote niepuste,
+     by nie wyczyścić danych przy błędzie odczytu).
+3. **TTS Pro** (`app_config/tts`) — przez `TtsConfigSync`.
+
+**Schemat Room (wersja 2, migracja MIGRATION_1_2):**
+- `translation_history`: dodano kolumny `syncId TEXT`, `updatedAt INTEGER` (domyślnie puste/0
+  dla starych wierszy).
+- nowa tabela `tts_config` (id, apiKey, defaultModelId, chineseModelId, defaultVoice, chineseVoice, updatedAt).
+- `HistoryDao`: `insert`, `update`, `getBySyncId`, `upsertBySyncId`, `deleteById`, `deleteBySyncId`, `clearAll`.
+- `TranslationHistory.create()` generuje `syncId` (UUID) + `updatedAt` (teraz).
+
+**Filter logcat:** `SyncManager`.
+
+---
+
+## 📦 Auto-aktualizacja APK
+
+`UpdateManager` + dialog w `MainActivity` (`UpdatePromptHost`). Po starcie (raz, `LaunchedEffect`)
+odczytuje `app_config/update` z Firestore:
+```
+{
+  "versionCode": 2,
+  "versionName": "1.0.1",
+  "apkUrl": "https://github.com/ihletru/verbigem_android/releases/download/v1.0.1/app-debug-v2.apk",
+  "playStoreUrl": "https://play.google.com/store/apps/details?id=com.verbigem.app",
+  "onPlayStore": false,
+  "minSupportedCode": 1
+}
+```
+Jeśli `info.versionCode > currentVersionCode()` → `AlertDialog` (stringi: `update_available_title`,
+`update_available_body`, `update_action`, `update_later`).
+
+**Ścieżki:**
+- `onPlayStore == false` (AKTYWNA): `downloadAndInstall()` → `DownloadManager` pobiera APK
+  do `getExternalFilesDir(DIRECTORY_DOWNLOADS)` → po `ACTION_DOWNLOAD_COMPLETE` instalacja
+  przez `Intent.ACTION_INSTALL_PACKAGE` + `FileProvider` (`${packageName}.fileprovider`,
+  ścieżka w `res/xml/file_paths.xml`). Wymaga uprawnienia `REQUEST_INSTALL_PACKAGES`.
+- `onPlayStore == true` (po rejestracji w Google Play): `openPlayStore()` → otwiera sklep.
+
+**Wymagane w manifestcie:** `REQUEST_INSTALL_PACKAGES`, `<provider>` FileProvider z
+`android:authorities="${applicationId}.fileprovider"`.
+
+**Filter logcat:** `UpdateManager`.
+
+---
+
 ## 🌍 Wielojęzyczność — ZAKAZ hardkodowania tekstów UI
 
 Aplikacja jest **wielojęzyczna** (PL, EN, DE, ES, ZH, TR). **Pod karą nie wolno** hardkodować
@@ -187,6 +274,25 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
    `context.getString(R.string.xxx)` — **nie** dosłowny string w kodzie.
 5. Po dodaniu nowego `string` do `values/strings.xml` **należy** dodać go do wszystkich
    pozostałych `values-xx/strings.xml` (nawet jeśli to tymczasowy angielski fallback).
+6. Klucze akcji historii/result: `action_copy`, `action_share`, `action_read`, `action_read_pro`,
+   `action_delete`. Dialog update: `update_available_title/body/action/later`. Reklama: `ad_banner_label/text`.
+
+---
+
+## 🔥 Firebase — konfiguracja projektu
+
+- **Projekt Firebase:** `mini-verbigem` (project_number `1064156518963`, zgodne z
+  `app/google-services.json` → `mobilesdk_app_id` `1:1064156518963:...`).
+- **Package:** `com.verbigem.app`.
+- **Kolekcje Firestore:**
+  - `users/{uid}` — profil (`UserProfile`: plan, walletCreditsCents, uiLang, speakLang*, ...).
+  - `users/{uid}/history/{syncId}` — historia tłumaczeń (sync, last-write-wins).
+  - `users/{uid}/friendships`, `chats/{chatId}/messages` — czat/kontakty.
+  - `app_config/tts` — konfiguracja TTS Pro (modele OpenRouter + apiKey).
+  - `app_config/update` — metadane auto-update (versionCode, apkUrl, onPlayStore).
+- **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:
+  `firebase firestore:set` NIE istnieje w tym CLI — użyto Firestore REST API (Node.js) z
+  tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
 
 ---
 
@@ -199,3 +305,18 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
    ```bash
    ./gradlew assembleDebug
    ```
+
+**Build (Windows, bash):** JDK 21 w `C:/Users/milo/.jdks/jbr-21.0.11` (ustaw `JAVA_HOME`).
+Natywny build NDK (~2–3 min) kompiluje `libverbigem_llama.so` (Release + KleidiAI + Vulkan).
+
+### Flow wydania (auto-update end-to-end)
+1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`.
+2. `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
+3. `gh release create vX.Y.Z app-debug.apk` (repo `ihletru/verbigem_android`, prywatne).
+4. Zaktualizować `app_config/update` w Firestore: `versionCode` + `apkUrl`
+   (`https://github.com/ihletru/verbigem_android/releases/download/vX.Y.Z/app-debug.apk`).
+5. Test: zainstaluj starszy APK (niższy versionCode) → otwórz → dialog update → pobierz nowy.
+
+**Repozytorium git:** `https://github.com/ihletru/verbigem_android` (branch `master`, prywatne).
+`.gitignore` wyklucza: `build/`, `llama_master/`, `*.gguf`, `model_probe/`, `build_log*`,
+`crash_log*`, `app-debug-v2.apk`, `local.properties`.
