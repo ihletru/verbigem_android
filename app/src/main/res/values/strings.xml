@@ -85,6 +85,7 @@
 
     <!-- OCR -->
     <string name="ocr_title">Camera OCR</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">Snap a sign, menu or label — the engine recognizes text offline and translates it instantly.</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
@@ -111,6 +112,8 @@
     <string name="engine_both_desc">Compare both local models side by side (fast vs accurate).</string>
     <string name="engine_online_desc">Online API translation — requires internet connection (Pro feature).</string>
     <string name="pro_only">Pro only</string>
+    <string name="pro_feature_tooltip">Available in the Pro version</string>
+    <string name="ocr_pro_coming_soon">OCR Pro coming soon</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">Download the Fast model</string>

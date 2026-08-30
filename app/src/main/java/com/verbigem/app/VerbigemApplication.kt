@@ -4,10 +4,13 @@ import android.app.Application
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.verbigem.app.data.ConnectivityObserver
 import com.verbigem.app.data.repository.SyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
 class VerbigemApplication : Application() {
@@ -35,6 +38,25 @@ class VerbigemApplication : Application() {
                     }
                 }
             }
+        }
+
+        // Reactive sync: whenever the device (re)gains internet, push/pull immediately so offline
+        // edits (additions/deletions queued in pending_deletes) propagate without an app restart.
+        val connectivity = ConnectivityObserver(this)
+        appScope.launch {
+            connectivity.isOnline
+                .distinctUntilChanged()
+                .filter { it } // only act when we go online
+                .collect {
+                    val uid = FirebaseAuth.getInstance().currentUser?.uid
+                    if (uid != null) {
+                        try {
+                            SyncManager(this@VerbigemApplication).syncNow(uid)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Connectivity sync failed", e)
+                        }
+                    }
+                }
         }
     }
 

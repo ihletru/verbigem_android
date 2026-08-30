@@ -11,7 +11,11 @@ import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.verbigem.app.R
+import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.model.TranslationHistory
+import com.verbigem.app.data.repository.HistoryRepository
+import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.OcrManager
 import com.verbigem.app.engine.SpeechManager
@@ -26,9 +30,20 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     private val ocrManager = OcrManager(application)
     private val hyMt2Engine = HyMt2NativeEngine(application)
     private val speechManager = SpeechManager(application)
+    private val historyRepository = HistoryRepository(
+        AppDatabase.getInstance(appContext).historyDao(),
+        AppDatabase.getInstance(appContext).pendingDeleteDao()
+    )
+
+    private val _historyList = MutableStateFlow<List<TranslationHistory>>(emptyList())
+    val historyList: StateFlow<List<TranslationHistory>> = _historyList.asStateFlow()
+
     init {
         speechManager.onSpeakingStateChanged = { speaking ->
             _isSpeaking.value = speaking
+        }
+        viewModelScope.launch {
+            historyRepository.allHistory.collect { _historyList.value = it }
         }
     }
 
@@ -135,10 +150,22 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val translation = hyMt2Engine.translate(text, LangCode.EN, LangCode.PL)
                 _translatedText.value = translation
+                addHistory(text, translation)
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Translation error"
             } finally {
                 _isProcessing.value = false
+            }
+        }
+    }
+
+    private fun addHistory(sourceText: String, translatedText: String) {
+        viewModelScope.launch {
+            historyRepository.addHistory(sourceText, translatedText, "EN", "PL")
+            try {
+                SyncManager(appContext).syncNow()
+            } catch (_: Exception) {
+                // Offline: pushed on next connectivity-driven sync.
             }
         }
     }
@@ -182,6 +209,17 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearCrop() {
         _cropRect.value = null
+    }
+
+    fun deleteHistory(item: TranslationHistory) {
+        viewModelScope.launch {
+            historyRepository.deleteHistory(item)
+            try {
+                SyncManager(appContext).syncNow()
+            } catch (_: Exception) {
+                // Offline: tombstone stays queued in pending_deletes.
+            }
+        }
     }
 
     /** Run OCR for the FIRST time, on the already-cropped bitmap returned by the crop library. */

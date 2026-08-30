@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -61,6 +62,7 @@ import com.verbigem.app.ui.components.EnginePicker
 import com.verbigem.app.ui.components.FlagIcon
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.components.ModelDownloadDialog
+import com.verbigem.app.ui.components.ProFeatureButton
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -90,7 +92,8 @@ fun TranslatorScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
-            .padding(16.dp),
+            .padding(16.dp)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
@@ -191,7 +194,7 @@ fun TranslatorScreen(
                                 focusRequester.requestFocus()
                             }) {
                                 Icon(
-                                    imageVector = Icons.Default.Clear,
+                                    imageVector = Icons.Default.Delete,
                                     contentDescription = stringResource(R.string.action_delete),
                                     tint = VerbigemTheme.colors.danger
                                 )
@@ -412,7 +415,7 @@ fun HistoryCard(
                     Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.action_read), tint = VerbigemTheme.colors.accent)
                 }
             }
-            // Czytaj Pro (płatne API — tylko dla Pro)
+            // Czytaj Pro (płatne API — dla Pro aktywne, dla free szare + tooltip)
             if (isPro) {
                 IconButton(onClick = onReadPro, modifier = Modifier.size(32.dp)) {
                     if (isSpeakingPro) {
@@ -421,6 +424,14 @@ fun HistoryCard(
                         Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
                     }
                 }
+            } else {
+                ProFeatureButton(
+                    icon = Icons.Default.Star,
+                    contentDescription = stringResource(R.string.action_read_pro),
+                    isPro = false,
+                    onProClick = {},
+                    modifier = Modifier.size(32.dp)
+                )
             }
             // Skasuj z historii
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
@@ -490,9 +501,17 @@ fun ResultCard(
                         Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
                     }
                 }
+            } else {
+                ProFeatureButton(
+                    icon = Icons.Default.Star,
+                    contentDescription = stringResource(R.string.action_read_pro),
+                    isPro = false,
+                    onProClick = {},
+                    modifier = Modifier.size(32.dp)
+                )
             }
             IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }
         }
 

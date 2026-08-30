@@ -85,6 +85,7 @@
 
     <!-- OCR -->
     <string name="ocr_title">OCR z aparatu</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">Zrób zdjęcie szyldu, menu lub etykiety — silnik rozpozna tekst offline i natychmiast go przetłumaczy.</string>
     <string name="camera">Aparat</string>
     <string name="gallery">Galeria</string>
@@ -111,6 +112,8 @@
     <string name="engine_both_desc">Porównaj oba lokalne modele obok siebie (szybki vs dokładny).</string>
     <string name="engine_online_desc">Tłumaczenie przez API online — wymaga internetu (funkcja Pro).</string>
     <string name="pro_only">tylko w wersji Pro</string>
+    <string name="pro_feature_tooltip">Dostępne w wersji Pro</string>
+    <string name="ocr_pro_coming_soon">OCR Pro wkrótce</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">Pobierz model Szybki</string>

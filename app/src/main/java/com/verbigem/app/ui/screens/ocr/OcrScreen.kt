@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,11 +32,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import com.verbigem.app.data.model.TranslationHistory
+import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.ui.components.FlagIcon
+import com.verbigem.app.ui.components.ProFeatureButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -66,7 +75,8 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
 fun OcrScreen(
-    viewModel: OcrViewModel
+    viewModel: OcrViewModel,
+    isPro: Boolean
 ) {
     val context = LocalContext.current
     val recognizedText by viewModel.recognizedText.collectAsState()
@@ -76,6 +86,7 @@ fun OcrScreen(
     val selectedBitmap by viewModel.selectedBitmap.collectAsState()
     val isSpeaking by viewModel.isSpeaking.collectAsState()
     val cropRect by viewModel.cropRectFlow.collectAsState()
+    val historyList by viewModel.historyList.collectAsState()
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
@@ -160,6 +171,16 @@ fun OcrScreen(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.gallery), color = VerbigemTheme.colors.ink, fontSize = 14.sp)
             }
+
+            // OCR Pro — always visible; inactive for free users (shows a "coming soon / Pro" tooltip).
+            ProFeatureButton(
+                icon = Icons.Default.CameraAlt,
+                contentDescription = stringResource(R.string.ocr_pro),
+                isPro = isPro,
+                onProClick = { /* Pro OCR page coming later */ },
+                modifier = Modifier.size(48.dp),
+                tooltipText = stringResource(R.string.ocr_pro_coming_soon)
+            )
         }
 
         if (selectedBitmap != null) {
@@ -194,7 +215,7 @@ fun OcrScreen(
                     onClick = { viewModel.clearCrop() },
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove), tint = Color.White)
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
                 }
 
                 if (isProcessing) {
@@ -322,5 +343,89 @@ fun OcrScreen(
                 fontSize = 13.sp
             )
         }
+
+        // Historia OCR (jak w tłumaczeniach) — ostatnie wpisy z ikonami akcji.
+        if (historyList.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.recent_translations),
+                color = VerbigemTheme.colors.muted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(historyList.take(8)) { item ->
+                    OcrHistoryItem(
+                        item = item,
+                        onCopy = {
+                            val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clip.setPrimaryClip(ClipData.newPlainText("translation", item.translatedText))
+                            Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
+                        },
+                        onShare = {
+                            val sendIntent = android.content.Intent().apply {
+                                action = android.content.Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(android.content.Intent.EXTRA_TEXT, item.translatedText)
+                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(android.content.Intent.createChooser(sendIntent, context.getString(R.string.action_share)))
+                        },
+                        onRead = { viewModel.speak(item.translatedText) },
+                        onDelete = { viewModel.deleteHistory(item) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OcrHistoryItem(
+    item: TranslationHistory,
+    onCopy: () -> Unit,
+    onShare: () -> Unit,
+    onRead: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(VerbigemTheme.colors.surface)
+            .border(0.5.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            FlagIcon(lang = LangCode.fromCode(item.sourceLang), size = 18.dp)
+            Text("→", color = VerbigemTheme.colors.muted, fontSize = 13.sp)
+            FlagIcon(lang = LangCode.fromCode(item.targetLang), size = 18.dp)
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.action_copy), tint = VerbigemTheme.colors.accent)
+            }
+            IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Share, contentDescription = stringResource(R.string.action_share), tint = VerbigemTheme.colors.accent)
+            }
+            IconButton(onClick = onRead, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.action_read), tint = VerbigemTheme.colors.accent)
+            }
+            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = item.sourceText, color = VerbigemTheme.colors.muted, fontSize = 13.sp)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(text = item.translatedText, color = VerbigemTheme.colors.ink, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
     }
 }

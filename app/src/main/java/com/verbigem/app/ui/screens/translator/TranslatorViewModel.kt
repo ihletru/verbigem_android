@@ -173,7 +173,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         if (_sourceLang.value == _targetLang.value) {
             _primaryResult.value = text
             viewModelScope.launch {
-                historyRepository.addHistory(text, text, _sourceLang.value.code, _targetLang.value.code)
+                addHistoryAndSync(text, text, _sourceLang.value.code, _targetLang.value.code)
             }
             return
         }
@@ -202,14 +202,14 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                             _primaryResult.value = partial
                         }
                         _primaryResult.value = result
-                        historyRepository.addHistory(text, result, _sourceLang.value.code, _targetLang.value.code)
+                        addHistoryAndSync(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.LOCAL_ACCURATE -> {
                         val result = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = true) { partial ->
                             _primaryResult.value = partial
                         }
                         _primaryResult.value = result
-                        historyRepository.addHistory(text, result, _sourceLang.value.code, _targetLang.value.code)
+                        addHistoryAndSync(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.BOTH -> {
                         val resFast = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
@@ -220,12 +220,12 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                         }
                         _primaryResult.value = resFast
                         _secondaryResult.value = resAcc
-                        historyRepository.addHistory(text, resFast, _sourceLang.value.code, _targetLang.value.code)
+                        addHistoryAndSync(text, resFast, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.ONLINE -> {
                         val result = onlineEngine.translate(text, _sourceLang.value, _targetLang.value)
                         _primaryResult.value = result
-                        historyRepository.addHistory(text, result, _sourceLang.value.code, _targetLang.value.code)
+                        addHistoryAndSync(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }
                 }
             } catch (e: Exception) {
@@ -270,6 +270,21 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             } catch (_: Exception) {
                 // Offline or transient failure: the tombstone stays queued in pending_deletes
                 // and will be pushed on the next successful sync.
+            }
+        }
+    }
+
+    /**
+     * Adds a history row locally and triggers a Firestore sync (when online) so the new translation
+     * propagates to other devices without waiting for the next app restart.
+     */
+    private fun addHistoryAndSync(sourceText: String, translatedText: String, sourceLang: String, targetLang: String) {
+        viewModelScope.launch {
+            historyRepository.addHistory(sourceText, translatedText, sourceLang, targetLang)
+            try {
+                syncManager.syncNow()
+            } catch (_: Exception) {
+                // Offline: the row will be pushed on the next connectivity-driven sync.
             }
         }
     }

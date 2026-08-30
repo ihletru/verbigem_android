@@ -78,6 +78,7 @@
     <string name="decline">Rechazar</string>
 
     <string name="ocr_title">OCR de cámara</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">Haz una foto de un cartel, menú o etiqueta — el motor reconoce el texto sin conexión y lo traduce al instante.</string>
     <string name="camera">Cámara</string>
     <string name="gallery">Galería</string>
@@ -104,6 +105,8 @@
     <string name="engine_both_desc">Compara ambos modelos locales uno al lado del otro (rápido vs. preciso).</string>
     <string name="engine_online_desc">Traducción por API en línea — requiere conexión a internet (función Pro).</string>
     <string name="pro_only">solo Pro</string>
+    <string name="pro_feature_tooltip">Disponible en la versión Pro</string>
+    <string name="ocr_pro_coming_soon">OCR Pro próximamente</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">Descargar el modelo Rápido</string>

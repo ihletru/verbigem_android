@@ -50,11 +50,15 @@ fun AppNavigation(
 
     val showBottomNav = currentRoute in listOf(
         Screen.Translator.route,
+        Screen.Ocr.route,
         Screen.Conversation.route,
         Screen.Chat.route,
         Screen.Contacts.route,
         Screen.Profile.route
     )
+
+    // Shared Pro flag, updated once FirebaseAuth restores the session and the profile is read.
+    var isPro by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -97,7 +101,6 @@ fun AppNavigation(
                 composable(Screen.Translator.route) {
                     val translatorViewModel: TranslatorViewModel = viewModel()
                     val context = LocalContext.current
-                    var isPro by remember { mutableStateOf(false) }
                     // Key the effect on the signed-in uid so it (re)fires once FirebaseAuth has
                     // restored the session — at first composition currentUser is often still null.
                     val uid = authRepository.currentUser?.uid
@@ -145,7 +148,7 @@ fun AppNavigation(
 
                 composable(Screen.Ocr.route) {
                     val ocrViewModel: OcrViewModel = viewModel()
-                    OcrScreen(viewModel = ocrViewModel)
+                    OcrScreen(viewModel = ocrViewModel, isPro = isPro)
                 }
 
                 composable(Screen.Profile.route) {

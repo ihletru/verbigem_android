@@ -78,6 +78,7 @@
     <string name="decline">拒绝</string>
 
     <string name="ocr_title">相机 OCR</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">拍下招牌、菜单或标签——引擎离线识别文字并立即翻译。</string>
     <string name="camera">相机</string>
     <string name="gallery">相册</string>
@@ -104,6 +105,8 @@
     <string name="engine_both_desc">并排比较两种本地模型（快速 vs 准确）。</string>
     <string name="engine_online_desc">在线 API 翻译 — 需要联网（Pro 功能）。</string>
     <string name="pro_only">仅 Pro</string>
+    <string name="pro_feature_tooltip">Pro 版可用</string>
+    <string name="ocr_pro_coming_soon">OCR Pro 即将推出</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">下载快速模型</string>

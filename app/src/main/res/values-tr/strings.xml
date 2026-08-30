@@ -78,6 +78,7 @@
     <string name="decline">Reddet</string>
 
     <string name="ocr_title">Kamera OCR</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">Bir tabela, menü veya etiket fotoğrafı çek — motor metni çevrimdışı tanır ve anında çevirir.</string>
     <string name="camera">Kamera</string>
     <string name="gallery">Galeri</string>
@@ -104,6 +105,8 @@
     <string name="engine_both_desc">Her iki yerel modeli yan yana karşılaştırın (hızlı ve doğru).</string>
     <string name="engine_online_desc">Çevrimiçi API çevirisi — internet bağlantısı gerektirir (Pro özelliği).</string>
     <string name="pro_only">yalnızca Pro</string>
+    <string name="pro_feature_tooltip">Pro sürümünde mevcut</string>
+    <string name="ocr_pro_coming_soon">OCR Pro yakında</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">Hızlı modeli indir</string>

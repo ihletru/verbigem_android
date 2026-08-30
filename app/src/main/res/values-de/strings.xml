@@ -78,6 +78,7 @@
     <string name="decline">Ablehnen</string>
 
     <string name="ocr_title">Kamera-OCR</string>
+    <string name="ocr_pro">OCR Pro</string>
     <string name="ocr_subtitle">Mach ein Foto von einem Schild, Menü oder Etikett — die Engine erkennt Text offline und übersetzt ihn sofort.</string>
     <string name="camera">Kamera</string>
     <string name="gallery">Galerie</string>
@@ -104,6 +105,8 @@
     <string name="engine_both_desc">Vergleiche beide lokalen Modelle nebeneinander (schnell vs. genau).</string>
     <string name="engine_online_desc">Online-API-Übersetzung — benötigt Internetverbindung (Pro-Funktion).</string>
     <string name="pro_only">nur Pro</string>
+    <string name="pro_feature_tooltip">Nur in der Pro-Version</string>
+    <string name="ocr_pro_coming_soon">OCR Pro bald verfügbar</string>
 
     <!-- Model download dialog -->
     <string name="model_download_title">Schnelles Modell herunterladen</string>
