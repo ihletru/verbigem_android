@@ -243,16 +243,26 @@ Jeśli `info.versionCode > currentVersionCode()` → `AlertDialog` (stringi: `up
 `update_available_body`, `update_action`, `update_later`).
 
 **Ścieżki:**
-- `onPlayStore == false` (AKTYWNA): `downloadAndInstall()` → `DownloadManager` pobiera APK
-  do `getExternalFilesDir(DIRECTORY_DOWNLOADS)` → po `ACTION_DOWNLOAD_COMPLETE` instalacja
-  przez `Intent.ACTION_INSTALL_PACKAGE` + `FileProvider` (`${packageName}.fileprovider`,
-  ścieżka w `res/xml/file_paths.xml`). Wymaga uprawnienia `REQUEST_INSTALL_PACKAGES`.
+- `onPlayStore == false` (AKTYWNA): `downloadAndInstall()` pobiera APK przez **OkHttp**
+  (nie DownloadManager) asynchronicznie na `Dispatchers.IO` (sieć + zapis do pliku NIE mogą
+  być na głównym wątku — inaczej `NetworkOnMainThreadException` od StrictMode).
+  - Kluczowy nagłówek: `Accept: application/octet-stream` — GitHub Releases bez niego zwraca
+    stronę HTML zamiast binarki (a DownloadManager/OkHttp widzą 404/zły content).
+  - Po pobraniu (weryfikacja: `length >= 1 MB`, by odrzucić przypadkowy HTML) → instalacja
+    przez `Intent.ACTION_INSTALL_PACKAGE` + `FileProvider` (`${packageName}.fileprovider`,
+    ścieżka w `res/xml/file_paths.xml`). Wymaga uprawnienia `REQUEST_INSTALL_PACKAGES`.
+  - **Repo GitHub MUSI być publiczne** — asset z prywatnego repo zwraca 404 bez tokena,
+    więc auto-update nie zadziała. (Projekt `ihletru/verbigem_android` jest publiczny.)
 - `onPlayStore == true` (po rejestracji w Google Play): `openPlayStore()` → otwiera sklep.
 
 **Wymagane w manifestcie:** `REQUEST_INSTALL_PACKAGES`, `<provider>` FileProvider z
 `android:authorities="${applicationId}.fileprovider"`.
 
-**Filter logcat:** `UpdateManager`.
+**Wymagane reguły Firestore** (`firestore.rules` w repo, deploy przez `firebase deploy --only firestore:rules`):
+`match /app_config/{doc} { allow read: if true; allow write: if false; }` — app czyta
+metadane update PRZED loginem, więc read publiczny; zapis tylko przez Console/admina.
+
+**Filter logcat:** `UpdateManager` (logi: `Starting APK download`, `Download started/finished`, `Install launch failed`).
 
 ---
 
@@ -293,6 +303,13 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
 - **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:
   `firebase firestore:set` NIE istnieje w tym CLI — użyto Firestore REST API (Node.js) z
   tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
+- **Reguły dostępu (`firestore.rules` w repo):** deploy przez
+  `firebase deploy --only firestore:rules --project mini-verbigem`. Wymagane reguły dla
+  auto-update i TTS: `match /app_config/{doc} { allow read: if true; allow write: if false; }`
+  (app czyta `app_config/update` i `app_config/tts` PRZED loginem). Bez tego dokumenty są
+  blokowane (`PERMISSION_DENIED`) i app nie wykrywa update'u ani nie pobiera konfiguracji TTS.
+- **Pliki konfiguracyjne w repo:** `firebase.json` (wskazuje `firestore.rules`), `.firebaserc`
+  (projekt `mini-verbigem`).
 
 ---
 
