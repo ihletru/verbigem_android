@@ -1,7 +1,7 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.2",
-  "apkUrl": "https://github.com/ihletru/verbigem_android/releases/download/v1.0.2/app-debug-v3.apk",
+  "versionCode": 4,
+  "versionName": "1.0.3",
+  "apkUrl": "https://github.com/ihletru/verbigem_android/releases/download/v1.0.3/app-debug-v4.apk",
   "playStoreUrl": "https://play.google.com/store/apps/details?id=com.verbigem.app",
   "onPlayStore": false,
   "minSupportedCode": 1

@@ -106,6 +106,7 @@
     <string name="engine_online_desc">在线 API 翻译 — 需要联网（Pro 功能）。</string>
     <string name="pro_only">仅 Pro</string>
     <string name="pro_feature_tooltip">Pro 版可用</string>
+    <string name="pro_speaker_tooltip">仅 Pro — 更高音质</string>
     <string name="ocr_pro_coming_soon">OCR Pro 即将推出</string>
 
     <!-- Model download dialog -->

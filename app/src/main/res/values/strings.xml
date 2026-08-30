@@ -113,6 +113,7 @@
     <string name="engine_online_desc">Online API translation — requires internet connection (Pro feature).</string>
     <string name="pro_only">Pro only</string>
     <string name="pro_feature_tooltip">Available in the Pro version</string>
+    <string name="pro_speaker_tooltip">Pro only — higher-quality voice</string>
     <string name="ocr_pro_coming_soon">OCR Pro coming soon</string>
 
     <!-- Model download dialog -->

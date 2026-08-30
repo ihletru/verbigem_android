@@ -1,7 +1,9 @@
 package com.verbigem.app.ui.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -11,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +40,7 @@ import com.verbigem.app.ui.screens.profile.ProfileViewModel
 import com.verbigem.app.ui.screens.translator.TranslatorScreen
 import com.verbigem.app.ui.screens.translator.TranslatorViewModel
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
@@ -62,7 +66,7 @@ fun AppNavigation(
 
     Scaffold(
         bottomBar = {
-            if (showBottomNav) {
+            if (showBottomNav && !WindowInsets.isImeVisible) {
                 BottomNav(
                     currentRoute = currentRoute,
                     onNavigate = { route ->

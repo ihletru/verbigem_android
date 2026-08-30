@@ -157,10 +157,11 @@ fun TranslatorScreen(
                     isPro = isPro
                 )
 
-                // Przycisk skrótu OCR
+                // Przyciski skrótów OCR: darmowy (przejście do ekranu OCR) + Pro (nieaktywny dla free, tooltip)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
                         onClick = onNavigateToOcr,
@@ -180,6 +181,15 @@ fun TranslatorScreen(
                             fontSize = 13.sp
                         )
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    ProFeatureButton(
+                        icon = Icons.Default.CameraAlt,
+                        contentDescription = stringResource(R.string.ocr_pro),
+                        isPro = isPro,
+                        onProClick = { /* Pro OCR page coming later */ },
+                        modifier = Modifier.size(32.dp),
+                        tooltipText = stringResource(R.string.ocr_pro_coming_soon)
+                    )
                 }
 
                 // Pole wprowadzania tekstu
@@ -426,11 +436,12 @@ fun HistoryCard(
                 }
             } else {
                 ProFeatureButton(
-                    icon = Icons.Default.Star,
+                    icon = Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = stringResource(R.string.action_read_pro),
                     isPro = false,
                     onProClick = {},
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
                 )
             }
             // Skasuj z historii
@@ -503,11 +514,12 @@ fun ResultCard(
                 }
             } else {
                 ProFeatureButton(
-                    icon = Icons.Default.Star,
+                    icon = Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = stringResource(R.string.action_read_pro),
                     isPro = false,
                     onProClick = {},
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
                 )
             }
             IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {

@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import org.json.JSONObject
 
 /**
  * Self-update controller.
@@ -49,8 +50,50 @@ class UpdateManager(private val context: Context) {
 
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    /** Reads the release metadata from Firestore. Returns null if unavailable. */
+    /**
+     * Release metadata source. Primary: a public JSON file in the GitHub repo (no auth/token needed,
+     * always reachable). Fallback: Firestore `app_config/update` (in case the repo file is missing).
+     */
+    private val updateJsonUrl =
+        "https://raw.githubusercontent.com/ihletru/verbigem_android/master/app_config_update.json"
+
+    /** Reads the release metadata. Tries the public GitHub JSON first, then Firestore. */
     suspend fun fetchUpdateInfo(): UpdateInfo? {
+        val fromGitHub = fetchFromGitHub()
+        if (fromGitHub != null) return fromGitHub
+        return fetchFromFirestore()
+    }
+
+    private suspend fun fetchFromGitHub(): UpdateInfo? {
+        return try {
+            val client = OkHttpClient.Builder().build()
+            val request = Request.Builder().url(updateJsonUrl).build()
+            val resp = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+            if (!resp.isSuccessful) {
+                Log.w(TAG, "GitHub update JSON unavailable (HTTP ${resp.code})")
+                return null
+            }
+            val json = resp.body?.string() ?: return null
+            parseUpdateInfo(json)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to read update info from GitHub", e)
+            null
+        }
+    }
+
+    private fun parseUpdateInfo(json: String): UpdateInfo? {
+        // Minimal JSON parse without extra deps (org.json is on the Android classpath).
+        val obj = org.json.JSONObject(json)
+        return UpdateInfo(
+            versionCode = obj.optLong("versionCode", 0L),
+            versionName = obj.optString("versionName", ""),
+            apkUrl = obj.optString("apkUrl", ""),
+            playStoreUrl = obj.optString("playStoreUrl", ""),
+            onPlayStore = obj.optBoolean("onPlayStore", false)
+        )
+    }
+
+    private suspend fun fetchFromFirestore(): UpdateInfo? {
         return try {
             val snap = firestore.collection("app_config").document("update").get().await()
             if (!snap.exists()) return null
@@ -62,7 +105,7 @@ class UpdateManager(private val context: Context) {
                 onPlayStore = snap.getBoolean("onPlayStore") ?: false
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to read update info", e)
+            Log.e(TAG, "Failed to read update info from Firestore", e)
             null
         }
     }

@@ -106,6 +106,7 @@
     <string name="engine_online_desc">Çevrimiçi API çevirisi — internet bağlantısı gerektirir (Pro özelliği).</string>
     <string name="pro_only">yalnızca Pro</string>
     <string name="pro_feature_tooltip">Pro sürümünde mevcut</string>
+    <string name="pro_speaker_tooltip">Yalnızca Pro — daha iyi ses kalitesi</string>
     <string name="ocr_pro_coming_soon">OCR Pro yakında</string>
 
     <!-- Model download dialog -->

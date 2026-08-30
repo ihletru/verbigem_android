@@ -171,16 +171,6 @@ fun OcrScreen(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(stringResource(R.string.gallery), color = VerbigemTheme.colors.ink, fontSize = 14.sp)
             }
-
-            // OCR Pro — always visible; inactive for free users (shows a "coming soon / Pro" tooltip).
-            ProFeatureButton(
-                icon = Icons.Default.CameraAlt,
-                contentDescription = stringResource(R.string.ocr_pro),
-                isPro = isPro,
-                onProClick = { /* Pro OCR page coming later */ },
-                modifier = Modifier.size(48.dp),
-                tooltipText = stringResource(R.string.ocr_pro_coming_soon)
-            )
         }
 
         if (selectedBitmap != null) {
