@@ -69,6 +69,16 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`lingua-line/mini`).
      - Ramka domyślna: 0.1–0.9 (prawie całe zdjęcie); użytkownik zacieśnia do tekstu.
    - **UWAGA:** zachowanie gestów (łapanie rogów + scroll) weryfikuje się TYLKO na telefonie
      po zainstalowaniu APK — build to nie to samo co działający UX.
+   - **OCR Pro (💎):** obok przycisków Aparat/Galeria widoczny jest przycisk **OCR Pro** (ikona
+     aparatu). Dla free-userów jest wyszarzony i po kliknięciu pokazuje tooltip
+     "OCR Pro wkrótce" (`ocr_pro_coming_soon`, 6 języków) — strona Pro powstaje później.
+     Komponent: `ProFeatureButton` (współdzielony z głośnikiem Pro).
+   - **Historia OCR:** ekran OCR ma teraz sekcję ostatnich tłumaczeń (jak w Translatorze) —
+     `OcrViewModel` trzyma `historyList` (Flow z Room) i zapisuje każde przetłumaczone OCR
+     (`addHistory` + sync). Każdy wiersz ma akcje: kopiuj, udostępnij, czytaj (offline), skasuj
+     (tombstone + sync, jak w Translatorze). Komponent: `OcrHistoryItem` w `OcrScreen.kt`.
+   - OCR ma teraz **BottomNav menu** (dodany `Screen.Ocr.route` do `showBottomNav` w `AppNavigation`),
+     więc użytkownik może przejść do niego z innych ekranów i wrócić.
 
 6. **Profil i Design System**:
    - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**.
@@ -89,9 +99,10 @@ app/src/main/
 │   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
 ├── java/com/verbigem/app/
 │   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose + dialog auto-update
-│   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager)
+│   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager) + reaktywny sync (ConnectivityObserver)
 │   ├── data/
-│   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao, TtsConfigEntity, TtsConfigDao) + DataStore Preferences
+│   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline (trigger sync na włączenie netu)
+│   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao, TtsConfigEntity, TtsConfigDao, PendingDeleteEntity, PendingDeleteDao) + DataStore Preferences
 │   │   ├── model/                  # LangCode, UserProfile, ChatMessage, Friendship, EngineChoice, TranslationHistory, TtsConfig
 │   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository, ProTtsRepository, SyncManager, TtsConfigSync
 │   ├── engine/
@@ -105,7 +116,7 @@ app/src/main/
 │   ├── jni/
 │   │   └── LlamaNativeBridge.kt    # JNI deklaracje external fun
 │   └── ui/
-│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView
+│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView, ProFeatureButton (Pro+grayscale+tooltip)
 │       ├── navigation/             # AppNavigation, Screen
 │       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatScreen, ContactsScreen, OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
@@ -176,6 +187,13 @@ TranslatorScreen  —  Text() z nowym wyrazem (recompose, bez migotania)
 Funkcja dostępna tylko dla użytkowników Pro (`UserProfile.isPro`). Zamiast darmowego
 `TextToSpeech` (offline) używa chmurowego API OpenRouter (`/v1/audio/speech`).
 
+**Widoczność dla free:** ikona głośnika Pro (💎) jest **zawsze wyświetlana** — użytkownicy free widzą
+ją wyszarzoną (kolor `muted`) i po kliknięciu dostają **tooltip** ("Dostępne w wersji Pro",
+string `pro_feature_tooltip` we wszystkich 6 językach) zamiast odtwarzania. To uświadamia free-userom
+istnienie funkcji. Dla Pro ikona jest aktywna (kolor `accent`) i odpala `ProTtsEngine`.
+Komponent współdzielony: `ui/components/ProFeatureButton.kt` (`TooltipBox` + `PlainTooltip`,
+`ExperimentalMaterial3Api`) — używany też przez OCR Pro.
+
 **Komponenty:**
 - `ProTtsEngine.speak(text, lang, config)` — wysyła POST do `https://openrouter.ai/api/v1/audio/speech`
   z `model`, `input`, `voice`, `response_format=mp3`; odtwarza zwrócony mp3 przez `MediaPlayer`.
@@ -225,6 +243,18 @@ Dzięki temu:
 
 Sync jest też wyzwalany **natychmiast po każdym usunięciu** w `TranslatorViewModel.deleteHistory`
 (gdy online) — tombstone wychodzi bez czekania na restart app.
+
+**Reaktywny sync (od wersji 1.0.1):** sync nie czeka już na restart app. Dwa dodatkowe triggery:
+- **Po każdej zmianie historii** — `TranslatorViewModel.addHistoryAndSync()` (wrap `historyRepository.addHistory`)
+  oraz `OcrViewModel.addHistory()` odpalają `SyncManager.syncNow()` zaraz po zapisie lokalnym, więc
+  nowe tłumaczenie/OCR trafia do chmury bez czekania na zamknięcie app.
+- **Na włączenie sieci** — `ConnectivityObserver` (`data/ConnectivityObserver.kt`, `callbackFlow` na
+  `NetworkCallback`) nasłuchuje `onAvailable`. `VerbigemApplication` subskrybuje `isOnline` i na
+  przejściu `false→true` wywołuje `SyncManager.syncNow(uid)`. Dzięki temu offline-edits (dodania i
+  tombstone'y z `pending_deletes`) wylatują do Firestore w momencie odzyskania netu — rozwiązuje
+  scenariusz "telefon + tablet pracują offline, po połączeniu tylko jedna historia się wgrała".
+- Startup sync pozostaje (AuthStateListener w `VerbigemApplication` + `LaunchedEffect(uid)` w
+  `AppNavigation`) jako fallback dla zimnego startu.
 
 **Schemat Room (wersja 3, migracja MIGRATION_2_3):**
 - v2→v3: nowa tabela `pending_deletes` (`syncId TEXT PK`, `updatedAt INTEGER`) — kolejka tombstone'ów.
