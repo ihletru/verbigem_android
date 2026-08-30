@@ -47,3 +47,7 @@ composer-images/
 
 # Vendored llama.cpp (pobierany przez scripts/fetch_llama.sh)
 app/src/main/cpp/llama.cpp/
+
+# Firebase config (rules contain schema/security detail — keep local only, not in public repo)
+firestore.rules
+firebase.json
