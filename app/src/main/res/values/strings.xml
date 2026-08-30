@@ -93,4 +93,50 @@
     <string name="recognized_text">RECOGNIZED TEXT:</string>
     <string name="ocr_translation">TRANSLATION (Hy-MT2):</string>
     <string name="copied">Copied</string>
+    <string name="ocr_permission_denied">Camera permission denied. Enable it in app settings.</string>
+    <string name="ocr_crop_hint">Position the frame over the text, then tap “Read selected area”.</string>
+    <string name="ocr_translate_button">Translate</string>
+    <string name="ocr_read_selected">Read selected area</string>
+    <string name="ocr_no_text">No text to translate — enter or recognize text first.</string>
+    <string name="ocr_error_no_text">No text detected in the image.</string>
+
+    <!-- Engine picker descriptions (tooltips) -->
+    <string name="engine_picker_title">TRANSLATION ENGINE</string>
+    <string name="engine_fast_label">Fast</string>
+    <string name="engine_accurate_label">Slow but accurate ~1.1 GB</string>
+    <string name="engine_both_label">Both (compare)</string>
+    <string name="engine_online_label">Online API</string>
+    <string name="engine_fast_desc">Free offline translator — runs the fast model locally, no internet needed.</string>
+    <string name="engine_accurate_desc">Slow but accurate ~1.1 GB — higher-quality local model for difficult texts.</string>
+    <string name="engine_both_desc">Compare both local models side by side (fast vs accurate).</string>
+    <string name="engine_online_desc">Online API translation — requires internet connection (Pro feature).</string>
+    <string name="pro_only">Pro only</string>
+
+    <!-- Model download dialog -->
+    <string name="model_download_title">Download the Fast model</string>
+    <string name="model_download_body">For native offline translation on your phone, download the Fast model package once (~440 MB). Once downloaded it works 100%% without internet.</string>
+    <string name="download_now">Download now (~440 MB)</string>
+    <string name="downloading_model">Downloading the Fast model: %1$d%%</string>
+    <string name="loading_model_memory">Loading model into memory…</string>
+    <string name="model_ready">✓ The Fast model is ready to use!</string>
+    <string name="retry">Try again</string>
+    <string name="error_with_message">Error: %1$s</string>
+    <string name="model_not_loaded">Model is not loaded. Download the model in the app.</string>
+
+    <!-- Action icons (translator result + history) -->
+    <string name="action_copy">Copy</string>
+    <string name="action_share">Share</string>
+    <string name="action_read">Read aloud (offline)</string>
+    <string name="action_read_pro">Read aloud (Pro)</string>
+    <string name="action_delete">Delete</string>
+
+    <!-- Ad banner (Free users) -->
+    <string name="ad_banner_label">AD</string>
+    <string name="ad_banner_text">Ad space (Free version)</string>
+
+    <!-- Self-update dialog -->
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_body">A new version (%1$s) is available. Update now?</string>
+    <string name="update_action">Update</string>
+    <string name="update_later">Later</string>
 </resources>

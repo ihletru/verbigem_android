@@ -85,5 +85,51 @@
     <string name="remove">Entfernen</string>
     <string name="recognized_text">ERKANNTER TEXT:</string>
     <string name="ocr_translation">ÜBERSETZUNG (Hy-MT2):</string>
+    <string name="ocr_translate_button">Übersetzen</string>
+    <string name="ocr_read_selected">Ausgewählten Bereich lesen</string>
+    <string name="ocr_crop_hint">Rahmen über den Text legen und dann „Ausgewählten Bereich lesen” antippen.</string>
+    <string name="ocr_permission_denied">Kamerazugriff verweigert. In den App-Einstellungen aktivieren.</string>
+    <string name="ocr_no_text">Kein Text zum Übersetzen — zuerst eingeben oder erkennen.</string>
+    <string name="ocr_error_no_text">Kein Text im Bild erkannt.</string>
     <string name="copied">Kopiert</string>
+
+    <!-- Engine picker descriptions (tooltips) -->
+    <string name="engine_picker_title">ÜBERSETZUNGS-ENGINE</string>
+    <string name="engine_fast_label">Schnell</string>
+    <string name="engine_accurate_label">Langsam, aber genau ~1,1 GB</string>
+    <string name="engine_both_label">Beide (vergleichen)</string>
+    <string name="engine_online_label">Online-API</string>
+    <string name="engine_fast_desc">Kostenloser Offline-Übersetzer — nutzt das schnelle Modell lokal, keine Internetverbindung nötig.</string>
+    <string name="engine_accurate_desc">Langsam, aber genau ~1,1 GB — besseres lokales Modell für schwierige Texte.</string>
+    <string name="engine_both_desc">Vergleiche beide lokalen Modelle nebeneinander (schnell vs. genau).</string>
+    <string name="engine_online_desc">Online-API-Übersetzung — benötigt Internetverbindung (Pro-Funktion).</string>
+    <string name="pro_only">nur Pro</string>
+
+    <!-- Model download dialog -->
+    <string name="model_download_title">Schnelles Modell herunterladen</string>
+    <string name="model_download_body">Laden Sie für die native Offline-Übersetzung auf Ihrem Telefon das schnelle Modell-Paket einmal herunter (~440 MB). Danach funktioniert es zu 100%% ohne Internet.</string>
+    <string name="download_now">Jetzt herunterladen (~440 MB)</string>
+    <string name="downloading_model">Schnelles Modell wird heruntergeladen: %1$d%%</string>
+    <string name="loading_model_memory">Modell wird in den Speicher geladen…</string>
+    <string name="model_ready">✓ Das schnelle Modell ist bereit!</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="error_with_message">Fehler: %1$s</string>
+    <string name="model_not_loaded">Modell ist nicht geladen. Laden Sie das Modell in der App herunter.</string>
+
+    <!-- Action icons (translator result + history) -->
+    <string name="action_copy">Kopieren</string>
+    <string name="action_share">Teilen</string>
+    <string name="action_read">Vorlesen (offline)</string>
+    <string name="action_read_pro">Vorlesen (Pro)</string>
+    <string name="action_delete">Löschen</string>
+
+    <!-- Ad banner (Free users) -->
+    <string name="ad_banner_label">WERBUNG</string>
+    <string name="ad_banner_text">Werbeplatz (Free-Version)</string>
+
+    <!-- Self-update dialog -->
+    <string name="update_available_title">Update verfügbar</string>
+    <string name="update_available_body">Eine neue Version (%1$s) ist verfügbar. Jetzt aktualisieren?</string>
+    <string name="update_action">Aktualisieren</string>
+    <string name="update_later">Später</string>
 </resources>

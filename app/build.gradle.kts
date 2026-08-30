@@ -16,16 +16,17 @@ android {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
+        // Only arm64-v8a — STQ1_0 has ARM NEON kernel; x86 emulator is not worth building.
         ndk {
-            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+            abiFilters.addAll(listOf("arm64-v8a"))
         }
 
         externalNativeBuild {
@@ -33,7 +34,16 @@ android {
                 cppFlags += "-std=c++17 -O3 -DNDEBUG"
                 arguments += listOf(
                     "-DANDROID_STL=c++_shared",
-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                    // Build llama.cpp native lib as RELEASE even inside a debuggable APK.
+                    // Debug build compiles ggml with -O0 -> ~20-50x slower inference (0.3 tok/s).
+                    "-DCMAKE_BUILD_TYPE=Release",
+                    // KleidiAI: ARM CPU matrix-mult kernels (FP16/FP32) - big speedup on modern SoCs.
+                    "-DGGML_CPU_KLEIDIAI=ON",
+                    // SPIRV-Headers location (manually extracted, no Vulkan SDK needed)
+                    "-DSPIRV-Headers_DIR=C:/SPIRV-Headers-install/share/cmake/SPIRV-Headers",
+                    // Host toolchain for vulkan-shaders-gen (NDK clang + NDK ninja)
+                    "-DGGML_VULKAN_SHADERS_GEN_TOOLCHAIN=C:/Users/milo/verbigem_android/verbigem-host-toolchain.cmake"
                 )
             }
         }

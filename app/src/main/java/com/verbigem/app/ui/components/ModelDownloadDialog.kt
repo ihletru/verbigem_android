@@ -14,10 +14,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.verbigem.app.R
 import com.verbigem.app.data.model.ModelDownloadState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
@@ -39,7 +41,7 @@ fun ModelDownloadDialog(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "📥 Pobierz model Szybki",
+                    text = stringResource(R.string.model_download_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = VerbigemTheme.colors.ink
@@ -48,7 +50,7 @@ fun ModelDownloadDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Do natywnego tłumaczenia offline na Twoim telefonie pobierz raz pakiet modelu Szybki (~440 MB). Po pobraniu działa w 100% bez internetu.",
+                    text = stringResource(R.string.model_download_body),
                     fontSize = 14.sp,
                     color = VerbigemTheme.colors.muted,
                     lineHeight = 20.sp
@@ -64,12 +66,12 @@ fun ModelDownloadDialog(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Pobierz teraz (~440 MB)", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.download_now), fontWeight = FontWeight.Bold)
                         }
                     }
                     is ModelDownloadState.Downloading -> {
                         Text(
-                            text = "Pobieranie modelu Szybki: ${downloadState.progressPercent}%",
+                            text = stringResource(R.string.downloading_model, downloadState.progressPercent),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = VerbigemTheme.colors.accent
@@ -86,7 +88,7 @@ fun ModelDownloadDialog(
                     }
                     is ModelDownloadState.LoadingToMemory -> {
                         Text(
-                            text = "Ładowanie modelu do pamięci NDK...",
+                            text = stringResource(R.string.loading_model_memory),
                             fontSize = 13.sp,
                             color = VerbigemTheme.colors.accent
                         )
@@ -98,7 +100,7 @@ fun ModelDownloadDialog(
                     }
                     is ModelDownloadState.Ready -> {
                         Text(
-                            text = "✓ Model Szybki jest gotowy do użycia!",
+                            text = stringResource(R.string.model_ready),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = VerbigemTheme.colors.success
@@ -115,7 +117,7 @@ fun ModelDownloadDialog(
                     }
                     is ModelDownloadState.Error -> {
                         Text(
-                            text = "Błąd: ${downloadState.message}",
+                            text = stringResource(R.string.error_with_message, downloadState.message),
                             fontSize = 13.sp,
                             color = VerbigemTheme.colors.danger
                         )
@@ -126,7 +128,7 @@ fun ModelDownloadDialog(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Spróbuj ponownie")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }

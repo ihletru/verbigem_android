@@ -30,12 +30,37 @@ data class Friendship(
 
 data class TranslationHistory(
     val id: Long = 0,
+    // Stable cross-device key (UUID); empty only for pre-sync local rows.
+    val syncId: String = "",
     val sourceText: String,
     val translatedText: String,
     val sourceLang: String,
     val targetLang: String,
-    val timestamp: Long = System.currentTimeMillis()
-)
+    val timestamp: Long = System.currentTimeMillis(),
+    // Last local write time (ms). Drives last-write-wins merge during Firestore sync.
+    val updatedAt: Long = System.currentTimeMillis()
+) {
+    companion object {
+        /** Creates a new history entry with a fresh UUID syncId and current timestamps. */
+        fun create(
+            sourceText: String,
+            translatedText: String,
+            sourceLang: String,
+            targetLang: String
+        ): TranslationHistory {
+            val now = System.currentTimeMillis()
+            return TranslationHistory(
+                syncId = java.util.UUID.randomUUID().toString(),
+                sourceText = sourceText,
+                translatedText = translatedText,
+                sourceLang = sourceLang,
+                targetLang = targetLang,
+                timestamp = now,
+                updatedAt = now
+            )
+        }
+    }
+}
 
 sealed interface ModelDownloadState {
     data object Idle : ModelDownloadState

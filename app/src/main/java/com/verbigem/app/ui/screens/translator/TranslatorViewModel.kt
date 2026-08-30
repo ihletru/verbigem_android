@@ -8,11 +8,14 @@ import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelDownloadState
+import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.repository.HistoryRepository
+import com.verbigem.app.data.repository.ProTtsRepository
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.ModelDownloader
 import com.verbigem.app.engine.OnlineApiEngine
+import com.verbigem.app.engine.ProTtsEngine
 import com.verbigem.app.engine.SpeechManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +32,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     val modelDownloader = ModelDownloader(application)
     val speechManager = SpeechManager(application)
     val onlineEngine = OnlineApiEngine()
+    val proTtsEngine = ProTtsEngine(application)
+    private val proTtsRepository = ProTtsRepository(application)
 
     val historyList: StateFlow<List<TranslationHistory>> = historyRepository.allHistory
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -56,11 +61,23 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isSpeaking = MutableStateFlow(false)
+    val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
+
+    private val _isSpeakingPro = MutableStateFlow(false)
+    val isSpeakingPro: StateFlow<Boolean> = _isSpeakingPro.asStateFlow()
+
+    private val _isPro = MutableStateFlow(false)
+    val isPro: StateFlow<Boolean> = _isPro.asStateFlow()
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     private val _showDownloadDialog = MutableStateFlow(false)
     val showDownloadDialog: StateFlow<Boolean> = _showDownloadDialog.asStateFlow()
+
+    // Cached paid TTS config (OpenRouter). Loaded from Room; refreshed from Firestore on startup.
+    private var ttsConfig: TtsConfig = TtsConfig()
 
     init {
         viewModelScope.launch {
@@ -72,10 +89,41 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             preferencesManager.engineFlow.collect { _engineChoice.value = EngineChoice.fromId(it) }
         }
+        speechManager.onSpeakingStateChanged = { speaking ->
+            _isSpeaking.value = speaking
+        }
+        proTtsEngine.onSpeakingStateChanged = { speaking ->
+            _isSpeakingPro.value = speaking
+        }
+        viewModelScope.launch {
+            ttsConfig = proTtsRepository.getConfig()
+        }
+    }
+
+    /** Called by the navigation layer once the signed-in user's profile is known. */
+    fun setPro(isPro: Boolean) {
+        _isPro.value = isPro
+    }
+
+    /** Reload the cached TTS config after a Firestore sync completed. */
+    fun refreshTtsConfig() {
+        viewModelScope.launch {
+            ttsConfig = proTtsRepository.getConfig()
+        }
     }
 
     fun onInputChanged(text: String) {
         _inputText.value = text
+    }
+
+    fun clearInput() {
+        _inputText.value = ""
+    }
+
+    fun clearResult() {
+        _primaryResult.value = ""
+        _secondaryResult.value = ""
+        _errorMessage.value = null
     }
 
     fun setSourceLang(lang: LangCode) {
@@ -144,18 +192,26 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 when (engine) {
                     EngineChoice.LOCAL_FAST -> {
-                        val result = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = false)
+                        val result = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
+                            _primaryResult.value = partial
+                        }
                         _primaryResult.value = result
                         historyRepository.addHistory(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.LOCAL_ACCURATE -> {
-                        val result = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = true)
+                        val result = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = true) { partial ->
+                            _primaryResult.value = partial
+                        }
                         _primaryResult.value = result
                         historyRepository.addHistory(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.BOTH -> {
-                        val resFast = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = false)
-                        val resAcc = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = true)
+                        val resFast = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
+                            _primaryResult.value = partial
+                        }
+                        val resAcc = hyMt2Engine.translate(text, _sourceLang.value, _targetLang.value, isAccurate = true) { partial ->
+                            _secondaryResult.value = partial
+                        }
                         _primaryResult.value = resFast
                         _secondaryResult.value = resAcc
                         historyRepository.addHistory(text, resFast, _sourceLang.value.code, _targetLang.value.code)
@@ -175,12 +231,34 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun speak(text: String, lang: LangCode) {
+        _isSpeaking.value = true
         speechManager.speak(text, lang)
+    }
+
+    /** Paid "Read Pro" via OpenRouter TTS. No-op if the config is not set or user is not Pro. */
+    fun speakPro(text: String, lang: LangCode) {
+        if (!_isPro.value || text.isBlank()) return
+        if (!ttsConfig.isConfigured) {
+            _errorMessage.value = "Read Pro is not configured"
+            return
+        }
+        viewModelScope.launch {
+            try {
+                proTtsEngine.speak(text, lang, ttsConfig)
+            } catch (e: Exception) {
+                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+            }
+        }
+    }
+
+    fun deleteHistory(id: Long) {
+        viewModelScope.launch { historyRepository.deleteHistory(id) }
     }
 
     override fun onCleared() {
         super.onCleared()
         hyMt2Engine.release()
         speechManager.release()
+        proTtsEngine.release()
     }
 }

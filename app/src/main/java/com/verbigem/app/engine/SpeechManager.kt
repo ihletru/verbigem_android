@@ -17,12 +17,27 @@ class SpeechManager(private val context: Context) : TextToSpeech.OnInitListener 
     private var textToSpeech: TextToSpeech? = null
     private var isTtsInitialized = false
 
+    // Callback reporting TTS playback state so the UI can show a "speaking" animation.
+    var onSpeakingStateChanged: ((Boolean) -> Unit)? = null
+
     companion object {
         private const val TAG = "SpeechManager"
     }
 
     init {
-        textToSpeech = TextToSpeech(context.applicationContext, this)
+        textToSpeech = TextToSpeech(context.applicationContext, this).apply {
+            setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    onSpeakingStateChanged?.invoke(true)
+                }
+                override fun onDone(utteranceId: String?) {
+                    onSpeakingStateChanged?.invoke(false)
+                }
+                override fun onError(utteranceId: String?) {
+                    onSpeakingStateChanged?.invoke(false)
+                }
+            })
+        }
     }
 
     override fun onInit(status: Int) {
@@ -111,7 +126,10 @@ class SpeechManager(private val context: Context) : TextToSpeech.OnInitListener 
     }
 
     fun speak(text: String, lang: LangCode) {
-        if (!isTtsInitialized || text.isBlank()) return
+        if (!isTtsInitialized || text.isBlank()) {
+            onSpeakingStateChanged?.invoke(false)
+            return
+        }
 
         val locale = when (lang) {
             LangCode.PL -> Locale("pl", "PL")

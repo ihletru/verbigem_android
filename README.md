@@ -16,8 +16,19 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`lingua-line/mini`).
      - ⚖️ **Oba (porównaj)** — jednoczesne generowanie obu wersji,
      - ☁️ **API online** — chmurowy fallback DeepSeek z portfelem.
    - Natywne Text-to-Speech (🔊) i kopiowanie do schowka.
+   - **Czytaj Pro (💎):** płatne czytanie przez **OpenRouter TTS** (konfigurowane w
+     `app_config/tts` na Firestore — domyślny model `google/gemini-3.1-flash-tts-preview`,
+     osobny model dla chińskiego `fish-audio/s2.1-pro`). Klucz + modele synchronizowane
+     z bazy lokalnej (Room) — zarządzane przez webapp admina (planowane).
+   - **Skasuj:** czyszczenie wpisanego tekstu i wyniku tłumaczenia.
    - Automatyczny in-app model downloader z Hugging Face.
-   - Historia ostatnich tłumaczeń w lokalnej bazie **Room Database (SQLite)**.
+   - Historia ostatnich tłumaczeń w lokalnej bazie **Room Database (SQLite)** —
+     każdy wiersz ma akcje: kopiuj, udostępnij, czytaj (offline), czytaj pro (💎), skasuj.
+   - **Startowa synchronizacja z Firestore** (zasada „nowsze wygrywa" / last-write-wins
+     po `updatedAt`): profil użytkownika, historia tłumaczeń i konfiguracja TTS Pro.
+   - **Auto-aktualizacja APK:** Firestore (`app_config/update`) trzyma najnowszy
+     `versionCode` + link do APK (GitHub Releases). App po wykryciu nowszej wersji
+     pyta o zgodę, pobiera i instaluje; po rejestracji w Google Play otwiera sklep.
 
 2. **Rozmowa lokalna (Conversation)**:
    - Dwie osoby dzielą jeden telefon (Strona A / Strona B).
@@ -37,6 +48,27 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`lingua-line/mini`).
 5. **OCR ze zdjęcia/aparatu (Camera OCR)**:
    - Zdjęcie z aparatu lub wybór z galerii.
    - Błyskawiczne offline OCR przez **Google ML Kit Text Recognition** + natywne tłumaczenie tekstu silnikiem Hy-MT2.
+   - **Wybór obszaru do OCR (crop):** przed odczytem użytkownik zaznacza prostokątny obszar
+     na zdjęciu — OCR czyta tylko to, co jest wewnątrz ramki.
+     - Ramka to **ręcznie napisany overlay** (`com.verbigem.app.ui.screens.ocr.CropOverlay.kt`),
+       NIE zewnętrzna biblioteka. Gotowe biblioteki do przycinania (np. vendored `ImageCropView`)
+       nie działały poprawnie w tym układzie (ramka się nie ustawiała, a strona się nie scrollowała)
+       — `cropview/` zostało usunięte.
+     - Implementacja: **pojedynczy `Canvas`** wypełniający obszar zdjęcia + **jeden**
+       `pointerInput(Unit)` (stały klucz, więc handler nie jest rekreowany w trakcie dragu).
+     - Rozciąganie **4 rogów** (hit-radius 34dp): łapiesz róg, a **przeciwny róg pozostaje
+       nieruchomy** przez cały drag (`fixedLeft/fixedTop` zablokowane od `onDragStart`).
+     - **Scroll strony:** `detectDragGestures` przejmuje każdy gest i blokuje `verticalScroll`
+       rodzica — dlatego użyto `awaitEachGesture`: jeśli dotyk NIE trafił uchwytu, gest jest
+       **niekonsumowany** i idzie do kolumny (`verticalScroll`), więc strona się przewija
+       (kluczowe, gdy zdjęcie jest wyższe niż ekran i dolny uchwyt jest pod zagięciem).
+     - Współrzędne ramki są **znormalizowane 0f..1f** (względem zdjęcia) i trzymane w
+       `OcrViewModel.cropRectFlow` — przycinanie bitmapy (`cropBitmap`) jest niezależne
+       od skali podglądu. Przycisk „Odczytaj zaznaczony obszar" wywołuje `runOcrFromCrop()`
+       (przycina oryginał do zaznaczonego obszaru i puszcza ML Kit).
+     - Ramka domyślna: 0.1–0.9 (prawie całe zdjęcie); użytkownik zacieśnia do tekstu.
+   - **UWAGA:** zachowanie gestów (łapanie rogów + scroll) weryfikuje się TYLKO na telefonie
+     po zainstalowaniu APK — build to nie to samo co działający UX.
 
 6. **Profil i Design System**:
    - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**.
@@ -76,6 +108,85 @@ app/src/main/
 │       ├── screens/                # TranslatorScreen, ConversationScreen, ChatScreen, ContactsScreen, OcrScreen, ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
+
+---
+
+## 🔤 Jak działa tłumaczenie
+
+Tłumaczenie jest **w 100% lokalne** (offline, bez serwera) — tekst trafia do modelu
+**Hy-MT2-1.8B** uruchomionego natywnie przez vendored **llama.cpp** (kernel `STQ1_0`,
+PR #22836) przez mostek **C++/JNI**. Pipeline krok po kroku:
+
+```
+EditText (Compose)
+   │  onInputChanged
+   ▼
+TranslatorViewModel.translate()
+   │  uruchamia korutynę (Dispatchers.Default)
+   ▼
+HyMt2NativeEngine.translate(text, from, to, isAccurate, onPartial)
+   │  1. ensureModelLoaded()  — ładuje .gguf z filesDir/models/ (mmap)
+   │  2. buildPrompt()        — "Translate the following segment into <TARGET>,
+   │                             without additional explanation：<TEXT>"
+   │  3. generateNativeStreaming()  — wywołanie JNI (C++)
+   ▼
+llama_jni.cpp (C++)
+   │  • llama_chat_apply_template("hunyuan-dense")  — wymagany szablon czatu
+   │  │   (tokeny <｜hy_User｜>, <｜hy_Assistant｜> itd.)
+   │  • llama_tokenize → llama_decode (pętla autoregresyjna)
+   │  • po każdym tokienie: llama_token_to_piece → bufor wyrazów
+   │  • gdy nowy token zaczyna się od spacji → flush poprzedniego wyrazu
+   │  │   przez callback onToken(piece)  ← STREAMING WYRAZAMI
+   ▼
+TokenStreamCallback.onToken(piece)  (Kotlin)
+   │  accumulated.append(piece); onPartial(accumulated.toString())
+   ▼
+TranslatorViewModel  →  _primaryResult / _secondaryResult (StateFlow)
+   ▼
+TranslatorScreen  —  Text() z nowym wyrazem (recompose, bez migotania)
+```
+
+**Kluczowe fakty:**
+
+- **Model:** `Hy-MT2-1.8B-1.25Bit.gguf` (silnik Szybki, ~440 MB) lub
+  `Hy-MT2-1.8B-Q4_K_M.gguf` (silnik Dokładny, ~1.1 GB). Pobierany z Hugging Face
+  przez `ModelDownloader` przy pierwszym uruchomieniu.
+- **STQ1_0 to kernel CPU-only** — `gpuLayers = 0` (wymuszone, bo kwant 1.25-bit
+  nie ma ścieżki GPU). Akceleracja: ARM NEON + (opcjonalnie) KleidiAI.
+- **Szablon czatu `hunyuan-dense` jest obowiązkowy.** Surowy prompt bez niego daje
+  bełkot — model oczekuje tokenów `<|hy_User|>` / `<|hy_Assistant|>`.
+- **Streaming wyrazami:** natywna pętla wysyła do UI **ukończone wyrazy**, a nie
+  surowe subwordy (np. `trans`+`lat`+`ion` zostają w buforze do granicy słowa).
+  Dzięki temu UI nie migocze literami, a użytkownik widzi tekst przyrostowo.
+- **Sanityzacja:** `sanitizeTranslation()` na końcu usuwa ew. znaczniki `<think>`,
+  wiodące cudzysłowy i etykiety typu "Tłumaczenie:", oraz bierze tylko pierwszy
+  akapit (model czasem dopisuje wyjaśnienia).
+- **Języki:** model wymaga **angielskich nazw** języków w prompcie
+  (`LangCode.englishName`), nie kodów ISO.
+- **Wydajność:** native lib budowany jako **Release** (`-DCMAKE_BUILD_TYPE=Release`)
+  + KleidiAI; przy ~3–4 tok/s na telefonie ze słabszym ARM tekst pojawia się wyraz
+  po wyrazie w akceptowalnym tempie.
+
+---
+
+## 🌍 Wielojęzyczność — ZAKAZ hardkodowania tekstów UI
+
+Aplikacja jest **wielojęzyczna** (PL, EN, DE, ES, ZH, TR). **Pod karą nie wolno** hardkodować
+żadnych tekstów interfejsu (etykiet, komunikatów, tooltipów, opisów) bezpośrednio w kodzie
+Kotlin/Compose (ani po polsku, ani po angielsku).
+
+**Zasady:**
+
+1. Każdy widoczny tekst UI musi pochodzić z `stringResource(R.string.xxx)`.
+2. Zasoby znajdują się w:
+   - `app/src/main/res/values/strings.xml` — **domyślny (angielski)**,
+   - `values-pl/`, `values-de/`, `values-es/`, `values-zh/`, `values-tr/` — tłumaczenia.
+3. Etykiety silników (`EngineChoice`) i opisy tooltipów używają `descriptionResId` /
+   `labelResId` mapowanych na `R.string.*` (nie `labelKey` z hardkodowanym tekstem).
+4. Komunikaty błędów z warstwy `engine`/* (np. `HyMt2NativeEngine`) pobieramy przez
+   `context.getString(R.string.xxx)` — **nie** dosłowny string w kodzie.
+5. Po dodaniu nowego `string` do `values/strings.xml` **należy** dodać go do wszystkich
+   pozostałych `values-xx/strings.xml` (nawet jeśli to tymczasowy angielski fallback).
 
 ---
 

@@ -1,9 +1,11 @@
 package com.verbigem.app.engine
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.jni.LlamaNativeBridge
+import com.verbigem.app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -49,7 +51,13 @@ class HyMt2NativeEngine(private val context: Context) {
 
         val cores = Runtime.getRuntime().availableProcessors()
         val threads = (cores - 1).coerceAtLeast(2).coerceAtMost(6)
-        val gpuLayers = 32 // Offload to GPU if available on mobile
+
+        // Detect Vulkan support and offload layers to GPU if available.
+        // STQ1_0 Vulkan path is supported in llama.cpp master (post-PR #22836 merge).
+        // NOTE: Vulkan build requires MSVC/LLVM + Vulkan SDK on the build host.
+        // Currently forcing CPU-only (gpu_layers=0) until Vulkan SDK is installed.
+        // To enable GPU: install VulkanSDK + BuildTools, then set GGML_VULKAN=ON in CMakeLists.txt.
+        val gpuLayers = 0  // TODO: replace with hasVulkan() after Vulkan build is ready
 
         nativeHandle = LlamaNativeBridge.loadModelNative(
             modelPath = modelFile.absolutePath,
@@ -62,24 +70,31 @@ class HyMt2NativeEngine(private val context: Context) {
         nativeHandle != 0L
     }
 
-    suspend fun translate(text: String, from: LangCode, to: LangCode, isAccurate: Boolean = false): String = withContext(Dispatchers.Default) {
+    suspend fun translate(text: String, from: LangCode, to: LangCode, isAccurate: Boolean = false, onPartial: (String) -> Unit = {}): String = withContext(Dispatchers.Default) {
         if (text.isBlank()) return@withContext ""
 
         val isReady = ensureModelLoaded(isAccurate)
         if (!isReady || nativeHandle == 0L) {
-            throw IllegalStateException("Model nie jest załadowany. Pobierz model w aplikacji.")
+            throw IllegalStateException(context.getString(R.string.model_not_loaded))
         }
 
         val prompt = buildPrompt(text.trim(), from, to)
         val maxTokens = (text.length * 3 + 64).coerceAtMost(512)
 
-        val rawOutput = LlamaNativeBridge.generateNative(
+        val accumulated = StringBuilder()
+        LlamaNativeBridge.generateNativeStreaming(
             handle = nativeHandle,
             prompt = prompt,
-            maxTokens = maxTokens
+            maxTokens = maxTokens,
+            callback = object : LlamaNativeBridge.TokenStreamCallback {
+                override fun onToken(piece: String) {
+                    // JNI streams one token's text at a time; append to rebuild the full output.
+                    accumulated.append(piece)
+                    onPartial(accumulated.toString())
+                }
+            }
         )
-
-        sanitizeTranslation(rawOutput)
+        sanitizeTranslation(accumulated.toString())
     }
 
     fun buildPrompt(text: String, from: LangCode, to: LangCode): String {
@@ -95,6 +110,14 @@ class HyMt2NativeEngine(private val context: Context) {
         s = s.replace(Regex("(?i)^\\s*(translation|here(?:'| i)?s? the translation|tłumaczenie|oto tłumaczenie|wynik)\\s*[:\\-]\\s*"), "")
         val firstParagraph = s.split(Regex("\n{2,}")).firstOrNull()?.split("\n")?.firstOrNull() ?: s
         return firstParagraph.trim()
+    }
+
+    /**
+     * Returns true if the device supports Vulkan (android.hardware.vulkan.level).
+     * Used to decide whether to offload model layers to GPU.
+     */
+    private fun hasVulkan(): Boolean {
+        return context.packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)
     }
 
     fun release() {

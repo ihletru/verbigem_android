@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Directory where self-update APKs are downloaded, exposed to the installer. -->
+    <external-files-path
+        name="updates"
+        path="Download/" />
+    <cache-path
+        name="updates_cache"
+        path="." />
+</paths>

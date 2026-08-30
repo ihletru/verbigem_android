@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.verbigem.app.R
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -27,7 +29,7 @@ fun AdBannerView(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "REKLAMA",
+            text = stringResource(R.string.ad_banner_label),
             color = VerbigemTheme.colors.muted,
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
@@ -43,7 +45,7 @@ fun AdBannerView(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Miejsce reklamowe (wersja Free)",
+                text = stringResource(R.string.ad_banner_text),
                 color = VerbigemTheme.colors.muted,
                 fontSize = 12.sp
             )

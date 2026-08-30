@@ -6,6 +6,19 @@ project("verbigem_llamacpp")
 # GGML will fall back to FP32 (slightly slower, fully compatible).
 add_compile_definitions(GGML_NO_FP16)
 
+# Disable host-native CPU optimisations – cross-compiling for Android ARM64.
+set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
+
+# ── GPU backend ────────────────────────────────────────────────────────────
+# Vulkan requires a native Windows compiler (MSVC/LLVM) to build the
+# vulkan-shaders-gen host tool. That compiler is not available on this
+# machine without Vulkan SDK + Build Tools installed.
+# Re-enable by setting GGML_VULKAN=ON after:
+#   1. winget install KhronosGroup.VulkanSDK  (and accept UAC prompt)
+#   2. winget install Microsoft.VisualStudio.2022.BuildTools
+set(GGML_VULKAN OFF CACHE BOOL "" FORCE)
+# ───────────────────────────────────────────────────────────────────────────
+
 # llama.cpp as a subdirectory (provides llama library)
 add_subdirectory(llama.cpp)
 

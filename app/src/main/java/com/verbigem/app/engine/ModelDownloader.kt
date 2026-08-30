@@ -27,11 +27,8 @@ class ModelDownloader(private val context: Context) {
 
     companion object {
         private const val TAG = "ModelDownloader"
-        // HuggingFace direct URLs for Hy-MT2-1.8B GGUF.
-        // FAST = 1.25Bit (~440 MB, najlżejszy, zgodny z README "Szybki") — domyślny.
-        //   Requires llama.cpp with TQ1.25 support (updated to latest master).
-        // ACCURATE = Q4_K_M (~1.1 GB, oficjalny Tencent repo).
-        const val URL_HYMT2_FAST = "https://huggingface.co/tencent/Hy-MT2-1.8B-1.25Bit-GGUF/resolve/main/Hy-MT2-1.8B-1.25Bit.gguf"
+        // FAST = 1.25bit (~440 MB) — AngelSlim/Hy-MT2-1.8B-1.25Bit-GGUF
+        const val URL_HYMT2_FAST = "https://huggingface.co/AngelSlim/Hy-MT2-1.8B-1.25Bit-GGUF/resolve/main/Hy-MT2-1.8B-1.25Bit.gguf"
         const val URL_HYMT2_ACCURATE = "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q4_K_M.gguf"
     }
 
@@ -40,7 +37,7 @@ class ModelDownloader(private val context: Context) {
         val tempFile = File(targetFile.parentFile, "${targetFile.name}.tmp")
         val downloadUrl = if (isAccurate) URL_HYMT2_ACCURATE else URL_HYMT2_FAST
 
-        Log.i(TAG, "Starting download for Hy-MT2 from: $downloadUrl to: ${targetFile.absolutePath}")
+        Log.i(TAG, "Starting download for Hy-MT from: $downloadUrl to: ${targetFile.absolutePath}")
         _downloadState.value = ModelDownloadState.Downloading(0, 0, 0)
 
         try {
@@ -89,7 +86,7 @@ class ModelDownloader(private val context: Context) {
             }
 
             _downloadState.value = ModelDownloadState.Ready
-            Log.i(TAG, "Hy-MT2 model downloaded successfully! Size: ${targetFile.length()} bytes")
+            Log.i(TAG, "Hy-MT model downloaded successfully! Size: ${targetFile.length()} bytes")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Error downloading model", e)

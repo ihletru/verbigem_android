@@ -85,5 +85,51 @@
     <string name="remove">Kaldır</string>
     <string name="recognized_text">TANINAN METİN:</string>
     <string name="ocr_translation">ÇEVİRİ (Hy-MT2):</string>
+    <string name="ocr_translate_button">Çevir</string>
+    <string name="ocr_read_selected">Seçili alanı oku</string>
+    <string name="ocr_crop_hint">Çerçeveyi metnin üzerine getir, ardından “Seçili alanı oku”ya dokun.</string>
+    <string name="ocr_permission_denied">Kamera izni reddedildi. Uygulama ayarlarından etkinleştir.</string>
+    <string name="ocr_no_text">Çevrilecek metin yok — önce girin veya metni tanıyın.</string>
+    <string name="ocr_error_no_text">Görselde metin algılanmadı.</string>
     <string name="copied">Kopyalandı</string>
+
+    <!-- Engine picker descriptions (tooltips) -->
+    <string name="engine_picker_title">ÇEVİRİ MOTORU</string>
+    <string name="engine_fast_label">Hızlı</string>
+    <string name="engine_accurate_label">Yavaş ama daha doğru ~1,1 GB</string>
+    <string name="engine_both_label">İkisi birlikte (karşılaştır)</string>
+    <string name="engine_online_label">Çevrimiçi API</string>
+    <string name="engine_fast_desc">Ücretsiz çevrimdışı çeviri — hızlı modeli yerelde çalıştırır, internet gerekmez.</string>
+    <string name="engine_accurate_desc">Yavaş ama daha doğru ~1,1 GB — zor metinler için daha kaliteli yerel model.</string>
+    <string name="engine_both_desc">Her iki yerel modeli yan yana karşılaştırın (hızlı ve doğru).</string>
+    <string name="engine_online_desc">Çevrimiçi API çevirisi — internet bağlantısı gerektirir (Pro özelliği).</string>
+    <string name="pro_only">yalnızca Pro</string>
+
+    <!-- Model download dialog -->
+    <string name="model_download_title">Hızlı modeli indir</string>
+    <string name="model_download_body">Telefonunuzda yerel çevrimdışı çeviri için Hızlı model paketini bir kez indirin (~440 MB). İndirildikten sonra internet olmadan %100 çalışır.</string>
+    <string name="download_now">Şimdi indir (~440 MB)</string>
+    <string name="downloading_model">Hızlı model indiriliyor: %1$d%%</string>
+    <string name="loading_model_memory">Model belleğe yükleniyor…</string>
+    <string name="model_ready">✓ Hızlı model kullanıma hazır!</string>
+    <string name="retry">Tekrar dene</string>
+    <string name="error_with_message">Hata: %1$s</string>
+    <string name="model_not_loaded">Model yüklenmedi. Modeli uygulamadan indirin.</string>
+
+    <!-- Action icons (translator result + history) -->
+    <string name="action_copy">Kopyala</string>
+    <string name="action_share">Paylaş</string>
+    <string name="action_read">Sesli oku (çevrimdışı)</string>
+    <string name="action_read_pro">Sesli oku (Pro)</string>
+    <string name="action_delete">Sil</string>
+
+    <!-- Ad banner (Free users) -->
+    <string name="ad_banner_label">REKLAM</string>
+    <string name="ad_banner_text">Reklam alanı (Ücretsiz sürüm)</string>
+
+    <!-- Self-update dialog -->
+    <string name="update_available_title">Güncelleme mevcut</string>
+    <string name="update_available_body">Yeni sürüm (%1$s) mevcut. Şimdi güncelle?</string>
+    <string name="update_action">Güncelle</string>
+    <string name="update_later">Daha sonra</string>
 </resources>

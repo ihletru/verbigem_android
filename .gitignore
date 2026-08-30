@@ -21,6 +21,20 @@ captures/
 .DS_Store
 Thumbs.db
 
+# Build logs (local only)
+build_log*.txt
+build_log_rel.json
+crash_log*.txt
+app-debug-v2.apk
+
+# Vendored llama.cpp master (separate repo, do not embed)
+llama_master/
+
+# Model binaries (large, fetched separately)
+*.gguf
+model_probe/
+verbigem-host-toolchain.cmake
+
 # Hermes composer images
 AppData/
 composer-images/

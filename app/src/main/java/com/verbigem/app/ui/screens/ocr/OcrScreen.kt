@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,41 +15,53 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.stringResource
-import com.verbigem.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import com.verbigem.app.R
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -63,12 +74,33 @@ fun OcrScreen(
     val isProcessing by viewModel.isProcessing.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val selectedBitmap by viewModel.selectedBitmap.collectAsState()
+    val isSpeaking by viewModel.isSpeaking.collectAsState()
+    val cropRect by viewModel.cropRectFlow.collectAsState()
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
             viewModel.processBitmap(bitmap)
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            cameraLauncher.launch(null)
+        } else {
+            viewModel.setError(context.getString(R.string.ocr_permission_denied))
+        }
+    }
+
+    fun launchCameraWithPermissionCheck() {
+        val permission = android.Manifest.permission.CAMERA
+        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+            cameraLauncher.launch(null)
+        } else {
+            cameraPermissionLauncher.launch(permission)
         }
     }
 
@@ -84,8 +116,9 @@ fun OcrScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -100,13 +133,12 @@ fun OcrScreen(
             color = VerbigemTheme.colors.muted
         )
 
-        // Przyciski akcji (Aparat / Galeria)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
-                onClick = { cameraLauncher.launch() },
+                onClick = { launchCameraWithPermissionCheck() },
                 colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
@@ -130,58 +162,110 @@ fun OcrScreen(
             }
         }
 
-        // Podgląd zdjęcia
         if (selectedBitmap != null) {
+            val bmp = selectedBitmap!!
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .aspectRatio(bmp.width.toFloat() / bmp.height.toFloat())
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color.Black)
             ) {
+                // The picture itself (fills the image area in pixels, so the overlay
+                // Canvas coordinates map 1:1 to the picture).
                 Image(
-                    bitmap = selectedBitmap!!.asImageBitmap(),
-                    contentDescription = stringResource(R.string.ocr_photo),
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                // Draggable crop frame. Touching OUTSIDE the frame does not consume the
+                // gesture, so the page keeps scrolling (needed when the photo is taller
+                // than the screen and the lower handle sits below the fold).
+                if (cropRect != null) {
+                    CropOverlay(
+                        rect = cropRect!!,
+                        onRect = { viewModel.updateCropRect(it) }
+                    )
+                }
+
                 IconButton(
-                    onClick = { viewModel.clear() },
+                    onClick = { viewModel.clearCrop() },
                     modifier = Modifier.align(Alignment.TopEnd)
                 ) {
                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove), tint = Color.White)
                 }
-            }
-        }
 
-        if (isProcessing) {
-            Box(
+                if (isProcessing) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator(color = VerbigemTheme.colors.accent)
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.ocr_crop_hint),
+                fontSize = 11.sp,
+                color = VerbigemTheme.colors.muted
+            )
+
+            Button(
+                onClick = { viewModel.runOcrFromCrop() },
+                enabled = !isProcessing,
+                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.surface),
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp),
-                contentAlignment = Alignment.Center
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
             ) {
-                CircularProgressIndicator(color = VerbigemTheme.colors.accent)
+                Icon(Icons.Default.CropFree, contentDescription = null, tint = VerbigemTheme.colors.ink, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(stringResource(R.string.ocr_read_selected), color = VerbigemTheme.colors.ink, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
 
-        // Rozpoznany tekst
-        if (recognizedText.isNotBlank()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(VerbigemTheme.colors.surface)
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(14.dp))
-                    .padding(14.dp)
-            ) {
-                Text(stringResource(R.string.recognized_text), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = recognizedText, color = VerbigemTheme.colors.ink, fontSize = 14.sp)
-            }
+        OutlinedTextField(
+            value = recognizedText,
+            onValueChange = { viewModel.updateRecognizedText(it) },
+            label = { Text(stringResource(R.string.recognized_text)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(14.dp))
+                .padding(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = VerbigemTheme.colors.accent,
+                unfocusedBorderColor = VerbigemTheme.colors.border
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp
+            ),
+            minLines = 3,
+            maxLines = 6,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { viewModel.translateText() })
+        )
+
+        Button(
+            onClick = { viewModel.translateText() },
+            enabled = !isProcessing && recognizedText.isNotBlank(),
+            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(stringResource(R.string.ocr_translate_button), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
-        // Przetłumaczony tekst
-        if (!translatedText.isNullOrBlank()) {
+        if (!recognizedText.isBlank()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,12 +274,25 @@ fun OcrScreen(
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(14.dp))
                     .padding(14.dp)
             ) {
-                Text(stringResource(R.string.ocr_translation), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.accent)
+                Text(
+                    stringResource(R.string.ocr_translation),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.accent
+                )
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(text = translatedText ?: "", color = VerbigemTheme.colors.ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = translatedText ?: "",
+                    color = VerbigemTheme.colors.ink,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     IconButton(onClick = {
                         val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clip.setPrimaryClip(ClipData.newPlainText("ocr_translation", translatedText))
@@ -204,14 +301,26 @@ fun OcrScreen(
                         Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.copied), tint = VerbigemTheme.colors.accent)
                     }
                     IconButton(onClick = { viewModel.speak(translatedText ?: "") }) {
-                        Icon(Icons.Default.VolumeUp, contentDescription = stringResource(R.string.speak_again), tint = VerbigemTheme.colors.accent)
+                        if (isSpeaking) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                color = VerbigemTheme.colors.accent,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.speak_again), tint = VerbigemTheme.colors.accent)
+                        }
                     }
                 }
             }
         }
 
         if (errorMessage != null) {
-            Text(text = errorMessage ?: "", color = VerbigemTheme.colors.danger, fontSize = 13.sp)
+            Text(
+                text = errorMessage ?: "",
+                color = VerbigemTheme.colors.danger,
+                fontSize = 13.sp
+            )
         }
     }
 }

@@ -7,6 +7,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -90,6 +94,15 @@ fun AppNavigation(
 
                 composable(Screen.Translator.route) {
                     val translatorViewModel: TranslatorViewModel = viewModel()
+                    var isPro by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        authRepository.currentUser?.let { user ->
+                            authRepository.watchProfile(user.uid).collect { profile ->
+                                isPro = profile?.isPro == true
+                                translatorViewModel.setPro(isPro)
+                            }
+                        }
+                    }
                     TranslatorScreen(
                         viewModel = translatorViewModel,
                         onNavigateToOcr = { navController.navigate(Screen.Ocr.route) }

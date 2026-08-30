@@ -85,5 +85,51 @@
     <string name="remove">移除</string>
     <string name="recognized_text">识别文字：</string>
     <string name="ocr_translation">翻译（Hy-MT2）：</string>
+    <string name="ocr_translate_button">翻译</string>
+    <string name="ocr_read_selected">读取所选区域</string>
+    <string name="ocr_crop_hint">将框对准文字，然后点按“读取所选区域”。</string>
+    <string name="ocr_permission_denied">相机权限被拒绝。请在应用设置中启用。</string>
+    <string name="ocr_no_text">没有可翻译的文本——请先输入或识别文本。</string>
+    <string name="ocr_error_no_text">未在图片中检测到文本。</string>
     <string name="copied">已复制</string>
+
+    <!-- Engine picker descriptions (tooltips) -->
+    <string name="engine_picker_title">翻译引擎</string>
+    <string name="engine_fast_label">快速</string>
+    <string name="engine_accurate_label">较慢但准确约 1.1 GB</string>
+    <string name="engine_both_label">两者（对比）</string>
+    <string name="engine_online_label">在线 API</string>
+    <string name="engine_fast_desc">免费离线翻译 — 在本地运行快速模型，无需联网。</string>
+    <string name="engine_accurate_desc">较慢但更准确约 1.1 GB — 适合难译文本的高质量本地模型。</string>
+    <string name="engine_both_desc">并排比较两种本地模型（快速 vs 准确）。</string>
+    <string name="engine_online_desc">在线 API 翻译 — 需要联网（Pro 功能）。</string>
+    <string name="pro_only">仅 Pro</string>
+
+    <!-- Model download dialog -->
+    <string name="model_download_title">下载快速模型</string>
+    <string name="model_download_body">要在手机上进行原生离线翻译，请下载一次快速模型包（约 440 MB）。下载后无需联网即可 100%% 使用。</string>
+    <string name="download_now">立即下载（约 440 MB）</string>
+    <string name="downloading_model">正在下载快速模型：%1$d%%</string>
+    <string name="loading_model_memory">正在将模型载入内存…</string>
+    <string name="model_ready">✓ 快速模型已就绪！</string>
+    <string name="retry">重试</string>
+    <string name="error_with_message">错误：%1$s</string>
+    <string name="model_not_loaded">模型未加载。请在应用中下载模型。</string>
+
+    <!-- Action icons (translator result + history) -->
+    <string name="action_copy">复制</string>
+    <string name="action_share">分享</string>
+    <string name="action_read">朗读（离线）</string>
+    <string name="action_read_pro">朗读（Pro）</string>
+    <string name="action_delete">删除</string>
+
+    <!-- Ad banner (Free users) -->
+    <string name="ad_banner_label">广告</string>
+    <string name="ad_banner_text">广告位（免费版）</string>
+
+    <!-- Self-update dialog -->
+    <string name="update_available_title">有可用更新</string>
+    <string name="update_available_body">检测到新版本（%1$s）。立即更新？</string>
+    <string name="update_action">更新</string>
+    <string name="update_later">稍后</string>
 </resources>
