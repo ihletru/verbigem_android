@@ -1,8 +1,0 @@
-{
-  "apiKey": "",
-  "defaultModelId": "google/gemini-3.1-flash-tts-preview",
-  "chineseModelId": "fish-audio/s2.1-pro",
-  "defaultVoice": "default",
-  "chineseVoice": "default",
-  "updatedAt": 0
-}

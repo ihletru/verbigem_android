@@ -26,6 +26,12 @@ build_log*.txt
 build_log_rel.json
 crash_log*.txt
 app-debug-v2.apk
+app-debug-v1.apk
+
+# Agent helper scripts / temp JSON (not part of app source)
+*.js
+firestore_*.json
+ui_dump.xml
 
 # Vendored llama.cpp master (separate repo, do not embed)
 llama_master/
