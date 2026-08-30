@@ -210,15 +210,28 @@ powstania webappu admina. App nie ma UI do wpisywania klucza (zgodnie ze specyfi
    - Lokalne → remote: jeśli `remote` nie istnieje LUB `local.updatedAt >= remote.updatedAt`,
      `set(merge)` lokalnego wiersza.
    - Remote → local: jeśli `remote.updatedAt > local.updatedAt`, `upsertFromRemote`.
-   - Usuwanie: lokalne wiersze, których `syncId` zniknął z remote (tylko gdy remote niepuste,
-     by nie wyczyścić danych przy błędzie odczytu).
 3. **TTS Pro** (`app_config/tts`) — przez `TtsConfigSync`.
 
-**Schemat Room (wersja 2, migracja MIGRATION_1_2):**
-- `translation_history`: dodano kolumny `syncId TEXT`, `updatedAt INTEGER` (domyślnie puste/0
-  dla starych wierszy).
-- nowa tabela `tts_config` (id, apiKey, defaultModelId, chineseModelId, defaultVoice, chineseVoice, updatedAt).
+**Usuwanie (tombstone, kluczowe):** lokalnie kasujemy wiersz **fizycznie** (żeby baza nie puchła),
+ale zapisujemy jego `syncId` do lekkiej tabeli `pending_deletes` (tylko `syncId` + `updatedAt`).
+Przy następnym syncu wysyłamy do Firestore **tombstone** = `{syncId, deleted:true, updatedAt}`
+(zamiast pełnego wiersza). Inne urządzenie widzi `deleted:true` i usuwa wiersz u siebie.
+Dzięki temu:
+- usunięcia **propagują się** między telefonem a tabletem (nie "odżywają" przy syncu),
+- działa nawet przy usunięciu **offline** — `pending_deletes` przetrwa brak netu i zostanie
+  wysłane przy najbliższym syncu (zwykły sync iteruje po istniejących wierszach, więc bez
+  tej kolejki offline-delete nigdy by nie wysłał tombstone'a),
+- lokalna baza nie puchnie (trzymamy tylko `syncId`, nie pełny usunięty wiersz).
+
+Sync jest też wyzwalany **natychmiast po każdym usunięciu** w `TranslatorViewModel.deleteHistory`
+(gdy online) — tombstone wychodzi bez czekania na restart app.
+
+**Schemat Room (wersja 3, migracja MIGRATION_2_3):**
+- v2→v3: nowa tabela `pending_deletes` (`syncId TEXT PK`, `updatedAt INTEGER`) — kolejka tombstone'ów.
+- `translation_history`: kolumny `syncId TEXT`, `updatedAt INTEGER` (z v2).
+- `tts_config` (id, apiKey, defaultModelId, chineseModelId, defaultVoice, chineseVoice, updatedAt).
 - `HistoryDao`: `insert`, `update`, `getBySyncId`, `upsertBySyncId`, `deleteById`, `deleteBySyncId`, `clearAll`.
+- `PendingDeleteDao`: `insert`, `getAll`, `deleteBySyncId`, `clearAll`.
 - `TranslationHistory.create()` generuje `syncId` (UUID) + `updatedAt` (teraz).
 
 **Filter logcat:** `SyncManager`.

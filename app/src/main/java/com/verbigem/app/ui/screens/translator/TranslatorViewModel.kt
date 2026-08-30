@@ -12,6 +12,7 @@ import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.repository.HistoryRepository
 import com.verbigem.app.data.repository.ProTtsRepository
+import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.ModelDownloader
 import com.verbigem.app.engine.OnlineApiEngine
@@ -27,7 +28,10 @@ import kotlinx.coroutines.launch
 class TranslatorViewModel(application: Application) : AndroidViewModel(application) {
 
     private val preferencesManager = PreferencesManager(application)
-    private val historyRepository = HistoryRepository(AppDatabase.getInstance(application).historyDao())
+    private val historyRepository = HistoryRepository(
+        AppDatabase.getInstance(application).historyDao(),
+        AppDatabase.getInstance(application).pendingDeleteDao()
+    )
     val hyMt2Engine = HyMt2NativeEngine(application)
     val modelDownloader = ModelDownloader(application)
     val speechManager = SpeechManager(application)
@@ -75,6 +79,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _showDownloadDialog = MutableStateFlow(false)
     val showDownloadDialog: StateFlow<Boolean> = _showDownloadDialog.asStateFlow()
+
+    private val syncManager = SyncManager(getApplication())
 
     // Cached paid TTS config (OpenRouter). Loaded from Room; refreshed from Firestore on startup.
     private var ttsConfig: TtsConfig = TtsConfig()
@@ -251,8 +257,21 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun deleteHistory(id: Long) {
-        viewModelScope.launch { historyRepository.deleteHistory(id) }
+    /**
+     * Deletes a history row locally (physical delete) and queues a Firestore tombstone so the
+     * deletion propagates to other devices. A sync is kicked off immediately when online so the
+     * tombstone goes out without waiting for the next app restart.
+     */
+    fun deleteHistory(item: TranslationHistory) {
+        viewModelScope.launch {
+            historyRepository.deleteHistory(item)
+            try {
+                syncManager.syncNow()
+            } catch (_: Exception) {
+                // Offline or transient failure: the tombstone stays queued in pending_deletes
+                // and will be pushed on the next successful sync.
+            }
+        }
     }
 
     override fun onCleared() {

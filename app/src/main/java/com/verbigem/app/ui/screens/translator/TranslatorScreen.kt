@@ -352,7 +352,7 @@ fun TranslatorScreen(
                 },
                 onRead = { viewModel.speak(item.translatedText, LangCode.fromCode(item.targetLang)) },
                 onReadPro = { viewModel.speakPro(item.translatedText, LangCode.fromCode(item.targetLang)) },
-                onDelete = { viewModel.deleteHistory(item.id) }
+                onDelete = { viewModel.deleteHistory(item) }
             )
         }
     }

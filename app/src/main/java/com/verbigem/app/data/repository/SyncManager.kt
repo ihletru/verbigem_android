@@ -18,22 +18,28 @@ import kotlinx.coroutines.tasks.await
  *  - translation history (users/{uid}/history/{syncId})
  *  - paid TTS config (app_config/tts)
  *
+ * Deletions are propagated via tombstones: a local delete physically removes the row but records
+ * its syncId in the `pending_deletes` queue; on the next sync we write a tiny
+ * `{syncId, deleted:true, updatedAt}` document to Firestore. Other devices see `deleted:true`
+ * and remove the row locally. This keeps the local DB from bloating while still propagating
+ * deletes across devices (including deletions made while offline).
+ *
  * Must be called once at app start (after the user is signed in). If offline or no
  * user is signed in, it returns gracefully without throwing.
  */
 class SyncManager(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
-    private val historyRepository = HistoryRepository(db.historyDao())
+    private val historyRepository = HistoryRepository(db.historyDao(), db.pendingDeleteDao())
     private val proTtsRepository = ProTtsRepository(context)
     private val ttsConfigSync = TtsConfigSync(proTtsRepository)
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    suspend fun syncNow() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    suspend fun syncNow(uid: String? = null) {
+        val userId = uid ?: FirebaseAuth.getInstance().currentUser?.uid ?: return
         try {
-            syncProfile(uid)
-            syncHistory(uid)
+            syncProfile(userId)
+            syncHistory(userId)
             ttsConfigSync.syncFromRemote()
         } catch (e: Exception) {
             Log.e(TAG, "Sync failed", e)
@@ -54,7 +60,24 @@ class SyncManager(context: Context) {
             .collection("history").get().await()
 
         val remoteById = remoteSnap.documents.associateBy { it.id }
-        val seenSyncIds = mutableSetOf<String>()
+
+        // 0) Push tombstones for locally-deleted rows (including those deleted while offline).
+        // We OVERWRITE the remote doc with just {syncId, deleted:true, updatedAt} so the deleted
+        // row's text is purged from the cloud (privacy) but a lightweight "this id was deleted"
+        // record remains — other devices see deleted:true and remove the row locally, and we can
+        // still distinguish "never existed" from "was deleted".
+        val pending = historyRepository.getPendingDeletes()
+        for (pd in pending) {
+            val tombstone = mapOf(
+                "syncId" to pd.syncId,
+                "deleted" to true,
+                "updatedAt" to pd.updatedAt
+            )
+            firestore.collection("users").document(uid)
+                .collection("history").document(pd.syncId)
+                .set(tombstone).await()
+            historyRepository.removePendingDelete(pd.syncId)
+        }
 
         // 1) Push local rows to remote (last-write-wins by updatedAt).
         for (local in localList) {
@@ -64,7 +87,6 @@ class SyncManager(context: Context) {
                 historyRepository.upsertFromRemote(withId)
                 withId.syncId
             }
-            seenSyncIds.add(syncId)
             val remoteDoc = remoteById[syncId]
             val remoteUpdated = remoteDoc?.getLong("updatedAt") ?: 0L
             if (remoteDoc == null || local.updatedAt >= remoteUpdated) {
@@ -85,6 +107,11 @@ class SyncManager(context: Context) {
 
         // 2) Pull remote rows that are newer than (or missing from) local.
         for ((syncId, remoteDoc) in remoteById) {
+            // Tombstone from another device: delete locally and skip (do not re-upload).
+            if (remoteDoc.getBoolean("deleted") == true) {
+                historyRepository.deleteHistoryBySyncId(syncId)
+                continue
+            }
             val remoteUpdated = remoteDoc.getLong("updatedAt") ?: 0L
             val local = historyRepository.getLocalBySyncId(syncId)
             if (local == null || remoteUpdated > local.updatedAt) {

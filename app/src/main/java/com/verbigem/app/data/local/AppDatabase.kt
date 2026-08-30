@@ -8,13 +8,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [HistoryEntity::class, TtsConfigEntity::class],
-    version = 2,
+    entities = [HistoryEntity::class, TtsConfigEntity::class, PendingDeleteEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun ttsConfigDao(): TtsConfigDao
+    abstract fun pendingDeleteDao(): PendingDeleteDao
 
     companion object {
         @Volatile
@@ -43,13 +44,26 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v2 -> v3: add the pending_deletes queue used to propagate local deletions to other
+        // devices as Firestore tombstones ({syncId, deleted:true}). Physically deleted rows
+        // leave no trace in translation_history, so this tiny table is the only record of them.
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS pending_deletes (" +
+                        "syncId TEXT NOT NULL PRIMARY KEY, " +
+                        "updatedAt INTEGER NOT NULL DEFAULT 0)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "verbigem_db"
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
             }
         }
     }

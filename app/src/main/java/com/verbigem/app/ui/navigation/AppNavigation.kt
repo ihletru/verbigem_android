@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -19,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.ui.components.BottomNav
 import com.verbigem.app.ui.screens.auth.AuthViewModel
 import com.verbigem.app.ui.screens.auth.LoginScreen
@@ -94,10 +96,17 @@ fun AppNavigation(
 
                 composable(Screen.Translator.route) {
                     val translatorViewModel: TranslatorViewModel = viewModel()
+                    val context = LocalContext.current
                     var isPro by remember { mutableStateOf(false) }
-                    LaunchedEffect(Unit) {
-                        authRepository.currentUser?.let { user ->
-                            authRepository.watchProfile(user.uid).collect { profile ->
+                    // Key the effect on the signed-in uid so it (re)fires once FirebaseAuth has
+                    // restored the session — at first composition currentUser is often still null.
+                    val uid = authRepository.currentUser?.uid
+                    LaunchedEffect(uid) {
+                        uid?.let { u ->
+                            // One-shot startup sync: pulls remote history/profile/TTS config and
+                            // pushes local changes (last-write-wins by updatedAt).
+                            SyncManager(context.applicationContext).syncNow(u)
+                            authRepository.watchProfile(u).collect { profile ->
                                 isPro = profile?.isPro == true
                                 translatorViewModel.setPro(isPro)
                             }
