@@ -1,18 +1,22 @@
 package com.verbigem.app.engine
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Self-update controller.
@@ -78,8 +82,10 @@ class UpdateManager(private val context: Context) {
     }
 
     /**
-     * Downloads the APK (via DownloadManager) and installs it. The [onComplete] callback
-     * fires once the download finishes and the install intent has been launched.
+     * Downloads the APK via OkHttp (GitHub Releases requires an explicit
+     * `Accept: application/octet-stream` header, otherwise it returns an HTML page
+     * instead of the binary) and installs it. [onComplete] fires once the install
+     * intent has been launched.
      */
     fun downloadAndInstall(
         info: UpdateInfo,
@@ -90,45 +96,62 @@ class UpdateManager(private val context: Context) {
             onError("Missing APK URL")
             return
         }
+        Log.i(TAG, "Starting APK download from ${info.apkUrl}")
 
         val fileName = "verbigem-update-${info.versionName}.apk"
         val downloadDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
             ?: context.cacheDir
         val targetFile = File(downloadDir, fileName)
+        try { targetFile.delete() } catch (_: Exception) { }
 
-        val request = DownloadManager.Request(Uri.parse(info.apkUrl))
-            .setTitle("Verbigem update ${info.versionName}")
-            .setDescription("Downloading update…")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationUri(Uri.fromFile(targetFile))
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
+        val client = OkHttpClient.Builder().build()
+        val request = Request.Builder()
+            .url(info.apkUrl)
+            .header("Accept", "application/octet-stream")
+            .build()
 
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadId = dm.enqueue(request)
-
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L) ?: -1L
-                if (id != downloadId) return
-                context.unregisterReceiver(this)
-                val query = DownloadManager.Query().setFilterById(downloadId)
-                val cursor = dm.query(query)
-                if (cursor != null && cursor.moveToFirst()) {
-                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        launchInstall(targetFile, onComplete, onError)
-                    } else {
-                        val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-                        onError("Download failed (reason $reason)")
+        // Network + file IO must NOT run on the main thread (StrictMode blocks it).
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                client.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        val msg = "Download failed: HTTP ${resp.code} ${resp.message}"
+                        Log.e(TAG, msg)
+                        withContext(Dispatchers.Main) { onError(msg) }
+                        return@launch
                     }
-                    cursor.close()
-                } else {
-                    onError("Download failed")
+                    val body = resp.body
+                    if (body == null) {
+                        withContext(Dispatchers.Main) { onError("Empty response body") }
+                        return@launch
+                    }
+                    val len = body.contentLength()
+                    Log.i(TAG, "Download started, content-length=$len")
+                    targetFile.outputStream().use { out ->
+                        body.byteStream().use { `in` ->
+                            val buf = ByteArray(32 * 1024)
+                            var read: Int
+                            var total = 0L
+                            while (`in`.read(buf).also { read = it } != -1) {
+                                out.write(buf, 0, read)
+                                total += read
+                            }
+                            Log.i(TAG, "Download finished, bytes=$total")
+                        }
+                    }
+                    if (targetFile.length() < 1_000_000) {
+                        val msg = "Downloaded file too small (${targetFile.length()} B) — likely HTML, not APK"
+                        Log.e(TAG, msg)
+                        withContext(Dispatchers.Main) { onError(msg) }
+                        return@launch
+                    }
+                    withContext(Dispatchers.Main) { launchInstall(targetFile, onComplete, onError) }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Download error", e)
+                withContext(Dispatchers.Main) { onError(e.localizedMessage ?: "Download error") }
             }
         }
-        context.registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
     private fun launchInstall(file: File, onComplete: () -> Unit, onError: (String) -> Unit) {
