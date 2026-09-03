@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,6 +41,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +62,7 @@ import com.verbigem.app.ui.components.FlagIcon
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.theme.VerbigemTheme
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun ConversationScreen(
     viewModel: ConversationViewModel
@@ -80,14 +85,30 @@ fun ConversationScreen(
     val scrollState = rememberScrollState()
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val isImeVisible = WindowInsets.isImeVisible
+
+    // The keyboard animates in *after* the field gains focus (~250 ms), so a single
+    // bringIntoView() fired from onFocusEvent runs against a viewport that is still full
+    // height — the field ends up at the bottom of the screen, i.e. behind the keyboard.
+    // Re-run it once the IME is actually up (and again on every focus while it stays up).
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible) {
+            delay(250)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
+            // imePadding() must come BEFORE verticalScroll(): it then shrinks the scroll
+            // *viewport* by the keyboard height. Placed after (inside) the scroll it only
+            // appends empty space at the end of the content, so "scroll the field into
+            // view" still means "put it at the bottom of the screen" — hidden by the IME.
+            .imePadding()
             .padding(16.dp)
-            .verticalScroll(scrollState)
-            .imePadding(),
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(

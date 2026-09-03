@@ -44,6 +44,21 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
 
 2. **Rozmowa lokalna (Conversation)**:
    - Dwie osoby dzielą jeden telefon (Strona A / Strona B).
+   - **Klawiatura nie zasłania karty wpisywania tekstu** — w `ConversationScreen` kolejność
+     modyfikatorów to `imePadding()` **PRZED** `verticalScroll()`:
+     ```kotlin
+     Modifier.fillMaxSize().imePadding().padding(16.dp).verticalScroll(scrollState)
+     ```
+     Użyte PO (`==` wewnątrz) `verticalScroll()` dokłada tylko pusty margines na końcu
+     treści, a **viewport zostaje pełnej wysokości** — wtedy `bringIntoViewRequester`
+     "przewija pole do widoku" = na sam dół ekranu, czyli dokładnie pod klawiaturę
+     (objaw: karta edycji schowana za klawiaturą). Odwrócona kolejność zwęża viewport o
+     wysokość IME, więc "do widoku" znaczy "nad klawiaturą".
+     Druga połowa naprawy: klawiatura wjeżdża **~250 ms po** tym jak pole dostaje focus,
+     więc sam `onFocusEvent` nie wystarcza — `LaunchedEffect(WindowInsets.isImeVisible)`
+     z `delay(250)` odpala `bringIntoView()` ponownie, gdy IME jest już na ekranie.
+     (Manifest ma `android:windowSoftInputMode="adjustResize"`, a `MainActivity` woła
+     `enableEdgeToEdge()` — bez tego `imePadding()` jest zerem.)
    - Natywne rozpoznawanie mowy **SpeechRecognizer (STT)** z podglądem na żywo.
    - Po skończeniu mowy: natychmiastowe tłumaczenie modelem **Hy-MT2-1.8B** i automatyczny odczyt głosem **TextToSpeech (TTS)** dla drugiej osoby.
    - Automatyczne przełączanie aktywnej strony rozmowy.
@@ -373,36 +388,61 @@ w bieżącym języku UI (który może się różnić od języka sprzed tygodnia)
 
 ## 📦 Auto-aktualizacja APK
 
-`UpdateManager` + dialog w `MainActivity` (`UpdatePromptHost`). Po starcie (raz, `LaunchedEffect`)
-odczytuje `/android/version.json` z **Firebase Hosting** pod domeną `mini.verbigem.com`:
+`UpdateManager` + dialog w `MainActivity` (`StartupGate` / `UpdateDownloadDialog`). Po starcie (raz,
+`LaunchedEffect`) odczytuje **`/updates/version.json`** z **Firebase Hosting** pod domeną
+`mini.verbigem.com` — `UpdateManager.updateJsonUrl`:
 ```
-https://mini.verbigem.com/android/version.json
+https://mini.verbigem.com/updates/version.json
 ```
 ```json
 {
-  "versionCode": 15,
-  "versionName": "1.0.14",
-  "apkUrl": "https://mini.verbigem.com/android/app-debug-v15.apk",
+  "versionCode": 25,
+  "versionName": "1.0.24",
+  "apkUrl": "https://mini.verbigem.com/android/app-debug-v25.apk?v=25",
   "playStoreUrl": "https://play.google.com/store/apps/details?id=com.verbigem.app",
   "onPlayStore": false,
   "minSupportedCode": 1,
-  "updatedAt": "2026-09-01"
+  "updatedAt": "2026-09-03"
 }
 ```
 gdy `info.versionCode > currentVersionCode()` → `AlertDialog` (stringi: `update_available_title`,
-`update_available_body`, `update_action`, `update_later`). W trakcie pobierania pokazuje się drugi dialog
-z `LinearProgressIndicator` (`update_downloading_title` / `update_downloading_body`) — **naprawiono
-progress bar**: wcześniej dialog czytał `progressState.value` bezpośrednio (surowy read `StateFlow.value`,
-który NIE rejestruje obserwatora Compose), więc Composable się nie rekomponował i pasek stał w miejscu
-(zawsze 0%). Teraz dialog używa `progress by progressState.collectAsState()` (odczyt `val progress`
-zadeklarowany w `StartupGate`) — każda zmiana `progress` (0f..1f, lub `-1f` = nieoznaczony) wywołuje
-rekompozycję i pasek idzie do przodu. `UpdateManager.downloadAndInstall` emituje postęp przez
-`MutableStateFlow<Float?>` (`null` = nie zaczął, `-1f` = bez Content-Length, `0f..1f` = ułamek).
+`update_available_body`, `update_action`, `update_later`). W trakcie pobierania pokazuje się drugi
+dialog — `UpdateDownloadDialog`: pasek + **procenty + licznik megabajtów**
+(`update_downloading_title` / `update_downloading_body` / `update_download_percent` /
+`update_download_bytes`). Błąd pobierania jest **widoczny** (`update_failed_title`, `update_failed`)
+i daje przycisk `update_retry` — wcześniej szedł tylko do logcatu, a dialog wisiał na 0% bez wyjścia.
 
-**Źródło pliku update:** katalog `dist/android/` w projekcie webapp (`verbigem/mini`), deployowany
-przez `firebase deploy --only hosting --project mini-verbigem` (ten sam projekt Firebase `mini-verbigem`
-co webappa i Firestore). `dist/android/version.json` generowany jest automatycznie przy każdym buildzie
-Vite (plugin `injectBuildId` w `vite.config.ts`) — nie trzeba ręcznie edytować JSON-a.
+### Jak działa postęp pobierania (tu były dwa błędy — nie powielaj ich)
+
+- `UpdateManager.downloadAndInstall` emituje `MutableStateFlow<DownloadProgress>`
+  (`bytesRead`, `totalBytes`; `totalBytes == 0` = serwer nie podał `Content-Length`, wtedy
+  `fraction == -1f` i UI pokazuje pasek nieoznaczony + sam licznik MB).
+  **Każdy tick to nowa instancja** — `MutableStateFlow` deduplikuje po `equals()`, więc stary
+  model (`MutableStateFlow<Float?>`, w którym `-1f` powtarzał się w kółko przy braku
+  Content-Length) był po cichu gubiony i nie generował rekompozycji.
+- Tick leci co **64 KB albo 250 ms** (`EMIT_EVERY_BYTES` / `EMIT_EVERY_MS`) — na wolnym łączu
+  pasek i licznik MB ruszają się, zamiast czekać na pierwsze 256 KB (stary próg).
+- Flow żyje w **`MainActivity`, nie w `remember {}`** (`MainActivity.downloadProgress`), a
+  `StartupGate` czyta go `collectAsState()` **w swoim własnym scopie** i przekazuje wartość jako
+  **parametr** do `UpdateDownloadDialog`.
+  Dlaczego tak: `AlertDialog` renderuje się do osobnego okna = **subkompozycja**. Gdy stan jest
+  czytany **wyłącznie** wewnątrz treści dialogu, rodzic się nie rekomponuje i dialog dalej
+  pokazuje wartość z pierwszej kompozycji (objaw: „pasek zamarznięty na 0%"). Odczyt w scopie
+  rodzica + przekazanie parametrem omija całą tę klasę problemu.
+- **Diagnoza na telefonie:** logcat `UpdateManager` wypisuje co ~1 MB
+  `Download progress: X KB / Y KB`, a po końcu `Download finished, bytes=… (content-length=…)`.
+  Jeśli pasek stanie, te linie mówią wprost, czy winna jest sieć, czy Compose.
+
+**Źródło pliku update — DWA pliki, nie pomyl:** katalog `dist/` w projekcie webapp
+(`verbigem/mini`), deployowany przez `firebase deploy --only hosting --project mini-verbigem`
+(ten sam projekt Firebase `mini-verbigem` co webappa i Firestore).
+- **`dist/updates/version.json` — TEN, KTÓRY CZYTA APPKA.** Trzymany ręcznie. Jako jedyny ma w
+  `apkUrl` **cache-buster `?v=N`** (`...app-debug-v25.apk?v=25`): query omija pułapkę
+  `Cache-Control: immutable` na `/android/**` (CDN cache'uje URL z query jako osobny obiekt),
+  więc nowy `versionCode` → nowy `?v=` → świeże bajty bez purgowania Cloudflara.
+- `dist/android/version.json` — generowany przez plugin `injectBuildId` w `vite.config.ts`
+  przy każdym `npm run build`. Appka go NIE czyta, ale trzymaj go zgodnego z `/updates/`,
+  bo inaczej pierwszy `npm run build` cofnie `versionCode` do wartości z `vite.config.ts`.
 APK wrzucamy jako `dist/android/app-debug-vN.apk`.
 
 **Ścieżki:**
@@ -436,22 +476,23 @@ usunięte z obiegu). Firestore `app_config/update` to tylko fallback w `fetchUpd
 3. Skopiuj `app/build/outputs/apk/debug/app-debug.apk` → `verbigem/mini/dist/android/app-debug-vN.apk`
    (N = nowy versionCode).
 4. Wyedytuj **`verbigem/mini/vite.config.ts`** (sekcja `android/version.json` w pluginie `injectBuildId`):
-   ustaw `versionCode` = N, `versionName` = nowa nazwa, `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk`,
-   `updatedAt`. **NIE edytuj ręcznie `dist/android/version.json`** — ten plik jest generowany na nowo przy każdym
-   `npm run build` z wartości z `vite.config.ts`. Ręczna edycja dist zostałaby nadpisana przez build i rozjechała się
-   z wgrywanym APK (serwer podawałby starszy `versionCode` niż zainstalowana apka → brak promptu o update).
-5. `cd verbigem/mini && npm run build` — `vite.config.ts` wygeneruje automatycznie
-   `dist/android/version.json` z nowym `versionCode`/`updatedAt`.
-   - ⚠️ **Vite czyści `dist/` przed buildem** (`emptyOutDir` = true, bo `dist` leży w katalogu
-     projektu) — **wszystkie `dist/android/*.apk` znikną**. Przed `npm run build` zrób kopię
-     zapasową katalogu `dist/android/` i przywróć go po buildzie, inaczej zdeployujesz
-     sam `version.json` bez APK (albo — gdy `dist` jest niekompletny — zdeployujesz hosting
-     bez `index.html` i wywalisz stronę).
+   ustaw `versionCode` = N, `versionName` = nowa nazwa,
+   `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk?v=N` (**z `?v=N`**), `updatedAt`.
+5. Wyedytuj **`verbigem/mini/dist/updates/version.json`** — TE SAME wartości (to ten plik
+   czyta `UpdateManager`).
+   - ⚠️ **Nie uruchamiaj `npm run build`.** Vite czyści `dist/` przed buildem (znikną wszystkie
+     `dist/android/*.apk`) i zmienia hashe assetów webappy, czyli cicho podmienia działającą
+     stronę na `mini.verbigem.com`. Ręczna edycja `dist/updates/version.json` jest poprawna
+     **pod warunkiem** że krok 4 zrobiłeś identycznie — inaczej pierwszy `npm run build`
+     wygeneruje `version.json` ze starym `versionCode` i rozjedzie się z wgranym APK
+     (serwer poda starszą wersję niż zainstalowana → brak promptu o update).
+   - Jeśli jednak MUSISZ przebudować webapp: kopia zapasowa `dist/android/` + `dist/updates/`,
+     `npm run build`, przywrócenie APK-ów, przepisanie `dist/updates/version.json`.
 6. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
 7. Gotowe — appka na telefonie sama wykryje nową wersję przy starcie i zaproponuje update.
-8. Po deployu **zweryfikuj**: `https://mini.verbigem.com/android/version.json` musi zwracać
-   nowy `versionCode`. Nagłówki w `firebase.json` są tak ustawione, że `/android/version.json`
-   ma `no-store` (podgląd w przeglądarce jest wiarygodny bez twardego reloadu).
+8. Po deployu **zweryfikuj**: `https://mini.verbigem.com/updates/version.json` (nie
+   `/android/`!) musi zwracać nowy `versionCode`. W razie wątpliwości
+   `curl -s ".../android/app-debug-vN.apk?v=N" | sha256sum` i porównaj z lokalnym plikiem.
 
 ### ⚠️ Pułapka: `immutable` cache na `/android/**` — NIGDY nie nadpisuj istniejącej nazwy APK
 
@@ -597,15 +638,23 @@ skrótu błędnie kazała edytować `dist/android/version.json` ręcznie, co roz
 z generowaniem pliku przez Vite).
 
 1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`
-   (konwencja: `versionName` = `1.0.(versionCode - 1)`, np. code 23 → name `1.0.22`).
+   (konwencja: `versionName` = `1.0.(versionCode - 1)`, np. code 25 → name `1.0.24`).
 2. Build APK (wrapper Javy, patrz wyżej) → `app/build/outputs/apk/debug/app-debug.apk`.
-3. Kopia zapasowa `verbigem/mini/dist/android/` (**Vite ją wyczyści** w kroku 5).
-4. APK → `verbigem/mini/dist/android/app-debug-vN.apk` (N = nowy versionCode).
-5. `verbigem/mini/vite.config.ts` (plugin `injectBuildId`) → `versionCode`, `versionName`,
-   `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk`.
-6. `cd verbigem/mini && npm run build` → generuje `dist/android/version.json`;
-   przywrócić APK-i z kopii zapasowej.
-7. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
+3. APK → `verbigem/mini/dist/android/app-debug-vN.apk` (N = nowy versionCode).
+4. **`verbigem/mini/vite.config.ts`** (plugin `injectBuildId`) → `versionCode`, `versionName`,
+   `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk?v=N`
+   (**z cache-busterem `?v=N`**), `updatedAt`. To źródło prawdy dla przyszłych buildów Vite.
+5. **`verbigem/mini/dist/updates/version.json`** — wpisz TE SAME wartości (to ten plik czyta
+   appka). ⚠️ **Nie uruchamiaj `npm run build`**, chyba że celowo przebudowujesz webapp:
+   `npm run build` zmienia hashe assetów i podmieni działającą stronę. Ręczna edycja
+   `dist/updates/version.json` jest bezpieczna wtedy i tylko wtedy, gdy krok 4 zrobiłeś
+   tak samo — inaczej pierwszy `npm run build` cofnie `versionCode`.
+6. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
+   Deploy zastępuje hosting zawartością `dist/` — przed deployem sprawdź
+   `find dist -type f`, czy nie brakuje plików webappy (patrz wyżej „`mini.verbigem.com`
+   to TA SAME webapp").
+7. Zweryfikuj: `curl -s https://mini.verbigem.com/updates/version.json` musi zwrócić nowy
+   `versionCode` i `apkUrl` z `?v=N`.
    - Jeśli zmieniono reguły Firestore (np. nowa kolekcja jak `ocr_history`):
      `cd verbigem/android && firebase deploy --only firestore:rules --project mini-verbigem`.
      App czyta `app_config/*` PRZED loginem (reguły muszą pozwalać read:true), a zapisuje

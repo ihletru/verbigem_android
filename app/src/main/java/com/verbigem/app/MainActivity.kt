@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.data.local.PreferencesManager
@@ -47,6 +50,18 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesManager: PreferencesManager
     private val updateManager = UpdateManager(this)
+
+    /**
+     * Download progress lives in the Activity, NOT in a composable `remember`.
+     *
+     * Reason: the progress dialog is a separate Compose subcomposition (AlertDialog renders
+     * into its own window). If the state is only ever read inside that subcomposition, the
+     * parent never recomposes and the dialog keeps re-showing the value it was first composed
+     * with — the "bar frozen at 0%" symptom. Holding the flow here and reading it in the
+     * parent scope (see [StartupGate]) sidesteps the whole class of problem, and the state
+     * also survives a configuration change mid-download.
+     */
+    private val downloadProgress = MutableStateFlow(UpdateManager.DownloadProgress())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +86,10 @@ class MainActivity : ComponentActivity() {
                         // The update gate runs BEFORE the rest of the app. A broken/old
                         // install can therefore always self-heal by downloading a fixed APK,
                         // even if the rest of the app (DB, UI) would otherwise crash on launch.
-                        StartupGate(updateManager = updateManager) {
+                        StartupGate(
+                            updateManager = updateManager,
+                            progressState = downloadProgress
+                        ) {
                             AppNavigation()
                         }
                     }
@@ -97,15 +115,42 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun StartupGate(
     updateManager: UpdateManager,
+    progressState: MutableStateFlow<UpdateManager.DownloadProgress>,
     content: @Composable () -> Unit
 ) {
     var phase by remember { mutableStateOf<GatePhase>(GatePhase.Checking) }
     var updateInfo by remember { mutableStateOf<UpdateManager.UpdateInfo?>(null) }
     var downloading by remember { mutableStateOf(false) }
-    val progressState = remember { MutableStateFlow<Float?>(null) }
+    var failure by remember { mutableStateOf<String?>(null) }
+
+    // IMPORTANT: `progress` is collected here, in StartupGate's own scope — not inside the
+    // AlertDialog's content lambda. Every emission therefore recomposes StartupGate and
+    // pushes a fresh value down into the dialog, so the bar cannot freeze on the value it
+    // was first composed with.
     val progress by progressState.collectAsState()
 
     val proceed = { phase = GatePhase.Ready }
+
+    val startDownload = { info: UpdateManager.UpdateInfo ->
+        failure = null
+        downloading = true
+        progressState.value = UpdateManager.DownloadProgress()
+        updateManager.downloadAndInstall(
+            info,
+            progressState = progressState,
+            onComplete = {
+                // Install intent already fired; let the system complete the flow — do NOT
+                // proceed() here, otherwise the Activity re-creates in the old version.
+                Log.i("StartupGate", "Download/Install complete; install intent launched.")
+            },
+            onError = { error ->
+                // Show it. Previously a failed download left the dialog sitting at 0%
+                // with no explanation and no way out.
+                Log.e("StartupGate", "Update failed: $error")
+                failure = error
+            }
+        )
+    }
 
     LaunchedEffect(Unit) {
         var newer: UpdateManager.UpdateInfo? = null
@@ -145,31 +190,11 @@ private fun StartupGate(
         GatePhase.Prompt -> {
             updateInfo?.let { info ->
                 if (downloading) {
-                    AlertDialog(
-                        onDismissRequest = { },
-                        title = { Text(stringResource(R.string.update_downloading_title)) },
-                        text = {
-                            Column {
-                                Text(stringResource(R.string.update_downloading_body))
-                                Spacer(Modifier.height(12.dp))
-                                val p = progress
-                                if (p == null || p < 0f) {
-                                    // Indeterminate: either not started yet, or the server
-                                    // sent no Content-Length so we can't show a fraction.
-                                    LinearProgressIndicator(
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                } else {
-                                    LinearProgressIndicator(
-                                        progress = { p },
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    Spacer(Modifier.height(4.dp))
-                                    Text("${(p * 100).toInt()}%")
-                                }
-                            }
-                        },
-                        confirmButton = { }
+                    UpdateDownloadDialog(
+                        progress = progress,
+                        failure = failure,
+                        onRetry = { startDownload(info) },
+                        onDismiss = { proceed() }
                     )
                 } else {
                     AlertDialog(
@@ -189,23 +214,7 @@ private fun StartupGate(
                                     if (info.onPlayStore) {
                                         updateManager.openPlayStore(info)
                                     } else {
-                                        downloading = true
-                                        progressState.value = 0f
-                                        updateManager.downloadAndInstall(
-                                            info,
-                                            progressState = progressState,
-                                            onComplete = {
-                                                // Install intent already fired; let the system
-                                                // complete the flow — do NOT proceed() here,
-                                                // otherwise the Activity re-creates in the old version.
-                                                Log.i("StartupGate", "Download/Install complete; install intent launched.")
-                                            },
-                                            onError = { error ->
-                                                Log.e("StartupGate", "Update failed: $error")
-                                                // Stay on the error state — do NOT proceed() to avoid
-                                                // a broken self-heal loop. Let the user retry.
-                                            }
-                                        )
+                                        startDownload(info)
                                     }
                                 }
                             ) {
@@ -228,6 +237,102 @@ private fun StartupGate(
 }
 
 private enum class GatePhase { Checking, Prompt, Ready }
+
+/**
+ * Progress dialog shown while the APK is being fetched.
+ *
+ * Deliberately a **separate composable taking [progress] as a parameter** (instead of an
+ * inline `text = { ... }` lambda): the value is then read in the caller's scope, so the
+ * caller recomposes on every tick and re-invokes this composable with fresh data.
+ *
+ * Shows three things rather than a bare percentage:
+ *  - a determinate bar (or an indeterminate one when the server sent no Content-Length),
+ *  - the percentage,
+ *  - **megabytes downloaded / total** — this is what makes a stalled or slow download
+ *    obvious instead of an apparently frozen "0%".
+ */
+@Composable
+private fun UpdateDownloadDialog(
+    progress: UpdateManager.DownloadProgress,
+    failure: String?,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val indeterminate = progress.fraction < 0f
+    AlertDialog(
+        onDismissRequest = { if (failure != null) onDismiss() },
+        title = {
+            Text(
+                stringResource(
+                    if (failure == null) R.string.update_downloading_title else R.string.update_failed_title
+                )
+            )
+        },
+        text = {
+            Column {
+                if (failure != null) {
+                    Text(
+                        text = stringResource(R.string.update_failed, failure),
+                        color = VerbigemTheme.colors.danger,
+                        fontSize = 13.sp
+                    )
+                } else {
+                    Text(stringResource(R.string.update_downloading_body))
+                    Spacer(Modifier.height(12.dp))
+                    if (indeterminate) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { progress.fraction },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (!indeterminate) {
+                            Text(
+                                text = stringResource(
+                                    R.string.update_download_percent,
+                                    (progress.fraction * 100).toInt()
+                                ),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = VerbigemTheme.colors.ink
+                            )
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(
+                            text = if (progress.totalBytes > 0) {
+                                stringResource(
+                                    R.string.update_download_bytes,
+                                    progress.megabytesRead,
+                                    progress.megabytesTotal
+                                )
+                            } else {
+                                stringResource(
+                                    R.string.update_download_bytes_unknown,
+                                    progress.megabytesRead
+                                )
+                            },
+                            fontSize = 12.sp,
+                            color = VerbigemTheme.colors.muted
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (failure != null) {
+                TextButton(onClick = onRetry) { Text(stringResource(R.string.update_retry)) }
+            }
+        },
+        dismissButton = {
+            if (failure != null) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.update_later)) }
+            }
+        }
+    )
+}
 
 @Composable
 fun LocalizationWrapper(langCode: String, content: @Composable () -> Unit) {

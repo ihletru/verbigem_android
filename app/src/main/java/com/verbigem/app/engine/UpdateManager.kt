@@ -49,6 +49,32 @@ class UpdateManager(private val context: Context) {
         fun isNewerThan(currentCode: Long): Boolean = versionCode > currentCode
     }
 
+    /**
+     * One download tick.
+     *
+     * A **new instance is emitted for every update**, so `MutableStateFlow` (which drops
+     * emissions equal to the previous one) can never swallow a tick — that was the failure
+     * mode with the old `Float` progress, where a repeated value silently produced no
+     * recomposition.
+     *
+     * @param bytesRead  bytes written to disk so far.
+     * @param totalBytes size declared by the server, or `0` when the response carried no
+     *                   usable `Content-Length` (chunked / brotli-encoded body). In that case
+     *                   [fraction] is `-1f` (indeterminate) and the UI falls back to showing
+     *                   only the MB counter, which still moves.
+     */
+    data class DownloadProgress(
+        val bytesRead: Long = 0,
+        val totalBytes: Long = 0
+    ) {
+        /** `0f..1f` when the total is known, `-1f` when it isn't. */
+        val fraction: Float
+            get() = if (totalBytes > 0) (bytesRead.toFloat() / totalBytes).coerceIn(0f, 1f) else -1f
+
+        val megabytesRead: Float get() = bytesRead / BYTES_PER_MB
+        val megabytesTotal: Float get() = totalBytes / BYTES_PER_MB
+    }
+
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     /**
@@ -187,15 +213,19 @@ class UpdateManager(private val context: Context) {
      * `Accept: application/octet-stream` header, otherwise it returns an HTML page
      * instead of the binary) and installs it.
      *
-     * Progress is reported through [progressState] (a [MutableStateFlow]) so the UI can read it
-     * with `collectAsState()` — the same pattern as the model downloader, which works reliably
-     * under Compose. Values: `null` = not started, `-1f` = indeterminate (server sent no
-     * Content-Length), `0f..1f` = definite fraction downloaded. [onComplete] fires once the
-     * install intent has been launched.
+     * Progress is reported through [progressState] (a [MutableStateFlow] of
+     * [DownloadProgress]) so the UI can read it with `collectAsState()` — the same pattern as
+     * the model downloader, which works reliably under Compose. Every tick is a brand-new
+     * [DownloadProgress] instance, so nothing is de-duplicated away.
+     *
+     * Ticks are emitted at most every [EMIT_EVERY_BYTES] bytes **or** [EMIT_EVERY_MS]
+     * milliseconds (whichever comes first) — often enough that the bar looks alive even on a
+     * slow link, rare enough not to flood the main thread with recompositions.
+     * [onComplete] fires once the install intent has been launched.
      */
     fun downloadAndInstall(
         info: UpdateInfo,
-        progressState: MutableStateFlow<Float?> = MutableStateFlow(null),
+        progressState: MutableStateFlow<DownloadProgress> = MutableStateFlow(DownloadProgress()),
         onComplete: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -230,37 +260,46 @@ class UpdateManager(private val context: Context) {
                         withContext(Dispatchers.Main) { onError("Empty response body") }
                         return@launch
                     }
-                    val total = body.contentLength()
-                    Log.i(TAG, "Download started, content-length=$total")
-                    // tryEmit works from any thread and is picked up by collectAsState() in the UI.
-                    progressState.value = if (total > 0) 0f else -1f
+                    val total = body.contentLength().coerceAtLeast(0)
+                    Log.i(TAG, "Download started, content-length=${body.contentLength()}")
+                    progressState.value = DownloadProgress(0, total)
                     targetFile.outputStream().use { out ->
                         body.byteStream().use { `in` ->
-                            val buf = ByteArray(32 * 1024)
+                            val buf = ByteArray(64 * 1024)
                             var read: Int
                             var downloaded = 0L
-                            var lastEmit = 0L
+                            var lastEmitBytes = 0L
+                            var lastEmitMs = 0L
+                            var lastLogBytes = 0L
                             while (`in`.read(buf).also { read = it } != -1) {
                                 out.write(buf, 0, read)
                                 downloaded += read
-                                // Emit at most a few times per MB to avoid flooding the snapshot system.
-                                if (downloaded - lastEmit >= 256_000 || total <= 0) {
-                                    lastEmit = downloaded
-                                    progressState.value = if (total > 0) {
-                                        (downloaded.toFloat() / total).coerceIn(0f, 1f)
-                                    } else {
-                                        -1f // indeterminate: server gave no Content-Length
+                                val now = System.currentTimeMillis()
+                                if (downloaded - lastEmitBytes >= EMIT_EVERY_BYTES ||
+                                    now - lastEmitMs >= EMIT_EVERY_MS
+                                ) {
+                                    lastEmitBytes = downloaded
+                                    lastEmitMs = now
+                                    progressState.value = DownloadProgress(downloaded, total)
+                                    if (downloaded - lastLogBytes >= LOG_EVERY_BYTES) {
+                                        lastLogBytes = downloaded
+                                        Log.d(
+                                            TAG,
+                                            "Download progress: ${downloaded / 1024} KB" +
+                                                if (total > 0) " / ${total / 1024} KB" else ""
+                                        )
                                     }
                                 }
                             }
-                            Log.i(TAG, "Download finished, bytes=$downloaded")
-                            progressState.value = if (total > 0) 1f else -1f
+                            Log.i(TAG, "Download finished, bytes=$downloaded (content-length=${body.contentLength()})")
+                            progressState.value = DownloadProgress(downloaded, total)
                         }
                     }
                     if (targetFile.length() < 1_000_000) {
                         val msg = "Downloaded file too small (${targetFile.length()} B) — likely HTML, not APK"
                         Log.e(TAG, msg)
-                        progressState.value = null
+                        // Keep the last known progress on screen: the error text next to it
+                        // explains why the bar stopped, instead of the UI silently resetting.
                         withContext(Dispatchers.Main) { onError(msg) }
                         return@launch
                     }
@@ -268,7 +307,6 @@ class UpdateManager(private val context: Context) {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Download error", e)
-                progressState.value = null
                 withContext(Dispatchers.Main) { onError(e.localizedMessage ?: "Download error") }
             }
         }
@@ -306,5 +344,16 @@ class UpdateManager(private val context: Context) {
 
     companion object {
         private const val TAG = "UpdateManager"
+
+        /** Emit a progress tick at least this often (bytes). */
+        private const val EMIT_EVERY_BYTES = 64_000L
+
+        /** ...and at least this often (ms), so a slow link still looks alive. */
+        private const val EMIT_EVERY_MS = 250L
+
+        /** Throttle the "Download progress:" logcat lines. */
+        private const val LOG_EVERY_BYTES = 1_048_576L
+
+        private const val BYTES_PER_MB = 1_048_576f
     }
 }

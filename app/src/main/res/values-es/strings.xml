@@ -141,4 +141,11 @@
     <string name="update_downloading_title">Descargando actualización</string>
     <string name="update_downloading_body">Espera — se está descargando la actualización. No cierres la app.</string>
     <string name="update_checking">Buscando actualizaciones…</string>
+    <!-- Progreso de descarga: porcentaje + megabytes descargados / total (solo formatos). -->
+    <string name="update_download_percent">%1$d%%</string>
+    <string name="update_download_bytes">%1$.1f MB / %2$.1f MB</string>
+    <string name="update_download_bytes_unknown">%1$.1f MB</string>
+    <string name="update_failed_title">La actualización falló</string>
+    <string name="update_failed">La descarga no terminó: %1$s</string>
+    <string name="update_retry">Reintentar</string>
 </resources>

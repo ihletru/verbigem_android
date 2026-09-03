@@ -141,4 +141,11 @@
     <string name="update_downloading_title">正在下载更新</string>
     <string name="update_downloading_body">请稍候 — 正在下载更新。不要关闭应用。</string>
     <string name="update_checking">正在检查更新…</string>
+    <!-- 下载进度：百分比 + 已下载 / 总大小（MB，仅格式，无文字）。 -->
+    <string name="update_download_percent">%1$d%%</string>
+    <string name="update_download_bytes">%1$.1f MB / %2$.1f MB</string>
+    <string name="update_download_bytes_unknown">%1$.1f MB</string>
+    <string name="update_failed_title">更新失败</string>
+    <string name="update_failed">下载未完成：%1$s</string>
+    <string name="update_retry">重试</string>
 </resources>

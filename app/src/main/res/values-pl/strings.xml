@@ -148,4 +148,11 @@
     <string name="update_downloading_title">Pobieranie aktualizacji</string>
     <string name="update_downloading_body">Proszę czekać — trwa pobieranie aktualizacji. Nie zamykaj aplikacji.</string>
     <string name="update_checking">Sprawdzanie aktualizacji…</string>
+    <!-- Postęp pobierania: procenty + megabajty pobrane / razem (same formaty, bez słów). -->
+    <string name="update_download_percent">%1$d%%</string>
+    <string name="update_download_bytes">%1$.1f MB / %2$.1f MB</string>
+    <string name="update_download_bytes_unknown">%1$.1f MB</string>
+    <string name="update_failed_title">Aktualizacja nie udała się</string>
+    <string name="update_failed">Pobieranie nie zostało ukończone: %1$s</string>
+    <string name="update_retry">Ponów</string>
 </resources>

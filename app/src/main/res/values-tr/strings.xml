@@ -141,4 +141,11 @@
     <string name="update_downloading_title">Güncelleme indiriliyor</string>
     <string name="update_downloading_body">Lütfen bekleyin — güncelleme indiriliyor. Uygulamayı kapatmayın.</string>
     <string name="update_checking">Güncellemeler denetleniyor…</string>
+    <!-- İndirme ilerlemesi: yüzde + megabayt indirilen / toplam (yalnızca biçim). -->
+    <string name="update_download_percent">%1$d%%</string>
+    <string name="update_download_bytes">%1$.1f MB / %2$.1f MB</string>
+    <string name="update_download_bytes_unknown">%1$.1f MB</string>
+    <string name="update_failed_title">Güncelleme başarısız</string>
+    <string name="update_failed">İndirme tamamlanamadı: %1$s</string>
+    <string name="update_retry">Yeniden dene</string>
 </resources>
