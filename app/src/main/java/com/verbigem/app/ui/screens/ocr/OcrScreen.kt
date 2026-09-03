@@ -3,8 +3,9 @@ package com.verbigem.app.ui.screens.ocr
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -41,6 +42,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.lazy.rememberLazyListState
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.FlagIcon
@@ -56,6 +59,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,15 +91,43 @@ fun OcrScreen(
     val isProcessing by viewModel.isProcessing.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val selectedBitmap by viewModel.selectedBitmap.collectAsState()
-    val isSpeaking by viewModel.isSpeaking.collectAsState()
+    val isSpeaking by viewModel.resultSpeaking.collectAsState()
+    val isSpeakingPro by viewModel.resultSpeakingPro.collectAsState()
+    val speakingSyncId by viewModel.speakingSyncId.collectAsState()
+    val speakingProSyncId by viewModel.speakingProSyncId.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
+    val targetLang by viewModel.targetLang.collectAsState()
     val cropRect by viewModel.cropRectFlow.collectAsState()
-    val historyList by viewModel.historyList.collectAsState()
+    val historyItems by viewModel.historyItems.collectAsState()
+    val historyListState = rememberLazyListState()
+    LaunchedEffect(historyListState) {
+        snapshotFlow {
+            val info = historyListState.layoutInfo
+            info.totalItemsCount > 0 &&
+                (info.visibleItemsInfo.lastOrNull()?.index ?: -1) >= info.totalItemsCount - 1
+        }.collect { atEnd -> if (atEnd) viewModel.loadMoreHistory() }
+    }
+
+    // TakePicture writes the FULL-RESOLUTION photo to a temp file via a FileProvider
+    // URI (NOT a downscaled thumbnail). The gallery path already decodes at full res,
+    // so we reuse processImageUri to keep OCR quality identical for both sources.
+    val cameraTempUri = remember {
+        val dir = File(context.cacheDir, "ocr_camera").also { it.mkdirs() }
+        val file = File(dir, "ocr_capture_${System.currentTimeMillis()}.jpg")
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            viewModel.processBitmap(bitmap)
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            viewModel.processImageUri(cameraTempUri)
+        } else {
+            viewModel.setError(context.getString(R.string.ocr_camera_cancelled))
         }
     }
 
@@ -100,7 +135,7 @@ fun OcrScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            cameraLauncher.launch(null)
+            cameraLauncher.launch(cameraTempUri)
         } else {
             viewModel.setError(context.getString(R.string.ocr_permission_denied))
         }
@@ -109,7 +144,7 @@ fun OcrScreen(
     fun launchCameraWithPermissionCheck() {
         val permission = android.Manifest.permission.CAMERA
         if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
-            cameraLauncher.launch(null)
+            cameraLauncher.launch(cameraTempUri)
         } else {
             cameraPermissionLauncher.launch(permission)
         }
@@ -311,7 +346,7 @@ fun OcrScreen(
                     }) {
                         Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.copied), tint = VerbigemTheme.colors.accent)
                     }
-                    IconButton(onClick = { viewModel.speak(translatedText ?: "") }) {
+                    IconButton(onClick = { viewModel.speak(translatedText ?: "", targetLang) }) {
                         if (isSpeaking) {
                             androidx.compose.material3.CircularProgressIndicator(
                                 color = VerbigemTheme.colors.accent,
@@ -334,8 +369,8 @@ fun OcrScreen(
             )
         }
 
-        // Historia OCR (jak w tłumaczeniach) — ostatnie wpisy z ikonami akcji.
-        if (historyList.isNotEmpty()) {
+        // Historia OCR (jak w tłumaczeniach) — ładuje się przy scrollowaniu (infinity window).
+        if (historyItems.isNotEmpty()) {
             Text(
                 text = stringResource(R.string.recent_translations),
                 color = VerbigemTheme.colors.muted,
@@ -344,14 +379,18 @@ fun OcrScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
             )
             LazyColumn(
+                state = historyListState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 420.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(historyList.take(8)) { item ->
+                items(historyItems) { item ->
                     OcrHistoryItem(
                         item = item,
+                        isPro = isPro,
+                        isSpeaking = item.syncId == speakingSyncId,
+                        isSpeakingPro = item.syncId == speakingProSyncId,
                         onCopy = {
                             val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clip.setPrimaryClip(ClipData.newPlainText("translation", item.translatedText))
@@ -364,9 +403,12 @@ fun OcrScreen(
                                 putExtra(android.content.Intent.EXTRA_TEXT, item.translatedText)
                                 addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
-                            context.startActivity(android.content.Intent.createChooser(sendIntent, context.getString(R.string.action_share)))
+                            val shareIntent = android.content.Intent.createChooser(sendIntent, context.getString(R.string.action_share))
+                            shareIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(shareIntent)
                         },
-                        onRead = { viewModel.speak(item.translatedText) },
+                        onRead = { viewModel.speakHistory(item) },
+                        onReadPro = { viewModel.speakProHistory(item) },
                         onDelete = { viewModel.deleteHistory(item) }
                     )
                 }
@@ -378,9 +420,13 @@ fun OcrScreen(
 @Composable
 fun OcrHistoryItem(
     item: TranslationHistory,
+    isPro: Boolean,
+    isSpeaking: Boolean,
+    isSpeakingPro: Boolean,
     onCopy: () -> Unit,
     onShare: () -> Unit,
     onRead: () -> Unit,
+    onReadPro: () -> Unit,
     onDelete: () -> Unit
 ) {
     Column(
@@ -391,6 +437,7 @@ fun OcrHistoryItem(
             .border(0.5.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
+        // Górny pasek: flagi języków + wszystkie ikony akcji (jak w Translatorze).
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -400,15 +447,42 @@ fun OcrHistoryItem(
             Text("→", color = VerbigemTheme.colors.muted, fontSize = 13.sp)
             FlagIcon(lang = LangCode.fromCode(item.targetLang), size = 18.dp)
             Spacer(modifier = Modifier.weight(1f))
+            // Kopiuj
             IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.action_copy), tint = VerbigemTheme.colors.accent)
             }
+            // Udostępnij
             IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Share, contentDescription = stringResource(R.string.action_share), tint = VerbigemTheme.colors.accent)
             }
+            // Czytaj (darmowy TTS lokalny)
             IconButton(onClick = onRead, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.action_read), tint = VerbigemTheme.colors.accent)
+                if (isSpeaking) {
+                    CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = stringResource(R.string.action_read), tint = VerbigemTheme.colors.accent)
+                }
             }
+            // Czytaj Pro (płatne API — dla Pro aktywne, dla free szare + tooltip)
+            if (isPro) {
+                IconButton(onClick = onReadPro, modifier = Modifier.size(32.dp)) {
+                    if (isSpeakingPro) {
+                        CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
+                    }
+                }
+            } else {
+                ProFeatureButton(
+                    icon = Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = stringResource(R.string.action_read_pro),
+                    isPro = false,
+                    onProClick = {},
+                    modifier = Modifier.size(32.dp),
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
+                )
+            }
+            // Skasuj z historii
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }

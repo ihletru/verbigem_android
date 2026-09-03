@@ -17,6 +17,9 @@ interface PendingDeleteDao {
     @Query("DELETE FROM pending_deletes WHERE syncId = :syncId")
     suspend fun deleteBySyncId(syncId: String)
 
+    @Query("DELETE FROM pending_deletes WHERE syncId = :syncId AND collection = :collection")
+    suspend fun deleteBySyncIdAndCollection(syncId: String, collection: String)
+
     @Query("DELETE FROM pending_deletes")
     suspend fun clearAll()
 }

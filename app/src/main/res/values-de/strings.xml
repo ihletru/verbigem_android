@@ -21,6 +21,7 @@
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Aus Foto (OCR)</string>
     <string name="translate_hint">Text zum Übersetzen eingeben…</string>
+    <string name="translate_hint_speech">Text eingeben, sprechen oder Foto in Text umwandeln zum Übersetzen…</string>
     <string name="translate_button">Übersetzen (Schnell)</string>
     <string name="accurate_label">Langsam aber genau ~1.1 GB</string>
     <string name="copied_clipboard">In Zwischenablage kopiert</string>
@@ -85,11 +86,12 @@
     <string name="ocr_photo">OCR-Foto</string>
     <string name="remove">Entfernen</string>
     <string name="recognized_text">ERKANNTER TEXT:</string>
-    <string name="ocr_translation">ÜBERSETZUNG (Hy-MT2):</string>
+    <string name="ocr_translation">ÜBERSETZUNG (Szybki):</string>
     <string name="ocr_translate_button">Übersetzen</string>
     <string name="ocr_read_selected">Ausgewählten Bereich lesen</string>
     <string name="ocr_crop_hint">Rahmen über den Text legen und dann „Ausgewählten Bereich lesen” antippen.</string>
     <string name="ocr_permission_denied">Kamerazugriff verweigert. In den App-Einstellungen aktivieren.</string>
+    <string name="ocr_camera_cancelled">Fotoaufnahme abgebrochen.</string>
     <string name="ocr_no_text">Kein Text zum Übersetzen — zuerst eingeben oder erkennen.</string>
     <string name="ocr_error_no_text">Kein Text im Bild erkannt.</string>
     <string name="copied">Kopiert</string>
@@ -136,4 +138,7 @@
     <string name="update_available_body">Eine neue Version (%1$s) ist verfügbar. Jetzt aktualisieren?</string>
     <string name="update_action">Aktualisieren</string>
     <string name="update_later">Später</string>
+    <string name="update_downloading_title">Update wird heruntergeladen</string>
+    <string name="update_downloading_body">Bitte warten — das Update wird heruntergeladen. App nicht schließen.</string>
+    <string name="update_checking">Nach Updates wird gesucht…</string>
 </resources>

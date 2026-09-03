@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,10 +39,14 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,6 +57,7 @@ import com.verbigem.app.ui.components.FlagIcon
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.theme.VerbigemTheme
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConversationScreen(
     viewModel: ConversationViewModel
@@ -57,6 +67,7 @@ fun ConversationScreen(
     val currentSide by viewModel.currentSide.collectAsState()
     val isListening by viewModel.isListening.collectAsState()
     val interimSpeech by viewModel.interimSpeech.collectAsState()
+    val recognizedText by viewModel.recognizedText.collectAsState()
     val translatedResult by viewModel.translatedResult.collectAsState()
     val resultLang by viewModel.resultLang.collectAsState()
     val isTranslating by viewModel.isTranslating.collectAsState()
@@ -65,12 +76,18 @@ fun ConversationScreen(
 
     val currentLang = if (currentSide == ConvSide.SIDE_A) langA else langB
 
+    // Scroll the focused text field into view when the IME covers it.
+    val scrollState = rememberScrollState()
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -104,14 +121,19 @@ fun ConversationScreen(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(
+            IconButton(
                 onClick = { viewModel.setSide(if (currentSide == ConvSide.SIDE_A) ConvSide.SIDE_B else ConvSide.SIDE_A) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = VerbigemTheme.colors.accent
-                ),
-                shape = RoundedCornerShape(8.dp)
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(VerbigemTheme.colors.accent)
+                    .size(40.dp)
             ) {
-                Text(stringResource(if (currentSide == ConvSide.SIDE_A) R.string.switch_to_b else R.string.switch_to_a), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Icon(
+                    imageVector = Icons.Default.SwapHoriz,
+                    contentDescription = stringResource(R.string.swap_direction),
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -246,9 +268,21 @@ fun ConversationScreen(
                 OutlinedTextField(
                     value = textInput,
                     onValueChange = { viewModel.onTextInputChanged(it) },
-                    placeholder = { Text(stringResource(R.string.type_as_side, if (currentSide == ConvSide.SIDE_A) "A" else "B"), fontSize = 13.sp) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
+                    placeholder = {
+                        Text(
+                            text = recognizedText.ifEmpty { stringResource(R.string.type_as_side, if (currentSide == ConvSide.SIDE_A) "A" else "B") },
+                            fontSize = 13.sp,
+                            color = if (recognizedText.isNotBlank()) VerbigemTheme.colors.muted else VerbigemTheme.colors.muted
+                        )
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .bringIntoViewRequester(bringIntoViewRequester)
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                scope.launch { bringIntoViewRequester.bringIntoView() }
+                            }
+                        },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = VerbigemTheme.colors.accent,
                         unfocusedBorderColor = VerbigemTheme.colors.border

@@ -21,6 +21,7 @@
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Fotoğraftan (OCR)</string>
     <string name="translate_hint">Çevrilecek metni gir…</string>
+    <string name="translate_hint_speech">Metin girişi yap, konuş veya fotoğrafı metne çevirerek çevir…</string>
     <string name="translate_button">Çevir (Hızlı)</string>
     <string name="accurate_label">Yavaş ama doğru ~1.1 GB</string>
     <string name="copied_clipboard">Panoya kopyalandı</string>
@@ -85,11 +86,12 @@
     <string name="ocr_photo">OCR fotoğrafı</string>
     <string name="remove">Kaldır</string>
     <string name="recognized_text">TANINAN METİN:</string>
-    <string name="ocr_translation">ÇEVİRİ (Hy-MT2):</string>
+    <string name="ocr_translation">ÇEVİRİ (Szybki):</string>
     <string name="ocr_translate_button">Çevir</string>
     <string name="ocr_read_selected">Seçili alanı oku</string>
     <string name="ocr_crop_hint">Çerçeveyi metnin üzerine getir, ardından “Seçili alanı oku”ya dokun.</string>
     <string name="ocr_permission_denied">Kamera izni reddedildi. Uygulama ayarlarından etkinleştir.</string>
+    <string name="ocr_camera_cancelled">Fotoğraf çekimi iptal edildi.</string>
     <string name="ocr_no_text">Çevrilecek metin yok — önce girin veya metni tanıyın.</string>
     <string name="ocr_error_no_text">Görselde metin algılanmadı.</string>
     <string name="copied">Kopyalandı</string>
@@ -136,4 +138,7 @@
     <string name="update_available_body">Yeni sürüm (%1$s) mevcut. Şimdi güncelle?</string>
     <string name="update_action">Güncelle</string>
     <string name="update_later">Daha sonra</string>
+    <string name="update_downloading_title">Güncelleme indiriliyor</string>
+    <string name="update_downloading_body">Lütfen bekleyin — güncelleme indiriliyor. Uygulamayı kapatmayın.</string>
+    <string name="update_checking">Güncellemeler denetleniyor…</string>
 </resources>

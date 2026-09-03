@@ -4,33 +4,46 @@ import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.verbigem.app.data.local.AppDatabase
+import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.TranslationHistory
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
 /**
- * Startup synchronizer: pushes local changes to Firestore and pulls remote changes,
- * merging per-field with a LAST-WRITE-WINS rule (the newer `updatedAt` wins).
+ * Startup synchronizer: pushes local changes to Firestore and pulls remote changes.
+ *
+ * DELTA SYNC (no full-list transfer):
+ *  - Each collection keeps a `lastSync` timestamp in DataStore (per collection: history / ocr_history).
+ *  - PUSH: only local rows with `updatedAt > lastSync` are uploaded. Unchanged rows are skipped,
+ *          so re-syncing a 10k-row history does not re-send megabytes of text.
+ *  - PULL: `firestore.whereGreaterThan("updatedAt", lastSync)` — the server returns ONLY rows
+ *          newer than the last sync (including tombstones, which carry their own updatedAt).
+ *          No full list of ids is ever fetched.
+ *  - After a successful sync, `lastSync` is advanced to the newest updatedAt seen (local + remote).
  *
  * What is synced:
- *  - user profile (users/{uid}) — plan, nickname, langs, etc.
- *  - translation history (users/{uid}/history/{syncId})
+ *  - user profile (users/{uid})
+ *  - translation history (users/{uid}/history/{syncId}) — the Translator's list
+ *  - OCR history (users/{uid}/ocr_history/{syncId}) — the OCR list (separate collection)
  *  - paid TTS config (app_config/tts)
  *
- * Deletions are propagated via tombstones: a local delete physically removes the row but records
- * its syncId in the `pending_deletes` queue; on the next sync we write a tiny
- * `{syncId, deleted:true, updatedAt}` document to Firestore. Other devices see `deleted:true`
- * and remove the row locally. This keeps the local DB from bloating while still propagating
- * deletes across devices (including deletions made while offline).
+ * Deletions: a local delete records a tombstone in `pending_deletes` (with updatedAt = now) and
+ * removes the row locally. On the next sync the tombstone is pushed as `{syncId, deleted:true,
+ * updatedAt}`; because updatedAt > lastSync it propagates to other devices, which then delete
+ * the row locally. `collection` on the tombstone routes it to history vs ocr_history.
  *
- * Must be called once at app start (after the user is signed in). If offline or no
- * user is signed in, it returns gracefully without throwing.
+ * Must be called once at app start (after the user is signed in). If offline or no user is
+ * signed in, it returns gracefully without throwing.
  */
 class SyncManager(context: Context) {
 
     private val db = AppDatabase.getInstance(context)
     private val historyRepository = HistoryRepository(db.historyDao(), db.pendingDeleteDao())
+    private val ocrHistoryRepository = OcrHistoryRepository(db.ocrHistoryDao(), db.pendingDeleteDao())
+    private val preferencesManager = PreferencesManager(context)
     private val proTtsRepository = ProTtsRepository(context)
     private val ttsConfigSync = TtsConfigSync(proTtsRepository)
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -39,7 +52,12 @@ class SyncManager(context: Context) {
         val userId = uid ?: FirebaseAuth.getInstance().currentUser?.uid ?: return
         try {
             syncProfile(userId)
-            syncHistory(userId)
+            syncCollection(userId, "history", historyRepository, preferencesManager.lastSyncHistoryFlow.first()) { ts ->
+                preferencesManager.setLastSyncHistory(ts)
+            }
+            syncCollection(userId, "ocr_history", ocrHistoryRepository, preferencesManager.lastSyncOcrFlow.first()) { ts ->
+                preferencesManager.setLastSyncOcr(ts)
+            }
             ttsConfigSync.syncFromRemote()
         } catch (e: Exception) {
             Log.e(TAG, "Sync failed", e)
@@ -47,73 +65,80 @@ class SyncManager(context: Context) {
     }
 
     private suspend fun syncProfile(uid: String) {
-        // The profile document is kept up to date in real time by ProfileViewModel
-        // (watchProfile + updateProfile). Nothing to merge here on startup beyond what
-        // the UI already subscribes to; this hook exists so future profile fields can
-        // be pulled/last-write-wins merged without changing the call site.
         firestore.collection("users").document(uid).get().await()
     }
 
-    private suspend fun syncHistory(uid: String) {
-        val localList = historyRepository.allHistoryValue()
-        val remoteSnap = firestore.collection("users").document(uid)
-            .collection("history").get().await()
+    /**
+     * Delta-syncs one subcollection. [lastSync] is the timestamp of the previous successful
+     * sync (0 on first run). Only rows newer than it are transferred in either direction.
+     * [onSynced] persists the new watermark after the sync.
+     */
+    private suspend fun syncCollection(
+        uid: String,
+        collection: String,
+        repo: HistoryLike,
+        lastSync: Long,
+        onSynced: suspend (Long) -> Unit
+    ) {
+        val colRef = firestore.collection("users").document(uid).collection(collection)
+
+        // Pull: only rows newer than lastSync (server-side filter). Returns text + tombstones
+        // for anything changed since the last sync — never the full list.
+        val remoteSnap = colRef
+            .whereGreaterThan("updatedAt", lastSync)
+            .orderBy("updatedAt", Query.Direction.ASCENDING)
+            .get().await()
 
         val remoteById = remoteSnap.documents.associateBy { it.id }
 
-        // 0) Push tombstones for locally-deleted rows (including those deleted while offline).
-        // We OVERWRITE the remote doc with just {syncId, deleted:true, updatedAt} so the deleted
-        // row's text is purged from the cloud (privacy) but a lightweight "this id was deleted"
-        // record remains — other devices see deleted:true and remove the row locally, and we can
-        // still distinguish "never existed" from "was deleted".
-        val pending = historyRepository.getPendingDeletes()
+        // 0) Push tombstones for locally-deleted rows. They carry updatedAt = deletion time,
+        //    so if that is > lastSync they propagate; otherwise they were already pushed.
+        val pending = repo.getPendingDeletes().filter {
+            it.collection == collection && it.updatedAt > lastSync
+        }
         for (pd in pending) {
             val tombstone = mapOf(
                 "syncId" to pd.syncId,
                 "deleted" to true,
                 "updatedAt" to pd.updatedAt
             )
-            firestore.collection("users").document(uid)
-                .collection("history").document(pd.syncId)
-                .set(tombstone).await()
-            historyRepository.removePendingDelete(pd.syncId)
+            colRef.document(pd.syncId).set(tombstone).await()
+            repo.removePendingDelete(pd.syncId, collection)
         }
 
-        // 1) Push local rows to remote (last-write-wins by updatedAt).
+        // 1) Push local rows newer than lastSync (last-write-wins by updatedAt).
+        var newWatermark = lastSync
+        val localList = repo.getLocalSince(lastSync)
         for (local in localList) {
-            val syncId = local.syncId.ifBlank {
-                // Pre-migration row without syncId: assign one and persist.
-                val withId = local.copy(syncId = java.util.UUID.randomUUID().toString())
-                historyRepository.upsertFromRemote(withId)
-                withId.syncId
-            }
+            val withId = repo.assignSyncIdIfMissing(local)
+            val syncId = withId.syncId
             val remoteDoc = remoteById[syncId]
             val remoteUpdated = remoteDoc?.getLong("updatedAt") ?: 0L
-            if (remoteDoc == null || local.updatedAt >= remoteUpdated) {
+            if (remoteDoc == null || withId.updatedAt >= remoteUpdated) {
                 val map = mapOf(
                     "syncId" to syncId,
-                    "sourceText" to local.sourceText,
-                    "translatedText" to local.translatedText,
-                    "sourceLang" to local.sourceLang,
-                    "targetLang" to local.targetLang,
-                    "timestamp" to local.timestamp,
-                    "updatedAt" to local.updatedAt
+                    "sourceText" to withId.sourceText,
+                    "translatedText" to withId.translatedText,
+                    "sourceLang" to withId.sourceLang,
+                    "targetLang" to withId.targetLang,
+                    "timestamp" to withId.timestamp,
+                    "updatedAt" to withId.updatedAt
                 )
-                firestore.collection("users").document(uid)
-                    .collection("history").document(syncId)
-                    .set(map, SetOptions.merge()).await()
+                colRef.document(syncId).set(map, SetOptions.merge()).await()
             }
+            if (withId.updatedAt > newWatermark) newWatermark = withId.updatedAt
         }
 
-        // 2) Pull remote rows that are newer than (or missing from) local.
+        // 2) Pull remote rows newer than lastSync and apply locally (insert / update / tombstone).
         for ((syncId, remoteDoc) in remoteById) {
-            // Tombstone from another device: delete locally and skip (do not re-upload).
+            val remoteUpdated = remoteDoc.getLong("updatedAt") ?: 0L
+            if (remoteUpdated > newWatermark) newWatermark = remoteUpdated
+
             if (remoteDoc.getBoolean("deleted") == true) {
-                historyRepository.deleteHistoryBySyncId(syncId)
+                repo.deleteBySyncId(syncId)
                 continue
             }
-            val remoteUpdated = remoteDoc.getLong("updatedAt") ?: 0L
-            val local = historyRepository.getLocalBySyncId(syncId)
+            val local = repo.getLocalBySyncId(syncId)
             if (local == null || remoteUpdated > local.updatedAt) {
                 val history = TranslationHistory(
                     syncId = syncId,
@@ -124,20 +149,15 @@ class SyncManager(context: Context) {
                     timestamp = remoteDoc.getLong("timestamp") ?: remoteUpdated,
                     updatedAt = remoteUpdated
                 )
-                historyRepository.upsertFromRemote(history)
+                repo.upsertFromRemote(history)
             }
         }
 
-        // 3) Delete local rows whose syncId no longer exists remotely (only if remote
-        //    collection is non-empty, to avoid wiping local data on a failed read).
-        if (remoteById.isNotEmpty()) {
-            for (local in localList) {
-                val syncId = local.syncId
-                if (syncId.isNotBlank() && !remoteById.containsKey(syncId)) {
-                    historyRepository.deleteHistoryBySyncId(syncId)
-                }
-            }
-        }
+        // Advance the watermark so the next sync only moves forward.
+        onSynced(newWatermark)
+
+        // Enforce the 200-entry local cap after applying remote rows.
+        repo.pruneToLimit()
     }
 
     companion object {

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -23,6 +24,8 @@ class PreferencesManager(private val context: Context) {
         private val KEY_ENGINE = stringPreferencesKey("engine_choice")
         private val KEY_PROMPTED_FAST = booleanPreferencesKey("prompted_fast")
         private val KEY_PROMPTED_ACCURATE = booleanPreferencesKey("prompted_accurate")
+        private val KEY_LAST_SYNC_HISTORY = longPreferencesKey("last_sync_history")
+        private val KEY_LAST_SYNC_OCR = longPreferencesKey("last_sync_ocr")
     }
 
     val themeFlow: Flow<String> = context.dataStore.data.map { it[KEY_THEME] ?: "calm" }
@@ -33,6 +36,8 @@ class PreferencesManager(private val context: Context) {
     val engineFlow: Flow<String> = context.dataStore.data.map { it[KEY_ENGINE] ?: "localFast" }
     val promptedFastFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_PROMPTED_FAST] ?: false }
     val promptedAccurateFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_PROMPTED_ACCURATE] ?: false }
+    val lastSyncHistoryFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_HISTORY] ?: 0L }
+    val lastSyncOcrFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_OCR] ?: 0L }
 
     suspend fun setTheme(theme: String) = context.dataStore.edit { it[KEY_THEME] = theme }
     suspend fun setMode(mode: String) = context.dataStore.edit { it[KEY_MODE] = mode }
@@ -44,4 +49,6 @@ class PreferencesManager(private val context: Context) {
     suspend fun setEngine(engine: String) = context.dataStore.edit { it[KEY_ENGINE] = engine }
     suspend fun setPromptedFast(prompted: Boolean) = context.dataStore.edit { it[KEY_PROMPTED_FAST] = prompted }
     suspend fun setPromptedAccurate(prompted: Boolean) = context.dataStore.edit { it[KEY_PROMPTED_ACCURATE] = prompted }
+    suspend fun setLastSyncHistory(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_HISTORY] = ts }
+    suspend fun setLastSyncOcr(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_OCR] = ts }
 }

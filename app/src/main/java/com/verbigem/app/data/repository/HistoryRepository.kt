@@ -12,15 +12,23 @@ import kotlinx.coroutines.flow.map
 class HistoryRepository(
     private val historyDao: HistoryDao,
     private val pendingDeleteDao: PendingDeleteDao
-) {
+) : HistoryLike {
 
     val allHistory: Flow<List<TranslationHistory>> = historyDao.getAllHistory().map { entities ->
         entities.map { it.toDomain() }
     }
 
-    /** One-shot snapshot of all local history (for the startup sync merge). */
-    suspend fun allHistoryValue(): List<TranslationHistory> =
-        historyDao.getAllHistory().first().map { it.toDomain() }
+    /** Delta-sync source: local rows changed after [since]. */
+    override suspend fun getLocalSince(since: Long): List<TranslationHistory> =
+        historyDao.getSince(since).map { it.toDomain() }
+
+    /**
+     * Offset-based page for the infinite-scroll UI. Newest-first; [offset] is the
+     * number of rows already loaded, [limit] the page size. Returns an empty list
+     * when there are no more rows (UI stops requesting).
+     */
+    suspend fun getPage(offset: Int, limit: Int): List<TranslationHistory> =
+        historyDao.getPage(offset, limit).map { it.toDomain() }
 
     suspend fun addHistory(sourceText: String, translatedText: String, sourceLang: String, targetLang: String) {
         historyDao.insert(
@@ -28,6 +36,8 @@ class HistoryRepository(
                 TranslationHistory.create(sourceText, translatedText, sourceLang, targetLang)
             )
         )
+        // Enforce the 200-entry cap locally: drop the oldest rows beyond the limit.
+        historyDao.pruneToLimit()
     }
 
     /**
@@ -41,7 +51,7 @@ class HistoryRepository(
         pendingDeleteDao.insert(PendingDeleteEntity(syncId = syncId, updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun deleteHistoryBySyncId(syncId: String) {
+    override suspend fun deleteBySyncId(syncId: String) {
         historyDao.deleteBySyncId(syncId)
     }
 
@@ -50,21 +60,32 @@ class HistoryRepository(
         pendingDeleteDao.clearAll()
     }
 
+    // ---- HistoryLike (shared sync surface) ----
+
+    override suspend fun assignSyncIdIfMissing(item: TranslationHistory): TranslationHistory {
+        if (item.syncId.isNotBlank()) return item
+        val withId = item.copy(syncId = java.util.UUID.randomUUID().toString())
+        upsertFromRemote(withId)
+        return withId
+    }
+
+    override suspend fun removePendingDelete(syncId: String, collection: String) {
+        pendingDeleteDao.deleteBySyncIdAndCollection(syncId, collection)
+    }
+
     // ---- Used by Firestore sync (last-write-wins) ----
 
-    suspend fun getLocalBySyncId(syncId: String): TranslationHistory? =
+    override suspend fun getLocalBySyncId(syncId: String): TranslationHistory? =
         historyDao.getBySyncId(syncId)?.toDomain()
 
     /** Insert/replace a row coming from Firestore, preserving local auto-id collisions. */
-    suspend fun upsertFromRemote(history: TranslationHistory) {
+    override suspend fun upsertFromRemote(history: TranslationHistory) {
         historyDao.upsertBySyncId(HistoryEntity.fromDomain(history))
     }
 
     // ---- Pending deletions (tombstones to push) ----
 
-    suspend fun getPendingDeletes(): List<PendingDeleteEntity> = pendingDeleteDao.getAll()
+    override suspend fun getPendingDeletes(): List<PendingDeleteEntity> = pendingDeleteDao.getAll()
 
-    suspend fun removePendingDelete(syncId: String) {
-        pendingDeleteDao.deleteBySyncId(syncId)
-    }
+    override suspend fun pruneToLimit() = historyDao.pruneToLimit()
 }

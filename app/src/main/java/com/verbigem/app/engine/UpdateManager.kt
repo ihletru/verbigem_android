@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONObject
 
 /**
@@ -55,28 +56,63 @@ class UpdateManager(private val context: Context) {
      * always reachable). Fallback: Firestore `app_config/update` (in case the repo file is missing).
      */
     private val updateJsonUrl =
-        "https://raw.githubusercontent.com/ihletru/verbigem_android/master/app_config_update.json"
+        "https://mini.verbigem.com/updates/version.json"
 
-    /** Reads the release metadata. Tries the public GitHub JSON first, then Firestore. */
+    /** Reads the release metadata. Tries the public Hosting JSON first, then Firestore. */
     suspend fun fetchUpdateInfo(): UpdateInfo? {
-        val fromGitHub = fetchFromGitHub()
-        if (fromGitHub != null) return fromGitHub
+        val fromHosting = fetchFromHosting()
+        if (fromHosting != null) return fromHosting
         return fetchFromFirestore()
     }
 
-    private suspend fun fetchFromGitHub(): UpdateInfo? {
+    private val okHttpClient: okhttp3.OkHttpClient by lazy {
+        okhttp3.OkHttpClient.Builder()
+            // Some ROMs (e.g. Xiaomi MIUI) fail to resolve hosts via the platform
+            // resolver used by InetAddress / com.android.okhttp when Private DNS (DoT) is on.
+            // We resolve through DNS-over-HTTPS (Cloudflare 1.1.1.1) instead, which works
+            // on any network that has plain HTTPS access.
+            .dns(object : okhttp3.Dns {
+                override fun lookup(hostname: String): List<java.net.InetAddress> {
+                    try {
+                        val url = java.net.URL("https://1.1.1.1/dns-query?name=$hostname&type=A")
+                        val conn = url.openConnection() as java.net.HttpURLConnection
+                        conn.setRequestProperty("Accept", "application/dns-json")
+                        conn.connectTimeout = 10_000
+                        conn.readTimeout = 10_000
+                        val resp = conn.inputStream.bufferedReader().use { it.readText() }
+                        conn.disconnect()
+                        val addrs = org.json.JSONArray(
+                            org.json.JSONObject(resp).optJSONArray("Answer")?.toString() ?: "[]"
+                        )
+                        val list = mutableListOf<java.net.InetAddress>()
+                        for (i in 0 until addrs.length()) {
+                            val ip = addrs.getJSONObject(i).optString("data")
+                            if (ip.isNotBlank()) list.add(java.net.InetAddress.getByName(ip))
+                        }
+                        if (list.isNotEmpty()) return list
+                    } catch (_: Exception) {
+                        // fall through to system resolver
+                    }
+                    return java.net.InetAddress.getAllByName(hostname).toList()
+                }
+            })
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
+
+    private suspend fun fetchFromHosting(): UpdateInfo? {
         return try {
-            val client = OkHttpClient.Builder().build()
-            val request = Request.Builder().url(updateJsonUrl).build()
-            val resp = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+            val request = okhttp3.Request.Builder().url(updateJsonUrl).build()
+            val resp = withContext(Dispatchers.IO) { okHttpClient.newCall(request).execute() }
             if (!resp.isSuccessful) {
-                Log.w(TAG, "GitHub update JSON unavailable (HTTP ${resp.code})")
+                Log.w(TAG, "Hosting update JSON unavailable (HTTP ${resp.code})")
                 return null
             }
             val json = resp.body?.string() ?: return null
             parseUpdateInfo(json)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to read update info from GitHub", e)
+            Log.e(TAG, "Failed to read update info from Hosting: url=$updateJsonUrl msg=${e.localizedMessage}", e)
             null
         }
     }
@@ -125,13 +161,41 @@ class UpdateManager(private val context: Context) {
     }
 
     /**
+     * Quick connectivity probe (used to gate the startup update check). Resolves true only if
+     * the update JSON host is actually reachable within [timeoutMs]. Uses the same DoH-capable
+     * client as the rest of the updater so it works on ROMs with broken system DNS.
+     */
+    suspend fun hasInternet(timeoutMs: Long = 5000): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = okhttp3.Request.Builder()
+                .url(updateJsonUrl)
+                .head()
+                .build()
+            val resp = withContext(Dispatchers.IO) {
+                kotlinx.coroutines.withTimeout(timeoutMs) {
+                    okHttpClient.newCall(request).execute()
+                }
+            }
+            resp.use { it.isSuccessful }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
      * Downloads the APK via OkHttp (GitHub Releases requires an explicit
      * `Accept: application/octet-stream` header, otherwise it returns an HTML page
-     * instead of the binary) and installs it. [onComplete] fires once the install
-     * intent has been launched.
+     * instead of the binary) and installs it.
+     *
+     * Progress is reported through [progressState] (a [MutableStateFlow]) so the UI can read it
+     * with `collectAsState()` — the same pattern as the model downloader, which works reliably
+     * under Compose. Values: `null` = not started, `-1f` = indeterminate (server sent no
+     * Content-Length), `0f..1f` = definite fraction downloaded. [onComplete] fires once the
+     * install intent has been launched.
      */
     fun downloadAndInstall(
         info: UpdateInfo,
+        progressState: MutableStateFlow<Float?> = MutableStateFlow(null),
         onComplete: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -147,16 +211,14 @@ class UpdateManager(private val context: Context) {
         val targetFile = File(downloadDir, fileName)
         try { targetFile.delete() } catch (_: Exception) { }
 
-        val client = OkHttpClient.Builder().build()
-        val request = Request.Builder()
-            .url(info.apkUrl)
-            .header("Accept", "application/octet-stream")
-            .build()
-
         // Network + file IO must NOT run on the main thread (StrictMode blocks it).
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                client.newCall(request).execute().use { resp ->
+                val request = okhttp3.Request.Builder()
+                    .url(info.apkUrl)
+                    .header("Accept", "application/octet-stream")
+                    .build()
+                okHttpClient.newCall(request).execute().use { resp ->
                     if (!resp.isSuccessful) {
                         val msg = "Download failed: HTTP ${resp.code} ${resp.message}"
                         Log.e(TAG, msg)
@@ -168,23 +230,37 @@ class UpdateManager(private val context: Context) {
                         withContext(Dispatchers.Main) { onError("Empty response body") }
                         return@launch
                     }
-                    val len = body.contentLength()
-                    Log.i(TAG, "Download started, content-length=$len")
+                    val total = body.contentLength()
+                    Log.i(TAG, "Download started, content-length=$total")
+                    // tryEmit works from any thread and is picked up by collectAsState() in the UI.
+                    progressState.value = if (total > 0) 0f else -1f
                     targetFile.outputStream().use { out ->
                         body.byteStream().use { `in` ->
                             val buf = ByteArray(32 * 1024)
                             var read: Int
-                            var total = 0L
+                            var downloaded = 0L
+                            var lastEmit = 0L
                             while (`in`.read(buf).also { read = it } != -1) {
                                 out.write(buf, 0, read)
-                                total += read
+                                downloaded += read
+                                // Emit at most a few times per MB to avoid flooding the snapshot system.
+                                if (downloaded - lastEmit >= 256_000 || total <= 0) {
+                                    lastEmit = downloaded
+                                    progressState.value = if (total > 0) {
+                                        (downloaded.toFloat() / total).coerceIn(0f, 1f)
+                                    } else {
+                                        -1f // indeterminate: server gave no Content-Length
+                                    }
+                                }
                             }
-                            Log.i(TAG, "Download finished, bytes=$total")
+                            Log.i(TAG, "Download finished, bytes=$downloaded")
+                            progressState.value = if (total > 0) 1f else -1f
                         }
                     }
                     if (targetFile.length() < 1_000_000) {
                         val msg = "Downloaded file too small (${targetFile.length()} B) — likely HTML, not APK"
                         Log.e(TAG, msg)
+                        progressState.value = null
                         withContext(Dispatchers.Main) { onError(msg) }
                         return@launch
                     }
@@ -192,6 +268,7 @@ class UpdateManager(private val context: Context) {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Download error", e)
+                progressState.value = null
                 withContext(Dispatchers.Main) { onError(e.localizedMessage ?: "Download error") }
             }
         }

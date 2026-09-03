@@ -21,6 +21,7 @@
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">从照片（OCR）</string>
     <string name="translate_hint">输入要翻译的文本…</string>
+    <string name="translate_hint_speech">输入、语音或将照片转换为文本以翻译…</string>
     <string name="translate_button">翻译（快速）</string>
     <string name="accurate_label">慢但准确 ~1.1 GB</string>
     <string name="copied_clipboard">已复制到剪贴板</string>
@@ -85,11 +86,12 @@
     <string name="ocr_photo">OCR 照片</string>
     <string name="remove">移除</string>
     <string name="recognized_text">识别文字：</string>
-    <string name="ocr_translation">翻译（Hy-MT2）：</string>
+    <string name="ocr_translation">翻译（Szybki）：</string>
     <string name="ocr_translate_button">翻译</string>
     <string name="ocr_read_selected">读取所选区域</string>
     <string name="ocr_crop_hint">将框对准文字，然后点按“读取所选区域”。</string>
     <string name="ocr_permission_denied">相机权限被拒绝。请在应用设置中启用。</string>
+    <string name="ocr_camera_cancelled">拍照已取消。</string>
     <string name="ocr_no_text">没有可翻译的文本——请先输入或识别文本。</string>
     <string name="ocr_error_no_text">未在图片中检测到文本。</string>
     <string name="copied">已复制</string>
@@ -136,4 +138,7 @@
     <string name="update_available_body">检测到新版本（%1$s）。立即更新？</string>
     <string name="update_action">更新</string>
     <string name="update_later">稍后</string>
+    <string name="update_downloading_title">正在下载更新</string>
+    <string name="update_downloading_body">请稍候 — 正在下载更新。不要关闭应用。</string>
+    <string name="update_checking">正在检查更新…</string>
 </resources>

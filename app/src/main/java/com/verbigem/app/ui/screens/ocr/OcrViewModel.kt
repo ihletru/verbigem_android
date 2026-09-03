@@ -12,13 +12,19 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.verbigem.app.R
 import com.verbigem.app.data.local.AppDatabase
+import com.verbigem.app.data.local.PendingDeleteEntity
+import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
-import com.verbigem.app.data.repository.HistoryRepository
+import com.verbigem.app.data.repository.OcrHistoryRepository
+import com.verbigem.app.data.repository.ProTtsRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.OcrManager
+import com.verbigem.app.engine.ProTtsEngine
 import com.verbigem.app.engine.SpeechManager
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,20 +36,69 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     private val ocrManager = OcrManager(application)
     private val hyMt2Engine = HyMt2NativeEngine(application)
     private val speechManager = SpeechManager(application)
-    private val historyRepository = HistoryRepository(
-        AppDatabase.getInstance(appContext).historyDao(),
+    private val proTtsEngine = ProTtsEngine(application)
+    private val ocrHistoryRepository = OcrHistoryRepository(
+        AppDatabase.getInstance(appContext).ocrHistoryDao(),
         AppDatabase.getInstance(appContext).pendingDeleteDao()
     )
+    private val proTtsRepository = ProTtsRepository(application)
+    private val preferencesManager = PreferencesManager(application)
 
-    private val _historyList = MutableStateFlow<List<TranslationHistory>>(emptyList())
-    val historyList: StateFlow<List<TranslationHistory>> = _historyList.asStateFlow()
+    // Infinite-scroll history (newest-first, offset-paged from Room so we never
+    // load the whole table). loadMoreHistory() appends the next page.
+    private val _historyItems = MutableStateFlow<List<TranslationHistory>>(emptyList())
+    val historyItems: StateFlow<List<TranslationHistory>> = _historyItems.asStateFlow()
+    private var historyLoadedCount = 0
+    private var historyExhausted = false
+
+    fun loadMoreHistory() {
+        if (historyExhausted) return
+        viewModelScope.launch {
+            val page = ocrHistoryRepository.getPage(historyLoadedCount, HISTORY_PAGE_SIZE)
+            if (page.isEmpty()) {
+                historyExhausted = true
+            } else {
+                historyLoadedCount += page.size
+                _historyItems.value = _historyItems.value + page
+            }
+        }
+    }
+
+    fun resetHistory() {
+        historyLoadedCount = 0
+        historyExhausted = false
+        _historyItems.value = emptyList()
+        loadMoreHistory()
+    }
+
+    // Source/target languages inherited from the Translator's selection (DataStore),
+    // so OCR translates the same direction the user last chose instead of a fixed EN→PL.
+    private val _sourceLang = MutableStateFlow(LangCode.PL)
+    val sourceLang: StateFlow<LangCode> = _sourceLang.asStateFlow()
+    private val _targetLang = MutableStateFlow(LangCode.EN)
+    val targetLang: StateFlow<LangCode> = _targetLang.asStateFlow()
+
+    private var ttsConfig: TtsConfig = TtsConfig()
 
     init {
         speechManager.onSpeakingStateChanged = { speaking ->
-            _isSpeaking.value = speaking
+            _resultSpeaking.value = speaking
+            if (!speaking) _speakingSyncId.value = null
+        }
+        proTtsEngine.onSpeakingStateChanged = { speaking ->
+            _resultSpeakingPro.value = speaking
+            if (!speaking) _speakingProSyncId.value = null
         }
         viewModelScope.launch {
-            historyRepository.allHistory.collect { _historyList.value = it }
+            ttsConfig = proTtsRepository.getConfig()
+            resetHistory()
+        }
+        // Inherit the Translator's last-used language pair.
+        viewModelScope.launch {
+            preferencesManager.srcLangFlow.collect { _sourceLang.value = LangCode.fromCode(it) }
+        }
+        viewModelScope.launch {
+            preferencesManager.dstLangFlow.collect { _targetLang.value = LangCode.fromCode(it) }
         }
     }
 
@@ -68,12 +123,42 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private val _isSpeaking = MutableStateFlow(false)
-    val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
+    // Per-item speaking state: tracks WHICH history row is being read, so only that card
+    // shows the animation (not every card when any row is read).
+    private val _speakingSyncId = MutableStateFlow<String?>(null)
+    val speakingSyncId: StateFlow<String?> = _speakingSyncId.asStateFlow()
+
+    private val _speakingProSyncId = MutableStateFlow<String?>(null)
+    val speakingProSyncId: StateFlow<String?> = _speakingProSyncId.asStateFlow()
+
+    // Result (single, non-history) speaking flags for the OCR translation card.
+    private val _resultSpeaking = MutableStateFlow(false)
+    val resultSpeaking: StateFlow<Boolean> = _resultSpeaking.asStateFlow()
+    private val _resultSpeakingPro = MutableStateFlow(false)
+    val resultSpeakingPro: StateFlow<Boolean> = _resultSpeakingPro.asStateFlow()
+
+    private val _isPro = MutableStateFlow(false)
+    val isPro: StateFlow<Boolean> = _isPro.asStateFlow()
 
     // Crop rectangle in image-relative coordinates (0f..1f)
     private val _cropRect = MutableStateFlow<RectF?>(null)
     val cropRectFlow: StateFlow<RectF?> = _cropRect.asStateFlow()
+
+    /** Called by the navigation layer once the signed-in user's profile is known. */
+    fun setPro(isPro: Boolean) {
+        _isPro.value = isPro
+    }
+
+    companion object {
+        private const val HISTORY_PAGE_SIZE = 20
+    }
+
+    /** Reload the cached TTS config after a Firestore sync completed. */
+    fun refreshTtsConfig() {
+        viewModelScope.launch {
+            ttsConfig = proTtsRepository.getConfig()
+        }
+    }
 
     fun processImageUri(uri: Uri, crop: RectF? = null) {
         _selectedImageUri.value = uri
@@ -135,7 +220,8 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _recognizedText.value = text
     }
 
-    // Translate invoked by button (not automatically after OCR)
+    // Translate invoked by button (not automatically after OCR). Streams partial
+    // results word-by-word (like the Translator) instead of waiting for the full text.
     fun translateText() {
         val text = _recognizedText.value.trim()
         if (text.isBlank()) {
@@ -148,9 +234,12 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                val translation = hyMt2Engine.translate(text, LangCode.EN, LangCode.PL)
-                _translatedText.value = translation
-                addHistory(text, translation)
+                val result = hyMt2Engine.translateSegmented(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
+                    // Streaming: show each completed segment as it arrives.
+                    _translatedText.value = partial
+                }
+                _translatedText.value = result
+                addHistory(text, result)
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Translation error"
             } finally {
@@ -161,7 +250,14 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun addHistory(sourceText: String, translatedText: String) {
         viewModelScope.launch {
-            historyRepository.addHistory(sourceText, translatedText, "EN", "PL")
+            // Persist locally (with a fresh syncId for Firestore) then push to the cloud
+            // via the reactive sync so the OCR translation propagates without waiting for restart.
+            ocrHistoryRepository.addHistory(
+                sourceText,
+                translatedText,
+                _sourceLang.value.code,
+                _targetLang.value.code
+            )
             try {
                 SyncManager(appContext).syncNow()
             } catch (_: Exception) {
@@ -170,9 +266,66 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun speak(text: String) {
-        _isSpeaking.value = true
-        speechManager.speak(text, LangCode.PL)
+    // Free local TTS (offline). Reads the given [text] in [lang] (caller passes the right lang).
+    fun speak(text: String, lang: LangCode) {
+        _resultSpeaking.value = true
+        speechManager.onSpeakingStateChanged = { speaking ->
+            _resultSpeaking.value = speaking
+            if (!speaking) _speakingSyncId.value = null
+        }
+        speechManager.speak(text, lang)
+    }
+
+    /** Paid "Read Pro" TTS via OpenRouter for the OCR result card. */
+    fun speakPro(text: String) {
+        if (!_isPro.value || text.isBlank()) return
+        if (!ttsConfig.isConfigured) {
+            _errorMessage.value = "Read Pro is not configured"
+            return
+        }
+        _resultSpeakingPro.value = true
+        proTtsEngine.onSpeakingStateChanged = { speaking ->
+            _resultSpeakingPro.value = speaking
+            if (!speaking) _speakingProSyncId.value = null
+        }
+        viewModelScope.launch {
+            try {
+                proTtsEngine.speak(text, _targetLang.value, ttsConfig)
+            } catch (e: Exception) {
+                _resultSpeakingPro.value = false
+                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+            }
+        }
+    }
+
+    /** Read an OCR history row in ITS OWN target language (not the current UI target). */
+    fun speakHistory(item: TranslationHistory) {
+        _speakingSyncId.value = item.syncId
+        speechManager.onSpeakingStateChanged = { speaking ->
+            if (!speaking) _speakingSyncId.value = null
+        }
+        speechManager.speak(item.translatedText, LangCode.fromCode(item.targetLang))
+    }
+
+    /** Paid "Read Pro" for an OCR history row in ITS OWN target language. */
+    fun speakProHistory(item: TranslationHistory) {
+        if (!_isPro.value || item.translatedText.isBlank()) return
+        if (!ttsConfig.isConfigured) {
+            _errorMessage.value = "Read Pro is not configured"
+            return
+        }
+        _speakingProSyncId.value = item.syncId
+        proTtsEngine.onSpeakingStateChanged = { speaking ->
+            if (!speaking) _speakingProSyncId.value = null
+        }
+        viewModelScope.launch {
+            try {
+                proTtsEngine.speak(item.translatedText, LangCode.fromCode(item.targetLang), ttsConfig)
+            } catch (e: Exception) {
+                _speakingProSyncId.value = null
+                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+            }
+        }
     }
 
     fun clear() {
@@ -183,7 +336,10 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _translatedText.value = null
         _errorMessage.value = null
         _cropRect.value = null
-        _isSpeaking.value = false
+        _resultSpeaking.value = false
+        _resultSpeakingPro.value = false
+        _speakingSyncId.value = null
+        _speakingProSyncId.value = null
     }
 
     fun setError(message: String) {
@@ -213,12 +369,20 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteHistory(item: TranslationHistory) {
         viewModelScope.launch {
-            historyRepository.deleteHistory(item)
+            // Physical local delete + queue a Firestore tombstone (tagged "ocr_history") so the
+            // deletion propagates to other devices, just like the Translator's history.
+            val syncId = ocrHistoryRepository.deleteHistory(item)
+            if (syncId.isNotBlank()) {
+                AppDatabase.getInstance(appContext)
+                    .pendingDeleteDao()
+                    .insert(PendingDeleteEntity(syncId = syncId, collection = "ocr_history", updatedAt = System.currentTimeMillis()))
+            }
             try {
                 SyncManager(appContext).syncNow()
             } catch (_: Exception) {
-                // Offline: tombstone stays queued in pending_deletes.
+                // Offline or transient: tombstone stays queued and goes out on the next sync.
             }
+            resetHistory()
         }
     }
 
@@ -236,11 +400,31 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadBitmap(uri: Uri): Bitmap? {
         return try {
-            val stream = appContext.contentResolver.openInputStream(uri) ?: return null
-            BitmapFactory.decodeStream(stream)
+            val exif = try {
+                val fs = appContext.contentResolver.openInputStream(uri) ?: return null
+                android.media.ExifInterface(fs).getAttributeInt(
+                    android.media.ExifInterface.TAG_ORIENTATION,
+                    android.media.ExifInterface.ORIENTATION_NORMAL
+                )
+            } catch (_: Exception) {
+                android.media.ExifInterface.ORIENTATION_NORMAL
+            }
+            val full = appContext.contentResolver.openInputStream(uri) ?: return null
+            val bmp = BitmapFactory.decodeStream(full) ?: return null
+            when (exif) {
+                android.media.ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(bmp, 90f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(bmp, 180f)
+                android.media.ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(bmp, 270f)
+                else -> bmp
+            }
         } catch (e: Exception) {
             null
         }
+    }
+
+    private fun rotateBitmap(src: Bitmap, degrees: Float): Bitmap {
+        val matrix = android.graphics.Matrix().apply { postRotate(degrees) }
+        return Bitmap.createBitmap(src, 0, 0, src.width, src.height, matrix, true)
     }
 
     private fun cropBitmap(src: Bitmap, crop: RectF): Bitmap {
@@ -257,5 +441,6 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
         hyMt2Engine.release()
         speechManager.release()
+        proTtsEngine.release()
     }
 }

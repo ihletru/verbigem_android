@@ -23,6 +23,7 @@
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">From photo (OCR)</string>
     <string name="translate_hint">Enter text to translate…</string>
+    <string name="translate_hint_speech">Enter or speak or turn photo into text to translate…</string>
     <string name="translate_button">Translate (Fast)</string>
     <string name="accurate_label">Slow but accurate ~1.1 GB</string>
     <string name="copied_clipboard">Copied to clipboard</string>
@@ -92,9 +93,10 @@
     <string name="ocr_photo">OCR photo</string>
     <string name="remove">Remove</string>
     <string name="recognized_text">RECOGNIZED TEXT:</string>
-    <string name="ocr_translation">TRANSLATION (Hy-MT2):</string>
+    <string name="ocr_translation">TRANSLATION (Szybki):</string>
     <string name="copied">Copied</string>
     <string name="ocr_permission_denied">Camera permission denied. Enable it in app settings.</string>
+    <string name="ocr_camera_cancelled">Photo capture cancelled.</string>
     <string name="ocr_crop_hint">Position the frame over the text, then tap “Read selected area”.</string>
     <string name="ocr_translate_button">Translate</string>
     <string name="ocr_read_selected">Read selected area</string>
@@ -143,4 +145,7 @@
     <string name="update_available_body">A new version (%1$s) is available. Update now?</string>
     <string name="update_action">Update</string>
     <string name="update_later">Later</string>
+    <string name="update_downloading_title">Downloading update</string>
+    <string name="update_downloading_body">Please wait — the update is downloading. Do not close the app.</string>
+    <string name="update_checking">Checking for updates…</string>
 </resources>

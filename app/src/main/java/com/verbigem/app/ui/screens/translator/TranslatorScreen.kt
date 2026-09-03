@@ -1,11 +1,8 @@
 package com.verbigem.app.ui.screens.translator
 
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,21 +12,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,14 +39,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -55,6 +57,18 @@ import com.verbigem.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import android.widget.Toast
+import android.content.ClipData
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.ui.components.AdBannerView
@@ -74,21 +88,41 @@ fun TranslatorScreen(
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val sourceLang by viewModel.sourceLang.collectAsState()
+    // Runtime permission żądany tylko raz (gdy trzymamy mikrofon przy braku uprawnienia).
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) viewModel.startListening(sourceLang)
+        }
+    )
     val targetLang by viewModel.targetLang.collectAsState()
     val engineChoice by viewModel.engineChoice.collectAsState()
     val inputText by viewModel.inputText.collectAsState()
     val primaryResult by viewModel.primaryResult.collectAsState()
     val secondaryResult by viewModel.secondaryResult.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val isSpeaking by viewModel.isSpeaking.collectAsState()
-    val isSpeakingPro by viewModel.isSpeakingPro.collectAsState()
+    val speakingSyncId by viewModel.speakingSyncId.collectAsState()
+    val speakingProSyncId by viewModel.speakingProSyncId.collectAsState()
+    val resultSpeaking by viewModel.resultSpeaking.collectAsState()
+    val resultSpeakingPro by viewModel.resultSpeakingPro.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val historyList by viewModel.historyList.collectAsState()
+    val historyItems by viewModel.historyItems.collectAsState()
+    val historyListState = rememberLazyListState()
+    val isListening by viewModel.isListening.collectAsState()
+    val listeningText by viewModel.listeningText.collectAsState()
+    LaunchedEffect(historyListState) {
+        snapshotFlow {
+            val info = historyListState.layoutInfo
+            info.totalItemsCount > 0 &&
+                (info.visibleItemsInfo.lastOrNull()?.index ?: -1) >= info.totalItemsCount - 1
+        }.collect { atEnd -> if (atEnd) viewModel.loadMoreHistory() }
+    }
     val showDownloadDialog by viewModel.showDownloadDialog.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
 
     LazyColumn(
+        state = historyListState,
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
@@ -157,46 +191,79 @@ fun TranslatorScreen(
                     isPro = isPro
                 )
 
-                // Przyciski skrótów OCR: darmowy (przejście do ekranu OCR) + Pro (nieaktywny dla free, tooltip)
+                // Przyciski skrótów: mikrofon (push-to-talk) po lewej, OCR + Pro po prawej
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(
-                        onClick = onNavigateToOcr,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        contentPadding = ButtonDefaults.TextButtonContentPadding
+                    // Mikrofon — push-to-talk. Trzymaj przycisk → nagrywa, puszcz → STT → append do tekstu.
+                    IconButton(
+                        onClick = {
+                            val hasPermission = ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+                            if (hasPermission) {
+                                viewModel.toggleListening()
+                            } else {
+                                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        },
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = null,
-                            tint = VerbigemTheme.colors.accent,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = stringResource(R.string.ocr_shortcut),
-                            color = VerbigemTheme.colors.accent,
-                            fontSize = 13.sp
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = if (isListening) stringResource(R.string.tap_to_stop) else stringResource(R.string.tap_to_speak, sourceLang.displayName),
+                            tint = if (isListening) VerbigemTheme.colors.danger else VerbigemTheme.colors.accent,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    ProFeatureButton(
-                        icon = Icons.Default.CameraAlt,
-                        contentDescription = stringResource(R.string.ocr_pro),
-                        isPro = isPro,
-                        onProClick = { /* Pro OCR page coming later */ },
-                        modifier = Modifier.size(32.dp),
-                        tooltipText = stringResource(R.string.ocr_pro_coming_soon)
-                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = onNavigateToOcr,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            contentPadding = ButtonDefaults.TextButtonContentPadding
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = null,
+                                tint = VerbigemTheme.colors.accent,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.ocr_shortcut),
+                                color = VerbigemTheme.colors.accent,
+                                fontSize = 13.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ProFeatureButton(
+                            icon = Icons.Default.CameraAlt,
+                            contentDescription = stringResource(R.string.ocr_pro),
+                            isPro = isPro,
+                            onProClick = { /* Pro OCR page coming later */ },
+                            modifier = Modifier.size(32.dp),
+                            tooltipText = stringResource(R.string.ocr_pro_coming_soon)
+                        )
+                    }
                 }
 
                 // Pole wprowadzania tekstu
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { viewModel.onInputChanged(it) },
-                    placeholder = { Text(stringResource(R.string.translate_hint), color = VerbigemTheme.colors.muted) },
+                    placeholder = {
+                        if (isListening && listeningText.isNotBlank()) {
+                            Text(listeningText, color = VerbigemTheme.colors.accent)
+                        } else {
+                            Text(stringResource(R.string.translate_hint_speech), color = VerbigemTheme.colors.muted)
+                        }
+                    },
                     trailingIcon = {
                         if (inputText.isNotBlank()) {
                             IconButton(onClick = {
@@ -251,8 +318,8 @@ fun TranslatorScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     ResultCard(
                         text = primaryResult,
-                        isSpeaking = isSpeaking,
-                        isSpeakingPro = isSpeakingPro,
+                        isSpeaking = resultSpeaking,
+                        isSpeakingPro = resultSpeakingPro,
                         isPro = isPro,
                         onSpeak = { viewModel.speak(primaryResult, targetLang) },
                         onSpeakPro = { viewModel.speakPro(primaryResult, targetLang) },
@@ -281,8 +348,8 @@ fun TranslatorScreen(
                     ResultCard(
                         text = secondaryResult,
                         label = stringResource(R.string.accurate_label),
-                        isSpeaking = isSpeaking,
-                        isSpeakingPro = isSpeakingPro,
+                        isSpeaking = resultSpeaking,
+                        isSpeakingPro = resultSpeakingPro,
                         isPro = isPro,
                         onSpeak = { viewModel.speak(secondaryResult, targetLang) },
                         onSpeakPro = { viewModel.speakPro(secondaryResult, targetLang) },
@@ -335,18 +402,18 @@ fun TranslatorScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                if (historyList.isEmpty()) {
+                if (historyItems.isEmpty()) {
                     Text(stringResource(R.string.no_history), color = VerbigemTheme.colors.muted, fontSize = 13.sp)
                 }
             }
         }
 
-        items(historyList.take(8)) { item ->
+        items(historyItems) { item ->
             HistoryCard(
                 item = item,
                 isPro = isPro,
-                isSpeaking = isSpeaking,
-                isSpeakingPro = isSpeakingPro,
+                isSpeaking = item.syncId == speakingSyncId,
+                isSpeakingPro = item.syncId == speakingProSyncId,
                 onCopy = {
                     val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     clip.setPrimaryClip(ClipData.newPlainText("translation", item.translatedText))
@@ -363,8 +430,8 @@ fun TranslatorScreen(
                     shareIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(shareIntent)
                 },
-                onRead = { viewModel.speak(item.translatedText, LangCode.fromCode(item.targetLang)) },
-                onReadPro = { viewModel.speakPro(item.translatedText, LangCode.fromCode(item.targetLang)) },
+                onRead = { viewModel.speakHistory(item) },
+                onReadPro = { viewModel.speakProHistory(item) },
                 onDelete = { viewModel.deleteHistory(item) }
             )
         }
@@ -373,7 +440,7 @@ fun TranslatorScreen(
     if (showDownloadDialog) {
         ModelDownloadDialog(
             downloadState = downloadState,
-            onStartDownload = { viewModel.startModelDownload(isAccurate = engineChoice == com.verbigem.app.data.model.EngineChoice.LOCAL_ACCURATE) },
+            onStartDownload = { viewModel.startModelDownload(isAccurate = engineChoice == EngineChoice.LOCAL_ACCURATE) },
             onDismiss = { viewModel.setShowDownloadDialog(false) }
         )
     }
@@ -522,6 +589,7 @@ fun ResultCard(
                     tooltipText = stringResource(R.string.pro_speaker_tooltip)
                 )
             }
+            // Skasuj z wyników
             IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }

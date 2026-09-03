@@ -35,6 +35,9 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
     private val _interimSpeech = MutableStateFlow("")
     val interimSpeech: StateFlow<String> = _interimSpeech.asStateFlow()
 
+    private val _recognizedText = MutableStateFlow("")
+    val recognizedText: StateFlow<String> = _recognizedText.asStateFlow()
+
     private val _translatedResult = MutableStateFlow<String?>(null)
     val translatedResult: StateFlow<String?> = _translatedResult.asStateFlow()
 
@@ -92,6 +95,13 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
                 onFinal = { text ->
                     _isListening.value = false
                     _interimSpeech.value = ""
+                    _recognizedText.value = text
+                    // Append rozpoznanego tekstu do pola tekstowego (jak w translatorze).
+                    if (text.isNotBlank()) {
+                        val current = _textInput.value
+                        val separator = if (current.isNotBlank() && !current.endsWith(" ")) " " else ""
+                        _textInput.value = current + separator + text
+                    }
                     translateAndSpeak(text)
                 },
                 onError = { error ->

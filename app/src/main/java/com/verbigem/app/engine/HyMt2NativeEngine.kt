@@ -106,10 +106,102 @@ class HyMt2NativeEngine(private val context: Context) {
 
     fun sanitizeTranslation(raw: String): String {
         var s = raw.replace(Regex("(?i)<think>[\\s\\S]*?</think>"), "")
-        s = s.replace(Regex("^[\"''\\s]+"), "").replace(Regex("[\"''\\s]+$"), "")
+        // Strip a single pair of surrounding quotes / whitespace.
+        s = s.trim().removeSurrounding("\"").removeSurrounding("'").trim()
+        // Drop a leading "Translation:" label the model sometimes prepends.
         s = s.replace(Regex("(?i)^\\s*(translation|here(?:'| i)?s? the translation|tłumaczenie|oto tłumaczenie|wynik)\\s*[:\\-]\\s*"), "")
-        val firstParagraph = s.split(Regex("\n{2,}")).firstOrNull()?.split("\n")?.firstOrNull() ?: s
-        return firstParagraph.trim()
+        // NOTE: keep the whole text — do NOT truncate to the first paragraph/line.
+        // Hy-MT2 is a per-segment translator; multi-segment input is handled by
+        // translateSegmented(), which translates each segment separately and joins them.
+        return s.trim()
+    }
+
+    /**
+     * Translates a (possibly long, multi-sentence) text by splitting it into
+     * segments at sentence boundaries and translating each segment separately.
+     *
+     * Hy-MT2 is a *segment* model: given a whole paragraph it emits the translation
+     * of only the first sentence, then stops. Feeding it one segment at a time makes
+     * it translate the entire input. [onPartial] receives the running combined
+     * translation so the UI still streams word-by-word (at segment granularity).
+     */
+    suspend fun translateSegmented(
+        text: String,
+        from: LangCode,
+        to: LangCode,
+        isAccurate: Boolean = false,
+        onPartial: (String) -> Unit = {}
+    ): String = withContext(Dispatchers.Default) {
+        if (text.isBlank()) return@withContext ""
+
+        val segments = splitIntoSegments(text.trim())
+        // Single segment: behave exactly like translate() (keeps the streaming contract).
+        if (segments.size <= 1) {
+            return@withContext translate(text, from, to, isAccurate, onPartial)
+        }
+
+        val sb = StringBuilder()
+        segments.forEachIndexed { i, seg ->
+            // Translate each segment WITHOUT its own partial (avoid mid-flight flashes);
+            // we emit the cumulative combined result after every segment completes.
+            val part = translate(seg, from, to, isAccurate)
+            sb.append(part)
+            if (i < segments.lastIndex) sb.append("\n\n")
+            onPartial(sb.toString())
+        }
+        sb.toString()
+    }
+
+    /**
+     * Splits [text] into translation-sized segments (~400 chars) at sentence boundaries
+     * (., !, ? or newline). Over-long single sentences are broken further by words so no
+     * single model call is asked to render an enormous chunk.
+     */
+    private fun splitIntoSegments(text: String): List<String> {
+        val out = mutableListOf<String>()
+        val max = 400
+        val rough = text.split(Regex("(?<=[.!?\\n])\\s+"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+
+        val sb = StringBuilder()
+        fun flush() {
+            if (sb.isNotEmpty()) {
+                out.add(sb.toString().trim())
+                sb.setLength(0)
+            }
+        }
+
+        for (piece in rough) {
+            if (piece.length > max) {
+                flush()
+                val words = piece.split(Regex("\\s+"))
+                val wsb = StringBuilder()
+                for (w in words) {
+                    if (wsb.isEmpty()) {
+                        wsb.append(w)
+                    } else if (wsb.length + 1 + w.length <= max) {
+                        wsb.append(' ').append(w)
+                    } else {
+                        out.add(wsb.toString())
+                        wsb.setLength(0)
+                        wsb.append(w)
+                    }
+                }
+                if (wsb.isNotEmpty()) out.add(wsb.toString())
+                continue
+            }
+            if (sb.isEmpty()) {
+                sb.append(piece)
+            } else if (sb.length + 1 + piece.length <= max) {
+                sb.append(' ').append(piece)
+            } else {
+                flush()
+                sb.append(piece)
+            }
+        }
+        flush()
+        return if (out.isEmpty()) listOf(text.trim()) else out
     }
 
     /**

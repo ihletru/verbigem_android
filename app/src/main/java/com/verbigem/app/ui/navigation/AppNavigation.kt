@@ -73,7 +73,6 @@ fun AppNavigation(
                         navController.navigate(route) {
                             popUpTo(Screen.Translator.route) { saveState = true }
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
@@ -152,6 +151,10 @@ fun AppNavigation(
 
                 composable(Screen.Ocr.route) {
                     val ocrViewModel: OcrViewModel = viewModel()
+                    LaunchedEffect(isPro) {
+                        ocrViewModel.setPro(isPro)
+                        ocrViewModel.refreshTtsConfig()
+                    }
                     OcrScreen(viewModel = ocrViewModel, isPro = isPro)
                 }
 

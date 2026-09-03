@@ -6,6 +6,9 @@ app/build/
 local.properties
 *.log
 
+# Agent workspace (pamięć / notatki robocze — lokalnie tylko)
+.workbuddy-ai/
+
 # Native build intermediates
 app/.cxx/
 .externalNativeBuild/
@@ -51,3 +54,6 @@ app/src/main/cpp/llama.cpp/
 # Firebase config (rules contain schema/security detail — keep local only, not in public repo)
 firestore.rules
 firebase.json
+
+# Firebase CLI cache
+.firebase/

@@ -23,6 +23,7 @@
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Ze zdjęcia (OCR)</string>
     <string name="translate_hint">Wpisz tekst do przetłumaczenia…</string>
+    <string name="translate_hint_speech">Wpisz lub zamień mowę albo zdjęcie na tekst do przetłumaczenia…</string>
     <string name="translate_button">Tłumacz (Szybki)</string>
     <string name="accurate_label">Wolny ale dokładny ~1.1 GB</string>
     <string name="copied_clipboard">Skopiowano do schowka</string>
@@ -92,9 +93,10 @@
     <string name="ocr_photo">Zdjęcie OCR</string>
     <string name="remove">Usuń</string>
     <string name="recognized_text">ROZPOZNANY TEKST:</string>
-    <string name="ocr_translation">TŁUMACZENIE (Hy-MT2):</string>
+    <string name="ocr_translation">TŁUMACZENIE (Szybki):</string>
     <string name="copied">Skopiowano</string>
     <string name="ocr_permission_denied">Brak dostępu do aparatu. Włącz go w ustawieniach aplikacji.</string>
+    <string name="ocr_camera_cancelled">Robienie zdjęcia anulowane.</string>
     <string name="ocr_crop_hint">Ustaw ramkę na tekście, a następnie naciśnij „Odczytaj zaznaczony obszar”.</string>
     <string name="ocr_translate_button">Tłumacz</string>
     <string name="ocr_read_selected">Odczytaj zaznaczony obszar</string>
@@ -143,4 +145,7 @@
     <string name="update_available_body">Dostępna jest nowa wersja (%1$s). Zaktualizować teraz?</string>
     <string name="update_action">Aktualizuj</string>
     <string name="update_later">Później</string>
+    <string name="update_downloading_title">Pobieranie aktualizacji</string>
+    <string name="update_downloading_body">Proszę czekać — trwa pobieranie aktualizacji. Nie zamykaj aplikacji.</string>
+    <string name="update_checking">Sprawdzanie aktualizacji…</string>
 </resources>
