@@ -81,6 +81,9 @@
     <string name="no_friends">Sin amigos aún. Busca personas arriba.</string>
     <string name="sent_request">✓ Enviado</string>
     <string name="add_friend">+ Añadir</string>
+    <string name="dismiss">Descartar</string>
+    <string name="people_you_may_know">Puede que conozcas a</string>
+    <string name="people_you_may_know_mutual">%1$d amigos en común</string>
     <string name="accept">Aceptar</string>
     <string name="decline">Rechazar</string>
 

@@ -5,22 +5,23 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **3.8 Zakładki w Kontaktach WYKONANE w
-kodzie i WYDANE** (`ContactsScreen` → `TabRow` + 4 zakładki: Znajomi / Zaproszenia
-/ Z telefonu / Zewnętrzne; `CombinedSearch` szuka po wszystkich naraz; wspólny
-`ContactListRow`). Wcześniej tego samego dnia: **3.7 Import `.vcf` WYDANY** i
-**3.6 Wątek jednokierunkowy WYDANY**.
+Ostatnia aktualizacja: 2026-09-04 — **3.9 „Możesz znać" WYKONANE w kodzie i
+WYDANE** (nowa Cloud Function `suggestFriends` liczy graf znajomych moich
+znajomych po stronie serwera; sekcja na szczycie zakładki Znajomi + 2 nowe
+stringi ×6). Wcześniej tego samego dnia: **3.8 Zakładki w Kontaktach WYDANE**,
+**3.7 Import `.vcf` WYDANY** i **3.6 Wątek jednokierunkowy WYDANY**.
 
 Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
 Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
 
-**Stan wydań:** **v32 (1.0.31) WYDANY na produkcję** — zweryfikowane
-`https://mini.verbigem.com/updates/version.json` → `versionCode: 32` oraz sha256
-APK `app-debug-v32.apk?v=32` zgodny z lokalnym buildem. Zawiera v31 + 3.8
-(zakładki). APK: `app-debug-v32.apk`.
+**Stan wydań:** **v33 (1.0.32) WYDANY na produkcję** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 33` oraz sha256
+APK `app-debug-v33.apk?v=33` zgodny z lokalnym buildem. Zawiera v32 + 3.9
+(„Możesz znać"). APK: `app-debug-v33.apk`. Funkcja `suggestFriends` wdrożona
+PO NAZWIE (`functions:suggestFriends`) — pozostałe 5 funkcji produkcyjnych nietknięte.
 
 > **v27, v28, v29 nigdy nie trafiły na hosting** — wersjonowanie przeskoczyło z 26
-> na 30, a potem 30 → 31 (3.7), 31 → 32 (3.8). Build v32 to najnowsza wersja po v26.
+> na 30, a potem 30 → 31 (3.7), 31 → 32 (3.8), 32 → 33 (3.9). Build v33 to najnowsza wersja po v26.
 
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
@@ -60,7 +61,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.8 zrobione; dalej 3.9–3.10) | 32 | `6afcdde` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.9 zrobione; dalej 3.10) | 33 | `6afcdde` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -232,6 +233,34 @@ node backfill_searchtext.js --apply
   `sp`, `FontWeight`, `clip`, `Dialog`) — dosypane; `CombinedSearch` wymagał dwóch
   callbacków (PhoneContact dla trafień z książki przez `openExternal`, String dla
   zewnętrznych przez `onOpenExternalThread`).
+
+**Co zrobione w sesji 2026-09-04, rano (faza 3 — 3.9, WYDANE w v33):**
+
+- **3.9** ✅ **„Możesz znać".** Nowa Cloud Function `suggestFriends`
+  (`functions/src/peopleMayKnow.ts`, `onCall`, `enforceAppCheck: false` jak
+  `matchContacts`, rate-limit 30/h, `maxInstances: 10`). Serwer przegląda graf:
+  czyta moje `friendships` (`whereArrayContains("members", me)`), dzieli na
+  zaakceptowanych i oczekujących; dla każdego zaakceptowanego znajomego czyta JEgo
+  zaakceptowane `friendships` i liczy `mutualCount` kandydata; wyklucza mnie /
+  obecnych znajomych / oczekujących (oba kierunki); sortuje malejąco po
+  `mutualCount`, cap 20, `lookupProfiles` → zwraca `{uid, nickname, photoURL,
+  mutualCount}`. Żadnego indeksu złożonego. Wyeksportowana z `index.ts`.
+- Klient: `PeopleMayKnowRepository.suggest()` (callable `suggestFriends` →
+  `List<FriendSuggestion>`; każdy błąd = pusta lista, bo sekcja jest niekrytyczna).
+  `ContactsViewModel` dostało `_suggestedFriends` StateFlow + `loadSuggestions()` w
+  `init` (odsiewa osoby z `sentRequests`) + `dismissSuggestion(uid)` (tylko klient,
+  bez zapisu); `sendRequest` usuwa kandydata z listy po wysłaniu.
+- UI: sekcja „Możesz znać" na szczycie `FriendsTab` (przed polem szukania ludzi) —
+  reuse `onSendRequest` + `onDismissSuggestion`, pokazuje nickname, „N wspólnych
+  znajomych" (`people_you_may_know_mutual`) i przyciski +Dodaj / X. 3 nowe stringi
+  × 6 (`people_you_may_know`, `people_you_may_know_mutual`, `dismiss`).
+- Build v33 (`versionCode = 33`, `versionName = "1.0.32"`). Funkcja `suggestFriends`
+  wdrożona **PO NAZWIE** (`FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only
+  functions:suggestFriends --project mini-verbigem`) — 5 pozostałych funkcji
+  produkcyjnych nietkniętych. APK `app-debug-v33.apk` skopiowany do
+  `mini/dist/android/`, `version.json` (updates + android + `vite.config.ts`)
+  podbicie na 33, `firebase deploy --only hosting`. Zweryfikowano `version.json` →
+  33 i zgodność sha256 APK z lokalnym buildem.
 
 **Co zrobione w sesji 2026-09-04, popołudniu (faza 3 — 3.6, WYDANE w v30):**
 
@@ -941,7 +970,16 @@ Warunek: plan Blaze.
       ukrywa zakładki i pokazuje `CombinedSearch` (znajomi po nicku, książka+import
       po imieniu/numerze, zewnętrzni po imieniu/numerze). 7 nowych stringów × 6.
       **WYDANE w v32.**
-- [ ] **3.9** „Możesz znać" — znajomi moich znajomych, bez już dodanych.
+- [x] **3.9** **„Możesz znać" (3.9)** — nowa Cloud Function `suggestFriends`
+      (`functions/src/peopleMayKnow.ts`, callable, rate-limit, przejście grafu
+      po stronie serwera przez Admin SDK: znajomi moich znajomych, wyklucza mnie
+      / obecnych znajomych / oczekujące w obu kierunkach, rankuje po `mutualCount`,
+      cap 20, brak indeksu złożonego). Klient: `PeopleMayKnowRepository` +
+      `ContactsViewModel` (`suggestedFriends` StateFlow, `loadSuggestions` w init,
+      `dismissSuggestion(uid)`). UI: sekcja „Możesz znać" na szczycie `FriendsTab`
+      (reuse `onSendRequest` + `onDismissSuggestion`). 3 nowe stringi × 6
+      (`people_you_may_know`, `people_you_may_know_mutual`, `dismiss`).
+      Funkcja wdrożona PO NAZWIE. **WYDANE w v33.**
 - [ ] **3.10** Stringi × 6. Build + test na telefonie. README + commit + push.
 
 ### Faza 4 — Kody QR

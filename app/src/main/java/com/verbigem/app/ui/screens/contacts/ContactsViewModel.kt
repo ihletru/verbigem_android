@@ -20,6 +20,8 @@ import com.verbigem.app.data.repository.ContactMatchException
 import com.verbigem.app.data.repository.ContactMatchFailure
 import com.verbigem.app.data.repository.ContactMatchRepository
 import com.verbigem.app.data.repository.ExternalThreadRepository
+import com.verbigem.app.data.repository.FriendSuggestion
+import com.verbigem.app.data.repository.PeopleMayKnowRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -111,6 +113,13 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     private val contactMatchRepository = ContactMatchRepository()
     private val externalThreads = ExternalThreadRepository(application)
+    private val peopleMayKnow = PeopleMayKnowRepository()
+
+    // --- „Możesz znać" (3.9): znajomi moich znajomych ---
+
+    /** Candidates the server computed from my social graph. Empty until first load. */
+    private val _suggestedFriends = MutableStateFlow<List<FriendSuggestion>>(emptyList())
+    val suggestedFriends: StateFlow<List<FriendSuggestion>> = _suggestedFriends.asStateFlow()
 
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -143,7 +152,26 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
                     _sentRequests.value = list.map { it.otherUid(uid) }.toSet()
                 }
             }
+            // „Możesz znać" — server walks my graph; non-blocking for the rest of init.
+            viewModelScope.launch { loadSuggestions() }
         }
+    }
+
+    /**
+     * Pulls friend-of-friend candidates from `suggestFriends`. The server already
+     * excludes me, my accepted friends, and anyone I have a pending request with
+     * (either direction); we additionally drop anyone I've just sent a request to so
+     * the row can't linger after the tap.
+     */
+    private suspend fun loadSuggestions() {
+        val list = peopleMayKnow.suggest()
+        val sent = _sentRequests.value
+        _suggestedFriends.value = list.filter { it.uid !in sent }
+    }
+
+    /** Hides one suggestion after the user taps „X". Client-side only — not persisted. */
+    fun dismissSuggestion(uid: String) {
+        _suggestedFriends.value = _suggestedFriends.value.filter { it.uid != uid }
     }
 
     fun onSearchTermChanged(term: String) {
@@ -217,6 +245,8 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             chatRepository.requestFriendship(myUid, myNick, targetUid, targetNick)
             _sentRequests.value = _sentRequests.value + targetUid
+            // The suggestion has now become a pending request — stop showing it.
+            _suggestedFriends.value = _suggestedFriends.value.filter { it.uid != targetUid }
         }
     }
 

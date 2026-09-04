@@ -81,6 +81,9 @@
     <string name="no_friends">Noch keine Freunde. Suche oben nach Personen.</string>
     <string name="sent_request">✓ Gesendet</string>
     <string name="add_friend">+ Hinzufügen</string>
+    <string name="dismiss">Verwerfen</string>
+    <string name="people_you_may_know">Personen, die du kennen könntest</string>
+    <string name="people_you_may_know_mutual">%1$d gemeinsame Freunde</string>
     <string name="accept">Annehmen</string>
     <string name="decline">Ablehnen</string>
 

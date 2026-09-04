@@ -81,6 +81,9 @@
     <string name="no_friends">还没有好友。请在上方搜索用户。</string>
     <string name="sent_request">✓ 已发送</string>
     <string name="add_friend">+ 添加</string>
+    <string name="dismiss">忽略</string>
+    <string name="people_you_may_know">你可能认识的人</string>
+    <string name="people_you_may_know_mutual">%1$d 位共同好友</string>
     <string name="accept">接受</string>
     <string name="decline">拒绝</string>
 

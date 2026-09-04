@@ -36,3 +36,9 @@ export { verifyPhone, inviteByPhone, onPhoneVerified } from "./invites";
 // `onMessageCreated` on purpose — see the comment in `searchIndex.ts` for why they
 // are two functions and not one.
 export { onMessageSearchIndex } from "./searchIndex";
+
+// "Możesz znać" / people-you-may-know (task 3.9), 2026-09-04. Computed server-side
+// because the client only reads its own friendships — the social graph has to be
+// walked with the Admin SDK. No composite index: every query is a member-scoped
+// `array-contains` on a single uid. Deploy by name (`suggestFriends`) only.
+export { suggestFriends } from "./peopleMayKnow";

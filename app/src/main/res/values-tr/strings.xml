@@ -81,6 +81,9 @@
     <string name="no_friends">Henüz arkadaş yok. Yukarıdan kişi ara.</string>
     <string name="sent_request">✓ Gönderildi</string>
     <string name="add_friend">+ Ekle</string>
+    <string name="dismiss">Yok say</string>
+    <string name="people_you_may_know">Tanıyor olabileceğin kişiler</string>
+    <string name="people_you_may_know_mutual">%1$d ortak arkadaş</string>
     <string name="accept">Kabul et</string>
     <string name="decline">Reddet</string>
 

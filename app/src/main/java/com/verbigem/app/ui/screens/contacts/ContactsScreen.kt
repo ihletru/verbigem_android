@@ -60,6 +60,7 @@ import com.verbigem.app.data.local.ExternalContactEntity
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.repository.ContactMatch
 import com.verbigem.app.data.repository.ContactMatchFailure
+import com.verbigem.app.data.repository.FriendSuggestion
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.InviteLinks
 import com.verbigem.app.data.OutboundChannel
@@ -92,6 +93,7 @@ fun ContactsScreen(
     val isMatching by viewModel.isMatching.collectAsState()
     val matchFailure by viewModel.matchFailure.collectAsState()
     val externalContacts by viewModel.externalContacts.collectAsState()
+    val suggestedFriends by viewModel.suggestedFriends.collectAsState()
     val vcfCount by viewModel.vcfImportedCount.collectAsState()
     val vcfError by viewModel.vcfReadError.collectAsState()
     val currentUid = viewModel.currentUid
@@ -214,11 +216,13 @@ fun ContactsScreen(
                     searchResults = searchResults,
                     isSearching = isSearching,
                     sentRequests = sentRequests,
+                    suggestedFriends = suggestedFriends,
                     onSearchTermChanged = viewModel::onSearchTermChanged,
                     onSearchUsers = viewModel::searchUsers,
                     onOpenChat = onOpenChat,
                     onOpenContactCard = onOpenContactCard,
-                    onSendRequest = viewModel::sendRequest
+                    onSendRequest = viewModel::sendRequest,
+                    onDismissSuggestion = viewModel::dismissSuggestion
                 )
                 1 -> InvitesTab(
                     incoming = incoming,
@@ -329,16 +333,81 @@ private fun FriendsTab(
     searchResults: List<SearchResultUser>,
     isSearching: Boolean,
     sentRequests: Set<String>,
+    suggestedFriends: List<FriendSuggestion>,
     onSearchTermChanged: (String) -> Unit,
     onSearchUsers: () -> Unit,
     onOpenChat: (String) -> Unit,
     onOpenContactCard: (String) -> Unit,
-    onSendRequest: (String, String) -> Unit
+    onSendRequest: (String, String) -> Unit,
+    onDismissSuggestion: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // „Możesz znać" (3.9): znajomi moich znajomych, liczeni po stronie serwera.
+        // Sekcja na szczycie zakładki — najbardziej naturalne miejsce na sugestie.
+        if (suggestedFriends.isNotEmpty()) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(VerbigemTheme.colors.surface)
+                        .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.people_you_may_know),
+                        color = VerbigemTheme.colors.muted,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    suggestedFriends.forEach { s ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "${s.photoURL} ${s.nickname}",
+                                    fontSize = 14.sp,
+                                    color = VerbigemTheme.colors.ink,
+                                    maxLines = 1
+                                )
+                                if (s.mutualCount > 0) {
+                                    Text(
+                                        text = stringResource(R.string.people_you_may_know_mutual, s.mutualCount),
+                                        fontSize = 12.sp,
+                                        color = VerbigemTheme.colors.muted,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                            IconButton(onClick = { onDismissSuggestion(s.uid) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.dismiss),
+                                    tint = VerbigemTheme.colors.muted
+                                )
+                            }
+                            Button(
+                                onClick = { onSendRequest(s.uid, s.nickname) },
+                                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(stringResource(R.string.add_friend), fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Szukanie ludzi — dodawanie nowych znajomych mieszka w zakładce Znajomi,
         // bo to tu trafiają po przyjęciu zaproszenia.
         item {

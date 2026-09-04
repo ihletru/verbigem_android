@@ -973,6 +973,44 @@ otwiera czat (gdy `matchFor(phone) != null`), w przeciwnym razie wątek
 jednokierunkowy (3.6); kliknięcie wiersza zewnętrznego otwiera wątek 3.6; wiersz
 bez dopasowania otwiera dialog kanału zaproszenia (3.5).
 
+### Możesz znać (3.9) — znajomi moich znajomych
+
+Sekcja **„Możesz znać"** na szczycie zakładki Znajomi pokazuje kandydatów
+wyliczonych przez nową Cloud Function `suggestFriends` (`functions/src/peopleMayKnow.ts`).
+
+**Dlaczego po stronie serwera:** klient czyta tylko własne `friendships`
+(reguły Firestore oparte na `members`), więc nie widzi znajomych swoich
+znajomych. Przejście grafu musi zrobić serwer przez Admin SDK. Żadnego nowego
+indeksu złożonego — każde zapytanie to pojedyncze
+`whereArrayContains("members", <jeden uid>)`, które obsługuje istniejąca tablica.
+
+**Algorytm (`suggestFriends`):**
+1. Czyta moje `friendships`; dzieli na zaakceptowanych znajomych i oczekujące
+   (w obu kierunkach — oczekujące to „już obsłużone", więc pomijamy).
+2. Dla każdego zaakceptowanego znajomego czyta JEgo zaakceptowane `friendships`
+   i liczy, ilu moich znajomych jest też znajomych danego kandydata
+   (`mutualCount`). Przejście ograniczone do `MAX_FRIENDS_WALKED = 100`.
+3. Odrzuca kandydatów = ja, już znajomi lub oczekujący ze mną.
+4. Sortuje po `mutualCount` malejąco, ucina do `MAX_SUGGESTIONS = 20`,
+   dokleja nickname/photoURL z `usersPublic` i zwraca
+   `{ uid, nickname, photoURL, mutualCount }`.
+
+**Klient (`PeopleMayKnowRepository` + `ContactsViewModel`):**
+- `PeopleMayKnowRepository.suggest()` woła callable `suggestFriends` i mapuje
+  wynik na `List<FriendSuggestion>`. To powierzchnia niekrytyczna: każdy błąd
+  (offline, rate-limit, funkcja nie wdrożona) daje pustą listę i UI chowa sekcję.
+- VM ładuje sugestie w `init` (`loadSuggestions`), dodatkowo odsiewa osoby,
+  którym właśnie wysłałem zaproszenie (`sentRequests`), i wystawia
+  `dismissSuggestion(uid)` (tylko po stronie klienta, bez zapisu) oraz usuwa
+  kandydata z listy po wysłaniu zaproszenia (`sendRequest`).
+- Sekcja w `FriendsTab` pokazuje nickname, „N wspólnych znajomych" i przyciski
+  **+ Dodaj** (→ `sendRequest`) oraz **X** (→ `dismissSuggestion`).
+- Dwa nowe klucze w `strings.xml` ×6: `people_you_may_know`,
+  `people_you_may_know_mutual` (+ `dismiss` dla contentDescription).
+
+Wdrożenie: `FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only functions:suggestFriends --project mini-verbigem` (po nazwie, bezpiecznie — nie rusza
+pozostałych 5 funkcji produkcyjnych).
+
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
 Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres

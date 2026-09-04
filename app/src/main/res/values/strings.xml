@@ -87,6 +87,9 @@
     <string name="no_friends">No friends yet. Search for people above.</string>
     <string name="sent_request">✓ Sent</string>
     <string name="add_friend">+ Add</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="people_you_may_know">People you may know</string>
+    <string name="people_you_may_know_mutual">%1$d mutual friends</string>
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
 
