@@ -5,11 +5,12 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **3.9 „Możesz znać" WYKONANE w kodzie i
-WYDANE** (nowa Cloud Function `suggestFriends` liczy graf znajomych moich
-znajomych po stronie serwera; sekcja na szczycie zakładki Znajomi + 2 nowe
-stringi ×6). Wcześniej tego samego dnia: **3.8 Zakładki w Kontaktach WYDANE**,
-**3.7 Import `.vcf` WYDANY** i **3.6 Wątek jednokierunkowy WYDANY**.
+Ostatnia aktualizacja: 2026-09-04 — **Faza 3 (Kontakty 2.0) ZAMKNIĘTA** (3.0–3.10
+zrobione). Ostatnie: **3.9 „Możesz znać" WYDANE w v33** (Cloud Function
+`suggestFriends` + sekcja w zakładce Znajomi) i **3.10 audyt stringów ×6**
+(przejściowy: 257 kluczy w 6 językach, zero braków, zero hardkodowań; v33 już
+kompletna, brak nowego wydania). Wcześniej: **3.8 Zakładki WYDANE**,
+**3.7 Import `.vcf` WYDANY**, **3.6 Wątek jednokierunkowy WYDANY**.
 
 Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
 Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
@@ -61,7 +62,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.9 zrobione; dalej 3.10) | 33 | `6afcdde` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟢 **zrobione** (3.0–3.10) | 33 | `6afcdde` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -233,6 +234,26 @@ node backfill_searchtext.js --apply
   `sp`, `FontWeight`, `clip`, `Dialog`) — dosypane; `CombinedSearch` wymagał dwóch
   callbacków (PhoneContact dla trafień z książki przez `openExternal`, String dla
   zewnętrznych przez `onOpenExternalThread`).
+
+**Co zrobione w sesji 2026-09-04, przed południem (faza 3 — 3.10, audyt stringów):**
+
+- **3.10** ✅ **Audyt stringów × 6 (przejściowy, bez nowego wydania).** Skrypt
+  przeszedł cały `app/src/main`: 257 użytych kluczy `R.string.*`, **każdy obecny
+  w wszystkich 6 `values*/strings.xml`** (values / -pl / -de / -es / -zh / -tr, po
+  267 kluczy każdy). Jedyny „brakujący" to `default_web_client_id` — wygenerowany
+  przez Firebase/Google zasób wartości, celowo poza `strings.xml`.
+- Zweryfikowano też **dynamiczne** `stringResource(channel.labelRes)` (klucze
+  `channel_email`, `channel_email_subject`, `channel_other`, `channel_sms`,
+  `channel_telegram`, `channel_whatsapp`) — kompletne w 6 językach.
+- **Zero hardkodowanych literałów** w `Text(...)` w całym UI (skan po wszystkich
+  `.kt` — 0 trafień). Emoji-przedrostki `💬`/`👤` w `ContactListRow` to dekoracja,
+  nie tekst do tłumaczenia (i tak są spójne z `find_people`).
+- Build v33 (`assembleDebug`) przeszedł czysto — `versionCode 33` potwierdzony.
+- **Wniosek:** v33 już niesie pełny, przetłumaczony zestaw; 3.10 nie wymaga ani
+  nowych stringów, ani wydania. **Test na telefonie (0.9, 1.14, 1.16, 1.17, 1.18,
+  1.19) został u Milosza** — bez nich faza 1/2/3 nie jest formalnie domknięta.
+- Nieodkryte luki: Node 20 runtime decommission **2026-10-30** (bump `runtime` w
+  `firebase.json` + `engines.node` w `functions/package.json` przed tą datą).
 
 **Co zrobione w sesji 2026-09-04, rano (faza 3 — 3.9, WYDANE w v33):**
 
@@ -980,7 +1001,15 @@ Warunek: plan Blaze.
       (reuse `onSendRequest` + `onDismissSuggestion`). 3 nowe stringi × 6
       (`people_you_may_know`, `people_you_may_know_mutual`, `dismiss`).
       Funkcja wdrożona PO NAZWIE. **WYDANE w v33.**
-- [ ] **3.10** Stringi × 6. Build + test na telefonie. README + commit + push.
+- [x] **3.10** **Stringi × 6 (audyt, weryfikacja)** — przelotowy audyt: 257
+      kluczy `R.string.*` użytych w kodzie, **wszystkie obecne w 6 językach**;
+      zweryfikowano też dynamiczne `stringResource(channel.labelRes)` (klucze
+      `channel_*`) — kompletne. **Zero hardkodowanych literałów** w `Text(...)`
+      (emoji-przedrostki `💬`/`👤` to dekoracja, nie tekst do tłumaczenia).
+      Nie znaleziono brakujących ani nieprzetłumaczonych stringów, więc **brak
+      nowego wydania** — v33 już niesie pełny, przetłumaczony zestaw. Build v33
+      (`assembleDebug`) przeszedł czysto. **Test na telefonie został u Milosza.**
+      Plan + sesja zaktualizowane, commit `d501145` (v33) już na `origin/master`.
 
 ### Faza 4 — Kody QR
 
