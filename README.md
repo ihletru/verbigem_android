@@ -138,6 +138,29 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
 
 ---
 
+## 📋 Plan budowy: Czat i Kontakty
+
+Rozbudowa kart **Czat** i **Kontakty** jest rozpisana w osobnym, żywym dokumencie:
+**`chat_kontakty.md`** (katalog główny repo). Zawiera diagnozę obecnego stanu,
+macierz możliwości technicznych (co da się zrobić z importem kontaktów z WhatsApp
+/ Telegrama, a co nie), architekturę docelową, plan w fazach 0–5 oraz listę
+ryzyk. **Prace nad czatem i kontaktami zaczynamy od lektury tamtego pliku**, a
+każdą sesję kończymy aktualizacją jego tabeli „Postęp".
+
+Najważniejsze ustalenia (szczegóły w `chat_kontakty.md`):
+
+- **Tłumaczenie wiadomości dzieje się u ODBIORCY** — nadawca wysyła oryginał +
+  `sourceLang` + własne tłumaczenie jako podpowiedź (fallback dla odbiorców bez
+  pobranego modelu).
+- **Nie da się zaimportować listy kontaktów z WhatsApp ani Telegrama** (brak API).
+  Źródłem listy jest **książka telefoniczna + opcjonalnie plik `.vcf`**, a WhatsApp
+  / SMS / e-mail są **kanałami dostarczenia** na wyjściu.
+- **Weryfikacja numeru telefonu jest leniwa** — przy pierwszym wejściu w Czat lub
+  Kontakty, nie przy rejestracji. Umożliwia matching kontaktów po zahaszowanym numerze.
+- Cloud Functions (matching + FCM) wchodzą w fazie 2 i **wymagają planu Blaze**.
+
+---
+
 ## 🛠️ Architektura techniczna
 
 ```
