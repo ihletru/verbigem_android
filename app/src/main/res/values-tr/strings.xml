@@ -282,4 +282,9 @@
     <string name="external_will_send">Telefonundan çıkacak olan:</string>
     <string name="external_translate">Çevir</string>
     <string name="external_sent_via">%1$s ile gönderildi</string>
+    <string name="contacts_import_vcf">.vcf içe aktar</string>
+    <string name="contacts_imported_title">İçe aktarılan kartlar</string>
+    <string name="contacts_import_vcf_done">%1$d kişi içe aktarıldı</string>
+    <string name="contacts_import_vcf_none">Dosyada hiç kişi yoktu.</string>
+    <string name="contacts_import_vcf_failed">Dosya okunamadı.</string>
 </resources>

@@ -289,4 +289,9 @@
     <string name="external_will_send">To właśnie wyjdzie z telefonu:</string>
     <string name="external_translate">Przetłumacz</string>
     <string name="external_sent_via">Wysłane przez %1$s</string>
+    <string name="contacts_import_vcf">Importuj .vcf</string>
+    <string name="contacts_imported_title">Zaimportowane wizytówki</string>
+    <string name="contacts_import_vcf_done">Zaimportowano %1$d kontakt</string>
+    <string name="contacts_import_vcf_none">Plik nie zawierał żadnych kontaktów.</string>
+    <string name="contacts_import_vcf_failed">Nie udało się odczytać pliku.</string>
 </resources>

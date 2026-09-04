@@ -282,4 +282,9 @@
     <string name="external_will_send">Esto es lo que saldrá de tu teléfono:</string>
     <string name="external_translate">Traducir</string>
     <string name="external_sent_via">Enviado por %1$s</string>
+    <string name="contacts_import_vcf">Importar .vcf</string>
+    <string name="contacts_imported_title">Tarjetas importadas</string>
+    <string name="contacts_import_vcf_done">Importado %1$d contacto</string>
+    <string name="contacts_import_vcf_none">El archivo no contenía contactos.</string>
+    <string name="contacts_import_vcf_failed">No se pudo leer el archivo.</string>
 </resources>

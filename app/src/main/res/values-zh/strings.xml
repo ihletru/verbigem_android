@@ -282,4 +282,9 @@
     <string name="external_will_send">将要从你手机发出去的内容：</string>
     <string name="external_translate">翻译</string>
     <string name="external_sent_via">通过 %1$s 发送</string>
+    <string name="contacts_import_vcf">导入 .vcf</string>
+    <string name="contacts_imported_title">已导入名片</string>
+    <string name="contacts_import_vcf_done">已导入 %1$d 个联系人</string>
+    <string name="contacts_import_vcf_none">文件中没有联系人。</string>
+    <string name="contacts_import_vcf_failed">无法读取文件。</string>
 </resources>

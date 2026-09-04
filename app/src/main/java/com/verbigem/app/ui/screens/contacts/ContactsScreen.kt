@@ -1,6 +1,7 @@
 package com.verbigem.app.ui.screens.contacts
 
 import android.Manifest
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -85,6 +86,9 @@ fun ContactsScreen(
     val phoneMatches by viewModel.phoneMatches.collectAsState()
     val isMatching by viewModel.isMatching.collectAsState()
     val matchFailure by viewModel.matchFailure.collectAsState()
+    val importedContacts by viewModel.importedContacts.collectAsState()
+    val vcfCount by viewModel.vcfImportedCount.collectAsState()
+    val vcfError by viewModel.vcfReadError.collectAsState()
     val currentUid = viewModel.currentUid
 
     val context = LocalContext.current
@@ -102,6 +106,12 @@ fun ContactsScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> viewModel.onPermissionResult(granted) }
+
+    // Picker pliku .vcf (3.7). `OpenDocument` daje trwały dostęp do wybranego URI,
+    // więc `VcfImporter.parseUri` może go odczytać przez `contentResolver`.
+    val vcfLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? -> if (uri != null) viewModel.importVcf(uri) }
 
     // Prominent disclosure MUSI być przed systemowym dialogiem uprawnień —
     // wymóg Google Play dla READ_CONTACTS (reguła „in-app disclosure first").
@@ -282,6 +292,41 @@ fun ContactsScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.contacts_find_phone))
                 }
+                // Import .vcf (3.7) — kontakt z wizytówki, której nie ma w książce.
+                // Osobny przycisk, nie ten sam: szukanie z książki pyta o uprawnienie
+                // READ_CONTACTS, a .vcf czyta wybrany plik — to dwie różne ścieżki.
+                Button(
+                    onClick = { vcfLauncher.launch(arrayOf("text/vcard", "text/x-vcard", "application/vcard", "*/*")) },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.contacts_import_vcf))
+                }
+                // Komunikat o wyniku importu — inline, nie modal, żeby nie zasłaniał
+                // listy, którą właśnie powiększyliśmy. `vcfCount` to `by`-delegat,
+                // więc kopiujemy do lokalnej val — Kotlin nie smart-castuje delegatów.
+                val imported = vcfCount
+                when {
+                    vcfError -> Text(
+                        stringResource(R.string.contacts_import_vcf_failed),
+                        fontSize = 12.sp, color = VerbigemTheme.colors.danger
+                    )
+                    imported == 0 -> Text(
+                        stringResource(R.string.contacts_import_vcf_none),
+                        fontSize = 12.sp, color = VerbigemTheme.colors.muted
+                    )
+                    imported != null -> Text(
+                        stringResource(R.string.contacts_import_vcf_done, imported),
+                        fontSize = 12.sp, color = VerbigemTheme.colors.accent
+                    )
+                }
                 if (permissionDenied) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -293,10 +338,14 @@ fun ContactsScreen(
             }
         }
 
-        if (phoneContacts.isNotEmpty()) {
+        // Książka + zaimportowane .vcf (3.7) jako jedna lista: obie dają
+        // `PhoneContact`, którym można otworzyć wątek jednokierunkowy (3.6).
+        val allPhoneContacts = phoneContacts + importedContacts
+
+        if (allPhoneContacts.isNotEmpty()) {
             item {
                 Text(
-                    text = stringResource(R.string.contacts_perm_found, phoneContacts.size),
+                    text = stringResource(R.string.contacts_perm_found, allPhoneContacts.size),
                     fontSize = 12.sp,
                     color = VerbigemTheme.colors.muted
                 )
@@ -331,7 +380,18 @@ fun ContactsScreen(
                     )
                 }
             }
-            items(phoneContacts) { contact ->
+            if (importedContacts.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.contacts_imported_title),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerbigemTheme.colors.muted,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+            items(allPhoneContacts) { contact ->
                 val match = viewModel.matchFor(contact.phone)
                 Row(
                     modifier = Modifier

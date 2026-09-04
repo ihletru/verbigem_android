@@ -289,4 +289,9 @@
     <string name="external_will_send">This is what will leave your phone:</string>
     <string name="external_translate">Translate</string>
     <string name="external_sent_via">Sent via %1$s</string>
+    <string name="contacts_import_vcf">Import .vcf</string>
+    <string name="contacts_imported_title">Imported cards</string>
+    <string name="contacts_import_vcf_done">Imported %1$d contact</string>
+    <string name="contacts_import_vcf_none">The file had no contacts.</string>
+    <string name="contacts_import_vcf_failed">Could not read the file.</string>
 </resources>

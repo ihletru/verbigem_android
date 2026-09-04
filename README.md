@@ -927,6 +927,25 @@ Decyzje, których nie wolno zmienić niechcący:
 - **Historia jest przycinana** do 90 dni (`pruneHistory`), bo to log rzeczy już
   wysłanych — nic do archiwizacji.
 
+### Import wizytówek `.vcf` (3.7) — kontakt spoza książki
+
+`data/VcfImporter.kt`: własny parser, **zero zależności** (żadnego `ez-vcard` /
+`vcard`). vCard potrafi być nieskończenie skomplikowany; my wyciągamy tylko to, co
+trzeba, by otworzyć wątek (3.6) albo zaprosić (3.5): nazwę (`FN`, fallback `N`),
+numer (`TEL`) i e-mail (`EMAIL`).
+
+- Obsługuje `BEGIN/END:VCARD`, wiele kart w pliku, `VERSION:2.1` i `3.0`, zwijanie
+  długich linii (kontynuacja spacją/tabem).
+- Ignoruje celowo: `PHOTO`, grupy, adresy pocztowe, wiele numerów na kartę. Import to
+  gest „dodaj tę osobę z wizytówki", a nie migracja książki — nadmiar by tylko
+  zaśmiecił listę.
+- Nie rzuca na uszkodzonych kartach: linie, których nie rozumie, są pomijane, a
+  brak `FN`/`TEL` po prostu pomija kartę.
+- Plik czytany przez `contentResolver` (`ActivityResultContracts.OpenDocument`,
+  mime `text/vcard`), więc nie potrzebuje `READ_CONTACTS`.
+- Wynik łączony z książką w jedną listę; numery już obecne (książka lub wcześniejszy
+  import) są pomijane, żeby podwójny import nie dodał drugiego wiersza.
+
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
 Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres

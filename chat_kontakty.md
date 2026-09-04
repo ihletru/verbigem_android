@@ -5,23 +5,21 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **3.6 Wątek jednokierunkowy WYKONANY w kodzie
-i WYDANY** (`ExternalThreadScreen`, Room `external_contacts` + `external_outbox`,
-migracja `7_8`, wejście z książki zapisujące kontakt przed nawigacją). Wcześniej
-tego samego dnia: **1.12 Wyszukiwanie w wiadomościach WYKONANE** (trigger
-`onMessageSearchIndex`, reguła blokująca `searchText` klientowi, zapytanie
-prefiksowe per czat, UI w skrzynce, backfill gotowy).
+Ostatnia aktualizacja: 2026-09-04 — **3.7 Import `.vcf` WYKONANY w kodzie i
+WYDANY** (`VcfImporter`, własny parser, zero zależności; przycisk w sekcji
+„Znajomi z książki", scalony z książką w jedną listę). Wcześniej tego samego
+dnia: **3.6 Wątek jednokierunkowy WYDANY** (`ExternalThreadScreen`, Room
+`external_contacts` + `external_outbox`, migracja `7_8`).
 
 Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
 Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
 
-**Stan wydań:** **v30 (1.0.29) WYDANY na produkcję** — zweryfikowane
-`https://mini.verbigem.com/updates/version.json` → `versionCode: 30`. Zawiera
-fazę 0+1 (v26) + 1.12 + 1.13 + 3.5 + 3.6. APK: `app-debug-v30.apk`.
+**Stan wydań:** **v31 (1.0.30) WYDANY na produkcję** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 31`. Zawiera
+v30 + 3.7 (import `.vcf`). APK: `app-debug-v31.apk`.
 
 > **v27, v28, v29 nigdy nie trafiły na hosting** — wersjonowanie przeskoczyło z 26
-> na 30, bo 3.6 dodało kolejny `versionCode` i wypuściliśmy od razu najnowsze.
-> Build v30 to jedyna wersja po v26, która poszła do ludzi.
+> na 30, a potem 30 → 31 (3.7). Build v31 to najnowsza wersja po v26.
 
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
@@ -61,7 +59,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.6 zrobione; dalej 3.7–3.10) | 30 | `dfad5f0` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.7 zrobione; dalej 3.8–3.10) | 31 | `22f2e28` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -197,6 +195,21 @@ node backfill_searchtext.js --apply
   link i zaproszenie to dwa różne sposoby na ten sam cel: zaproszenie działa, gdy
   osoba kiedyś potwierdzi numer, link — gdy kliknie go od razu. Pominięcie
   któregoś zostawia połowę szansy.
+
+**Co zrobione w sesji 2026-09-04, wieczorem (faza 3 — 3.7, WYDANE w v31):**
+
+- **3.7** ✅ **Import `.vcf`** — `data/VcfImporter.kt` (własny parser, **zero
+  zależności**): `FN`/`N`/`TEL`/`EMAIL`, wiele kart, `VERSION:2.1`+`3.0`, zwijanie
+  długich linii (kontynuacja spacją/tabem). Celowo ignoruje `PHOTO`/grupy/adresy/
+  wiele numerów na kartę — import to gest „dodaj tę osobę", nie migracja książki.
+- Czytanie przez `ActivityResultContracts.OpenDocument` (mime `text/vcard`) →
+  **nie wymaga `READ_CONTACTS`**. `VcfImporter.parseUri` rzuca przy błędnym URI,
+  ViewModel łapie to w `runCatching` i pokazuje `contacts_import_vcf_failed`.
+- Wynik w `ContactsViewModel.importedContacts` (StateFlow), scalony z książką w
+  jedną listę w `ContactsScreen`; numery już obecne pomijane (dedup po `phone`).
+  Importowany wpis otwiera ten sam wątek jednokierunkowy (3.6) co wpis z książki.
+- 5 nowych stringów × 6 języków (`contacts_import_vcf`, `contacts_imported_title`,
+  `contacts_import_vcf_done`, `contacts_import_vcf_none`, `contacts_import_vcf_failed`).
 
 **Co zrobione w sesji 2026-09-04, popołudniu (faza 3 — 3.6, WYDANE w v30):**
 
@@ -893,6 +906,11 @@ Warunek: plan Blaze.
       (transparent o braku strony przychodzącej, historia, kompozytor z przyciskami
       kanałów). Wejście z książki: `ContactsViewModel.rememberExternal` (suspend,
       przed nawigacją) + wiersz klikiem otwiera wątek. **WYDANE w v30.**
+- [x] **3.7** **Import `.vcf` (3.7)** — `data/VcfImporter.kt`: własny parser, zero
+      zależności (brak `ez-vcard`/`vcard`). Wyciąga `FN`/`N`/`TEL`/`EMAIL`, wiele
+      kart, `VERSION:2.1`+`3.0`, zwijanie długich linii. Plik przez `OpenDocument`
+      (mime `text/vcard`) — nie wymaga `READ_CONTACTS`. Wynik scalony z książką w
+      jedną listę; numery już obecne pomijane. **WYDANE w v31.**
 - [ ] **3.7** Import `.vcf` — własny parser, zero zależności.
 - [ ] **3.8** Zakładki w Kontaktach: Znajomi / Zaproszenia / Z telefonu /
       Zewnętrzne. Wyszukiwanie po wszystkich naraz.

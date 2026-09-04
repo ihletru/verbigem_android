@@ -1,12 +1,14 @@
 package com.verbigem.app.ui.screens.contacts
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.PhoneContactsImporter
+import com.verbigem.app.data.VcfImporter
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
@@ -66,6 +68,22 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     private val _permissionDenied = MutableStateFlow(false)
     val permissionDenied: StateFlow<Boolean> = _permissionDenied.asStateFlow()
+
+    // --- Import wizytówek .vcf (3.7) ---
+
+    /** Kontakty zaimportowane ręcznie z pliku, poza książką urządzenia. */
+    private val _importedContacts = MutableStateFlow<List<PhoneContact>>(emptyList())
+    val importedContacts: StateFlow<List<PhoneContact>> = _importedContacts.asStateFlow()
+
+    /**
+     * Ile kontaktów właśnie wpadło z ostatniego pliku (`null` = cisza). `0` to
+     * komunikat „plik pusty", a nie błąd — stąd osobna flaga dla czytania.
+     */
+    private val _vcfImportedCount = MutableStateFlow<Int?>(null)
+    val vcfImportedCount: StateFlow<Int?> = _vcfImportedCount.asStateFlow()
+
+    private val _vcfReadError = MutableStateFlow(false)
+    val vcfReadError: StateFlow<Boolean> = _vcfReadError.asStateFlow()
 
     // --- Dopasowanie książki telefonicznej do kont Verbigem (2.3) ---
 
@@ -308,6 +326,41 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     /** Czy zaproszenie dla tego numeru zostało już zapisane. */
     fun isInvited(phone: String): Boolean =
         _invitedPhones.value.contains(PhoneContactsImporter.normalize(phone))
+
+    /**
+     * Importuje kontakty z pliku `.vcf` (3.7). Własny parser, zero zależności.
+     *
+     * `parseUri` czyta plik przez `contentResolver` — dlatego metoda bierze `Uri`,
+     * a nie surowy tekst. Wynik dołączamy do listy zaimportowanych, pomijając
+     * numery, które już są na liście (książka lub wcześniejszy import) — import
+     * dwukrotny tej samej wizytówki nie ma dodać drugiego wiersza.
+     *
+     * Błąd czytania pliku (np. URI bez uprawnienia) jest sygnałem dla UI, ale
+     * nie przerywa — parser sam ignoruje uszkodzone karty, więc „nic nie wpadło"
+     * to częściej pusty plik niż awaria.
+     */
+    fun importVcf(uri: Uri) {
+        viewModelScope.launch {
+            _vcfReadError.value = false
+            _vcfImportedCount.value = null
+            val parsed = VcfImporter.parseUri(getApplication(), uri)
+            if (parsed.isEmpty()) {
+                _vcfImportedCount.value = 0
+                return@launch
+            }
+            val known = (_phoneContacts.value + _importedContacts.value)
+                .map { it.phone }.toSet()
+            val added = parsed.filter { it.phone !in known }
+            _importedContacts.value = _importedContacts.value + added
+            _vcfImportedCount.value = added.size
+        }
+    }
+
+    /** Czyści komunikat o wyniku importu (po jego przeczytaniu w UI). */
+    fun clearVcfStatus() {
+        _vcfImportedCount.value = null
+        _vcfReadError.value = false
+    }
 
     /**
      * Zapisuje osobę spoza Verbigem w Room i dopiero potem pozwala wejść do wątku (3.6).
