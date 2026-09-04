@@ -5,7 +5,13 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-03
+Ostatnia aktualizacja: 2026-09-03 (redakcja po uwagach Milosza: Blaze potwierdzony,
+polityka prywatności do wygenerowania, korekta punktu B6)
+
+> **Uwaga do następnej sesji:** punkt B6 (BottomNav) jest **nierozstrzygnięty**.
+> Milosz twierdzi, że patrzę na inny plik i że w bottom nawigacji nie ma
+> hardkodowanych etykiet ani OCR. Zweryfikować na żywym kodzie przed ruszeniem
+> fazy 0 — jeśli rzeczywiście jest inaczej, skreślić B6 bez dyskusji.
 
 ---
 
@@ -20,6 +26,10 @@ Ostatnia aktualizacja: 2026-09-03
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
+| PP | Polityka prywatności (§12) | ⬜ nie rozpoczęta | — | — |
+
+**PP to osobny, lekki tor** — nie zależy od żadnej fazy, ale **blokuje fazę 3**.
+Wymaga odpowiedzi Milosza na pytanie 12.1 (adres kontaktowy do spraw prywatności).
 
 **Gdzie skończyliśmy:** nic jeszcze nie zrobione — dokument dopiero powstał.
 **Następny krok:** Faza 0, zadanie 0.1 (`usersPublic`).
@@ -37,6 +47,8 @@ Potwierdzone przez Milosza 2026-09-03. Nie zmieniać bez nowej dyskusji.
 | D3 | **Weryfikacja numeru telefonu** | **Leniwa, nie przy rejestracji.** Gate przy pierwszym wejściu w Czat lub Kontakty (albo przy kliknięciu „Znajdź znajomych"). Opcja „Pomiń" — czat działa, ale użytkownik nie jest odnajdywalny po numerze i nie używa matchingu. |
 | D4 | **Dodatki w zakresie** | Kod QR + skaner, zdjęcia z OCR w czacie, głosówki (nagraj → tekst). |
 | D5 | **Czaty grupowe** | Odłożone / nie wybrane. Faza 6 zostaje w planie jako opcjonalna. |
+| D6 | **Plan Blaze** | **Potwierdzony — Milosz ma Blaze** (2026-09-03). Cloud Functions i FCM nie są zablokowane kosztowo. Nadal pilnować limitów i App Check. |
+| D7 | **Polityka prywatności** | **Nie istnieje — wygenerujemy ją sami.** 6 wersji językowych (PL/EN/DE/ES/ZH/TR), hosting na `mini.verbigem.com/privacy/`, link z aplikacji (Profil) + do zgłoszenia w Google Play. Wymagana przed fazą 3 (`READ_CONTACTS`). Szczegóły w §12. |
 
 ---
 
@@ -52,7 +64,7 @@ fundamencie to budowanie na piasku.
 | B3 | **Tłumaczenie hardkodowane PL→EN.** `hyMt2Engine.translate(text, PL, EN)` ignoruje profile obu stron. `speak()` też ma na sztywno `"en"` dla przychodzących. | `ChatViewModel.kt:68`, `ChatScreen.kt:141` | Czat tłumaczy w losowy język. |
 | B4 | **Brak listy konwersacji.** Ekran Czatu to napis „wybierz znajomego w Kontaktach". Nie ma jak wrócić do toczącej się rozmowy. | `ChatScreen.kt:64-87` | Czat nieużywalny jako komunikator. |
 | B5 | **Reguły blokują `update` na wiadomościach** (`allow update, delete: if false`). | `firestore.rules` → `chats/{chatId}/messages` | Potwierdzenia odczytu, edycja i usuwanie są dziś niemożliwe. |
-| B6 | **BottomNav nie ma OCR.** `Screen.Ocr.route` jest w `showBottomNav`, ale brak go w `items`. | `BottomNav.kt:41-47` | Drobiazg, ale wprowadza niespójność. Etykiety w `BottomNav` są też hardkodowane po angielsku (naruszenie zasady wielojęzyczności). |
+| B6 | **BottomNav — NIEPOTWIERDZONE.** Według analizy kodu brakuje w nim pozycji OCR (mimo że `Screen.Ocr.route` jest w `showBottomNav`) i etykiety są hardkodowane po angielsku. **Milosz twierdzi, że to inny plik i problemu nie ma.** | `BottomNav.kt:41-47` | **Do weryfikacji na początku sesji roboczej.** Jeśli Milosz ma rację — skreślić. Jeśli nie: OCR do bottom nawigacji **nie trafia** (ikony już kompletne) — ewentualny link do OCR robimy na stronie ekranu, nie w nawigacji. |
 
 ---
 
@@ -295,8 +307,10 @@ Warunek: plan Blaze.
 
 ### Faza 3 — Kontakty 2.0
 
-- [ ] **3.1** `READ_CONTACTS` + ekran wyjaśnienia (polityka Google Play wymaga
-      prominent disclosure i linku do polityki prywatności — do ustalenia URL).
+- [ ] **3.0** **Warunek wstępny: polityka prywatności musi być opublikowana** (§12).
+      Bez niej Google Play odrzuci prośbę o `READ_CONTACTS`.
+- [ ] **3.1** `READ_CONTACTS` + ekran wyjaśnienia (prominent disclosure + link do
+      polityki, wymóg Google Play).
 - [ ] **3.2** `PhoneContactsImporter` (ContactsContract): imię, telefony, e-maile,
       miniatura, `starred`.
 - [ ] **3.3** libphonenumber → normalizacja E.164.
@@ -378,8 +392,8 @@ się pobiera**, ewentualnie zbudować raz online, żeby zapełnić cache.
 
 | Ryzyko | Szczegół | Mitygacja |
 |---|---|---|
-| **Plan Blaze** | Cloud Functions nie działają na Sparku | Przed fazą 2 sprawdzić koszty i limity; FCM i Storage mieszczą się w darmowych progach |
-| **Polityka Google Play — READ_CONTACTS** | Wymaga prominent disclosure w aplikacji + polityki prywatności. Złe uzasadnienie = odrzucenie | Ekran wyjaśnienia przed dialogiem uprawnień; URL polityki do ustalenia |
+| ~~**Plan Blaze**~~ | ~~Cloud Functions nie działają na Sparku~~ | **ROZWIĄZANE — Milosz ma Blaze** (2026-09-03). Pozostaje pilnować limitów i App Check. |
+| **Polityka Google Play — READ_CONTACTS** | Wymaga prominent disclosure w aplikacji + opublikowanej polityki prywatności. Brak = odrzucenie wniosku | **§12 — politykę generujemy sami**, 6 języków, hosting na `mini.verbigem.com/privacy/`. Ekran wyjaśnienia przed dialogiem uprawnień |
 | **Rainbow table na hashe numerów** | Jeśli pepper wycieknie, można odtworzyć mapowanie numer→uid | App Check, rate limiting, pepper w Secret Managerze, brak odczytu klienta |
 | **Koszt tłumaczenia u odbiorcy** | Model 1.8B, ~3–4 tok/s. Długa wiadomość = kilka sekund | Cache w Room, spinner, `senderTranslation` jako natychmiastowy fallback |
 | **Rozmiar modelu** | 440 MB (Fast) / 1.1 GB (Accurate). Odbiorca bez modelu nie przetłumaczy | Właśnie dlatego wysyłamy `senderTranslation` — wątek działa od razu |
@@ -416,8 +430,8 @@ Obowiązują przy każdej fazie (z `README.md` i notatek projektu):
 
 Do rozstrzygnięcia w trakcie — nie blokują startu fazy 0.
 
-1. **URL polityki prywatności** — wymagany przez Google Play przy `READ_CONTACTS`.
-   Czy już istnieje na `verbigem.com`?
+1. ~~**URL polityki prywatności**~~ — **ROZSTRZYGNIĘTE (2026-09-03):** nie istniał,
+   wygenerujemy go sami. Zob. §12.
 2. **Czy import kontaktów ma być jednorazowy, czy ciągły?** (opcjonalny okresowy
    re-match w tle, np. raz na tydzień, żeby wykryć znajomych którzy dołączyli).
 3. **Czy kontakty zewnętrzne synchronizować z chmurą?** Na razie zakładam, że
@@ -426,3 +440,65 @@ Do rozstrzygnięcia w trakcie — nie blokują startu fazy 0.
    Czy `senderTranslation` jest darmowe (nadawca używa swojego modelu), czy Pro?
 5. **Retencja wiadomości** — czy kasować stare wiadomości z Firestore po X dniach
    (koszty vs. historia)?
+
+---
+
+## 12. Polityka prywatności — do wygenerowania
+
+Nie istnieje. Jest wymagana przez Google Play (zwłaszcza przy `READ_CONTACTS` —
+bez niej wniosek o dostęp do kontaktów zostanie odrzucony) i potrzebna w aplikacji
+od fazy 3. **Robimy ją sami** — treść jest prosta, bo aplikacja jest
+zaprojektowana prywatnie: tłumaczenie dzieje się na urządzeniu.
+
+### 12.1 Zakres treści (do napisania)
+
+- **Dane na urządzeniu, nie u nas:** tłumaczenia (model Hy-MT2), historia
+  tłumaczeń i OCR, wyniki rozpoznawania mowy — przetwarzane lokalnie.
+- **Dane w chmurze (Firebase/Google):** konto (nick, e-mail), treść wiadomości
+  czatu (musi być przechowana, żeby dostarczyć ją odbiorcy), historia
+  synchronizowana między urządzeniami, tokeny powiadomień.
+- **Numery telefonów:** do chmury trafia **wyłącznie skrót kryptograficzny**
+  (SHA-256 + HMAC z kluczem serwerowym), nigdy numer w postaci jawnej. Numery
+  kontaktów nie są przechowywane na serwerze.
+- **Podmioty trzecie:** Google Firebase (Auth, Firestore, Storage, FCM),
+  OpenRouter (TTS Pro — tylko dla płacących, tylko tekst do syntezy),
+  DeepSeek (silnik online — tylko gdy użytkownik go wybierze).
+- **Prawa użytkownika:** usunięcie konta i danych, kontakt (adres e-mail
+  do ustalenia — patrz pytanie niżej).
+- **Dzieci / wiek:** standardowa klauzula 13+/16+.
+
+### 12.2 Jak to wdrożyć
+
+- **Format:** 6 statycznych plików HTML, zero JS, zero buildu —
+  `mini.verbigem.com/privacy/pl`, `/en`, `/de`, `/es`, `/zh`, `/tr`,
+  plus `/privacy/index.html` przekierowujący wg `Accept-Language`.
+  Kanoniczny link do zgłoszenia w Play: `https://mini.verbigem.com/privacy/`
+- **⚠️ Pułapka hostingu (znana z README):** `firebase deploy --only hosting`
+  **zastępuje cały hosting zawartością `dist/`** — plików, których nie ma w
+  `dist/`, nie ma potem na serwerze. Dlatego:
+  1. pliki wylądować muszą w `mini/dist/privacy/` (teraz, ręcznie — **nie
+     odpalać `npm run build`**, bo czyści `dist/`),
+  2. **i** w `mini/public/privacy/`, żeby przetrwały przyszły build Vite
+     (`public/` jest kopiowane do `dist/`).
+- **Link w aplikacji:** pozycja w `ProfileScreen` (obok wyboru motywu/języka)
+  otwierająca przeglądarkę na `https://mini.verbigem.com/privacy/<uiLang>`.
+  Osobny string w `strings.xml` × 6.
+- **Dodatkowo:** ten sam URL idzie do karty sklepu Google Play i do ekranu
+  prośby o `READ_CONTACTS` (wymóg Play: prominent disclosure).
+
+### 12.3 Zadania
+
+- [ ] **12.1** Ustalić adres kontaktowy do spraw prywatności (np.
+      `privacy@verbigem.com`) — **pytanie do Milosza**, blokuje publikację treści.
+- [ ] **12.2** Napisać treść polityki (wersja polska + angielska jako wzorzec).
+- [ ] **12.3** Przetłumaczyć na DE / ES / ZH / TR.
+- [ ] **12.4** 6 plików HTML + `index.html` z przekierowaniem, wspólny arkusz stylów
+      (spójny z motywami aplikacji).
+- [ ] **12.5** Wrzucić do `mini/dist/privacy/` **i** `mini/public/privacy/`,
+      `firebase deploy --only hosting --project mini-verbigem`, sprawdzić
+      wszystkie 6 URLi.
+- [ ] **12.6** Pozycja „Polityka prywatności" w `ProfileScreen` + stringi × 6.
+- [ ] **12.7** README: dopisać sekcję o polityce i pułapce `dist/` vs `public/`.
+
+**Kiedy:** blokuje fazę 3. Można zrobić jako osobną, lekką sesję w dowolnym
+momencie — nie zależy od żadnej innej fazy.
