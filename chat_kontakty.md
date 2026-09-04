@@ -40,7 +40,7 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 0 | Ratunek fundamentów | 🟡 **kod gotowy, v26 na produkcji** (0.9 — test na telefonie został) | 26 | `bae1df0` |
 | 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
 | 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
-| 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | *do commita* |
+| 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
 | 2 | Backend: Cloud Functions | ⬜ nie rozpoczęta | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
