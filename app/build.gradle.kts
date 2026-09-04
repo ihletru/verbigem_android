@@ -120,6 +120,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
+    // Storage (Faza 5): zdjęcia i głosówki w chat_attachments/{chatId}/{msgId}
+    implementation(libs.firebase.storage)
 
     // App Check. The provider differs per variant (`src/debug` vs `src/release`) and
     // so does the dependency, so a release build physically cannot self-attest.

@@ -64,7 +64,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
 | 3 | Kontakty 2.0 (import, kanały) | 🟢 **zrobione** (3.0–3.10) | 33 | `6afcdde` |
 | 4 | Kody QR | 🟢 **zrobione** (4.1–4.3) | 34 | — |
-| 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
+| 5 | Media: zdjęcia + OCR, głosówki | 🟡 **w toku** (5.1 fundament: Storage + reguły; wdrożenie reguł czeka na włączenie Firebase Storage w konsoli) | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
 | PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
 
@@ -1063,6 +1063,18 @@ Warunek: plan Blaze.
 - [ ] **5.3** Głosówki: nagrywanie → upload m4a → transkrypcja STT na nadawcy
       → tekst podlega zwykłemu tłumaczeniu u odbiorcy. `SpeechManager` już istnieje.
 - [ ] **5.4** Pobieranie, postęp, cache offline, podgląd na pełnym ekranie.
+
+**Sesja: Faza 5 (2026-09-04)** — start. Zrobiono 5.1 (fundament): dodano
+`firebase-storage` (BOM 33.2.0, bez `version.ref`) do `libs.versions.toml` +
+`app/build.gradle.kts`, utworzono `storage.rules` (tylko członkowie czatu,
+create-only, `image/*`+`audio/*` <25 MB, członkostwo przez `firestore.get` z
+`chats/{chatId}.members`) i sekcję `"storage"` w `firebase.json`. Build v34
+przechodzi (40 tasków, czysto). **Bloker wdrożenia reguł:** Firebase Storage
+nie jest włączone w projekcie `mini-verbigem` — `firebase deploy --only storage`
+zwraca „Storage has not been set up". Wymaga kliknięcia „Get Started" w konsoli
+(mus Milosz) albo `gcloud services enable firebasestorage.googleapis.com` +
+utworzenia domyślnego bucketu. Po włączeniu: wdrażam reguły i przechodzę do 5.2
+(zdjęcia + OCR przez istniejący `OcrManager`).
 
 ### Faza 6 — Czaty grupowe (odłożone)
 

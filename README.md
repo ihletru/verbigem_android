@@ -1046,6 +1046,29 @@ deep linku w `MainActivity.handleDeepLink` (ACTION_VIEW → `deepLinkUid`) +
 > Firebase są wpisane odciski SHA certyfikatu podpisującego APK. Do czasu testu
 > 1.18 samo skanowanie (4.2) otwiera kartę kontaktu niezależnie od App Links.
 
+### Media (Faza 5) — zdjęcia, OCR, głosówki
+
+Załączniki czatu lądują w Firebase Storage, pod ścieżką
+`chat_attachments/{chatId}/{msgId}`. Reguły Storage (`storage.rules`) pozwalają
+czytać i pisać tylko członkom czatu — członkostwo sprawdzane przez `firestore.get`
+z `chats/{chatId}.members` (ten sam wektor zaufania co `firestore.rules`). Zapis
+jest ograniczony do **nowych** obiektów (brak nadpisywania cudzych plików) oraz
+typów `image/*` i `audio/*` do 25 MB.
+
+- **5.1 (fundament, zrobiony):** zależność `firebase-storage` (z BOM 33.2.0,
+  bez `version.ref`), plik `storage.rules` i sekcja `"storage"` w `firebase.json`.
+  ⚠️ **Wdrożenie reguł czeka na włączenie Firebase Storage w konsoli**
+  (`console.firebase.google.com/project/mini-verbigem/storage` → „Get Started") —
+  bez tego `firebase deploy --only storage` zwraca błąd „Storage has not been set
+  up". Kod się buduje niezależnie od tego.
+- **5.2 (plan):** zdjęcie → upload → opcjonalny OCR na nadawcy przez istniejący
+  `OcrManager` → `ocrText` w dokumencie wiadomości → odbiorca tłumaczy tekst swoim
+  językiem.
+- **5.3 (plan):** nagranie → upload `m4a` → transkrypcja STT na nadawcy przez
+  istniejący `SpeechManager` → tekst podlega zwykłemu tłumaczeniu u odbiorcy.
+- **5.4 (plan):** pobieranie z postępem, cache offline, podgląd na pełnym ekranie
+  (wspólne dla 5.2 i 5.3).
+
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
 Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres

@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Faza 5.1: załączniki czatu (zdjęcia → 5.2, głosówki → 5.3).
+    // Ścieżka: chat_attachments/{chatId}/{msgId}
+    //  - odczyt:  tylko członek czatu,
+    //  - zapis:   tylko członek, tylko NOWY obiekt (brak nadpisywania cudzych
+    //            plików) i tylko dozwolone typy (image/audio) do 25 MB.
+    // Członkostwo czytamy z Firestore (chats/{chatId}.members) — ten sam
+    // wektor zaufania co reguły Firestore w firestore.rules.
+    match /chat_attachments/{chatId}/{msgId} {
+      function chatMembers() {
+        return firestore.get(/databases/(default)/documents/chats/$(chatId)).data.members;
+      }
+      allow read: if request.auth != null
+        && request.auth.uid in chatMembers();
+      allow write: if request.auth != null
+        && request.auth.uid in chatMembers()
+        && resource == null
+        && request.resource.size < 25 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|audio/.*');
+    }
+  }
+}

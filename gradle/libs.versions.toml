@@ -53,6 +53,8 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
+# Storage (Faza 5): zdjęcia + głosówki. Wersja z BOM 33.2.0 — bez version.ref.
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
 # App Check: Play Integrity proves the caller is a real, untampered install. The
 # debug provider is what lets a sideloaded debug APK talk to enforced callables
 # at all — without it every dev device is rejected outright.
