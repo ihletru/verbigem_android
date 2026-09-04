@@ -50,7 +50,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 |---|---|---|---|---|
 | 0 | Ratunek fundamentów | 🟡 **kod gotowy, v26 na produkcji** (0.9 — test na telefonie został) | 26 | `bae1df0` |
 | 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
-| 1.12 | Wyszukiwanie w wiadomościach | 🟡 **kod gotowy** (1.19 — test na telefonie został; **backfill po 0.9**) | 28 | *w toku* |
+| 1.12 | Wyszukiwanie w wiadomościach | 🟡 **wdrożone na produkcję** (1.19 — test na telefonie został; **backfill po 0.9**) | 28 | `1f30e72` |
 | 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
 | 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | `a4e65d5` |
 | 2.2 | Secret Manager + App Check | ✅ **zrobione** (pepper ustawiony; App Check per wariant, egzekucja odroczona) | — | *w toku* |
