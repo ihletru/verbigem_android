@@ -299,4 +299,15 @@
     <string name="no_invites">Henüz davet yok.</string>
     <string name="contacts_external_empty">Henüz dış sohbet yok. Başlamak için bir telefon kişisi aç.</string>
     <string name="no_results">Sonuç yok.</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">QR kodum</string>
+    <string name="qr_my_code_hint">Bu kodu bir arkadaşına göster — kartını „Arkadaş ekle” düğmesiyle açar.</string>
+    <string name="qr_scan">QR kodu tara</string>
+    <string name="qr_scan_hint">Kamerayı arkadaşının Verbigem QR koduna çevir.</string>
+    <string name="qr_scan_failed">Kod okunamadı. Tekrar dene.</string>
+    <string name="qr_scan_no_camera">Kamera izni yok — tarayamam.</string>
+    <string name="qr_not_verbigem">Bu bir Verbigem kodu değil.</string>
+    <string name="qr_copy_link">Bağlantıyı kopyala</string>
+    <string name="qr_generate_failed">Kod oluşturulamadı.</string>
+    <string name="qr_scan_retry">Yeniden tara</string>
 </resources>

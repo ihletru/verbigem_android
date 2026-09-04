@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.data.ProfileLinks
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.engine.UpdateManager
 import com.verbigem.app.ui.navigation.AppNavigation
@@ -74,12 +75,20 @@ class MainActivity : ComponentActivity() {
      */
     private val openChatUid = MutableStateFlow<String?>(null)
 
+    /**
+     * Uid profilu z App Linku (`https://mini.verbigem.com/u/<uid>`), lub null.
+     * Flow, bo link może przyjść drugi raz przez [onNewIntent], gdy aktywność
+     * już żyje — tylko flow wpycha to do Compose.
+     */
+    private val deepLinkUid = MutableStateFlow<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         preferencesManager = PreferencesManager(this)
         handleChatIntent(intent)
+        handleDeepLink(intent)
 
         setContent {
             val themeName by preferencesManager.themeFlow.collectAsState(initial = "calm")
@@ -88,6 +97,7 @@ class MainActivity : ComponentActivity() {
             // Read here, in the parent scope, so a notification that lands while the
             // app is open still pushes the new value down into AppNavigation.
             val chatUid by openChatUid.collectAsState()
+            val profileUid by deepLinkUid.collectAsState()
 
             LocalizationWrapper(uiLang) {
                 VerbigemAppTheme(
@@ -105,7 +115,7 @@ class MainActivity : ComponentActivity() {
                             updateManager = updateManager,
                             progressState = downloadProgress
                         ) {
-                            AppNavigation(openChatUid = chatUid)
+                            AppNavigation(openChatUid = chatUid, openProfileUid = profileUid)
                         }
                     }
                 }
@@ -119,11 +129,24 @@ class MainActivity : ComponentActivity() {
         // intent and a second notification tap re-opens the first conversation.
         setIntent(intent)
         handleChatIntent(intent)
+        handleDeepLink(intent)
     }
 
     private fun handleChatIntent(intent: Intent?) {
         val uid = intent?.getStringExtra(EXTRA_OPEN_CHAT_UID)
         if (!uid.isNullOrBlank()) openChatUid.value = uid
+    }
+
+    /**
+     * Wyciąga uid z App Linku do profilu. Ignorujemy inne akcje (np. LAUNCHER z
+     * ikony) i linki, które nie są Verbigem `/u/<uid>` — [ProfileLinks.uidFromUrl]
+     * sam odsiewa obce adresy.
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val data = intent.data?.toString() ?: return
+        val uid = ProfileLinks.uidFromUrl(data)
+        if (!uid.isNullOrBlank()) deepLinkUid.value = uid
     }
 
     companion object {

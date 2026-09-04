@@ -299,4 +299,15 @@
     <string name="no_invites">Noch keine Einladungen.</string>
     <string name="contacts_external_empty">Noch keine externen Threads. Öffne einen Telefonkontakt, um einen zu starten.</string>
     <string name="no_results">Keine Ergebnisse.</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">Mein QR-Code</string>
+    <string name="qr_my_code_hint">Zeige diesen Code einem Freund — er öffnet deine Karte mit einem „Freund hinzufügen“-Knopf.</string>
+    <string name="qr_scan">QR-Code scannen</string>
+    <string name="qr_scan_hint">Richte die Kamera auf den Verbigem-QR-Code eines Freundes.</string>
+    <string name="qr_scan_failed">Code konnte nicht gelesen werden. Erneut versuchen.</string>
+    <string name="qr_scan_no_camera">Kein Kamerazugriff — ich kann nicht scannen.</string>
+    <string name="qr_not_verbigem">Das ist kein Verbigem-Code.</string>
+    <string name="qr_copy_link">Link kopieren</string>
+    <string name="qr_generate_failed">Code konnte nicht erzeugt werden.</string>
+    <string name="qr_scan_retry">Erneut scannen</string>
 </resources>

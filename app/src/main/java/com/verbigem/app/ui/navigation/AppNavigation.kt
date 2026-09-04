@@ -44,6 +44,7 @@ import com.verbigem.app.ui.screens.contacts.ContactsScreen
 import com.verbigem.app.ui.screens.contacts.ContactsViewModel
 import com.verbigem.app.ui.screens.contacts.ExternalThreadScreen
 import com.verbigem.app.ui.screens.contacts.ExternalThreadViewModel
+import com.verbigem.app.ui.screens.contacts.ScanScreen
 import com.verbigem.app.ui.screens.conversation.ConversationScreen
 import com.verbigem.app.ui.screens.conversation.ConversationViewModel
 import com.verbigem.app.ui.screens.ocr.OcrScreen
@@ -52,6 +53,8 @@ import com.verbigem.app.ui.screens.phone.PhoneVerificationScreen
 import com.verbigem.app.ui.screens.phone.PhoneVerificationViewModel
 import com.verbigem.app.ui.screens.profile.ProfileScreen
 import com.verbigem.app.ui.screens.profile.ProfileViewModel
+import com.verbigem.app.ui.screens.profile.MyQrScreen
+import com.verbigem.app.ui.screens.profile.MyQrViewModel
 import com.verbigem.app.ui.screens.translator.TranslatorScreen
 import com.verbigem.app.ui.screens.translator.TranslatorViewModel
 
@@ -63,7 +66,12 @@ fun AppNavigation(
      * Other person's uid to open straight away — set when the user taps a chat
      * notification. Null (or blank) means "nothing to open".
      */
-    openChatUid: String? = null
+    openChatUid: String? = null,
+    /**
+     * Uid profilu do otwarcia z App Linku (`https://mini.verbigem.com/u/<uid>`),
+     * np. gdy ktoś otworzy w aplikacji kod QR znajomego. Null = brak linku.
+     */
+    openProfileUid: String? = null
 ) {
     val authRepository = AuthRepository()
     val currentUser = authRepository.currentUser
@@ -134,6 +142,18 @@ fun AppNavigation(
         }
         if (user == null) return@LaunchedEffect
         navController.navigate(Screen.ChatThread.createRoute(targetUid)) {
+            launchSingleTop = true
+        }
+    }
+
+    // App Link do profilu (Faza 4.3): `mini.verbigem.com/u/<uid>` otwarty w aplikacji.
+    // Pomijamy własny uid (skanowanie własnego kodu) i gdy użytkownik nie jest
+    // zalogowany — karta kontaktu wymaga sesji.
+    LaunchedEffect(openProfileUid) {
+        val uid = openProfileUid?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        if (uid == authRepository.currentUser?.uid) return@LaunchedEffect
+        if (authRepository.currentUser == null) return@LaunchedEffect
+        navController.navigate(Screen.ContactCard.createRoute(uid)) {
             launchSingleTop = true
         }
     }
@@ -255,6 +275,26 @@ fun AppNavigation(
                         },
                         onOpenExternalThread = { phone ->
                             navController.navigate(Screen.ExternalThread.createRoute(phone))
+                        },
+                        onOpenScan = { navController.navigate(Screen.Scan.route) }
+                    )
+                }
+
+                composable(Screen.MyQr.route) {
+                    val myQrViewModel: MyQrViewModel = viewModel()
+                    MyQrScreen(
+                        viewModel = myQrViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.Scan.route) {
+                    ScanScreen(
+                        onBack = { navController.popBackStack() },
+                        onScannedUid = { uid ->
+                            navController.navigate(Screen.ContactCard.createRoute(uid)) {
+                                popUpTo(Screen.Scan.route) { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -310,7 +350,8 @@ fun AppNavigation(
                             navController.navigate(Screen.PhoneVerification.route) {
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        onOpenMyQr = { navController.navigate(Screen.MyQr.route) }
                     )
                 }
             }

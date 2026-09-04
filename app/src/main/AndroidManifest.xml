@@ -51,6 +51,20 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- App Links do profilu (Faza 4.3): `mini.verbigem.com/u/<uid>` otwiera
+                 od razu kartę kontaktu w aplikacji. `autoVerify=true` każe systemowi
+                 sprawdzić assetlinks.json przy instalacji — plik leży w
+                 mini/dist/.well-known/assetlinks.json (hosting `mini`). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="mini.verbigem.com"
+                    android:pathPrefix="/u/" />
+            </intent-filter>
         </activity>
 
         <!-- FCM. `exported="false"`: only the system (Google Play services) may

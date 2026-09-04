@@ -2,6 +2,7 @@ package com.verbigem.app.data
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.net.toUri
 
@@ -57,6 +58,39 @@ object AppLinks {
 object InviteLinks {
     private const val BASE = "https://mini.verbigem.com/app"
     fun forUser(fromUid: String): String = "$BASE?inv=$fromUid"
+}
+
+/**
+ * Link do profilu użytkownika (Faza 4 — kody QR / App Links).
+ *
+ * Kod QR zawiera `https://mini.verbigem.com/u/<uid>`. `usersPublic` jest
+ * publiczne, więc surowy uid w linku wystarcza — podpisany token byłby
+ * nadmiarowy (zgodnie z wyborem w planie 4.1).
+ *
+ * `uidFromUrl` jest jedynym parserem linków Verbigem: skaner i App Links
+ * wołają go w jednym miejscu, więc zmiana schematu linku nie rozjedzie się
+ * między kodem generującym a czytającym.
+ */
+object ProfileLinks {
+    private const val BASE = "https://mini.verbigem.com/u"
+
+    fun forUser(uid: String): String = "$BASE/$uid"
+
+    /**
+     * Wyciąga uid z linku profilowego. Zwraca null, gdy URL nie jest linkiem
+     * Verbigem `/u/<uid>` (np. kod QR prowadzi do innej strony) — wtedy UI
+     * pokazuje „to nie kod Verbigem" zamiast otwierać pusty profil.
+     */
+    fun uidFromUrl(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return null
+        if (uri.scheme != "https" && uri.scheme != "http") return null
+        if (uri.host != "mini.verbigem.com") return null
+        val path = uri.path ?: return null
+        if (!path.startsWith("/u/")) return null
+        val uid = path.removePrefix("/u/").trim('/').trim()
+        return uid.takeIf { it.isNotBlank() }
+    }
 }
 
 /**

@@ -42,4 +42,16 @@ sealed class Screen(val route: String) {
     data object Profile : Screen("profile")
     data object Ocr : Screen("ocr")
     data object Login : Screen("login")
+
+    /**
+     * „Mój kod QR" (Faza 4.1). Pokazuje kod z linkiem do własnego profilu —
+     * bez argumentów, bo kod zawsze dotyczy zalogowanego użytkownika.
+     */
+    data object MyQr : Screen("my_qr")
+
+    /**
+     * Skaner kodów QR (Faza 4.2). Czyta kod innej osoby i otwiera jej kartę
+     * kontaktu. Brak argumentów — wynik skanu trafia bezpośrednio do nawigacji.
+     */
+    data object Scan : Screen("scan")
 }

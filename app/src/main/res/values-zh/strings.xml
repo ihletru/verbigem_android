@@ -299,4 +299,15 @@
     <string name="no_invites">暂无邀请。</string>
     <string name="contacts_external_empty">暂无外部会话。打开一个手机联系人即可开始。</string>
     <string name="no_results">无结果。</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">我的二维码</string>
+    <string name="qr_my_code_hint">把这张二维码给好友看——会打开你的资料卡，并有“添加好友”按钮。</string>
+    <string name="qr_scan">扫描二维码</string>
+    <string name="qr_scan_hint">将摄像头对准好友的 Verbigem 二维码。</string>
+    <string name="qr_scan_failed">无法读取二维码，请重试。</string>
+    <string name="qr_scan_no_camera">没有相机权限，无法扫描。</string>
+    <string name="qr_not_verbigem">这不是 Verbigem 的二维码。</string>
+    <string name="qr_copy_link">复制链接</string>
+    <string name="qr_generate_failed">无法生成二维码。</string>
+    <string name="qr_scan_retry">重新扫描</string>
 </resources>

@@ -18,6 +18,8 @@ okhttp = "4.12.0"
 gson = "2.11.0"
 credentials = "1.3.0"
 googleid = "1.1.1"
+zxing = "3.5.3"
+codeScanner = "16.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +75,10 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+
+# QR codes (Faza 4): ZXing renders "my code", GMS Code Scanner reads others'.
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "codeScanner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

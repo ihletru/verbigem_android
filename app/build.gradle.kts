@@ -16,8 +16,8 @@ android {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 33
-        versionName = "1.0.32"
+        versionCode = 34
+        versionName = "1.0.33"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -144,6 +144,10 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    // QR codes (Faza 4): ZXing renders "my code", GMS Code Scanner reads others'.
+    implementation(libs.zxing.core)
+    implementation(libs.play.services.code.scanner)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

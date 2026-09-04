@@ -299,4 +299,15 @@
     <string name="no_invites">Aún no hay invitaciones.</string>
     <string name="contacts_external_empty">Aún no hay hilos externos. Abre un contacto del teléfono para empezar.</string>
     <string name="no_results">Sin resultados.</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">Mi código QR</string>
+    <string name="qr_my_code_hint">Enseña este código a un amigo: abre tu ficha con un botón de „Añadir”.</string>
+    <string name="qr_scan">Escanear código QR</string>
+    <string name="qr_scan_hint">Apunta la cámara al código QR Verbigem de un amigo.</string>
+    <string name="qr_scan_failed">No se pudo leer el código. Inténtalo de nuevo.</string>
+    <string name="qr_scan_no_camera">Sin acceso a la cámara: no puedo escanear.</string>
+    <string name="qr_not_verbigem">Este no es un código de Verbigem.</string>
+    <string name="qr_copy_link">Copiar enlace</string>
+    <string name="qr_generate_failed">No se pudo generar el código.</string>
+    <string name="qr_scan_retry">Escanear de nuevo</string>
 </resources>

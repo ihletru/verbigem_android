@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -52,7 +53,8 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onLogout: () -> Unit,
-    onOpenPhoneVerification: () -> Unit
+    onOpenPhoneVerification: () -> Unit,
+    onOpenMyQr: () -> Unit
 ) {
     val profile by viewModel.userProfile.collectAsState()
     val phoneVerified by viewModel.phoneVerified.collectAsState()
@@ -290,6 +292,36 @@ fun ProfileScreen(
                             )
                         }
                     }
+                }
+            }
+        }
+
+        // Mój kod QR (Faza 4.1) — udostępniasz go znajomym, by Cię znaleźli.
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.qr_my_code), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.qr_my_code_hint),
+                    fontSize = 13.sp,
+                    color = VerbigemTheme.colors.ink
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Button(
+                    onClick = onOpenMyQr,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                ) {
+                    Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.qr_my_code), fontSize = 13.sp)
                 }
             }
         }

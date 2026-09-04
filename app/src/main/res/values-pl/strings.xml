@@ -306,4 +306,15 @@
     <string name="no_invites">Brak zaproszeń.</string>
     <string name="contacts_external_empty">Brak wątków zewnętrznych. Otwórz kontakt z telefonu, by zacząć.</string>
     <string name="no_results">Brak wyników.</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">Mój kod QR</string>
+    <string name="qr_my_code_hint">Pokaż ten kod znajomemu — otworzy Twoją kartę z przyciskiem „Dodaj do znajomych”.</string>
+    <string name="qr_scan">Skanuj kod QR</string>
+    <string name="qr_scan_hint">Skieruj aparat na kod QR znajomego w Verbigem.</string>
+    <string name="qr_scan_failed">Nie udało się odczytać kodu. Spróbuj ponownie.</string>
+    <string name="qr_scan_no_camera">Brak dostępu do aparatu — nie mogę skanować.</string>
+    <string name="qr_not_verbigem">To nie jest kod Verbigem.</string>
+    <string name="qr_copy_link">Kopiuj link</string>
+    <string name="qr_generate_failed">Nie udało się wygenerować kodu.</string>
+    <string name="qr_scan_retry">Skanuj ponownie</string>
 </resources>

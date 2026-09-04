@@ -63,7 +63,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
 | 3 | Kontakty 2.0 (import, kanały) | 🟢 **zrobione** (3.0–3.10) | 33 | `6afcdde` |
-| 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
+| 4 | Kody QR | 🟢 **zrobione** (4.1–4.3) | 34 | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
 | PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
@@ -1013,14 +1013,47 @@ Warunek: plan Blaze.
 
 ### Faza 4 — Kody QR
 
-- [ ] **4.1** Mój kod QR — karta z bitmapą (`https://mini.verbigem.com/u/<uid>`).
-      **Generowanie wymaga biblioteki** — ZXing `core` (`com.google.zxing:core:3.5.3`,
-      Maven Central odpowiedział 200).
-- [ ] **4.2** Skaner — preferowane `com.google.android.gms:play-services-code-scanner`
-      (sam obsługuje kamerę i uprawnienia). Fallback: CameraX + ML Kit Barcode
-      (projekt ma już CameraX).
-- [ ] **4.3** `intent-filter` na `https://mini.verbigem.com/u/<uid>` (App Links)
-      → otwiera kartę kontaktu z przyciskiem „Dodaj do znajomych".
+- [x] **4.1** **Mój kod QR** — `ProfileLinks.forUser(uid)` w `AppLinks.kt`
+      (`https://mini.verbigem.com/u/<uid>`; `usersPublic` jest publiczne, więc
+      surowy uid wystarcza — bez podpisanego tokenu). Generowanie bitmapy przez
+      ZXing `core` 3.5.3 (`data/QRBitmap.kt`), ekran `MyQrScreen` + `MyQrViewModel`,
+      trasa `Screen.MyQr`, przycisk w `ProfileScreen`. 10 nowych stringów × 6
+      (`qr_my_code`, `qr_my_code_hint`, `qr_scan`, `qr_scan_hint`, `qr_scan_failed`,
+      `qr_scan_no_camera`, `qr_not_verbigem`, `qr_copy_link`, `qr_generate_failed`,
+      `qr_scan_retry`).
+- [x] **4.2** **Skaner** — `ScanScreen` na GMS Code Scanner
+      (`play-services-code-scanner` 18.3.0): sam prosi o kamerę, zwraca `Barcode`;
+      `ProfileLinks.uidFromUrl` wyciąga uid i otwiera `ContactCard`. Obcy link →
+      komunikat „to nie kod Verbigem" (nie otwieramy obcych stron). Trasa
+      `Screen.Scan`, ikona skanera w nagłówku `ContactsScreen`.
+- [x] **4.3** **App Links** — `intent-filter` VIEW z `autoVerify=true` na
+      `mini.verbigem.com/u/<uid>` w `AndroidManifest.xml`; `assetlinks.json`
+      (SHA256 debug) w `mini/dist/.well-known/`; obsługa deep linku w `MainActivity`
+      (`handleDeepLink` → `deepLinkUid` flow) + `AppNavigation` (`openProfileUid`
+      → `ContactCard`, pomija własny uid i niezalogowanego). Hosting `mini`
+      wdrożony (`firebase deploy --only hosting`) — plik statyczny wygrywa z
+      SPA-rewrite. **WYDANE w v34.**
+
+**Sesja: Faza 4 (2026-09-04)** — pełna Faza 4 (4.1+4.2+4.3) z surowym linkiem
+`https://mini.verbigem.com/u/<uid>` (wybór użytkownika: „nie wiem jaka jest różnica"
+→ wyjaśnione raw-uid vs signed-token, wybrano raw-uid zgodnie z planem).
+- `libs.versions.toml`: + `zxing = "3.5.3"`, `codeScanner = "18.3.0"`; biblioteki
+  `zxing-core`, `play-services-code-scanner`. `app/build.gradle.kts`: + 2 impl.
+- `AppLinks.kt`: obiekt `ProfileLinks` (`forUser`, `uidFromUrl` — jedyny parser
+  linków Verbigem, używany przez skaner i App Links).
+- `QRBitmap.kt` (nowy): ZXing → `Bitmap`.
+- `MyQrViewModel` + `MyQrScreen` (nowe): kod + nickname + „Kopiuj link".
+- `ScanScreen` (nowy): GMS Code Scanner + stany (skanowanie / brak kamery /
+  błąd / nie-Verbigem) z przyciskiem „Skanuj ponownie".
+- `Screen.kt`: + `MyQr`, `Scan`. `AppNavigation`: composable'e + wejścia
+  (`onOpenMyQr` w `ProfileScreen`, `onOpenScan` w `ContactsScreen`) + efekt
+  deep-linku `openProfileUid`.
+- `MainActivity`: `handleDeepLink` (ACTION_VIEW → `ProfileLinks.uidFromUrl`).
+- `AndroidManifest.xml`: VIEW `intent-filter` `autoVerify=true` na `/u/`.
+- `mini/dist/.well-known/assetlinks.json`: SHA256 debug (autoVerify).
+- Stringi ×6 (10 kluczy `qr_*`). Build v34 (`assembleDebug`, z native llama.cpp)
+  przeszedł czysto. Hosting `mini` wdrożony, `assetlinks.json` na żywo.
+  **Test na telefonie został u Milosza** (skanowanie GMS, App Links od 1.18).
 
 ### Faza 5 — Media
 

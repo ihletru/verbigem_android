@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -76,6 +77,8 @@ fun ContactsScreen(
     viewModel: ContactsViewModel,
     onOpenChat: (String) -> Unit,
     onOpenContactCard: (String) -> Unit,
+    /** Skaner kodów QR (Faza 4.2) — otwiera kartę kontaktu ze skanu. */
+    onOpenScan: () -> Unit,
     /** Numer z książki, dla którego otwieramy wątek jednokierunkowy (3.6). */
     onOpenExternalThread: (String) -> Unit
 ) {
@@ -155,12 +158,25 @@ fun ContactsScreen(
             .background(VerbigemTheme.colors.bg)
             .padding(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.contacts_title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = VerbigemTheme.colors.ink
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.contacts_title),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = VerbigemTheme.colors.ink,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onOpenScan) {
+                Icon(
+                    Icons.Default.QrCode,
+                    contentDescription = stringResource(R.string.qr_scan),
+                    tint = VerbigemTheme.colors.ink
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 

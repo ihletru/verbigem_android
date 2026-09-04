@@ -306,4 +306,15 @@
     <string name="no_invites">No invites yet.</string>
     <string name="contacts_external_empty">No external threads yet. Open a phone contact to start one.</string>
     <string name="no_results">No results.</string>
+    <!-- Faza 4 (Kody QR) -->
+    <string name="qr_my_code">My QR code</string>
+    <string name="qr_my_code_hint">Show this code to a friend — it opens your card with an Add friend button.</string>
+    <string name="qr_scan">Scan QR code</string>
+    <string name="qr_scan_hint">Point the camera at a friend\'s Verbigem QR code.</string>
+    <string name="qr_scan_failed">Could not read the code. Try again.</string>
+    <string name="qr_scan_no_camera">No camera access — I can\'t scan.</string>
+    <string name="qr_not_verbigem">This is not a Verbigem code.</string>
+    <string name="qr_copy_link">Copy link</string>
+    <string name="qr_generate_failed">Could not generate the code.</string>
+    <string name="qr_scan_retry">Scan again</string>
 </resources>

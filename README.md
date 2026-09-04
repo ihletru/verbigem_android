@@ -1011,6 +1011,41 @@ indeksu złożonego — każde zapytanie to pojedyncze
 Wdrożenie: `FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only functions:suggestFriends --project mini-verbigem` (po nazwie, bezpiecznie — nie rusza
 pozostałych 5 funkcji produkcyjnych).
 
+### Kody QR (Faza 4) — mój kod, skaner i App Links
+
+Trzy podzadania, jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>`.
+`usersPublic` jest publiczne, więc uid w linku wystarcza — podpisany token byłby
+nadmiarowy. Jeden parser `ProfileLinks.uidFromUrl` (`data/AppLinks.kt`) obsługuje
+skaner i App Links, więc zmiana schematu linku nie rozjeżdża się między kodem
+generującym a czytającym.
+
+**4.1 Mój kod QR.** `MyQrScreen` + `MyQrViewModel` (`ui/screens/profile/`)
+generują bitmapę przez ZXing `core` 3.5.3 (`data/QRBitmap.kt`) z linkiem do
+własnego profilu i pokazują ją z nickiem + przyciskiem „Kopiuj link". Wejście:
+przycisk w karcie Profil. Trasa `Screen.MyQr`.
+
+**4.2 Skaner.** `ScanScreen` (`ui/screens/contacts/`) na GMS Code Scanner
+(`play-services-code-scanner` 18.3.0) — gotowy interfejs z Play Services, sam
+prosi o kamerę, zwraca `Barcode`. `ProfileLinks.uidFromUrl` wyciąga uid i otwiera
+kartę kontaktu (`ContactCard`) z przyciskiem „Dodaj do znajomych". Obcy link
+(poza `mini.verbigem.com/u/<uid>`) → komunikat „to nie kod Verbigem", nie
+otwieramy obcych stron. Stany: skanowanie / brak kamery / błąd / nie-Verbigem
+(z przyciskiem „Skanuj ponownie"). Wejście: ikona skanera w nagłówku Kontaktów.
+Trasa `Screen.Scan`.
+
+**4.3 App Links.** `intent-filter` VIEW z `android:autoVerify="true"` na
+`mini.verbigem.com/u/<uid>` w `AndroidManifest.xml` kieruje link z przeglądarki
+/ wiadomości prosto do `ContactCard`. Weryfikacja (`assetlinks.json`, SHA256
+debug) leży w `mini/dist/.well-known/` i jest wdrażana wraz z hostingiem:
+`firebase deploy --only hosting` (same statyczne pliki wygrywają z SPA-rewrite
+`** → /index.html`, bo Firebase serwuje istniejący plik przed regułami). Obsługa
+deep linku w `MainActivity.handleDeepLink` (ACTION_VIEW → `deepLinkUid`) +
+`AppNavigation.openProfileUid` (pomija własny uid i niezalogowanego).
+
+> **Uwaga (1.18):** App Links z `autoVerify=true` działają dopiero, gdy w konsoli
+> Firebase są wpisane odciski SHA certyfikatu podpisującego APK. Do czasu testu
+> 1.18 samo skanowanie (4.2) otwiera kartę kontaktu niezależnie od App Links.
+
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
 Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres
