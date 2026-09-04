@@ -238,4 +238,10 @@
     <string name="notif_action_reply">Reply</string>
     <string name="notif_action_mark_read">Mark as read</string>
     <string name="notif_new_message">New message</string>
+    <string name="contacts_match_checking">Checking which of them use Verbigem…</string>
+    <string name="contacts_match_found">Already on Verbigem: %1$d</string>
+    <string name="contacts_match_write">Write</string>
+    <string name="contacts_match_error">Could not check your contacts just now.</string>
+    <string name="contacts_match_rate_limited">Too many checks at once. Try again in a while.</string>
+    <string name="contacts_match_unauthenticated">Sign in to check which contacts use Verbigem.</string>
 </resources>

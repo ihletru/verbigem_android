@@ -854,7 +854,24 @@ kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
 | Funkcja | Typ | Co robi |
 |---|---|---|
 | `onMessageCreated` | trigger Firestore `chats/{chatId}/messages/{msgId}` | push FCM do pozostałych członków czatu |
-| `matchContacts` | callable (HTTPS) | dopasowanie kontaktów po HMAC numeru telefonu (faza 2.3) |
+| `matchContacts` | callable (HTTPS) | dopasowanie kontaktów po HMAC numeru telefonu (2.3) |
+
+### App Check
+
+Zainicjowany w `VerbigemApplication`, ale **dostawca zależy od wariantu**
+(`src/debug` → `DebugAppCheckProviderFactory`, `src/release` → Play Integrity).
+`firebase-appcheck-debug` jest wyłącznie w `debugImplementation`, więc build
+release'owy fizycznie nie potrafi sam siebie poświadczyć.
+
+⚠️ **`matchContacts` ma `enforceAppCheck: false` i to nie jest przeoczenie.**
+APK, który dystrybuujemy przez auto-update, to build **debugowy**, a Play Integrity
+nie poświadcza aplikacji, których nie zainstalował Play Store. Włączenie tego dziś
+odrzucałoby każdego użytkownika, nie tylko nadużywających. Włączyć razem z pierwszym
+wydaniem na Play — TODO w `functions/src/contacts.ts` mówi gdzie.
+
+Debugowy token do wpisania ręcznie (Firebase Console → App Check → **Debug tokens**)
+pojawia się w logcat po tagiem `FirebaseAppCheck`. Jest per instalacja, więc trzeba
+go wpisać ponownie po reinstalacji.
 
 ### Jak deployować
 
@@ -887,6 +904,36 @@ firebase deploy --only functions --project mini-verbigem
 ⚠️ **Node 20 jest przestarzały** — Google wyłączy go 2026-10-30. Przed tą datą trzeba
 podnieść runtime (`firebase.json` → `runtime`) i `engines.node` w `functions/package.json`
 na nodejs22, inaczej deploy przestanie działać.
+
+### ☠️ NIGDY nie deployuj funkcji bez wylistowania nazw
+
+Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, który ma
+własny katalog `functions/` i pięć działających funkcji produkcyjnych:
+
+| Funkcja | Region | Po co |
+|---|---|---|
+| `deepseekProxy` | europe-west1 | tłumaczenie online (Pro) |
+| `paddleWebhook` | europe-west1 | płatności — webhook Paddle |
+| `portalSession` | europe-west1 | portal klienta Paddle |
+| `visionProxy` | europe-west1 | OCR online |
+| `walletTopUp` | europe-west1 | doładowanie portfela |
+
+Oba projekty mają `codebase: default`, więc Firebase widzi **jeden** zbiór funkcji.
+`firebase deploy --only functions` uruchomiony stąd uznaje tamte pięć za osierocone
+i chce je **usunąć**. W trybie nieinteraktywnym na szczęście się wykłada
+(`Aborting because deletion cannot proceed in non-interactive mode`) — z `--force`
+po prostu by je skasowało: płatności, OCR i portfel przestałyby działać.
+
+Zawsze podawaj nazwy:
+
+```bash
+firebase deploy --only functions:onMessageCreated,functions:matchContacts \
+  --project mini-verbigem
+```
+
+Dopiero nadanie obu projektom różnych `codebase` w `firebase.json` (np. `android`
+i `mini`) trwale rozwiązałoby problem — wymagałoby jednak przewalczenia już
+wdrożonych funkcji, więc na razie zostawiamy jak jest i uważamy.
 
 ⚠️ **Pierwszy deploy funkcji 2. gen na projekcie ZAWSZE sypie błędem Eventarc:**
 `Permission denied while using the Eventarc Service Agent`. Uprawnienia Service Agent

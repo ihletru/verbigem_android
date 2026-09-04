@@ -231,4 +231,10 @@
     <string name="notif_action_reply">Yanıtla</string>
     <string name="notif_action_mark_read">Okundu olarak işaretle</string>
     <string name="notif_new_message">Yeni mesaj</string>
+    <string name="contacts_match_checking">Hangilerinin Verbigem kullandığı kontrol ediliyor…</string>
+    <string name="contacts_match_found">Zaten Verbigem\'de: %1$d</string>
+    <string name="contacts_match_write">Yaz</string>
+    <string name="contacts_match_error">Kişiler şu anda kontrol edilemedi.</string>
+    <string name="contacts_match_rate_limited">Çok fazla deneme. Biraz sonra tekrar dene.</string>
+    <string name="contacts_match_unauthenticated">Kişileri kontrol etmek için giriş yap.</string>
 </resources>

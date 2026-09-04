@@ -47,9 +47,12 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
 | 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
 | 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
-| 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | *w toku* |
+| 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | `a4e65d5` |
+| 2.2 | Secret Manager + App Check | ✅ **zrobione** (pepper ustawiony; App Check per wariant, egzekucja odroczona) | — | *w toku* |
+| 2.3 | `matchContacts` (HMAC, whereIn po 30, rate limit) | 🟡 **wdrożone** (działa od 2.6 — katalog pusty) | 27 | *w toku* |
 | 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **wdrożone na produkcję** (test push u Milosza został) | 27 | `a4e65d5` |
-| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1 ✅, 2.5 🟡; 2.2–2.4, 2.6–2.7 nie zaczęte) | — | — |
+| 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
+| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1/2.2/2.3/2.5/2.7 zrobione; **2.4 i 2.6 nie zaczęte**) | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
@@ -89,6 +92,49 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
 - **1.16** ⬜ test na telefonie (karta kontaktu) — **zostaje dla Milosza**.
 - **1.17** ⬜ test na telefonie (push FCM) — **zostaje dla Milosza** (patrz faza 2 niżej).
+
+**Co zrobione w sesji 2026-09-04, po południu (faza 2 — 2.2, 2.3, 2.7):**
+
+- **2.2** ✅ **Sekret ustawiony:** `PHONE_HASH_PEPPER` (32 bajty hex) w Secret Manager,
+  wersja 1, ENABLED. **Rotacja unieważnia cały `phoneDirectory`** — ustawiony raz,
+  zanim katalog powstał.
+  ✅ **App Check:** `firebase-appcheck` + provider per wariant (`src/debug` → debug,
+  `src/release` → Play Integrity, `debugImplementation` żeby release nie potrafił
+  sam siebie poświadczyć).
+  ⚠️ **`enforceAppCheck` ZOSTAJE `false`.** Dystrybuujemy **debugowy** APK, a Play
+  Integrity nie poświadcza aplikacji nie zainstalowanych przez Play. Egzekucję
+  włączyć razem z pierwszym wydaniem na Play — TODO w `contacts.ts`.
+- **2.3** ✅ **`matchContacts` wdrożony.** Rate limiting: 20 wywołań/godzinę per uid,
+  transakcja w `users/{uid}/rateLimits/matchContacts` (zwykły `increment` nie wystarcza
+  — dwa równoległe wywołania przeczytałyby ten sam licznik). Odrzucone wywołanie nie
+  przesuwa okna. Po stronie aplikacji: `ContactMatchRepository` (SHA-256 per numer,
+  callable, mapowanie błędów na `resource-exhausted` itd.), dopasowane numery dostają
+  przycisk „Napisz" zamiast „Zaproś". Stringi × 6.
+- **2.7** ✅ **Reguły wdrożone (częściowo):** `phoneDirectory` i `invites` →
+  `allow read, write: if false` (klient nie ma żadnego dostępu: odczyt = atak
+  enumeracyjny, zapis = przypisanie cudzego numeru do siebie). `phoneVerified` /
+  `phoneHash` na profilu **tylko do odczytu z klienta** (dopisane do blacklisty
+  `create` i `update`). Sama kolekcja zapełni się w 2.6.
+
+**☠️ NAJWAŻNIEJSZE ODKRYCIE DNIA — współdzielony projekt Firebase.**
+`mini-verbigem` hostuje też **pięć funkcji webappu `verbigem/mini`**
+(`deepseekProxy`, `paddleWebhook`, `portalSession`, `visionProxy`, `walletTopUp`
+— wszystkie `europe-west1`) i oba projekty mają `codebase: default`.
+`firebase deploy --only functions` stąd chce je **usunąć**. Wywaliło się tylko
+dlatego, że tryb nieinteraktywny nie usuwa bez potwierdzenia; z `--force` skasowałoby
+płatności, OCR i portfel.
+**Zawsze:** `firebase deploy --only functions:onMessageCreated,functions:matchContacts`.
+Zapisane w README. Trwałym rozwiązaniem byłyby osobne `codebase`, ale to wymaga
+przewalczenia już wdrożonych funkcji.
+
+**⚠️ Matching zadziała dopiero po 2.6.** `phoneDirectory` jest pusty — nikt jeszcze
+nie zweryfikował numeru. Do tego czasu `matchContacts` zwraca `[]` i ekran Kontaktów
+zachowuje się tak jak dotychczas (wszędzie „Zaproś"). To nie jest błąd.
+
+**⚠️ Normalizacja numerów jest umownie lekka.** `PhoneContactsImporter.normalize()`
+nie ma libphonenumber (TODO faza 3.3). Skrót liczymy z tego, co daje ta funkcja, więc
+2.6 **musi** użyć dokładnie tej samej normalizacji, inaczej skróty się nie zgodzą i
+matching będzie cicho zwracał zero.
 
 **Co zrobione w sesji 2026-09-04 (faza 2 — 2.1 i 2.5):**
 

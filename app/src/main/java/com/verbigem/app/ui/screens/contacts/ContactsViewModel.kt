@@ -1,6 +1,7 @@
 package com.verbigem.app.ui.screens.contacts
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,6 +11,10 @@ import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
+import com.verbigem.app.data.repository.ContactMatch
+import com.verbigem.app.data.repository.ContactMatchException
+import com.verbigem.app.data.repository.ContactMatchFailure
+import com.verbigem.app.data.repository.ContactMatchRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +64,21 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     private val _permissionDenied = MutableStateFlow(false)
     val permissionDenied: StateFlow<Boolean> = _permissionDenied.asStateFlow()
+
+    // --- Dopasowanie książki telefonicznej do kont Verbigem (2.3) ---
+
+    /** phone (znormalizowany) -> konto, które do niego pasuje. */
+    private val _phoneMatches = MutableStateFlow<Map<String, ContactMatch>>(emptyMap())
+    val phoneMatches: StateFlow<Map<String, ContactMatch>> = _phoneMatches.asStateFlow()
+
+    private val _isMatching = MutableStateFlow(false)
+    val isMatching: StateFlow<Boolean> = _isMatching.asStateFlow()
+
+    /** Komunikat do pokazania, gdy dopasowanie się nie udało. Null = wszystko OK. */
+    private val _matchFailure = MutableStateFlow<ContactMatchFailure?>(null)
+    val matchFailure: StateFlow<ContactMatchFailure?> = _matchFailure.asStateFlow()
+
+    private val contactMatchRepository = ContactMatchRepository()
 
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -212,9 +232,40 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             // Odczyt ContentProvidera — na IO, żeby nie blokować wątku głównego
             // przy dużej książce adresowej.
-            _phoneContacts.value = withContext(Dispatchers.IO) {
+            val contacts = withContext(Dispatchers.IO) {
                 PhoneContactsImporter.read(getApplication())
             }
+            _phoneContacts.value = contacts
+            matchPhoneContacts(contacts)
         }
     }
+
+    /**
+     * Wysyła wyłącznie skróty SHA-256 numerów i prosi `matchContacts` o konta,
+     * które już istnieją. Nazwiska i numery zostają na telefonie.
+     *
+     * Brak dopasowań nie jest błędem: `phoneDirectory` zapełnia się dopiero w 2.6
+     * (weryfikacja numeru), więc do tego czasu odpowiedź będzie pusta.
+     */
+    private suspend fun matchPhoneContacts(contacts: List<PhoneContact>) {
+        if (contacts.isEmpty()) return
+        _isMatching.value = true
+        _matchFailure.value = null
+        try {
+            val matches = contactMatchRepository.match(contacts)
+            _phoneMatches.value = matches.associateBy { it.phone }
+        } catch (e: ContactMatchException) {
+            // Pokazujemy komunikat, ale lista kontaktów zostaje — niedziałające
+            // dopasowanie nie może ukryć książki adresowej.
+            Log.w("ContactsViewModel", "Contact matching failed: ${e.reason}")
+            _matchFailure.value = e.reason
+            _phoneMatches.value = emptyMap()
+        } finally {
+            _isMatching.value = false
+        }
+    }
+
+    /** Czy ten numer ma już konto w Verbigem. */
+    fun matchFor(phone: String): ContactMatch? =
+        _phoneMatches.value[PhoneContactsImporter.normalize(phone)]
 }

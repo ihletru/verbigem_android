@@ -231,4 +231,10 @@
     <string name="notif_action_reply">Antworten</string>
     <string name="notif_action_mark_read">Als gelesen markieren</string>
     <string name="notif_new_message">Neue Nachricht</string>
+    <string name="contacts_match_checking">Ich prüfe, wer davon Verbigem nutzt…</string>
+    <string name="contacts_match_found">Schon bei Verbigem: %1$d</string>
+    <string name="contacts_match_write">Schreiben</string>
+    <string name="contacts_match_error">Kontakte konnten gerade nicht geprüft werden.</string>
+    <string name="contacts_match_rate_limited">Zu viele Prüfungen auf einmal. Versuch es später noch einmal.</string>
+    <string name="contacts_match_unauthenticated">Melde dich an, um die Kontakte zu prüfen.</string>
 </resources>

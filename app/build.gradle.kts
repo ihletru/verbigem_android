@@ -119,6 +119,13 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.functions)
+
+    // App Check. The provider differs per variant (`src/debug` vs `src/release`) and
+    // so does the dependency, so a release build physically cannot self-attest.
+    implementation(libs.firebase.appcheck)
+    releaseImplementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
 
     // ML Kit Text Recognition (OCR)
     implementation(libs.mlkit.text.recognition)

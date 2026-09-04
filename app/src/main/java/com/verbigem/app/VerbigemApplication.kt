@@ -3,6 +3,7 @@ package com.verbigem.app
 import android.app.Application
 import android.util.Log
 import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.verbigem.app.data.ConnectivityObserver
 import com.verbigem.app.data.repository.SyncManager
@@ -23,6 +24,16 @@ class VerbigemApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
+
+        // App Check attaches an attestation to every callable this app makes. The
+        // provider is chosen by variant — see src/debug vs src/release.
+        //
+        // NOTE ON ENFORCEMENT: `matchContacts` still runs with `enforceAppCheck: false`.
+        // The APK we ship through auto-update is a DEBUG build, and Play Integrity will
+        // not vouch for an app Play did not install, so enforcing today would reject
+        // every real user. Flip it on together with the first Play release — the TODO
+        // in functions/src/contacts.ts says exactly where.
+        AppCheckProvider.install(FirebaseAppCheck.getInstance())
 
         // Create the channel at startup, not on the first push: a channel only appears
         // in the system notification settings once it exists, and a user who goes

@@ -10,17 +10,14 @@ setGlobalOptions({ maxInstances: 20 });
 
 export { onMessageCreated } from "./messaging";
 
-// Contact matching (tasks 2.3 / 2.4) is written but NOT exported yet, and that is
-// deliberate: it declares the PHONE_HASH_PEPPER secret, and Firebase validates that
-// every secret exists at deploy time. While this line is commented out, `matchContacts`
-// is simply invisible to the deploy; uncommenting it before the secret is set makes
-// EVERY deploy fail — including the push one, which has nothing to do with it.
+// Contact matching (task 2.3). Enabled 2026-09-04 once PHONE_HASH_PEPPER existed in
+// Secret Manager.
 //
-// To ship it (task 2.3):
-//   1. firebase functions:secrets:set PHONE_HASH_PEPPER --project mini-verbigem
-//   2. uncomment the line below
-//   3. firebase deploy --only functions --project mini-verbigem
+// ⚠️ Rotating that pepper invalidates every hash already in `phoneDirectory` — the
+// whole directory would have to be recomputed. It is set once, before the directory
+// is populated by phone verification (2.6).
 //
-// Rotating the pepper later invalidates every hash already in `phoneDirectory`, so it
-// must only be set once, before the directory is populated.
-// export { matchContacts } from "./contacts";
+// ⚠️ This function declares a secret, and Firebase validates ALL secrets at deploy
+// time. If you ever comment this line back out, do it to unblock an unrelated deploy,
+// not because the secret went missing.
+export { matchContacts } from "./contacts";

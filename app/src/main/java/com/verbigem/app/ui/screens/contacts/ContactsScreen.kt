@@ -39,6 +39,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
+import com.verbigem.app.data.repository.ContactMatch
+import com.verbigem.app.data.repository.ContactMatchFailure
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -67,6 +69,9 @@ fun ContactsScreen(
     val showDisclosure by viewModel.showPermissionDisclosure.collectAsState()
     val phoneContacts by viewModel.phoneContacts.collectAsState()
     val permissionDenied by viewModel.permissionDenied.collectAsState()
+    val phoneMatches by viewModel.phoneMatches.collectAsState()
+    val isMatching by viewModel.isMatching.collectAsState()
+    val matchFailure by viewModel.matchFailure.collectAsState()
     val currentUid = viewModel.currentUid
 
     val context = LocalContext.current
@@ -272,7 +277,38 @@ fun ContactsScreen(
                     color = VerbigemTheme.colors.muted
                 )
             }
+            // Status of the `matchContacts` lookup. Shown inline rather than as a
+            // dialog: a failed lookup must not hide the address book behind a modal.
+            if (isMatching) {
+                item {
+                    Text(
+                        text = stringResource(R.string.contacts_match_checking),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.muted
+                    )
+                }
+            } else if (matchFailure != null) {
+                // Copied into a local val first: `matchFailure` is a `by` delegated
+                // property, and Kotlin will not smart-cast those.
+                val failure = matchFailure ?: ContactMatchFailure.UNKNOWN
+                item {
+                    Text(
+                        text = stringResource(failure.toMessageRes()),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.danger
+                    )
+                }
+            } else if (phoneMatches.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.contacts_match_found, phoneMatches.size),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.accent
+                    )
+                }
+            }
             items(phoneContacts) { contact ->
+                val match = viewModel.matchFor(contact.phone)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -289,24 +325,37 @@ fun ContactsScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = VerbigemTheme.colors.ink
                         )
+                        // When the number has an account we show THAT name, not the
+                        // address-book spelling — it is the name they chose here.
                         Text(
-                            text = contact.phone,
+                            text = match?.nickname?.takeIf { it.isNotBlank() } ?: contact.phone,
                             fontSize = 12.sp,
-                            color = VerbigemTheme.colors.muted
+                            color = if (match != null) VerbigemTheme.colors.accent
+                            else VerbigemTheme.colors.muted
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            val link = InviteLinks.forUser(currentUid)
-                            context.shareText(
-                                context.getString(R.string.contacts_invite_message, link)
-                            )
-                        },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
-                    ) {
-                        Text(stringResource(R.string.contacts_perm_invite), fontSize = 12.sp)
+                    if (match != null) {
+                        Button(
+                            onClick = { onOpenChat(match.uid) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                        ) {
+                            Text(stringResource(R.string.contacts_match_write), fontSize = 12.sp)
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                val link = InviteLinks.forUser(currentUid)
+                                context.shareText(
+                                    context.getString(R.string.contacts_invite_message, link)
+                                )
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                        ) {
+                            Text(stringResource(R.string.contacts_perm_invite), fontSize = 12.sp)
+                        }
                     }
                 }
             }
@@ -375,4 +424,18 @@ fun ContactsScreen(
             }
         }
     }
+}
+
+/**
+ * Maps a matching failure to a message.
+ *
+ * "Rate limited" is the only one the user can act on (wait), so it says so. The rest
+ * are deliberately vague — a client does not need to know that the server is missing
+ * a secret.
+ */
+private fun ContactMatchFailure.toMessageRes(): Int = when (this) {
+    ContactMatchFailure.RATE_LIMITED -> R.string.contacts_match_rate_limited
+    ContactMatchFailure.NOT_CONFIGURED -> R.string.contacts_match_error
+    ContactMatchFailure.UNAUTHENTICATED -> R.string.contacts_match_unauthenticated
+    ContactMatchFailure.UNKNOWN -> R.string.contacts_match_error
 }

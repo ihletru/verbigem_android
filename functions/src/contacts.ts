@@ -16,6 +16,19 @@ const MAX_HASHES = 1000;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 /**
+ * Rate limit per user.
+ *
+ * This function is expensive by design: 1000 hashes is 34 `in` queries against
+ * `phoneDirectory` plus the profile lookups. It is also the obvious way to try to
+ * enumerate a phone number — send a hash, see whether it matches — so it needs a
+ * ceiling even for a well-behaved client.
+ *
+ * One call per address book is all a real app needs; 20/hour is generous.
+ */
+const RATE_LIMIT_CALLS = 20;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+
+/**
  * Answers "which of these phone numbers already use Verbigem?" without ever
  * learning the numbers.
  *
@@ -24,13 +37,21 @@ const SHA256_HEX = /^[0-9a-f]{64}$/;
  * which the client cannot read at all. The pepper lives in Secret Manager, so a
  * leak of the database alone does not allow a rainbow-table attack.
  *
- * NOT wired into the app yet — see `index.ts`. Task 3.4 needs it, and it needs
- * App Check turned on before it ships.
+ * Wired into the app from task 2.3 on — see `index.ts`.
  */
 export const matchContacts = onCall(
   {
-    // TODO: flip to `true` before task 3.4 ships. It needs Play Integrity wired
-    // up in the app first, otherwise every real device would be rejected.
+    // ENFORCEMENT IS OFF, AND THAT IS NOT OVERSIGHT.
+    //
+    // App Check is initialised in the app (`AppCheckProvider`), but the APK we
+    // currently ship through auto-update is a DEBUG build, and Play Integrity does
+    // not vouch for apps the Play Store did not install. Turning this on today would
+    // reject every real user, not just abusers.
+    //
+    // Flip to `true` together with the first Play Store release, and only after the
+    // app's SHA-256 signing certificate is registered in
+    // Firebase Console → App Check → Apps. Until then the attestation is still sent
+    // and visible in the console's App Check metrics — it just is not required.
     enforceAppCheck: false,
     secrets: [phonePepper],
     maxInstances: 10,
@@ -40,6 +61,8 @@ export const matchContacts = onCall(
       throw new HttpsError("unauthenticated", "Sign in before matching contacts.");
     }
     const me = request.auth.uid;
+
+    await enforceRateLimit(me);
 
     const raw = (request.data as { hashes?: unknown } | undefined)?.hashes;
     if (!Array.isArray(raw)) {
@@ -118,3 +141,49 @@ export const matchContacts = onCall(
     return { matches };
   }
 );
+
+/**
+ * Sliding-window counter kept in `users/{uid}/rateLimits/matchContacts`.
+ *
+ * A transaction rather than a plain `increment`: two concurrent calls would both
+ * read the same count and both let themselves through. The document is writable by
+ * the owner under the current rules, which is fine — the worst a client can do is
+ * lock itself out for an hour.
+ */
+async function enforceRateLimit(uid: string): Promise<void> {
+  const ref = db.doc(`users/${uid}/rateLimits/matchContacts`);
+  const now = Date.now();
+
+  const allowed = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const windowStart = snap.get("windowStart");
+    const count = snap.get("count");
+
+    const fresh =
+      !snap.exists ||
+      typeof windowStart !== "number" ||
+      now - windowStart >= RATE_LIMIT_WINDOW_MS ||
+      typeof count !== "number";
+
+    // Keep the call that gets rejected out of the counter, otherwise a client
+    // hammering the endpoint would push its own window forward forever.
+    if (!fresh && count >= RATE_LIMIT_CALLS) return false;
+
+    tx.set(
+      ref,
+      fresh
+        ? { windowStart: now, count: 1, updatedAt: now }
+        : { count: count + 1, updatedAt: now },
+      { merge: true }
+    );
+    return true;
+  });
+
+  if (!allowed) {
+    logger.warn("matchContacts rate limited", { uid });
+    throw new HttpsError(
+      "resource-exhausted",
+      "Too many contact lookups. Try again later."
+    );
+  }
+}

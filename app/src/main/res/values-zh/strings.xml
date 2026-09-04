@@ -231,4 +231,10 @@
     <string name="notif_action_reply">回复</string>
     <string name="notif_action_mark_read">标为已读</string>
     <string name="notif_new_message">新消息</string>
+    <string name="contacts_match_checking">正在检查哪些联系人已使用 Verbigem…</string>
+    <string name="contacts_match_found">已在使用 Verbigem：%1$d</string>
+    <string name="contacts_match_write">发消息</string>
+    <string name="contacts_match_error">暂时无法检查你的联系人。</string>
+    <string name="contacts_match_rate_limited">检查过于频繁，请稍后再试。</string>
+    <string name="contacts_match_unauthenticated">登录后才能检查联系人。</string>
 </resources>
