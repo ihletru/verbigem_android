@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -53,6 +56,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
@@ -296,6 +301,11 @@ fun ChatThreadScreen(
             }
         }
 
+        // Faza 5.2: wybór zdjęcia z galerii → wysyłka przez ViewModel.
+        val imagePicker = rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri -> uri?.let { viewModel.sendImage(it) } }
+
         // -------------------------------------------------------------- input
         Row(
             modifier = Modifier
@@ -305,6 +315,16 @@ fun ChatThreadScreen(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = { imagePicker.launch("image/*") },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Image,
+                    contentDescription = stringResource(R.string.attach_image),
+                    tint = VerbigemTheme.colors.muted
+                )
+            }
             OutlinedTextField(
                 value = inputText,
                 onValueChange = { viewModel.onInputChanged(it) },
@@ -392,6 +412,19 @@ private fun MessageBubble(
                 .combinedClickable(onClick = {}, onLongClick = onOpenMenu)
                 .padding(10.dp)
         ) {
+            // Faza 5.2: miniatura zdjęcia (URL z Storage ładowany przez Coil).
+            if (bubble.type == "image" && bubble.attachmentUrl.isNotBlank()) {
+                AsyncImage(
+                    model = bubble.attachmentUrl,
+                    contentDescription = stringResource(R.string.photo),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
             Text(
                 text = displayText,
                 color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,

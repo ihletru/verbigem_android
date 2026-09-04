@@ -64,7 +64,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
 | 3 | Kontakty 2.0 (import, kanały) | 🟢 **zrobione** (3.0–3.10) | 33 | `6afcdde` |
 | 4 | Kody QR | 🟢 **zrobione** (4.1–4.3) | 34 | — |
-| 5 | Media: zdjęcia + OCR, głosówki | 🟡 **w toku** (5.1 fundament: Storage + reguły; wdrożenie reguł czeka na włączenie Firebase Storage w konsoli) | — | — |
+| 5 | Media: zdjęcia + OCR, głosówki | 🟡 **w toku** (5.1 fundament: Storage + reguły; 5.2 zdjęcia+OCR zrobione w kodzie, build OK; wdrożenie reguł Storage czeka na włączenie Firebase Storage w konsoli) | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
 | PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
 
@@ -1057,8 +1057,8 @@ Warunek: plan Blaze.
 
 ### Faza 5 — Media
 
-- [ ] **5.1** Firebase Storage + reguły (`chat_attachments/{chatId}/{msgId}`).
-- [ ] **5.2** Zdjęcia: wyślij → opcjonalnie OCR na nadawcy (`OcrManager` już jest)
+- [x] **5.1** Firebase Storage + reguły (`chat_attachments/{chatId}/{msgId}`).
+- [x] **5.2** Zdjęcia: wyślij → opcjonalnie OCR na nadawcy (`OcrManager` już jest)
       → `ocrText` w dokumencie → odbiorca tłumaczy tekst swoim językiem.
 - [ ] **5.3** Głosówki: nagrywanie → upload m4a → transkrypcja STT na nadawcy
       → tekst podlega zwykłemu tłumaczeniu u odbiorcy. `SpeechManager` już istnieje.
@@ -1075,6 +1075,19 @@ zwraca „Storage has not been set up". Wymaga kliknięcia „Get Started" w kon
 (mus Milosz) albo `gcloud services enable firebasestorage.googleapis.com` +
 utworzenia domyślnego bucketu. Po włączeniu: wdrażam reguły i przechodzę do 5.2
 (zdjęcia + OCR przez istniejący `OcrManager`).
+
+**Sesja: Faza 5.2 (2026-09-04, popołudnie/wieczór)** — 5.2 zrobione w kodzie i buduje
+się czysto (`assembleDebug` OK). Zakres: `coil-compose` 2.7.0 (miniatury `AsyncImage`),
+`StorageRepository.uploadAttachment` (`putFile` strumieniowo), rozszerzony `ChatMessage`
+(`attachmentUrl`/`ocrText`/`transcript`) + `ChatSummary.lastMessageType`, `ChatRepository`
+`.sendMessage` o `type`/`attachmentUrl`/`ocrText`/`transcript` (preview + `lastMessageType`),
+`ChatThreadViewModel.sendImage` (upload → OCR nadawcy → hint translacji → send), miniatura
+w `MessageBubble`, zlokalizowany placeholder w inboxie (`R.string.photo`), 4 nowe klucze
+×6 języków. **Pułapka budowy:** komentarz KDoc w `StorageRepository.kt` zawierał
+`image/*`/`audio/*` — `/*` otwiera zagnieżdżony komentarz blokowy, który nigdy się nie
+zamyka, połykając całe ciało klasy (błąd „Unclosed comment" / „Missing '}"). Poprawione
+przez przeredagowanie komentarza bez `/*`. **Decyzja:** build only, bez bumpu
+`versionCode` i bez wdrożenia hostingu — release czeka na testy na telefonie Milosza.
 
 ### Faza 6 — Czaty grupowe (odłożone)
 

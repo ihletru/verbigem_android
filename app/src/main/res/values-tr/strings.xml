@@ -310,4 +310,9 @@
     <string name="qr_copy_link">Bağlantıyı kopyala</string>
     <string name="qr_generate_failed">Kod oluşturulamadı.</string>
     <string name="qr_scan_retry">Yeniden tara</string>
+    <!-- Faza 5: ekler (foto/ses) -->
+    <string name="attach_image">Foto ekle</string>
+    <string name="photo">Foto</string>
+    <string name="ocr_text">Fotoğraftaki metin</string>
+    <string name="voice_message">Sesli mesaj</string>
 </resources>

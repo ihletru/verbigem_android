@@ -317,4 +317,9 @@
     <string name="qr_copy_link">Copy link</string>
     <string name="qr_generate_failed">Could not generate the code.</string>
     <string name="qr_scan_retry">Scan again</string>
+    <!-- Faza 5: załączniki (zdjęcia/audio) -->
+    <string name="attach_image">Attach photo</string>
+    <string name="photo">Photo</string>
+    <string name="ocr_text">Text from photo</string>
+    <string name="voice_message">Voice message</string>
 </resources>

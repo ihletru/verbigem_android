@@ -310,4 +310,9 @@
     <string name="qr_copy_link">复制链接</string>
     <string name="qr_generate_failed">无法生成二维码。</string>
     <string name="qr_scan_retry">重新扫描</string>
+    <!-- Faza 5: 附件（图片/音频） -->
+    <string name="attach_image">附加照片</string>
+    <string name="photo">照片</string>
+    <string name="ocr_text">照片中的文字</string>
+    <string name="voice_message">语音消息</string>
 </resources>

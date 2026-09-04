@@ -1,6 +1,7 @@
 package com.verbigem.app.ui.screens.chat
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,7 +18,9 @@ import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
 import com.verbigem.app.data.repository.ProTtsRepository
+import com.verbigem.app.data.repository.StorageRepository
 import com.verbigem.app.engine.HyMt2NativeEngine
+import com.verbigem.app.engine.OcrManager
 import com.verbigem.app.engine.ProTtsEngine
 import com.verbigem.app.engine.SpeechManager
 import kotlinx.coroutines.Job
@@ -50,7 +53,12 @@ data class ChatBubble(
     val createdAt: Long,
     val status: BubbleStatus,
     val hintText: String = "",
-    val hintLang: String = ""
+    val hintLang: String = "",
+    // Faza 5 — załącznik (zdjęcie/audio). Dla zdjęcia `text` niesie OCR, by odbiorca
+    // mógł go przetłumaczyć tak samo jak zwykły tekst.
+    val attachmentUrl: String = "",
+    val ocrText: String = "",
+    val type: String = "text"
 )
 
 class ChatThreadViewModel(application: Application) : AndroidViewModel(application) {
@@ -67,6 +75,8 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private val speechManager = SpeechManager(application)
     private val proTtsEngine = ProTtsEngine(application)
     private val proTtsRepository = ProTtsRepository(application)
+    private val ocrManager = OcrManager(application)
+    private val storageRepository = StorageRepository(application)
     private val connectivity = ConnectivityObserver(application)
 
     private val db = AppDatabase.getInstance(application)
@@ -325,6 +335,56 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Faza 5.2: wysyła zdjęcie. Kolejność: upload do Storage → OCR na urządzeniu
+     * nadawcy (wynik idzie do `ocrText`, by odbiorca mógł go przetłumaczyć) →
+     * wysyłka dokumentu wiadomości z `type = "image"`, `attachmentUrl` i `ocrText`.
+     * `msgId` to `clientMsgId`, więc ścieżka Storage i dokument wiadomości się zgadzają.
+     */
+    fun sendImage(uri: Uri) {
+        val id = chatId ?: return
+        if (currentUid.isBlank()) return
+        val clientMsgId = UUID.randomUUID().toString()
+        viewModelScope.launch {
+            try {
+                val url = storageRepository.uploadAttachment(id, clientMsgId, uri, "image/*")
+                // OCR jest opcjonalny — nieudany OCR nie blokuje wysyłki zdjęcia.
+                val ocr = try {
+                    ocrManager.recognizeText(uri)
+                } catch (e: Exception) {
+                    Log.w(TAG, "OCR rozpoznawania tekstu nie powiodło się", e)
+                    ""
+                }
+                val target = _otherLang.value
+                val hint = if (ocr.isNotBlank()) {
+                    try {
+                        translationMutex.withLock {
+                            hyMt2Engine.translateSegmented(ocr, LangCode.fromCode(_myLang.value.code), target)
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "OCR hint translation failed", e)
+                        ""
+                    }
+                } else ""
+                chatRepository.sendMessage(
+                    chatId = id,
+                    authorId = currentUid,
+                    text = "",
+                    sourceLang = _myLang.value.code,
+                    hintLang = target.code,
+                    hintText = hint,
+                    clientMsgId = clientMsgId,
+                    type = "image",
+                    attachmentUrl = url,
+                    ocrText = ocr
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "sendImage failed for $clientMsgId", e)
+                // TODO 5.4: obsługa błędu (retry) — na razie tylko log.
+            }
+        }
+    }
+
     /** Retries rows that failed before (attempts > 0). */
     fun retryFailed() {
         viewModelScope.launch {
@@ -534,13 +594,18 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         val remoteBubbles = merged.values.map { msg ->
             ChatBubble(
                 id = msg.id,
-                text = msg.text,
+                // Dla zdjęcia `text` niesie OCR, żeby istniejąca logika tłumaczenia
+                // (enqueueTranslations / translateInto) przetłumaczyła go jak zwykły tekst.
+                text = if (msg.isImage()) msg.ocrText else msg.text,
                 sourceLang = msg.sourceLang,
                 isMine = msg.authorId == me,
                 createdAt = msg.createdAt?.toDate()?.time ?: System.currentTimeMillis(),
                 status = BubbleStatus.SENT,
                 hintText = msg.hintText(),
-                hintLang = msg.hintLang()
+                hintLang = msg.hintLang(),
+                attachmentUrl = msg.attachmentUrl,
+                ocrText = msg.ocrText,
+                type = msg.type
             )
         }
         val pendingBubbles = _pendingRows.value.map { row ->

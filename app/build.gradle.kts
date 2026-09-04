@@ -150,6 +150,8 @@ dependencies {
     // QR codes (Faza 4): ZXing renders "my code", GMS Code Scanner reads others'.
     implementation(libs.zxing.core)
     implementation(libs.play.services.code.scanner)
+    // Obrazki w czatach (Faza 5): Coil — AsyncImage + cache (5.4)
+    implementation(libs.coil.compose)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

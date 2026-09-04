@@ -310,4 +310,9 @@
     <string name="qr_copy_link">Link kopieren</string>
     <string name="qr_generate_failed">Code konnte nicht erzeugt werden.</string>
     <string name="qr_scan_retry">Erneut scannen</string>
+    <!-- Faza 5: Anhänge (Fotos/Audio) -->
+    <string name="attach_image">Foto anhängen</string>
+    <string name="photo">Foto</string>
+    <string name="ocr_text">Text vom Foto</string>
+    <string name="voice_message">Sprachnachricht</string>
 </resources>

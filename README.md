@@ -1061,9 +1061,15 @@ typów `image/*` i `audio/*` do 25 MB.
   (`console.firebase.google.com/project/mini-verbigem/storage` → „Get Started") —
   bez tego `firebase deploy --only storage` zwraca błąd „Storage has not been set
   up". Kod się buduje niezależnie od tego.
-- **5.2 (plan):** zdjęcie → upload → opcjonalny OCR na nadawcy przez istniejący
-  `OcrManager` → `ocrText` w dokumencie wiadomości → odbiorca tłumaczy tekst swoim
-  językiem.
+- **5.2 (zrobiony):** zdjęcie → upload do Storage (`StorageRepository.uploadAttachment`,
+  `putFile` strumieniowo z content URI) → opcjonalny OCR na nadawcy przez istniejący
+  `OcrManager.recognizeText` → `ocrText` w dokumencie wiadomości. Odbiorca renderuje
+  miniaturę przez Coil (`AsyncImage`, `coil-compose` 2.7.0) i tłumaczy `ocrText`
+  swoim językiem przez **istniejącą** ścieżkę translacji (w `recompute()` `text`
+  zdjęcia to `ocrText`, więc `enqueueTranslations`/`translateInto` biorą go jak
+  zwykły tekst). Inbox pokazuje zlokalizowany placeholder (`R.string.photo`) zamiast
+  pustego podglądu. Błędy uploadu/OCR tylko logowane (retry w 5.4).
+  ⚠️ Działa w pełni dopiero po wdrożeniu `storage.rules` (5.1).
 - **5.3 (plan):** nagranie → upload `m4a` → transkrypcja STT na nadawcy przez
   istniejący `SpeechManager` → tekst podlega zwykłemu tłumaczeniu u odbiorcy.
 - **5.4 (plan):** pobieranie z postępem, cache offline, podgląd na pełnym ekranie

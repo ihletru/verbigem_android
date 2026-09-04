@@ -427,10 +427,18 @@ private fun ChatRowCard(row: ChatRow, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = if (row.lastMessageIsMine) {
-                    stringResource(R.string.chat_you_prefix, row.lastMessage)
+                text = if (row.lastMessageType == "text") {
+                    if (row.lastMessageIsMine) {
+                        stringResource(R.string.chat_you_prefix, row.lastMessage)
+                    } else {
+                        row.lastMessage
+                    }
                 } else {
-                    row.lastMessage
+                    // Faza 5: zamiast pustego podglądu — zlokalizowany placeholder
+                    // (zdjęcie / nagranie głosowe). OCR/transkrypcja ląduje w lastMessage.
+                    stringResource(
+                        if (row.lastMessageType == "image") R.string.photo else R.string.voice_message
+                    )
                 },
                 fontSize = 13.sp,
                 color = VerbigemTheme.colors.muted,

@@ -171,22 +171,38 @@ class ChatRepository {
         sourceLang: String,
         hintLang: String,
         hintText: String,
-        clientMsgId: String
+        clientMsgId: String,
+        // Faza 5 — załączniki (domyślnie puste dla zwykłego tekstu).
+        type: String = "text",
+        attachmentUrl: String = "",
+        ocrText: String = "",
+        transcript: String = ""
     ) {
         val msg = ChatMessage(
             authorId = authorId,
             sourceLang = sourceLang,
             text = text,
             senderTranslation = if (hintText.isBlank()) null else SenderTranslation(hintLang, hintText),
-            type = "text",
+            type = type,
             clientMsgId = clientMsgId,
+            attachmentUrl = attachmentUrl,
+            ocrText = ocrText,
+            transcript = transcript,
             createdAt = Timestamp.now()
         )
+        // Podgląd w inboxie: dla mediów pokazujemy OCR/transkrypcję (jeśli jest),
+        // w przeciwnym razie puste — i tak zlokalizowany placeholder wg lastMessageType.
+        val preview = when (type) {
+            "image" -> ocrText.takeIf { it.isNotBlank() } ?: ""
+            "audio" -> transcript.takeIf { it.isNotBlank() } ?: ""
+            else -> text
+        }
         val chatRef = firestore.collection("chats").document(chatId)
         chatRef.set(
             mapOf(
                 "members" to membersFromChatId(chatId),
-                "lastMessage" to text.take(80),
+                "lastMessage" to preview.take(80),
+                "lastMessageType" to type,
                 "lastMessageAuthorId" to authorId,
                 "lastMessageAt" to System.currentTimeMillis()
             ),

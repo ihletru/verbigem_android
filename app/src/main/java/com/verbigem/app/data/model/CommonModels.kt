@@ -38,6 +38,12 @@ data class ChatMessage(
     val senderTranslation: SenderTranslation? = null,
     val type: String = "text",
     val clientMsgId: String = "",
+    /** Faza 5: załącznik (zdjęcie/audio) — URL pobierania z Firebase Storage. */
+    val attachmentUrl: String = "",
+    /** Faza 5.2: wynik OCR ze zdjęcia, obliczony na urządzeniu nadawcy. */
+    val ocrText: String = "",
+    /** Faza 5.3: transkrypcja STT z nagrania, obliczona na urządzeniu nadawcy. */
+    val transcript: String = "",
     /** LEGACY (pre-phase-1) sender hint. Never written any more, still read. */
     val translatedText: String = "",
     @ServerTimestamp
@@ -48,6 +54,15 @@ data class ChatMessage(
 
     fun hintLang(): String =
         senderTranslation?.lang?.takeIf { it.isNotBlank() } ?: ""
+
+    /** Zdjęcie (Faza 5.2): odbiorca renderuje miniaturę i tłumaczy [ocrText]. */
+    fun isImage(): Boolean = type == "image"
+
+    /** Nagranie głosowe (Faza 5.3). */
+    fun isAudio(): Boolean = type == "audio"
+
+    /** Czy wiadomość niesie załącznik w Storage. */
+    fun hasAttachment(): Boolean = attachmentUrl.isNotBlank()
 }
 
 /**
@@ -63,7 +78,9 @@ data class ChatSummary(
     val members: List<String> = emptyList(),
     val lastMessage: String = "",
     val lastMessageAuthorId: String = "",
-    val lastMessageAt: Long = 0
+    val lastMessageAt: Long = 0,
+    /** Faza 5: rodzaj ostatniej wiadomości — inbox pokazuje zlokalizowany placeholder. */
+    val lastMessageType: String = "text"
 ) {
     fun otherUid(me: String): String = members.firstOrNull { it != me }.orEmpty()
 }

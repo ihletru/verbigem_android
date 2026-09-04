@@ -26,6 +26,8 @@ data class ChatRow(
     val lastMessage: String,
     val lastMessageAt: Long,
     val lastMessageIsMine: Boolean,
+    /** Faza 5: rodzaj ostatniej wiadomości — inbox pokazuje zlokalizowany placeholder. */
+    val lastMessageType: String = "text",
     val unread: Boolean,
     /** Pinned conversations float to the top of the inbox. */
     val pinned: Boolean = false,
@@ -235,6 +237,7 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                     avatar = profiles.value[other]?.photoURL?.takeIf { it.isNotBlank() } ?: "🙂",
                     lastMessage = summary.lastMessage,
                     lastMessageAt = summary.lastMessageAt,
+                    lastMessageType = summary.lastMessageType,
                     lastMessageIsMine = summary.lastMessageAuthorId == me,
                     // Local watermark vs. the newest message in the conversation.
                     // Muting hides the dot — there are no push notifications to
