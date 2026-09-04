@@ -21,16 +21,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.R
 import com.verbigem.app.ui.navigation.Screen
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 data class NavItem(
     val route: String,
     val icon: ImageVector,
-    val title: String
+    /** String resource id — labels were hardcoded EN/PL before, which broke i18n. */
+    val titleResId: Int
 )
 
 @Composable
@@ -39,11 +42,11 @@ fun BottomNav(
     onNavigate: (String) -> Unit
 ) {
     val items = listOf(
-        NavItem(Screen.Translator.route, Icons.Default.Translate, "Translator"),
-        NavItem(Screen.Conversation.route, Icons.Default.RecordVoiceOver, "Rozmowa"),
-        NavItem(Screen.Chat.route, Icons.Default.Chat, "Czat"),
-        NavItem(Screen.Contacts.route, Icons.Default.Group, "Kontakty"),
-        NavItem(Screen.Profile.route, Icons.Default.Person, "Profil")
+        NavItem(Screen.Translator.route, Icons.Default.Translate, R.string.nav_translate),
+        NavItem(Screen.Conversation.route, Icons.Default.RecordVoiceOver, R.string.nav_conversation),
+        NavItem(Screen.Chat.route, Icons.Default.Chat, R.string.nav_chat),
+        NavItem(Screen.Contacts.route, Icons.Default.Group, R.string.nav_contacts),
+        NavItem(Screen.Profile.route, Icons.Default.Person, R.string.nav_profile)
     )
 
     Column(
@@ -63,6 +66,7 @@ fun BottomNav(
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
                 val tint = if (isSelected) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
+                val title = stringResource(item.titleResId)
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,11 +77,11 @@ fun BottomNav(
                 ) {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = item.title,
+                        contentDescription = title,
                         tint = tint
                     )
                     Text(
-                        text = item.title,
+                        text = title,
                         color = tint,
                         fontSize = 11.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

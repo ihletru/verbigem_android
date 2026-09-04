@@ -151,6 +151,12 @@
     <string name="action_read">Sesli oku (çevrimdışı)</string>
     <string name="action_read_pro">Sesli oku (Pro)</string>
     <string name="action_delete">Sil</string>
+    <string name="action_search">Ara</string>
+    <string name="action_speak">Konuş</string>
+    <string name="ok">Tamam</string>
+
+    <!-- Sohbet: mesajı görüntülendiği dilde sesli okuma. -->
+    <string name="chat_read_aloud">Sesli oku</string>
 
     <!-- Ad banner (Free users) -->
     <string name="ad_banner_label">REKLAM</string>
@@ -171,4 +177,28 @@
     <string name="update_failed_title">Güncelleme başarısız</string>
     <string name="update_failed">İndirme tamamlanamadı: %1$s</string>
     <string name="update_retry">Yeniden dene</string>
+
+    <!-- Sohbet: gelen kutusu + sohbet (aşama 1) -->
+    <string name="action_back">Geri</string>
+    <string name="chat_open_contacts">Kişiler</string>
+    <string name="chat_no_conversations">Henüz sohbet yok.</string>
+    <string name="chat_start_hint">Kişilerden bir arkadaş ekle ve yaz — ikiniz de sohbeti kendi dilinizde okursunuz.</string>
+    <string name="chat_you_prefix">Sen: %1$s</string>
+    <string name="chat_typing">yazıyor…</string>
+    <string name="chat_other_lang">yazma dili: %1$s</string>
+    <string name="chat_new_thread_hint">İlk mesajı yaz. Arkadaşın onu kendi dilinde alır.</string>
+    <string name="chat_show_original">Orijinali göster</string>
+    <string name="chat_show_translation">Çeviriyi göster</string>
+    <string name="chat_translating">Çevriliyor…</string>
+    <string name="chat_translate_now">Çevir</string>
+    <string name="chat_msg_sending">Gönderiliyor…</string>
+    <string name="chat_msg_failed">Gönderilmedi</string>
+    <string name="chat_retry_send">Yeniden dene</string>
+    <string name="chat_quote">Alıntıla</string>
+    <string name="chat_delete_for_me">Bende sil</string>
+    <string name="chat_sent">Gönderildi</string>
+    <string name="chat_read_receipt">Okundu</string>
+    <string name="chat_today">Bugün</string>
+    <string name="chat_yesterday">Dün</string>
+    <string name="chat_load_older">Eski mesajları yükle</string>
 </resources>

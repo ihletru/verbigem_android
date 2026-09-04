@@ -65,8 +65,51 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
 
 3. **Czat zdalny 1:1 (Chat)**:
    - Komunikator czasu rzeczywistego (Firebase Firestore).
-   - Wiadomości są tłumaczone na urządzeniu nadawcy przed wysłaniem na język odbiorcy.
-   - Podgląd oryginału i odsłuch audio.
+   - **Skrzynka odbiorcza (`ChatListScreen`)** — lista konwersacji: avatar, nick,
+     podgląd ostatniej wiadomości, godzina, kropka nieprzeczytanych. Sortowanie po
+     `lastMessageAt` dzieje się **w aplikacji**, nie w Firestore (`whereArrayContains`
+     + `orderBy` na innym polu wymagałoby indeksu złożonego, wdrażanego osobno).
+   - **Wątek (`ChatThreadScreen`)** — trasa `chat/{uid}`, bańki, dzielniki dni,
+     wskaźniki ✓ (wysłane) / ✓✓ (przeczytane), „pisze…", menu po długim naciśnięciu
+     (kopiuj / czytaj / czytaj Pro / pokaż oryginał / cytuj / usuń u mnie).
+   - **Tłumaczenie dzieje się u ODBIORCY (decyzja D1):** nadawca wysyła **oryginał**
+     w `sourceLang` + własne tłumaczenie jako podpowiedź (`senderTranslation` —
+     fallback dla odbiorców bez pobranego modelu). Odbiorca tłumaczy lokalnie
+     Hy-MT2 na swój `speakLangSource` i **zapisuje wynik w Room** (`chat_translations`),
+     żeby nie mielić modelu przy każdej rekompozycji. Przełącznik „pokaż oryginał"
+     na każdej bańce + „Przetłumacz" ponownie po zmianie języka.
+   - **Kolejka offline (`chat_outbox`):** kliknięcie Wyślij jest natychmiastowe —
+     wiersz ląduje w Room, bańka pokazuje „wysyłanie", a `ConnectivityObserver`
+     wyzwala wysyłkę. Id dokumentu w Firestore = `clientMsgId` (UUID wygenerowane
+     przed wywołaniem sieci), więc ponowienie po zerwanym połączeniu **nie tworzy
+     duplikatu** (`set()` na tym samym id jest no-op).
+   - **Potwierdzenia odczytu i „pisze…" żyją w subkolekcjach**
+     `chats/{chatId}/readReceipts/{uid}` i `chats/{chatId}/typing/{uid}` — jeden
+     dokument na uczestnika. Reguła sprowadza się do „możesz pisać tylko swój
+     dokument", dzięki czemu **nie trzeba** łagodzić `update: if false` na
+     `messages` (wiadomości pozostają append-only). Kropka nieprzeczytanych w
+     skrzynce liczy się z lokalnej tabeli `chat_reads` (zero odczytów z chmury).
+   - Paginacja: live listener tylko na 50 najnowszych wiadomości, starsze strony
+     doczytywane `startAfter` przy dojechaniu do góry listy.
+   - Podgląd oryginału i odsłuch audio (TTS offline oraz Czytaj Pro 💎).
+   - **Wyszukiwanie ludzi idzie przez `usersPublic/{uid}`** — `users/{uid}` jest czytelne
+     tylko dla właściciela, więc odpytywanie go z innego konta zawsze kończyło się
+     `PERMISSION_DENIED`. `AuthRepository` utrzymuje publiczną wizytówkę (nick, e-mail,
+     avatar, języki + zlowercasowane `searchNick`/`searchEmail`), a `ensureProfile()`
+     odnawia ją przy każdym logowaniu (samoleczący backfill).
+   - **Znajomości są symetryczne:** dokument `friendships` ma `members: [uidA, uidB]`
+     i zapytanie idzie `whereArrayContains("members", uid)`. Jeden listener w
+     `ChatRepository` zasila trzy strumienie: `watchAccepted` / `watchIncoming` /
+     `watchOutgoing`. (Dawniej filtr był na samo `uidA`, więc osoba o uid sortującym się
+     druga nie widziała znajomego wcale.)
+   - **Język z profilu, nie na sztywno.** Nadawca pisze w swoim `speakLangSource`,
+     a podpowiedź tłumaczy na `speakLangSource` rozmówcy pobrany z `usersPublic`.
+     Odsłuch (`speak()`) czyta w języku aktualnie wyświetlanego tekstu.
+     Docelowo właściwe tłumaczenie dzieje się u odbiorcy — patrz `chat_kontakty.md`.
+   - **`chats/{chatId}` musi istnieć i mieć `members` ZANIM poleci wiadomość** — reguły
+     bezpieczeństwa dla `messages` robią `get(/chats/$(chatId)).data.members`. Dlatego
+     `sendMessage()` najpierw upsertuje dokument czatu, potem dodaje wiadomość.
+     Bez tego wysłanie czegokolwiek było niemożliwe.
 
 4. **Kontakty i Znajomi (Contacts)**:
    - Wyszukiwanie użytkowników po nicku/e-mailu.
@@ -136,8 +179,12 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
      jak w Translatorze — kopiuj, udostępnij, **czytaj (offline)**, **czytaj Pro (💎)**, skasuj.
      Przycisk „czytaj Pro" działa dla Pro (`speakPro` → OpenRouter TTS), a dla free-userów jest
      szary + tooltip (`pro_speaker_tooltip`), tak samo jak w `HistoryCard`.
-   - OCR ma teraz **BottomNav menu** (dodany `Screen.Ocr.route` do `showBottomNav` w `AppNavigation`),
-     więc użytkownik może przejść do niego z innych ekranów i wrócić.
+   - **OCR NIE ma pozycji w BottomNav** (celowo): pasek ma 5 kompletnych ikon i nie ma
+     slotu na OCR. Poprzednio `Screen.Ocr.route` figurował w `showBottomNav`, przez co na
+     ekranie OCR pokazywał się pasek, który nie potrafił ani zaznaczyć OCR, ani do niego
+     wrócić. OCR wchodzi się z Translatora (przycisk „From photo (OCR)"), wychodzi systemowym
+     backiem. Jeśli kiedyś OCR ma trafić do nawigacji, to jako 6. pozycja w `BottomNav.items`,
+     nie przez sam `showBottomNav`.
 
 6. **Profil i Design System**:
    - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**.
@@ -162,7 +209,9 @@ Najważniejsze ustalenia (szczegóły w `chat_kontakty.md`):
 
 - **Tłumaczenie wiadomości dzieje się u ODBIORCY** — nadawca wysyła oryginał +
   `sourceLang` + własne tłumaczenie jako podpowiedź (fallback dla odbiorców bez
-  pobranego modelu).
+  pobranego modelu). **Zrealizowane w fazie 1** (cache w `chat_translations`).
+- **Faza 1 (skrzynka + wątek) jest w kodzie gotowa** — bez backendu, bez Cloud
+  Functions. Szczegóły w `chat_kontakty.md`.
 - **Nie da się zaimportować listy kontaktów z WhatsApp ani Telegrama** (brak API).
   Źródłem listy jest **książka telefoniczna + opcjonalnie plik `.vcf`**, a WhatsApp
   / SMS / e-mail są **kanałami dostarczenia** na wyjściu.
@@ -246,8 +295,8 @@ app/src/main/
 │   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager) + reaktywny sync (ConnectivityObserver)
 │   ├── data/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline (trigger sync na włączenie netu)
-│   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao, OcrHistoryEntity, OcrHistoryDao — lokalna, oddzielna historia OCR, bez syncu; TtsConfigEntity, TtsConfigDao, PendingDeleteEntity, PendingDeleteDao) + DataStore Preferences
-│   │   ├── model/                  # LangCode, UserProfile, ChatMessage, Friendship, EngineChoice, TranslationHistory, TtsConfig
+│   │   ├── local/                  # Room v6: HistoryEntity/Dao, OcrHistoryEntity/Dao, TtsConfigEntity/Dao, PendingDeleteEntity/Dao, ChatRoomEntities (chat_translations, chat_outbox, chat_reads, chat_deleted_messages), ChatRoomDaos + DataStore Preferences
+│   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage (+SenderTranslation), ChatSummary, Friendship, EngineChoice, TranslationHistory, TtsConfig
 │   │   ├── AppLinks.kt             # Polityka prywatności (URL wg języka), InviteLinks, openUrl(), shareText()
 │   │   ├── PhoneContactsImporter.kt # Odczyt książki telefonicznej (ContactsContract) — dane zostają na urządzeniu
 │   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository, ProTtsRepository, SyncManager, TtsConfigSync
@@ -264,7 +313,7 @@ app/src/main/
 │   └── ui/
 │       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView, ProFeatureButton (Pro+grayscale+tooltip)
 │       ├── navigation/             # AppNavigation, Screen
-│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
+│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatListScreen, ChatThreadScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
@@ -462,6 +511,16 @@ tekst w `LangCode.fromCode(item.targetLang)` — języku zapisanym przy tym konk
 w bieżącym języku UI (który może się różnić od języka sprzed tygodnia). Dotyczy obu ekranów
 (Translator `speakHistory`, OCR `speakHistory`). Wynik/edycja OCR czytają w bieżącym `targetLang`
 (`viewModel.speak(text, targetLang)`).
+- v5→v6 (faza 1 czatu): cztery tabele —
+  - `chat_translations` (`msgId` + `targetLang` = PK, `chatId`, `translatedText`,
+    `updatedAt`) — cache tłumaczeń wykonanych na TYM urządzeniu (decyzja D1),
+  - `chat_outbox` (`clientMsgId` PK, `chatId`, `text`, `sourceLang`, `createdAt`,
+    `status`, `attempts`) — kolejka wysyłek; id = klucz dokumentu w Firestore
+    (idempotencja ponowień),
+  - `chat_reads` (`chatId` PK, `lastReadAt`) — lokalny znacznik przeczytania
+    (kropka „nieprzeczytane" w skrzynce, zero odczytów z chmury),
+  - `chat_deleted_messages` (`msgId` PK, `deletedAt`) — lokalne tombstone'y
+    „usuń u mnie" (wiadomości w Firestore są append-only).
 - v2→v3: nowa tabela `pending_deletes` (`syncId TEXT PK`, `updatedAt INTEGER`) — kolejka tombstone'ów.
 - v3→v4: nowa tabela `ocr_history` (`id PK`, `syncId`, `sourceText`, `translatedText`,
   `sourceLang`, `targetLang`, `timestamp`, `updatedAt`) — **lokalna historia OCR, synced do
@@ -696,13 +755,43 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
 - **Package:** `com.verbigem.app`.
 - **Kolekcje Firestore:**
   - `users/{uid}` — profil (`UserProfile`: plan, walletCreditsCents, uiLang, speakLang*, ...).
+    **Czytelny wyłącznie przez właściciela.**
+  - `usersPublic/{uid}` — publiczna wizytówka do wyszukiwania (`PublicProfile`): uid,
+    nickname, photoURL, uiLang, speakLangSource/Target, `searchNick`, `searchEmail`
+    (zlowercasowane, bo Firestore nie ma case-insensitive `whereGreaterThanOrEqualTo`).
+    Read dla zalogowanych, **create/update tylko właściciel**. Utrzymywana przez
+    `AuthRepository`; backfill starych kont: `node backfill_faza0.js --apply`.
   - `users/{uid}/history/{syncId}` — historia tłumaczeń (sync, last-write-wins).
-  - `users/{uid}/friendships`, `chats/{chatId}/messages` — czat/kontakty.
+  - `friendships/{id}` (kolekcja główna) — `members: [uidA, uidB]` + uidA/uidB, status,
+    requestedBy, nicki. Zapytania **po `members`**.
+  - `chats/{chatId}` (+ `chats/{chatId}/messages`) — czat/kontakty. Dokument czatu
+    **musi** mieć `members`, inaczej reguły odrzucą każdą wiadomość. Zawiera też
+    `lastMessage`, `lastMessageAuthorId`, `lastMessageAt` (ms) — zasilają skrzynkę.
+    Wiadomość: `authorId`, `sourceLang`, `text` (ORYGINAŁ), `senderTranslation`
+    (`{lang, text}` — podpowiedź nadawcy), `type`, `clientMsgId`. Id dokumentu =
+    `clientMsgId`, więc ponowienie wysyłki jest idempotentne.
+  - `chats/{chatId}/readReceipts/{uid}` — `{uid, lastReadAt}` — potwierdzenia
+    odczytu (jeden dokument na uczestnika; reguła: tylko własny dokument).
+  - `chats/{chatId}/typing/{uid}` — `{uid, expiresAt}` — wskaźnik „pisze…"
+    (wygaśnięcie po 8 s, więc padnięta aplikacja nie udaje że pisze).
   - `app_config/tts` — konfiguracja TTS Pro (modele OpenRouter + apiKey).
   - `app_config/update` — metadane auto-update (versionCode, apkUrl, onPlayStore).
 - **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:
   `firebase firestore:set` NIE istnieje w tym CLI — użyto Firestore REST API (Node.js) z
   tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
+  - ⚠️ **Token wygasa po ~1 h** (pole `expires_at` w configstore, ms). Starsze skrypty w
+    repo (`write_firestore.js`, `update_firestore_update.js`) odświeżają go samodzielnie
+    przez `oauth2.googleapis.com` z wpisanymi na sztywno `client_id`/`client_secret` —
+    **to już nie działa**, Google zwraca `invalid_client` (w repo krążą dwa różne,
+    oba błędne, client_id).
+  - **Działające odświeżanie:** odpalić dowolne polecenie CLI (np. `firebase projects:list`
+    — czysty odczyt, zero skutków ubocznych). CLI ma poprawne poświadczenia wbudowane
+    i zapisuje świeży `access_token` z powrotem do configstore. Tak robi
+    `backfill_faza0.js` (`refreshViaCli()`).
+  - ⚠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi
+    zapisać cudzy dokument, którego aplikacja nie ruszy. Pożądane przy migracjach,
+    niebezpieczne przy pomyłce w skrypcie — dlatego `backfill_faza0.js` domyślnie
+    robi dry-run i wymaga `--apply`.
 - **Reguły dostępu (`firestore.rules` w repo):** deploy przez
   `firebase deploy --only firestore:rules --project mini-verbigem`. Wymagane reguły dla
   auto-update i TTS: `match /app_config/{doc} { allow read: if true; allow write: if false; }`

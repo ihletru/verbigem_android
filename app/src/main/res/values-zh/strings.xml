@@ -151,6 +151,12 @@
     <string name="action_read">朗读（离线）</string>
     <string name="action_read_pro">朗读（Pro）</string>
     <string name="action_delete">删除</string>
+    <string name="action_search">搜索</string>
+    <string name="action_speak">说话</string>
+    <string name="ok">确定</string>
+
+    <!-- 聊天：以消息当前显示的语言朗读。 -->
+    <string name="chat_read_aloud">朗读</string>
 
     <!-- Ad banner (Free users) -->
     <string name="ad_banner_label">广告</string>
@@ -171,4 +177,28 @@
     <string name="update_failed_title">更新失败</string>
     <string name="update_failed">下载未完成：%1$s</string>
     <string name="update_retry">重试</string>
+
+    <!-- 聊天：会话列表 + 会话（第 1 阶段） -->
+    <string name="action_back">返回</string>
+    <string name="chat_open_contacts">联系人</string>
+    <string name="chat_no_conversations">还没有会话。</string>
+    <string name="chat_start_hint">在联系人中添加好友并发消息——双方都会用自己的语言阅读会话。</string>
+    <string name="chat_you_prefix">我：%1$s</string>
+    <string name="chat_typing">正在输入…</string>
+    <string name="chat_other_lang">使用%1$s</string>
+    <string name="chat_new_thread_hint">写下第一条消息，对方会以自己语言收到。</string>
+    <string name="chat_show_original">显示原文</string>
+    <string name="chat_show_translation">显示译文</string>
+    <string name="chat_translating">正在翻译…</string>
+    <string name="chat_translate_now">翻译</string>
+    <string name="chat_msg_sending">发送中…</string>
+    <string name="chat_msg_failed">未发送</string>
+    <string name="chat_retry_send">重试</string>
+    <string name="chat_quote">引用</string>
+    <string name="chat_delete_for_me">仅在我的设备上删除</string>
+    <string name="chat_sent">已发送</string>
+    <string name="chat_read_receipt">已读</string>
+    <string name="chat_today">今天</string>
+    <string name="chat_yesterday">昨天</string>
+    <string name="chat_load_older">加载更早的消息</string>
 </resources>

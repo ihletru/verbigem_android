@@ -9,8 +9,17 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [HistoryEntity::class, TtsConfigEntity::class, PendingDeleteEntity::class, OcrHistoryEntity::class],
-    version = 5,
+    entities = [
+        HistoryEntity::class,
+        TtsConfigEntity::class,
+        PendingDeleteEntity::class,
+        OcrHistoryEntity::class,
+        ChatTranslationEntity::class,
+        ChatOutboxEntity::class,
+        ChatReadEntity::class,
+        ChatDeletedEntity::class
+    ],
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -18,6 +27,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun ttsConfigDao(): TtsConfigDao
     abstract fun pendingDeleteDao(): PendingDeleteDao
     abstract fun ocrHistoryDao(): OcrHistoryDao
+    abstract fun chatTranslationDao(): ChatTranslationDao
+    abstract fun chatOutboxDao(): ChatOutboxDao
+    abstract fun chatReadDao(): ChatReadDao
+    abstract fun chatDeletedDao(): ChatDeletedDao
 
     companion object {
         @Volatile
@@ -122,6 +135,47 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v5 -> v6: the chat tables (phase 1).
+        //   chat_translations      — cache of translations done on THIS device (decision D1),
+        //                            keyed by (msgId, targetLang).
+        //   chat_outbox            — outgoing messages waiting for the network. clientMsgId is
+        //                            also the Firestore document id, so a retry is idempotent.
+        //   chat_reads             — local per-conversation read watermark (inbox unread dot).
+        //   chat_deleted_messages  — local tombstones for "delete for me".
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS chat_translations (" +
+                        "msgId TEXT NOT NULL, " +
+                        "targetLang TEXT NOT NULL, " +
+                        "chatId TEXT NOT NULL DEFAULT '', " +
+                        "translatedText TEXT NOT NULL DEFAULT '', " +
+                        "updatedAt INTEGER NOT NULL DEFAULT 0, " +
+                        "PRIMARY KEY(msgId, targetLang))"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS chat_outbox (" +
+                        "clientMsgId TEXT NOT NULL PRIMARY KEY, " +
+                        "chatId TEXT NOT NULL DEFAULT '', " +
+                        "text TEXT NOT NULL DEFAULT '', " +
+                        "sourceLang TEXT NOT NULL DEFAULT 'pl', " +
+                        "createdAt INTEGER NOT NULL DEFAULT 0, " +
+                        "status TEXT NOT NULL DEFAULT 'pending', " +
+                        "attempts INTEGER NOT NULL DEFAULT 0)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS chat_reads (" +
+                        "chatId TEXT NOT NULL PRIMARY KEY, " +
+                        "lastReadAt INTEGER NOT NULL DEFAULT 0)"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS chat_deleted_messages (" +
+                        "msgId TEXT NOT NULL PRIMARY KEY, " +
+                        "deletedAt INTEGER NOT NULL DEFAULT 0)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -132,7 +186,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_1_2,
                     MIGRATION_2_3,
                     MIGRATION_3_4,
-                    MIGRATION_4_5
+                    MIGRATION_4_5,
+                    MIGRATION_5_6
                 ).build().also { instance = it }
             }
         }

@@ -112,7 +112,7 @@ fun ModelDownloadDialog(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("OK", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.ok), fontWeight = FontWeight.Bold)
                         }
                     }
                     is ModelDownloadState.Error -> {

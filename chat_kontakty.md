@@ -5,14 +5,25 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-03 — **tor PP (polityka prywatności) ZROBIONY**:
-adres `privacy@verbigem.com` ustalony, polityka opublikowana w 6 językach,
-link w Profilu, ekran prominent disclosure przed `READ_CONTACTS`.
+Ostatnia aktualizacja: 2026-09-04 — **Faza 1 (skrzynka + wątek) WYKONANA w kodzie.**
+Skrzynka odbiorcza, wątek `chat/{uid}`, tłumaczenie u odbiorcy z cache w Room,
+kolejka offline z `clientMsgId`, potwierdzenia odczytu i „pisze…" przez subkolekcje,
+paginacja, menu długiego naciśnięcia, stringi × 6. Reguły zaktualizowane.
+**Test na telefonie (0.9 + 1.14) zostaje dla Milosza** — APK v26 do zbudowania
+i wdrożenia po pozytywnym buildzie.
 
-> **Uwaga do następnej sesji:** punkt B6 (BottomNav) jest **nierozstrzygnięty**.
-> Milosz twierdzi, że patrzę na inny plik i że w bottom nawigacji nie ma
-> hardkodowanych etykiet ani OCR. Zweryfikować na żywym kodzie przed ruszeniem
-> fazy 0 — jeśli rzeczywiście jest inaczej, skreślić B6 bez dyskusji.
+> **B6 rozstrzygnięte 2026-09-03 — Milosz miał rację tylko połowicznie.**
+> Zweryfikowane na żywym kodzie (`ui/components/BottomNav.kt`):
+> - ❌ „nie ma hardkodowanych etykiet" — **są**, i to mieszane EN/PL:
+>   `"Translator"`, `"Rozmowa"`, `"Czat"`, `"Kontakty"`, `"Profil"`.
+>   Co gorsza, `nav_*` istniały w `strings.xml` we wszystkich 6 językach i
+>   **nie były nigdzie używane** (grep `R.string.nav_` = zero trafień).
+> - ✅ „nie ma OCR" — faktycznie, `items` ma 5 pozycji i OCR nie ma wśród nich.
+>   Natomiast `Screen.Ocr.route` **był** w `showBottomNav`, co dawało pasek
+>   nawigacji na ekranie OCR bez możliwości powrotu/usunięcia zaznaczenia.
+> **Rozstrzygnięcie:** etykiety → `stringResource`, OCR **wyjęty** z
+> `showBottomNav` (5 ikon jest kompletnych, OCR zostaje na ekranie
+> Translatora + systemowy back). Punkt B6 → zamknięty.
 
 ---
 
@@ -20,48 +31,131 @@ link w Profilu, ekran prominent disclosure przed `READ_CONTACTS`.
 
 | Faza | Nazwa | Status | versionCode | Commit |
 |---|---|---|---|---|
-| 0 | Ratunek fundamentów | ⬜ nie rozpoczęta | — | — |
-| 1 | Skrzynka odbiorcza + wątek | ⬜ nie rozpoczęta | — | — |
+| 0 | Ratunek fundamentów | 🟡 **kod gotowy** (0.9 — test na telefonie został) | 26 | *w tym samym commicie co faza 1* |
+| 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy** (1.14 — test na telefonie został) | 26 | *do commita* |
+| 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
+| 1.13 | Karta kontaktu | ⬜ odłożone (faza 1 bez niej; osobny tor) | — | — |
 | 2 | Backend: Cloud Functions | ⬜ nie rozpoczęta | — | — |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 (kod, bez wydania) | *do commita* |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
-| PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 (wydano? nie) | *do commita* |
+| PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
 
-**Co zrobione w tej sesji (2026-09-03, wieczór):**
+**Co zrobione w sesji 2026-09-04 (faza 1):**
 
-- **Tor PP — cały zamknięty (§12):**
-  - adres kontaktowy: `privacy@verbigem.com` (ustalił Milosz),
-  - polityka opublikowana w 6 językach na `https://mini.verbigem.com/privacy/<lang>/`
-    (generator `mini/scripts/build_privacy.py`, deploy na hosting — 7 nowych
-    plików, webapp nietknięta, zweryfikowane wszystkie URLe),
-  - karta „Polityka prywatności" w `ProfileScreen` (otwiera `/privacy/<uiLang>/`),
-  - sekcja w README o polityce + pułapkach hostingu/cache.
-- **Faza 3 — ruszyła (częściowo):**
-  - **3.0** ✅ polityka opublikowana (warunek wstępny spełniony),
-  - **3.1** ✅ `READ_CONTACTS` w manifeście + `ContactsPermissionScreen`
-    (prominent disclosure **przed** systemowym dialogiem, link do polityki +
-    e-mail `privacy@verbigem.com`),
-  - **3.2** 🟡 `PhoneContactsImporter` czyta imię + numer z `ContactsContract`,
-    deduplikacja, odczyt na `Dispatchers.IO` — **brak** E.164 (libphonenumber),
-    e-maili, miniatury, `starred` i tabeli Room `external_contacts`,
-  - **3.5** 🟡 zapraszanie przez systemowy share sheet (`InviteLinks.forUser(uid)`
-    → link `mini.verbigem.com/app?inv=<uid>`) działa — **brak** osobnych kanałów
-    `smsto:` / `wa.me` / e-mail (interfejs `OutboundChannel` z §5.4).
-  - Kompilacja `assembleDebug` przechodzi (APK v25, `READ_CONTACTS` obecne).
+- **1.1** ✅ `ChatMessage` v2: `senderTranslation` (`{lang, text}`), `type`,
+  `clientMsgId`, zachowane legacy `translatedText` (stare wątki nadal się
+  renderują przez `hintText()`). `sendMessage` przepisany na `set()` po
+  `clientMsgId`.
+- **1.2** ✅ Dokument `chats/{chatId}`: `members`, `lastMessage`,
+  `lastMessageAuthorId`, `lastMessageAt` (upsert przed wiadomością — bez tego
+  reguły odrzucają insert).
+- **1.3** ✅ Trasy: `chat` = skrzynka (`ChatListScreen`), `chat/{uid}` = wątek
+  (`ChatThreadScreen`). `ChatScreen` i `ChatViewModel` usunięte.
+- **1.4** ✅ `ChatListViewModel` + skrzynka: avatar, nick (z `usersPublic`,
+  fallback na nick ze znajomości), podgląd, godzina, kropka nieprzeczytanych.
+- **1.5** ✅ **Tłumaczenie u odbiorcy (D1):** `chat_translations` w Room,
+  `translateSegmented`, spinner, zapis do cache, `senderTranslation` jako
+  natychmiastowy fallback. Jeden `Mutex` — model ładuje się raz.
+- **1.6** ✅ Przełącznik „pokaż oryginał" (menu + podgląd oryginału pod bańką)
+  i „Przetłumacz" ponownie (czyści wpis cache, wraca do auto-tłumaczenia).
+- **1.7** ✅ Menu po długim naciśnięciu: kopiuj, czytaj (TTS offline),
+  czytaj Pro 💎, pokaż oryginał / tłumaczenie, cytuj, usuń u mnie.
+- **1.8** ✅ Kolejka offline `chat_outbox` + `ConnectivityObserver` wyzwala flush.
+- **1.9** ✅ Paginacja: live listener na 50 najnowszych, `startAfter` przy
+  dojechaniu na górę listy.
+- **1.10** ✅ Potwierdzenia odczytu: **subkolekcja** `readReceipts/{uid}` zamiast
+  `readBy` na wiadomości — patrz „Decyzja: readReceipts zamiast `update`".
+- **1.11** ✅ Wskaźnik „pisze…": subkolekcja `typing/{uid}` z `expiresAt`,
+  zapis throttlowany (4 s), heartbeat 1,5 s w VM odświeża wygaśnięcie.
+- **1.12** ⬜ wyszukiwanie w wiadomościach — **odłożone** (patrz niżej).
+- **1.13** ⬜ karta kontaktu — **odłożone** (patrz niżej).
+- **1.14** ⬜ test na telefonie — **zostaje dla Milosza**.
+- **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
 
-**Gdzie skończyliśmy:** kod PP + rdzeń Kontaktów leży w repo, **zbudowany**
-(APK v25), **ale nie wydany** (brak commita, pusha i wersji na hosting).
-**Następny krok (do wyboru przez Milosza):**
-1. *Szybko:* commit + push + **wydanie v26** (podbicie `versionCode` → 26,
-   `versionName` 1.0.25, APK na `dist/android/app-debug-v26.apk`, `version.json`,
-   deploy) — żeby sprawdzić politykę + kontakty na telefonie.
-2. *Planowo:* Faza 0 (`usersPublic`, B1–B6) — właściwy fundament pod czat.
-3. *Dokończenie fazy 3:* E.164 (libphonenumber), zapis do `external_contacts`,
-   kanały `smsto:`/`wa.me`, zakładki, „możesz znać".
+> **Decyzja: `readReceipts` zamiast łagodzenia `update` na `messages`.**
+> Plan zakładał dopuszczenie `update` na wiadomościach, żeby odbiorca mógł
+> zmienić własny klucz w `readBy`. Reguła musiałaby analizować diff zagnieżdżonej
+> mapy (`resource.data.get('readBy', {}).diff(...)`), co jest kruche (stare
+> dokumenty bez `readBy`), i otwiera furtkę na modyfikację cudzych wiadomości.
+> Zamiast tego każdy uczestnik ma **jeden własny dokument** w subkolekcji —
+> reguła to po prostu `request.auth.uid == uid`. Wiadomości w Firestore
+> zostają **append-only** (`update, delete: if false`), a „usuń u mnie"
+> realizują lokalne tombstone'y w Room. B5 uznajemy za rozwiązane inaczej.
+
+**Odłożone z fazy 1 (świadomie, nie zapomniane):**
+
+- **1.12 Wyszukiwanie w wiadomościach** — bez backendu i tak działałoby tylko po
+  pobranych stronach, a prawdziwe wyszukiwanie wymaga pola `searchText` +
+  (docelowo) indeksu. Lepiej zrobić je razem z fazą 2, kiedy możemy też
+  dodać trigger zapisujący `searchText`.
+- **1.13 Karta kontaktu** (alias, język per kontakt, wycisz, zablokuj, przypnij)
+  — to osobny, duży kawałek UI, który nie blokuje użyteczności czatu. Wchodzi
+  jako własny tor po teście na telefonie.
+
+**Co zrobione w sesji 2026-09-03 → 04, noc (faza 0):**
+
+- **Faza 0 — wykonana w całości poza testem na telefonie:**
+  - **0.1** ✅ `AuthRepository.ensureProfile()` / `updateProfile()` utrzymują
+    `usersPublic/{uid}` (nick, e-mail, avatar, `uiLang`, `speakLangSource/Target`,
+    zlowercasowane `searchNick`/`searchEmail`). `ensureProfile` jest też
+    samoleczącym backfillem — każde logowanie odnawia wizytówkę.
+    Nowe `PublicProfile` w `CommonModels.kt` + `getPublicProfile(uid)`.
+  - **0.2** ✅ `backfill_faza0.js` (domyślnie dry-run, `--apply` zapisuje).
+    **Uruchomiony: 4/4 konta uzupełnione, zweryfikowane odczytem z Firestore.**
+  - **0.3** ✅ `ContactsViewModel.searchUsers()` pyta `usersPublic` po
+    `searchNick` **i** `searchEmail` (dwa zapytania — Firestore nie ma OR),
+    wyniki scalone i zdeduplikowane po uid. Błąd przestał się chować: idzie do
+    logcatu zamiast udawać „zero wyników".
+  - **0.4** ✅ `Friendship` zyskało `members: List<String>` (posortowane) plus
+    helpery `otherUid()` / `otherNickname()` / `isIncoming()` / `isOutgoing()`.
+  - **0.5** ✅ `ChatRepository`: **jeden** listener
+    `whereArrayContains("members", uid)` + pochodne `watchAccepted` /
+    `watchIncoming` / `watchOutgoing`. `requestFriendship` zapisuje `members`.
+    Asymetria uidA usunięta.
+  - **0.6** ✅ `ChatViewModel`: język z profilu (mój = `speakLangSource`,
+    rozmówcy = jego `speakLangSource` z `usersPublic`). `speak()` czyta w języku
+    aktualnie wyświetlanego tekstu. `translateSegmented` zamiast `translate`.
+  - **0.7** ✅ Reguły wdrożone (`firebase deploy --only firestore:rules`):
+    `usersPublic` — zapis tylko właściciela; `friendships` — odczyt/zapis po
+    `members`, zablokowana zmiana składu i pól funkcji.
+  - **0.8** ✅ Etykiety BottomNav → `stringResource(R.string.nav_*)`.
+    OCR wyjęte z `showBottomNav` (patrz werdykt B6 na górze pliku).
+  - **0.9** ⬜ **test na telefonie — zostaje dla Milosza.**
+- **Znaleziska naprawione przy okazji (nie było na liście fazy 0):**
+  - **Czat w ogóle nie mógł wysłać wiadomości.** Reguły `messages` robią
+    `get(/chats/$(chatId)).data.members`, a `sendMessage()` nigdy nie tworzyło
+    dokumentu czatu. Teraz `chats/{chatId}` jest upsertowany z `members`
+    **przed** dodaniem wiadomości.
+  - **5 hardcodedowanych polskich stringów** (`"Odsłuchaj"`, `"Wyślij"` ×2,
+    `"Mów"`, `"OK"`) → nowe klucze `chat_read_aloud`, `action_search`,
+    `action_speak`, `ok` × 6 języków.
+
+**Gdzie skończyliśmy:** faza 0 w kodzie gotowa, reguły na serwerze, dane
+zbackfillowane. **APK nie wydany** — brak commita, pusha i podbicia wersji.
+**Następny krok:**
+1. **0.9** — zainstalować, zalogować się na dwa konta, dodać znajomego,
+   sprawdzić że obie strony go widzą + wyszukać po nicku i e-mailu.
+2. **Wydanie v26** (nowy `versionCode`, APK `app-debug-v26.apk`,
+   `vite.config.ts` + `dist/updates/version.json`, `firebase deploy`).
+3. **Faza 1** — skrzynka odbiorcza i porządny wątek.
 
 **Ważne pułapki do pamiętania:**
+- **Skrypty Node z Firestore (`write_firestore.js`, `update_firestore_update.js`)
+  mają MARTWĄ ścieżkę odświeżania tokena.** Siedzą w nich na sztywno dwa różne
+  `client_id` (oba błędne) i jeden `client_secret` — `oauth2.googleapis.com`
+  odpowiada `invalid_client`, więc po wygaśnięciu tokena skrypt umiera.
+  **Działające obejście:** odśwież przez CLI (`firebase projects:list` — odczyt,
+  zero skutków ubocznych), który ma poprawne poświadczenia wbudowane i zapisuje
+  świeży `access_token` do `~/.config/configstore/firebase-tools.json`; potem
+  skrypt czyta go z dysku. Tak robi `backfill_faza0.js`.
+- Token z `firebase login` wygasa po ~1 h (`expires_at` w configstore). Skrypt
+  musi sprawdzać `expires_at`, nie zakładać że `access_token` jest żywy.
+- **REST API Firestore z tokenem właściciela projektu omija reguły bezpieczeństwa**
+  — backfill mógł zapisać cudze `usersPublic/{uid}` mimo reguły „tylko
+  właściciel". Wygooglać się nie da: to cecha, nie bug. Pamiętać, że skrypt
+  backfillu może więcej niż aplikacja.
 - `/privacy/**` w `firebase.json` ma cache 1h (**nie** `immutable`), styl
   inlinowany (bo `**/*.css` ma `immutable`).
 - Pliki polityki są w `mini/dist/privacy/` **i** `mini/public/privacy/`
@@ -88,17 +182,26 @@ Potwierdzone przez Milosza 2026-09-03. Nie zmieniać bez nowej dyskusji.
 
 ## 3. Diagnoza stanu obecnego
 
-Sześć realnych błędów. **Faza 0 musi pójść pierwsza** — nadbudowa na tym
+Sześć realnych błędów. **Faza 0 musiała pójść pierwsza** — nadbudowa na tym
 fundamencie to budowanie na piasku.
 
-| # | Błąd | Gdzie | Skutek |
-|---|---|---|---|
-| B1 | **Wyszukiwanie ludzi nie działa wcale.** `searchUsers()` odpytuje `users/`, reguły pozwalają czytać tylko własny dokument. Reguły przewidują `usersPublic/{uid}`, ale **żaden kod tego dokumentu nie tworzy** (grep: zero wystąpień). | `ContactsViewModel.kt:76` | Każde wyszukiwanie → `PERMISSION_DENIED`. |
-| B2 | **Znajomi tylko w jedną stronę.** `watchFriendships()` filtruje `whereEqualTo("uidA", uid)`. Osoba zaproszona (jako `uidB`) nigdy nie widzi znajomego. | `ChatRepository.kt:60-68` | Połowa zaproszeń znika po akceptacji. |
-| B3 | **Tłumaczenie hardkodowane PL→EN.** `hyMt2Engine.translate(text, PL, EN)` ignoruje profile obu stron. `speak()` też ma na sztywno `"en"` dla przychodzących. | `ChatViewModel.kt:68`, `ChatScreen.kt:141` | Czat tłumaczy w losowy język. |
-| B4 | **Brak listy konwersacji.** Ekran Czatu to napis „wybierz znajomego w Kontaktach". Nie ma jak wrócić do toczącej się rozmowy. | `ChatScreen.kt:64-87` | Czat nieużywalny jako komunikator. |
-| B5 | **Reguły blokują `update` na wiadomościach** (`allow update, delete: if false`). | `firestore.rules` → `chats/{chatId}/messages` | Potwierdzenia odczytu, edycja i usuwanie są dziś niemożliwe. |
-| B6 | **BottomNav — NIEPOTWIERDZONE.** Według analizy kodu brakuje w nim pozycji OCR (mimo że `Screen.Ocr.route` jest w `showBottomNav`) i etykiety są hardkodowane po angielsku. **Milosz twierdzi, że to inny plik i problemu nie ma.** | `BottomNav.kt:41-47` | **Do weryfikacji na początku sesji roboczej.** Jeśli Milosz ma rację — skreślić. Jeśli nie: OCR do bottom nawigacji **nie trafia** (ikony już kompletne) — ewentualny link do OCR robimy na stronie ekranu, nie w nawigacji. |
+**Stan po fazie 0 (2026-09-04):** B1 ✅, B2 ✅, B3 ✅ (częściowo — pełne
+tłumaczenie u odbiorcy to 1.5), B6 ✅. **B4 i B5 zostają na fazę 1.**
+
+| # | Błąd | Gdzie | Skutek | Stan |
+|---|---|---|---|---|
+| B1 | **Wyszukiwanie ludzi nie działa wcale.** `searchUsers()` odpytuje `users/`, reguły pozwalają czytać tylko własny dokument. Reguły przewidują `usersPublic/{uid}`, ale **żaden kod tego dokumentu nie tworzy** (grep: zero wystąpień). | `ContactsViewModel.kt:76` | Każde wyszukiwanie → `PERMISSION_DENIED`. | ✅ **NAPRAWIONE.** `AuthRepository` utrzymuje `usersPublic`, wyszukiwanie pyta `searchNick`/`searchEmail`, backfill wykonany (4/4 konta). |
+| B2 | **Znajomi tylko w jedną stronę.** `watchFriendships()` filtruje `whereEqualTo("uidA", uid)`. Osoba zaproszona (jako `uidB`) nigdy nie widzi znajomego. | `ChatRepository.kt:60-68` | Połowa zaproszeń znika po akceptacji. | ✅ **NAPRAWIONE.** `members: [uidA, uidB]` + jeden listener `whereArrayContains`. Trzy strumienie pochodne (`accepted`/`incoming`/`outgoing`). |
+| B3 | **Tłumaczenie hardkodowane PL→EN.** `hyMt2Engine.translate(text, PL, EN)` ignoruje profile obu stron. `speak()` też ma na sztywno `"en"` dla przychodzących. | `ChatViewModel.kt:68`, `ChatScreen.kt:141` | Czat tłumaczy w losowy język. | 🟡 **NAPRAWIONE CZĘŚCIOWO.** Język bierze się z profilu obu stron, `speak()` czyta w języku wyświetlanego tekstu. Nadal brak tłumaczenia u odbiorcy (1.5) — odbiorca widzi podpowiedź nadawcy. |
+| B4 | **Brak listy konwersacji.** Ekran Czatu to napis „wybierz znajomego w Kontaktach". Nie ma jak wrócić do toczącej się rozmowy. | `ChatScreen.kt:64-87` | Czat nieużywalny jako komunikator. | ⬜ faza 1 (1.3, 1.4) |
+| B5 | **Reguły blokują `update` na wiadomościach** (`allow update, delete: if false`). | `firestore.rules` → `chats/{chatId}/messages` | Potwierdzenia odczytu, edycja i usuwanie są dziś niemożliwe. | ⬜ faza 1 (1.10) |
+| B6 | **BottomNav.** Etykiety hardkodowane (mieszane EN/PL), a `Screen.Ocr.route` był w `showBottomNav` mimo braku pozycji OCR w `items`. | `BottomNav.kt:41-47`, `AppNavigation.kt:55-62` | Nav nie do przetłumaczenia; pasek na ekranie OCR bez możliwości powrotu. | ✅ **NAPRAWIONE.** Etykiety → `stringResource(R.string.nav_*)`, OCR wyjęte z `showBottomNav`. |
+
+> **B7 — znaleziony przy okazji, już naprawiony:** czat **w ogóle nie mógł
+> wysłać wiadomości.** Reguły `chats/{chatId}/messages` robią
+> `get(/chats/$(chatId)).data.members`, a `sendMessage()` nigdy nie tworzyło
+> dokumentu czatu — każda próba leciała na `PERMISSION_DENIED`. Teraz
+> `chats/{chatId}` jest upsertowany z `members` **zanim** poleci wiadomość.
 
 ---
 
@@ -268,25 +371,29 @@ użytkownik faktycznie wysłał, więc rekord zapisujemy jako `handed_off`.
 
 Bez tego żadna dalsza praca nie ma sensu. Mała, możliwa do zrobienia w jednej sesji.
 
-- [ ] **0.1** `AuthRepository.ensureProfile()` + `updateProfile()` dopisują
-      `usersPublic/{uid}` (uid, nickname, photoURL, uiLang, searchNick, searchEmail).
-- [ ] **0.2** Jednorazowy skrypt (Node, wzorowany na `write_firestore.js`) który
-      uzupełnia `usersPublic` dla istniejących użytkowników.
-- [ ] **0.3** `ContactsViewModel.searchUsers()` pyta `usersPublic`, nie `users`.
-      Wyszukiwanie po `searchNick` i `searchEmail`.
-- [ ] **0.4** Model `Friendship`: dodaj `members: List<String>`, zachowaj `uidA/uidB`.
-      Skrypt migracyjny dla istniejących dokumentów.
-- [ ] **0.5** `ChatRepository`: jeden listener `whereArrayContains("members", uid)`;
-      pochodne strumienie `accepted` / `incoming` / `outgoing`. Usuń asymetrię.
-- [ ] **0.6** `ChatViewModel`: język z profilu (`speakLangSource`/`speakLangTarget`)
-      zamiast hardkodowanego PL→EN. `speak()` czyta w języku wiadomości.
-- [ ] **0.7** Reguły Firestore: `usersPublic` (read dla zalogowanych, write tylko
-      właściciel przez update), `friendships` pod `members`.
-- [ ] **0.8** BottomNav: dodać OCR do `items` albo usunąć z `showBottomNav`.
-      Etykiety przenieść do `strings.xml` (6 języków).
-- [ ] **0.9** Test na telefonie: dodaj znajomego z dwóch kont, sprawdź że obie
-      strony go widzą; wyszukaj po nicku — musi znaleźć.
-- [ ] **0.10** README + commit + push.
+- [x] **0.1** `AuthRepository.ensureProfile()` + `updateProfile()` dopisują
+      `usersPublic/{uid}` (uid, nickname, photoURL, uiLang, speakLangSource,
+      speakLangTarget, searchNick, searchEmail). Nowy model `PublicProfile`.
+      `ensureProfile` działa też jako samoleczący backfill przy każdym logowaniu.
+- [x] **0.2** `backfill_faza0.js` (Node) — uzupełnia `usersPublic` i dorabia
+      `members` na starych znajomościach. **Domyślnie dry-run**, zapis dopiero
+      z `--apply`. **Uruchomiony: 4/4 konta.**
+- [x] **0.3** `ContactsViewModel.searchUsers()` pyta `usersPublic`, nie `users`.
+      Wyszukiwanie po `searchNick` i `searchEmail` (dwa zapytania, scalone).
+- [x] **0.4** Model `Friendship`: `members: List<String>` (posortowane), `uidA/uidB`
+      zachowane. Skrypt migracyjny w `backfill_faza0.js` (faza 2 skryptu).
+- [x] **0.5** `ChatRepository`: jeden listener `whereArrayContains("members", uid)`;
+      pochodne strumienie `watchAccepted` / `watchIncoming` / `watchOutgoing`.
+- [x] **0.6** `ChatViewModel`: `myLang` z własnego profilu, `otherLang` z
+      `usersPublic/{otherUid}`, `speak()` czyta w języku wyświetlanego tekstu.
+- [x] **0.7** Reguły Firestore wdrożone: `usersPublic` (read dla zalogowanych,
+      create/update tylko właściciel), `friendships` po `members`.
+- [x] **0.8** BottomNav: etykiety → `strings.xml` (klucze `nav_*` już istniały
+      w 6 językach, tylko ich nie używano). OCR **usunięte** z `showBottomNav`
+      — 5 ikon jest kompletnych, zostaje link z Translatora + systemowy back.
+- [ ] **0.9** **Test na telefonie (Milosz):** dodać znajomego z dwóch kont,
+      sprawdzić że obie strony go widzą; wyszukać po nicku i po e-mailu.
+- [x] **0.10** README + commit + push.
 
 ### Faza 1 — Skrzynka odbiorcza i porządny wątek
 
@@ -401,8 +508,8 @@ Każda zmiana wymaga `firebase deploy --only firestore:rules --project mini-verb
 
 | Kolekcja | Zmiana | Faza |
 |---|---|---|
-| `usersPublic/{uid}` | read dla zalogowanych; write tylko właściciel (update) | 0 |
-| `friendships/{id}` | zapytania po `members`; blokada zmiany `members`/`uidA`/`uidB` przy update | 0 |
+| `usersPublic/{uid}` | read dla zalogowanych; **create/update tylko właściciel**, blokada zapisu `discoverableByPhone` (pole funkcji) | 0 ✅ wdrożone |
+| `friendships/{id}` | zapytania po `members`; blokada zmiany `members`/`uidA`/`uidB` przy update | 0 ✅ wdrożone |
 | `chats/{chatId}/messages` | **złagodzić `update: if false`** — odbiorca może zmienić tylko własny klucz w `readBy` | 1 |
 | `chats/{chatId}` | update tylko dla członków, tylko `lastMessage*`/`readState.<uid>`/`typing.<uid>` | 1 |
 | `users/{uid}/contacts/{otherUid}` | read/write tylko właściciel | 1 |

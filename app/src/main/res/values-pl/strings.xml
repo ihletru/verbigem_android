@@ -158,6 +158,12 @@
     <string name="action_read">Przeczytaj (offline)</string>
     <string name="action_read_pro">Przeczytaj (Pro)</string>
     <string name="action_delete">Skasuj</string>
+    <string name="action_search">Szukaj</string>
+    <string name="action_speak">Mów</string>
+    <string name="ok">OK</string>
+
+    <!-- Czat: odczyt wiadomości w języku, w którym jest wyświetlana. -->
+    <string name="chat_read_aloud">Czytaj na głos</string>
 
     <!-- Ad banner (Free users) -->
     <string name="ad_banner_label">REKLAMA</string>
@@ -178,4 +184,28 @@
     <string name="update_failed_title">Aktualizacja nie udała się</string>
     <string name="update_failed">Pobieranie nie zostało ukończone: %1$s</string>
     <string name="update_retry">Ponów</string>
+
+    <!-- Czat: skrzynka odbiorcza + wątek (faza 1) -->
+    <string name="action_back">Wróć</string>
+    <string name="chat_open_contacts">Kontakty</string>
+    <string name="chat_no_conversations">Brak rozmów.</string>
+    <string name="chat_start_hint">Dodaj znajomego w Kontaktach i napisz do niego — każde z was czyta rozmowę w swoim języku.</string>
+    <string name="chat_you_prefix">Ty: %1$s</string>
+    <string name="chat_typing">pisze…</string>
+    <string name="chat_other_lang">pisze w języku: %1$s</string>
+    <string name="chat_new_thread_hint">Napisz pierwszą wiadomość. Znajomy odbierze ją w swoim języku.</string>
+    <string name="chat_show_original">Pokaż oryginał</string>
+    <string name="chat_show_translation">Pokaż tłumaczenie</string>
+    <string name="chat_translating">Tłumaczenie…</string>
+    <string name="chat_translate_now">Przetłumacz</string>
+    <string name="chat_msg_sending">Wysyłanie…</string>
+    <string name="chat_msg_failed">Nie wysłano</string>
+    <string name="chat_retry_send">Ponów</string>
+    <string name="chat_quote">Cytuj</string>
+    <string name="chat_delete_for_me">Usuń u mnie</string>
+    <string name="chat_sent">Wysłano</string>
+    <string name="chat_read_receipt">Przeczytano</string>
+    <string name="chat_today">Dziś</string>
+    <string name="chat_yesterday">Wczoraj</string>
+    <string name="chat_load_older">Wczytaj starsze wiadomości</string>
 </resources>

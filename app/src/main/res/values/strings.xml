@@ -158,6 +158,12 @@
     <string name="action_read">Read aloud (offline)</string>
     <string name="action_read_pro">Read aloud (Pro)</string>
     <string name="action_delete">Delete</string>
+    <string name="action_search">Search</string>
+    <string name="action_speak">Speak</string>
+    <string name="ok">OK</string>
+
+    <!-- Chat: reading a message aloud in the language it is displayed in. -->
+    <string name="chat_read_aloud">Read aloud</string>
 
     <!-- Ad banner (Free users) -->
     <string name="ad_banner_label">AD</string>
@@ -178,4 +184,28 @@
     <string name="update_failed_title">Update failed</string>
     <string name="update_failed">The download did not finish: %1$s</string>
     <string name="update_retry">Retry</string>
+
+    <!-- Chat: inbox + thread (phase 1) -->
+    <string name="action_back">Back</string>
+    <string name="chat_open_contacts">Contacts</string>
+    <string name="chat_no_conversations">No conversations yet.</string>
+    <string name="chat_start_hint">Add a friend in Contacts and write to them — each of you reads the conversation in your own language.</string>
+    <string name="chat_you_prefix">You: %1$s</string>
+    <string name="chat_typing">typing…</string>
+    <string name="chat_other_lang">writes in %1$s</string>
+    <string name="chat_new_thread_hint">Write the first message. Your friend receives it in their own language.</string>
+    <string name="chat_show_original">Show original</string>
+    <string name="chat_show_translation">Show translation</string>
+    <string name="chat_translating">Translating…</string>
+    <string name="chat_translate_now">Translate</string>
+    <string name="chat_msg_sending">Sending…</string>
+    <string name="chat_msg_failed">Not sent</string>
+    <string name="chat_retry_send">Retry</string>
+    <string name="chat_quote">Quote</string>
+    <string name="chat_delete_for_me">Delete for me</string>
+    <string name="chat_sent">Sent</string>
+    <string name="chat_read_receipt">Read</string>
+    <string name="chat_today">Today</string>
+    <string name="chat_yesterday">Yesterday</string>
+    <string name="chat_load_older">Load earlier messages</string>
 </resources>

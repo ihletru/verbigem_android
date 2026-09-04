@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.PhoneContactsImporter
 import com.verbigem.app.data.model.Friendship
+import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
@@ -62,17 +63,28 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
 
+    /** My own profile — source of the language pair and the nickname used in invites. */
+    private val _myProfile = MutableStateFlow<UserProfile?>(null)
+    val myProfile: StateFlow<UserProfile?> = _myProfile.asStateFlow()
+
     init {
         val uid = currentUid
         if (uid.isNotBlank()) {
             viewModelScope.launch {
-                chatRepository.watchFriendships(uid).collect { list ->
-                    _friends.value = list.filter { it.isAccepted }
-                }
+                authRepository.watchProfile(uid).collect { _myProfile.value = it }
+            }
+            // All three streams come from the ONE `members`-based listener, so both
+            // sides of a friendship see the same state (the old uidA-only query
+            // hid the friendship from whoever sorted second).
+            viewModelScope.launch {
+                chatRepository.watchAccepted(uid).collect { _friends.value = it }
             }
             viewModelScope.launch {
-                chatRepository.watchIncoming(uid).collect { list ->
-                    _incoming.value = list.filter { !it.isAccepted }
+                chatRepository.watchIncoming(uid).collect { _incoming.value = it }
+            }
+            viewModelScope.launch {
+                chatRepository.watchOutgoing(uid).collect { list ->
+                    _sentRequests.value = list.map { it.otherUid(uid) }.toSet()
                 }
             }
         }
@@ -82,31 +94,55 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         _searchTerm.value = term
     }
 
+    /**
+     * Searches `usersPublic`, never `users`.
+     *
+     * `users/{uid}` is readable only by its owner, so the old query on that collection
+     * returned PERMISSION_DENIED for every search — finding people was impossible.
+     * `usersPublic` is the searchable projection maintained by `AuthRepository`.
+     *
+     * Two queries (nickname + e-mail) because Firestore has no OR. Results are merged
+     * and de-duplicated by uid.
+     */
     fun searchUsers() {
         val term = _searchTerm.value.trim()
         if (term.length < 2) return
 
+        val needle = term.lowercase()
         _isSearching.value = true
         viewModelScope.launch {
             try {
-                val snap = firestore.collection("users")
-                    .whereGreaterThanOrEqualTo("nickname", term)
-                    .whereLessThanOrEqualTo("nickname", term + "\uf8ff")
+                val end = needle + "\uf8ff"
+                val byNick = firestore.collection("usersPublic")
+                    .whereGreaterThanOrEqualTo("searchNick", needle)
+                    .whereLessThanOrEqualTo("searchNick", end)
+                    .limit(10)
+                    .get()
+                    .await()
+                val byEmail = firestore.collection("usersPublic")
+                    .whereGreaterThanOrEqualTo("searchEmail", needle)
+                    .whereLessThanOrEqualTo("searchEmail", end)
                     .limit(10)
                     .get()
                     .await()
 
-                val results = snap.documents.mapNotNull { doc ->
+                val merged = LinkedHashMap<String, SearchResultUser>()
+                (byNick.documents + byEmail.documents).forEach { doc ->
                     val uid = doc.id
                     if (uid != currentUid) {
-                        SearchResultUser(
+                        merged[uid] = SearchResultUser(
                             uid = uid,
                             nickname = doc.getString("nickname") ?: "user",
                             photoURL = doc.getString("photoURL") ?: "🙂"
                         )
-                    } else null
+                    }
                 }
-                _searchResults.value = results
+                _searchResults.value = merged.values.toList()
+            } catch (e: Exception) {
+                // Previously swallowed by `finally` — a denied search looked like
+                // "no results" instead of an error.
+                android.util.Log.w("ContactsViewModel", "User search failed", e)
+                _searchResults.value = emptyList()
             } finally {
                 _isSearching.value = false
             }
@@ -115,7 +151,13 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     fun sendRequest(targetUid: String, targetNick: String) {
         val myUid = currentUid
-        val myNick = authRepository.currentUser?.displayName ?: "user"
+        // Profile nickname, not the Auth display name — that's what other users see,
+        // and it survives a Google sign-in where displayName can be null.
+        val myNick = _myProfile.value?.nickname
+            ?.ifBlank { null }
+            ?: authRepository.currentUser?.displayName
+            ?: authRepository.currentUser?.email?.substringBefore("@")
+            ?: "user"
         viewModelScope.launch {
             chatRepository.requestFriendship(myUid, myNick, targetUid, targetNick)
             _sentRequests.value = _sentRequests.value + targetUid

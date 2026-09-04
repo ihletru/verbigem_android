@@ -151,6 +151,12 @@
     <string name="action_read">Vorlesen (offline)</string>
     <string name="action_read_pro">Vorlesen (Pro)</string>
     <string name="action_delete">Löschen</string>
+    <string name="action_search">Suchen</string>
+    <string name="action_speak">Sprechen</string>
+    <string name="ok">OK</string>
+
+    <!-- Chat: Nachricht in der Sprache vorlesen, in der sie angezeigt wird. -->
+    <string name="chat_read_aloud">Vorlesen</string>
 
     <!-- Ad banner (Free users) -->
     <string name="ad_banner_label">WERBUNG</string>
@@ -171,4 +177,28 @@
     <string name="update_failed_title">Update fehlgeschlagen</string>
     <string name="update_failed">Der Download wurde nicht abgeschlossen: %1$s</string>
     <string name="update_retry">Erneut versuchen</string>
+
+    <!-- Chat: Postfach + Verlauf (Phase 1) -->
+    <string name="action_back">Zurück</string>
+    <string name="chat_open_contacts">Kontakte</string>
+    <string name="chat_no_conversations">Noch keine Unterhaltungen.</string>
+    <string name="chat_start_hint">Füge unter Kontakte einen Freund hinzu und schreib ihm — jeder liest die Unterhaltung in seiner eigenen Sprache.</string>
+    <string name="chat_you_prefix">Du: %1$s</string>
+    <string name="chat_typing">schreibt…</string>
+    <string name="chat_other_lang">schreibt auf %1$s</string>
+    <string name="chat_new_thread_hint">Schreib die erste Nachricht. Dein Freund erhält sie in seiner eigenen Sprache.</string>
+    <string name="chat_show_original">Original anzeigen</string>
+    <string name="chat_show_translation">Übersetzung anzeigen</string>
+    <string name="chat_translating">Wird übersetzt…</string>
+    <string name="chat_translate_now">Übersetzen</string>
+    <string name="chat_msg_sending">Wird gesendet…</string>
+    <string name="chat_msg_failed">Nicht gesendet</string>
+    <string name="chat_retry_send">Erneut versuchen</string>
+    <string name="chat_quote">Zitieren</string>
+    <string name="chat_delete_for_me">Für mich löschen</string>
+    <string name="chat_sent">Gesendet</string>
+    <string name="chat_read_receipt">Gelesen</string>
+    <string name="chat_today">Heute</string>
+    <string name="chat_yesterday">Gestern</string>
+    <string name="chat_load_older">Ältere Nachrichten laden</string>
 </resources>

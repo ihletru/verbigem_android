@@ -18,17 +18,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.ui.components.BottomNav
 import com.verbigem.app.ui.screens.auth.AuthViewModel
 import com.verbigem.app.ui.screens.auth.LoginScreen
-import com.verbigem.app.ui.screens.chat.ChatScreen
-import com.verbigem.app.ui.screens.chat.ChatViewModel
+import com.verbigem.app.ui.screens.chat.ChatListScreen
+import com.verbigem.app.ui.screens.chat.ChatListViewModel
+import com.verbigem.app.ui.screens.chat.ChatThreadScreen
+import com.verbigem.app.ui.screens.chat.ChatThreadViewModel
 import com.verbigem.app.ui.screens.contacts.ContactsScreen
 import com.verbigem.app.ui.screens.contacts.ContactsViewModel
 import com.verbigem.app.ui.screens.conversation.ConversationScreen
@@ -52,9 +56,12 @@ fun AppNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
 
+    // OCR deliberately absent: BottomNav has five full-width items and no OCR slot,
+    // so showing the bar on the OCR screen gave a nav row that couldn't highlight or
+    // return to the current screen. OCR is reached from the Translator and left via
+    // system back — see Screen.Ocr usage below.
     val showBottomNav = currentRoute in listOf(
         Screen.Translator.route,
-        Screen.Ocr.route,
         Screen.Conversation.route,
         Screen.Chat.route,
         Screen.Contacts.route,
@@ -130,21 +137,34 @@ fun AppNavigation(
                 }
 
                 composable(Screen.Chat.route) {
-                    val chatViewModel: ChatViewModel = viewModel()
-                    ChatScreen(
-                        viewModel = chatViewModel,
-                        onNavigateToContacts = { navController.navigate(Screen.Contacts.route) }
+                    val chatListViewModel: ChatListViewModel = viewModel()
+                    ChatListScreen(
+                        viewModel = chatListViewModel,
+                        onOpenThread = { uid -> navController.navigate(Screen.ChatThread.createRoute(uid)) },
+                        onOpenContacts = { navController.navigate(Screen.Contacts.route) }
+                    )
+                }
+
+                composable(
+                    route = Screen.ChatThread.route,
+                    arguments = listOf(navArgument("uid") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val otherUid = backStackEntry.arguments?.getString("uid").orEmpty()
+                    val chatThreadViewModel: ChatThreadViewModel = viewModel()
+                    LaunchedEffect(isPro) { chatThreadViewModel.setPro(isPro) }
+                    ChatThreadScreen(
+                        viewModel = chatThreadViewModel,
+                        otherUid = otherUid,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
                 composable(Screen.Contacts.route) {
                     val contactsViewModel: ContactsViewModel = viewModel()
-                    val chatViewModel: ChatViewModel = viewModel()
                     ContactsScreen(
                         viewModel = contactsViewModel,
                         onOpenChat = { targetUid ->
-                            chatViewModel.selectContact(targetUid)
-                            navController.navigate(Screen.Chat.route)
+                            navController.navigate(Screen.ChatThread.createRoute(targetUid))
                         }
                     )
                 }

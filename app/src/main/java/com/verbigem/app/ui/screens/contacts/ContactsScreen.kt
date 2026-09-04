@@ -184,7 +184,7 @@ fun ContactsScreen(
                         if (isSearching) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(18.dp))
                         } else {
-                            Icon(Icons.Default.Search, contentDescription = "Szukaj")
+                            Icon(Icons.Default.Search, contentDescription = stringResource(R.string.action_search))
                         }
                     }
                 }

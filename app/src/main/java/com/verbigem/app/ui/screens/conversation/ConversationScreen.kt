@@ -255,7 +255,7 @@ fun ConversationScreen(
             ) {
                 Icon(
                     imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
-                    contentDescription = "Mów",
+                    contentDescription = stringResource(R.string.action_speak),
                     tint = Color.White,
                     modifier = Modifier.size(32.dp)
                 )
@@ -322,7 +322,7 @@ fun ConversationScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
-                        contentDescription = "Wyślij",
+                        contentDescription = stringResource(R.string.send),
                         tint = Color.White
                     )
                 }
