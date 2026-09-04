@@ -43,6 +43,15 @@ data class OutboundTarget(
  */
 interface OutboundChannel {
 
+    /**
+     * Stabilny identyfikator zapisywany w historii wysyłek (`external_outbox`).
+     *
+     * Nie etykieta: etykieta jest tłumaczona, więc po zmianie języka stare wiersze
+     * stałyby się nie do odczytania. Nie nazwa klasy: ta zmienia się przy
+     * refactoringu, a historia zostaje.
+     */
+    val id: String
+
     val labelRes: Int
         @StringRes get
 
@@ -78,6 +87,9 @@ interface OutboundChannel {
  * po prostu otworzy WhatsApp.
  */
 object WhatsAppChannel : OutboundChannel {
+
+    override val id: String = "whatsapp"
+
 
     private const val WHATSAPP = "com.whatsapp"
     private const val WHATSAPP_BUSINESS = "com.whatsapp.w4b"
@@ -124,6 +136,9 @@ object WhatsAppChannel : OutboundChannel {
  */
 object TelegramChannel : OutboundChannel {
 
+    override val id: String = "telegram"
+
+
     override val labelRes: Int = R.string.channel_telegram
 
     override fun isAvailable(context: Context, target: OutboundTarget): Boolean =
@@ -163,6 +178,9 @@ object TelegramChannel : OutboundChannel {
  */
 object SmsChannel : OutboundChannel {
 
+    override val id: String = "sms"
+
+
     override val labelRes: Int = R.string.channel_sms
 
     override fun isAvailable(context: Context, target: OutboundTarget): Boolean {
@@ -194,6 +212,9 @@ object SmsChannel : OutboundChannel {
 
 /** E-mail: `mailto:` z tematem i treścią. Wymaga adresu — numer tu nie przejdzie. */
 object EmailChannel : OutboundChannel {
+
+    override val id: String = "email"
+
 
     override val labelRes: Int = R.string.channel_email
 
@@ -227,6 +248,9 @@ object EmailChannel : OutboundChannel {
  * wyboru.
  */
 object SystemShareChannel : OutboundChannel {
+
+    override val id: String = "system"
+
 
     override val labelRes: Int = R.string.channel_other
 
@@ -267,6 +291,18 @@ object OutboundChannels {
      */
     fun availableFor(context: Context, target: OutboundTarget): List<OutboundChannel> =
         all.filter { it.isAvailable(context, target) }
+
+    /**
+     * Etykieta dla zapisanego w historii `id`.
+     *
+     * Historia trzyma id, nie tekst, więc odczyt musi wrócić do tłumaczenia w
+     * momencie wyświetlania — wtedy wiersz sprzed miesiąca czyta się w języku,
+     * który użytkownik ma dziś. Nieznane id (kanał usunięty z kodu) dostaje
+     * etykietę „inne", bo zniknięcie napisu z historii byłoby gorsze niż napis
+     * przybliżony.
+     */
+    fun labelResFor(id: String): Int =
+        all.firstOrNull { it.id == id }?.labelRes ?: R.string.channel_other
 }
 
 // ----------------------------------------------------------------- helpers

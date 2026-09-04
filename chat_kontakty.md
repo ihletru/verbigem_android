@@ -5,25 +5,23 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **1.12 Wyszukiwanie w wiadomościach WYKONANE
-w kodzie** (trigger `onMessageSearchIndex`, reguła blokująca `searchText` klientowi,
-zapytanie prefiksowe per czat, UI w skrzynce, backfill gotowy). Zaległość z fazy 1,
-która czekała dokładnie na backend.
+Ostatnia aktualizacja: 2026-09-04 — **3.6 Wątek jednokierunkowy WYKONANY w kodzie
+i WYDANY** (`ExternalThreadScreen`, Room `external_contacts` + `external_outbox`,
+migracja `7_8`, wejście z książki zapisujące kontakt przed nawigacją). Wcześniej
+tego samego dnia: **1.12 Wyszukiwanie w wiadomościach WYKONANE** (trigger
+`onMessageSearchIndex`, reguła blokująca `searchText` klientowi, zapytanie
+prefiksowe per czat, UI w skrzynce, backfill gotowy).
 
-Wcześniej tego samego dnia: **2.4 i 2.6 wdrożone na produkcję** — `verifyPhone`,
-`inviteByPhone`, `onPhoneVerified` działają, aplikacja potrafi zweryfikować numer
-SMS-em. Faza 2 (2.1–2.7) jest kompletna w kodzie.
+Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
+Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
 
-**Stan wydań:** v26 (faza 0 + faza 1) **jest na produkcji** — zweryfikowane
-`https://mini.verbigem.com/updates/version.json` → `versionCode: 26`.
-**v29 czeka na wydanie** (build przeszedł): wymaga skopiowania
-`app-debug-v29.apk` do `verbigem/mini/dist/android/`, aktualizacji `vite.config.ts`
-i `dist/updates/version.json` (`?v=29` w `apkUrl`), potem
-`firebase deploy --only hosting`. **Nie robimy tego przed testami na telefonie** —
-nie ma sensu wypychać ludziom wersji, których nikt nie odpalił.
+**Stan wydań:** **v30 (1.0.29) WYDANY na produkcję** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 30`. Zawiera
+fazę 0+1 (v26) + 1.12 + 1.13 + 3.5 + 3.6. APK: `app-debug-v30.apk`.
 
-> **v27 i v28 nigdy nie trafiły na hosting**, więc nikt ich nie dostał. v29
-> zawiera je w sobie (1.13 + 1.12 + 3.5) — wypychamy tylko ją.
+> **v27, v28, v29 nigdy nie trafiły na hosting** — wersjonowanie przeskoczyło z 26
+> na 30, bo 3.6 dodało kolejny `versionCode` i wypuściliśmy od razu najnowsze.
+> Build v30 to jedyna wersja po v26, która poszła do ludzi.
 
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
@@ -63,7 +61,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.5 zrobione; dalej 3.6–3.10) | 29 | `d4b425a` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.6 zrobione; dalej 3.7–3.10) | 30 | `dfad5f0` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -180,7 +178,9 @@ node backfill_searchtext.js --apply
 - **3.5** ✅ **`OutboundChannel` — zrobione.** Pięć kanałów: WhatsApp, SMS, e-mail,
   Telegram, systemowy arkusz. Dostępność liczy się **per odbiorca** („SMS" znika,
   gdy wpis nie ma numeru). `OutboundTarget` to lekki nośnik na czas lotu, nie
-  encja z 3.6 — dostanie `toTarget()`, gdy powstanie tabela w Room.
+  encja z 3.6. W 3.6 dostał dwa źródła: `OutboundTarget.from(PhoneContact)`
+  (zaproszenie) i `ExternalThreadRepository.targetFor(ExternalContactEntity)`
+  (wątek jednokierunkowy) — patrz sekcja 1.
 
   **⚠️ Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i pójście
   na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi,
@@ -197,6 +197,31 @@ node backfill_searchtext.js --apply
   link i zaproszenie to dwa różne sposoby na ten sam cel: zaproszenie działa, gdy
   osoba kiedyś potwierdzi numer, link — gdy kliknie go od razu. Pominięcie
   któregoś zostawia połowę szansy.
+
+**Co zrobione w sesji 2026-09-04, popołudniu (faza 3 — 3.6, WYDANE w v30):**
+
+- **3.6** ✅ **Wątek jednokierunkowy dla osób bez Verbigema.** Całość lokalna w
+  Room (`version = 8`, migracja `7_8`):
+  - `external_contacts` (PK = `phone`, luźna forma z książki): nazwa, e164,
+    e-mail, `lang` (puste = nie wybrano; nie da się wykryć), `lastUsedAt`.
+  - `external_outbox` (auto-id): `phone`, `channel`, `originalText`,
+    `translatedText`, `lang`, `createdAt`. `status` zawsze `handed_off` na stałe.
+  - `ExternalContactDao`: `IGNORE` przy insercie (żeby wybrany język nie zginął
+    przy ponownym odczycie książki), wąska `UPDATE` tylko dla pól z książki.
+  - `ExternalThreadRepository`: remember / setLang / recordHandOff / forget /
+    pruneHistory (90 dni) / targetFor.
+  - `ExternalThreadViewModel`: tłumacz → przekaż; `HyMt2NativeEngine` zwalniany w
+    `onCleared`; `load` anuluje poprzedni ładowanie, żeby stary historia-collector
+    nie pisał w stan należący do kogoś innego.
+  - `ExternalThreadScreen`: transparent „brak strony przychodzącej", wybór języka
+    (blokada tłumaczenia, póki puste), historia, kompozytor z przyciskami kanałów.
+  - **Wejście z książki:** `ContactsViewModel.rememberExternal` to `suspend`
+    wywoływane **przed** nawigacją (wiersz klikiem otwiera wątek). Wątek czyta
+    kontakt po kluczu telefonu — otwarty przed zapisem zastałby pusty ekran.
+  - **Nawigacja:** `Screen.ExternalThread` (`external/{phone}`, telefon kodowany
+    `Uri.encode`), wpis w `AppNavigation`, `onOpenExternalThread` z `ContactsScreen`.
+  - **Historia trzyma `id` kanału**, nie tekst — `OutboundChannels.labelResFor(id)`
+    rozwiązuje na dzisiejszy język przy wyświetlaniu.
 
 **Co zrobione w sesji 2026-09-04, wieczorem (faza 2 — 2.4 i 2.6):**
 
@@ -861,8 +886,13 @@ Warunek: plan Blaze.
       WhatsApp (`wa.me`), SMS (`smsto:`), e-mail (`mailto:`), Telegram, systemowy
       arkusz. Wybór kanału w dialogu po kliknięciu „Zaproś". Importer czyta
       e-maile (osobne zapytanie po `CONTACT_ID`). **Patrz blok w sekcji 1.**
-- [ ] **3.6** `external_contacts` + `outbox_messages` w Room; wątek jednokierunkowy
-      z kompozytorem i historią wysyłek.
+- [x] **3.6** **Wątek jednokierunkowy (3.6)** — `external_contacts` + `external_outbox`
+      w Room (migracja `7_8`, `version = 8`); `ExternalThreadRepository` (remember /
+      setLang / recordHandOff / forget / prune / targetFor); `ExternalThreadViewModel`
+      (tłumacz → przekaż, po polsku ręczny wybór języka); `ExternalThreadScreen`
+      (transparent o braku strony przychodzącej, historia, kompozytor z przyciskami
+      kanałów). Wejście z książki: `ContactsViewModel.rememberExternal` (suspend,
+      przed nawigacją) + wiersz klikiem otwiera wątek. **WYDANE w v30.**
 - [ ] **3.7** Import `.vcf` — własny parser, zero zależności.
 - [ ] **3.8** Zakładki w Kontaktach: Znajomi / Zaproszenia / Z telefonu /
       Zewnętrzne. Wyszukiwanie po wszystkich naraz.

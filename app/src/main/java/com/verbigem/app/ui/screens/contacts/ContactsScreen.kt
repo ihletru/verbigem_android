@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -62,12 +63,15 @@ import com.verbigem.app.data.OutboundTarget
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.ui.theme.VerbigemTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun ContactsScreen(
     viewModel: ContactsViewModel,
     onOpenChat: (String) -> Unit,
-    onOpenContactCard: (String) -> Unit
+    onOpenContactCard: (String) -> Unit,
+    /** Numer z książki, dla którego otwieramy wątek jednokierunkowy (3.6). */
+    onOpenExternalThread: (String) -> Unit
 ) {
     val friends by viewModel.friends.collectAsState()
     val incoming by viewModel.incoming.collectAsState()
@@ -84,6 +88,10 @@ fun ContactsScreen(
     val currentUid = viewModel.currentUid
 
     val context = LocalContext.current
+
+    // Tylko dla wejścia do wątku jednokierunkowego: zapis w Room musi zdążyć
+    // przed nawigacją, a to jedno `suspend`, nie stan ekranu.
+    val scope = rememberCoroutineScope()
 
     // Dla którego kontaktu otwarty jest wybór kanału (3.5). Null = dialog zamknięty.
     //
@@ -331,6 +339,22 @@ fun ContactsScreen(
                         .clip(RoundedCornerShape(12.dp))
                         .background(VerbigemTheme.colors.surface)
                         .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+                        // Kliknięcie w osobę zawsze otwiera rozmowę — prawdziwą, gdy
+                        // ma konto, jednokierunkową, gdy nie ma. Przycisk obok jest
+                        // od zapraszania, czyli od czegoś innego.
+                        .clickable {
+                            if (match != null) {
+                                onOpenChat(match.uid)
+                            } else {
+                                // Najpierw zapis w Room, potem nawigacja: wątek czyta
+                                // kontakt po kluczu telefonu, więc otwarty przed
+                                // zapisem zastałby pusty ekran.
+                                scope.launch {
+                                    viewModel.rememberExternal(contact)
+                                    onOpenExternalThread(contact.phone)
+                                }
+                            }
+                        }
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

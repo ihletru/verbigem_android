@@ -16,6 +16,7 @@ import com.verbigem.app.data.repository.ContactMatch
 import com.verbigem.app.data.repository.ContactMatchException
 import com.verbigem.app.data.repository.ContactMatchFailure
 import com.verbigem.app.data.repository.ContactMatchRepository
+import com.verbigem.app.data.repository.ExternalThreadRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +85,7 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     val invitedPhones: StateFlow<Set<String>> = _invitedPhones.asStateFlow()
 
     private val contactMatchRepository = ContactMatchRepository()
+    private val externalThreads = ExternalThreadRepository(application)
 
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -306,4 +308,16 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     /** Czy zaproszenie dla tego numeru zostało już zapisane. */
     fun isInvited(phone: String): Boolean =
         _invitedPhones.value.contains(PhoneContactsImporter.normalize(phone))
+
+    /**
+     * Zapisuje osobę spoza Verbigem w Room i dopiero potem pozwala wejść do wątku (3.6).
+     *
+     * **Suspend, i to nie przypadek.** Wątek czyta kontakt z bazy po kluczu
+     * telefonu; gdyby ekran otworzył się przed zapisem, zastałby pusty ekran z
+     * kręcącym się kółkiem i niczym więcej — nazwa i adres są w `PhoneContact`,
+     * który żyje tylko w pamięci. Wpis powstaje więc w momencie wejścia, nie przy
+     * synchronizacji książki: czytanie całej książki do bazy po to, żeby ktoś
+     * *może* kiedyś napisał do jednej osoby, byłoby nadużyciem zaufania.
+     */
+    suspend fun rememberExternal(contact: PhoneContact) = externalThreads.remember(contact)
 }

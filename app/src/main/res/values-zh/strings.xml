@@ -274,4 +274,12 @@
     <string name="profile_phone_unverified">未验证，别人无法通过号码找到你。</string>
     <string name="profile_phone_action">验证号码</string>
     <string name="contacts_invite_saved">已邀请</string>
+    <string name="external_one_way_notice">这是单向会话。Verbigem 翻译后把消息交给其他应用——这里不会收到回复。</string>
+    <string name="external_target_lang">翻译成的语言</string>
+    <string name="external_pick_lang_first">请先选择上面的语言。</string>
+    <string name="external_history_empty">还没有发送过内容。你在这里写的内容只留在这部手机上。</string>
+    <string name="external_composer_hint">用你的语言写……</string>
+    <string name="external_will_send">将要从你手机发出去的内容：</string>
+    <string name="external_translate">翻译</string>
+    <string name="external_sent_via">通过 %1$s 发送</string>
 </resources>

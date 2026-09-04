@@ -274,4 +274,12 @@
     <string name="profile_phone_unverified">Nicht bestätigt - niemand kann dich über die Nummer finden.</string>
     <string name="profile_phone_action">Nummer bestätigen</string>
     <string name="contacts_invite_saved">Eingeladen</string>
+    <string name="external_one_way_notice">Dies ist ein Ein-Weg-Verlauf. Verbigem übersetzt und übergibt die Nachricht an eine andere App — hier kommt nichts zurück.</string>
+    <string name="external_target_lang">Sprache, in die wir übersetzen</string>
+    <string name="external_pick_lang_first">Wähle zuerst oben die Sprache.</string>
+    <string name="external_history_empty">Noch nichts gesendet. Was du hier schreibst, bleibt auf diesem Telefon.</string>
+    <string name="external_composer_hint">Schreib in deiner Sprache…</string>
+    <string name="external_will_send">Das verlässt dein Telefon:</string>
+    <string name="external_translate">Übersetzen</string>
+    <string name="external_sent_via">Gesendet über %1$s</string>
 </resources>

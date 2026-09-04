@@ -879,12 +879,53 @@ na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi
 ale `t.me/share/url` **tak**, i to z jednoczesnym podaniem linku — czyli
 dokładnie tym, czego potrzebuje zaproszenie. Odpada snackbar „skopiowaliśmy".
 
-`OutboundTarget` to lekki nośnik na czas lotu, **nie** encja `external_contacts`
-z 3.6 — kiedy powstanie tabela w Room, dostanie `toTarget()`. Robienie z tego
-encji teraz byłoby zgadywaniem kształtu czegoś, czego jeszcze nie zapisujemy.
+`OutboundTarget` to lekki nośnik na czas lotu. W 3.6 dostał dwa źródła:
+`OutboundTarget.from(PhoneContact)` (przy zapraszaniu) i
+`ExternalThreadRepository.targetFor(ExternalContactEntity)` (przy wątku
+jednokierunkowym). Sam nie jest encją Room — ale obie encje, z których powstaje,
+już są.
 
 Dostępność liczy się per odbiorca: „SMS" znika, gdy wpis nie ma numeru,
 „E-mail", gdy nie ma adresu albo nikt na telefonie nie ma klienta poczty.
+
+### Wątek jednokierunkowy (3.6) — pisanie do kogoś bez Verbigema
+
+Ktoś z książki, kto nie ma konta, dostaje własny ekran przypominający czat
+(`ExternalThreadScreen`). Przypomina, ale **nim nie jest**: nie ma strony
+przychodzącej, a transparent na górze mówi to wprost — Verbigem tłumaczy i
+przekazuje, nic nie wraca.
+
+Wszystko trzymane jest lokalnie w Room (`version = 8`, migracja `7_8`):
+
+| Tabela | Klucz | Co trzyma |
+|---|---|---|
+| `external_contacts` | `phone` (luźna forma z książki) | nazwa, e164, e-mail, `lang`, `lastUsedAt` |
+| `external_outbox` | auto-id | `phone`, `channel`, `originalText`, `translatedText`, `lang`, `createdAt` |
+
+Decyzje, których nie wolno zmienić niechcący:
+
+- **Nazwa kanału w historii to `id`, nie tekst.** `whatsapp` / `sms` / `email` /
+  `telegram` / `system` — etykieta jest tłumaczona, więc po zmianie języka stare
+  wiersze by się nie czytały. `OutboundChannels.labelResFor(id)` rozwiązuje id na
+  dzisiejszy język dopiero przy wyświetlaniu.
+- **`status` w outbox to zawsze `handed_off`.** Zapisujemy wiersz **po** sukcesie
+  `channel.handOff`, nigdy przed — wiersz to roszczenie, że coś wyszło z telefonu.
+  Nieudany hand-off zostaje poza historią, bo to jedyna rzecz, do której ta tabela
+  ma być uczciwa.
+- **Język docelowy wybiera się ręcznie.** Zewnętrzny kontakt nie ma profilu, więc
+  nie ma skąd go wyczytać. `LangCode.fromCode` wraca do PL przy pustym kodzie, więc
+  ekran jawnie blokuje tłumaczenie, póki `lang` jest puste (`external_pick_lang_first`)
+  — cicho przetłumaczone w złym języku i wysłane to jedyny błąd, którego nie da się
+  cofnąć (SMS-u nie odwołasz).
+- **Wejście do wątku zapisuje kontakt w Room.** `ContactsViewModel.rememberExternal`
+  to `suspend` wywoływane przed nawigacją — wątek czyta kontakt po kluczu telefonu
+  i zastałby pusty ekran, gdybyśmy otworzyli ekran, zanim wpis powstanie.
+- **Telefon w trasie jest kodowany** (`Uri.encode` przy tworzeniu, `Uri.decode`
+  przy odczycie). `+` w surowym segmencie ścieżki zachowuje się różnie między
+  wersjami Androida; dekodowanie idempotyczne na już zdekodowanym ciągu jest
+  bezpieczne w obie strony.
+- **Historia jest przycinana** do 90 dni (`pruneHistory`), bo to log rzeczy już
+  wysłanych — nic do archiwizacji.
 
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 

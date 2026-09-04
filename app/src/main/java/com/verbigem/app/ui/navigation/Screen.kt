@@ -19,6 +19,21 @@ sealed class Screen(val route: String) {
     data object Contacts : Screen("contacts")
 
     /**
+     * One-way thread with somebody from the address book who has no Verbigem
+     * account (3.6).
+     *
+     * Keyed by `phone`, not by uid — there is no account on the other side, so
+     * there is no uid to key by. The phone is the loose address-book form, because
+     * that is what the importer carries and what Room is keyed by.
+     *
+     * Encoded on the way in: a `+` or a space in a raw path segment is the kind of
+     * thing that works on one Android version and breaks on another.
+     */
+    data object ExternalThread : Screen("external/{phone}") {
+        fun createRoute(phone: String) = "external/${android.net.Uri.encode(phone)}"
+    }
+
+    /**
      * Phone verification (task 2.6). Reached automatically the first time the user
      * opens Chat or Contacts without a verified number, and by hand from Profile.
      */

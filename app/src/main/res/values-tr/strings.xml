@@ -274,4 +274,12 @@
     <string name="profile_phone_unverified">Doğrulanmadı, kimse seni numarayla bulamaz.</string>
     <string name="profile_phone_action">Numarayı doğrula</string>
     <string name="contacts_invite_saved">Davet edildi</string>
+    <string name="external_one_way_notice">Bu tek yönlü bir sohbet. Verbigem çevirir ve mesajı başka bir uygulamaya devreder — buraya bir yanıt gelmez.</string>
+    <string name="external_target_lang">Çevrilecek dil</string>
+    <string name="external_pick_lang_first">Önce yukarıdaki dili seç.</string>
+    <string name="external_history_empty">Henüz bir şey gönderilmedi. Buraya yazdıkların bu telefonda kalır.</string>
+    <string name="external_composer_hint">Kendi dilinde yaz…</string>
+    <string name="external_will_send">Telefonundan çıkacak olan:</string>
+    <string name="external_translate">Çevir</string>
+    <string name="external_sent_via">%1$s ile gönderildi</string>
 </resources>

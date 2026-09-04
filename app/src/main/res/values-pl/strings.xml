@@ -281,4 +281,12 @@
     <string name="profile_phone_unverified">Niepotwierdzony - nikt nie znajdzie Cię po numerze.</string>
     <string name="profile_phone_action">Potwierdź numer</string>
     <string name="contacts_invite_saved">Zaproszony</string>
+    <string name="external_one_way_notice">To wątek jednokierunkowy. Verbigem tłumaczy i przekazuje wiadomość innej aplikacji — odpowiedź tu nie wróci.</string>
+    <string name="external_target_lang">Język, na który tłumaczymy</string>
+    <string name="external_pick_lang_first">Najpierw wybierz język powyżej.</string>
+    <string name="external_history_empty">Nic jeszcze nie wysłaliśmy. To, co tu napiszesz, zostaje na tym telefonie.</string>
+    <string name="external_composer_hint">Napisz w swoim języku…</string>
+    <string name="external_will_send">To właśnie wyjdzie z telefonu:</string>
+    <string name="external_translate">Przetłumacz</string>
+    <string name="external_sent_via">Wysłane przez %1$s</string>
 </resources>

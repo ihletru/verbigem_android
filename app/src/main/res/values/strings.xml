@@ -281,4 +281,12 @@
     <string name="profile_phone_unverified">Not confirmed - nobody can find you by number.</string>
     <string name="profile_phone_action">Confirm number</string>
     <string name="contacts_invite_saved">Invited</string>
+    <string name="external_one_way_notice">This is a one-way thread. Verbigem translates and hands the message to another app — nothing comes back here.</string>
+    <string name="external_target_lang">Language we translate into</string>
+    <string name="external_pick_lang_first">Choose the language above first.</string>
+    <string name="external_history_empty">Nothing sent yet. What you write here stays on this phone.</string>
+    <string name="external_composer_hint">Write in your own language…</string>
+    <string name="external_will_send">This is what will leave your phone:</string>
+    <string name="external_translate">Translate</string>
+    <string name="external_sent_via">Sent via %1$s</string>
 </resources>

@@ -274,4 +274,12 @@
     <string name="profile_phone_unverified">Sin confirmar: nadie podrá encontrarte por tu número.</string>
     <string name="profile_phone_action">Confirmar número</string>
     <string name="contacts_invite_saved">Invitado</string>
+    <string name="external_one_way_notice">Este es un hilo de un solo sentido. Verbigem traduce y pasa el mensaje a otra aplicación — aquí no vuelve nada.</string>
+    <string name="external_target_lang">Idioma al que traducimos</string>
+    <string name="external_pick_lang_first">Elige primero el idioma de arriba.</string>
+    <string name="external_history_empty">Todavía no se ha enviado nada. Lo que escribas aquí se queda en este teléfono.</string>
+    <string name="external_composer_hint">Escribe en tu idioma…</string>
+    <string name="external_will_send">Esto es lo que saldrá de tu teléfono:</string>
+    <string name="external_translate">Traducir</string>
+    <string name="external_sent_via">Enviado por %1$s</string>
 </resources>

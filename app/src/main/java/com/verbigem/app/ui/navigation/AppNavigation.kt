@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import android.net.Uri
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,6 +42,8 @@ import com.verbigem.app.ui.screens.chat.ContactCardScreen
 import com.verbigem.app.ui.screens.chat.ContactCardViewModel
 import com.verbigem.app.ui.screens.contacts.ContactsScreen
 import com.verbigem.app.ui.screens.contacts.ContactsViewModel
+import com.verbigem.app.ui.screens.contacts.ExternalThreadScreen
+import com.verbigem.app.ui.screens.contacts.ExternalThreadViewModel
 import com.verbigem.app.ui.screens.conversation.ConversationScreen
 import com.verbigem.app.ui.screens.conversation.ConversationViewModel
 import com.verbigem.app.ui.screens.ocr.OcrScreen
@@ -249,7 +252,27 @@ fun AppNavigation(
                         },
                         onOpenContactCard = { targetUid ->
                             navController.navigate(Screen.ContactCard.createRoute(targetUid))
+                        },
+                        onOpenExternalThread = { phone ->
+                            navController.navigate(Screen.ExternalThread.createRoute(phone))
                         }
+                    )
+                }
+
+                composable(
+                    route = Screen.ExternalThread.route,
+                    arguments = listOf(navArgument("phone") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val rawPhone = backStackEntry.arguments?.getString("phone").orEmpty()
+                    // Trasa koduje numer, my dekodujemy tutaj. Navigation dekoduje
+                    // argumenty ścieżki sama, ale `Uri.decode` na już odkodowanym
+                    // ciągu nic nie zmienia — ta linia jest bezpieczna w obie strony.
+                    val phone = Uri.decode(rawPhone)
+                    val externalViewModel: ExternalThreadViewModel = viewModel()
+                    ExternalThreadScreen(
+                        phone = phone,
+                        viewModel = externalViewModel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 

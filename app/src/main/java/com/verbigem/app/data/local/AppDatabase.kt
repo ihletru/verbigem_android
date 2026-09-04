@@ -18,9 +18,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ChatOutboxEntity::class,
         ChatReadEntity::class,
         ChatDeletedEntity::class,
-        ChatHiddenEntity::class
+        ChatHiddenEntity::class,
+        ExternalContactEntity::class,
+        ExternalOutboxEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,6 +35,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chatReadDao(): ChatReadDao
     abstract fun chatDeletedDao(): ChatDeletedDao
     abstract fun chatHiddenDao(): ChatHiddenDao
+    abstract fun externalContactDao(): ExternalContactDao
+    abstract fun externalOutboxDao(): ExternalOutboxDao
 
     companion object {
         @Volatile
@@ -191,6 +195,46 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v7 -> v8: contacts who do NOT have Verbigem, and what we sent them (3.6).
+        //   external_contacts — an address-book person kept on the device, with the
+        //                       language we translate to for them. Local-only: there is
+        //                       no "other side" to sync with.
+        //   external_outbox   — history of hand-offs to WhatsApp/SMS/e-mail/Telegram.
+        //                       `status` is always 'handed_off' on purpose: once a
+        //                       message leaves for another app we cannot know whether
+        //                       it was sent, and a column that could only ever hold one
+        //                       value states that in the schema instead of hiding it.
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS external_contacts (" +
+                        "phone TEXT NOT NULL, " +
+                        "name TEXT NOT NULL DEFAULT '', " +
+                        "e164 TEXT NOT NULL DEFAULT '', " +
+                        "email TEXT NOT NULL DEFAULT '', " +
+                        "lang TEXT NOT NULL DEFAULT '', " +
+                        "createdAt INTEGER NOT NULL DEFAULT 0, " +
+                        "lastUsedAt INTEGER NOT NULL DEFAULT 0, " +
+                        "PRIMARY KEY(phone))"
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS external_outbox (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "phone TEXT NOT NULL DEFAULT '', " +
+                        "channel TEXT NOT NULL DEFAULT '', " +
+                        "originalText TEXT NOT NULL DEFAULT '', " +
+                        "translatedText TEXT NOT NULL DEFAULT '', " +
+                        "lang TEXT NOT NULL DEFAULT '', " +
+                        "createdAt INTEGER NOT NULL DEFAULT 0, " +
+                        "status TEXT NOT NULL DEFAULT 'handed_off')"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_external_outbox_phone " +
+                        "ON external_outbox (phone)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -203,7 +247,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_3_4,
                     MIGRATION_4_5,
                     MIGRATION_5_6,
-                    MIGRATION_6_7
+                    MIGRATION_6_7,
+                    MIGRATION_7_8
                 ).build().also { instance = it }
             }
         }
