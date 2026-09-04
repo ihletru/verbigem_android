@@ -11,6 +11,7 @@ import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
+import com.verbigem.app.data.repository.ContactInviteStatus
 import com.verbigem.app.data.repository.ContactMatch
 import com.verbigem.app.data.repository.ContactMatchException
 import com.verbigem.app.data.repository.ContactMatchFailure
@@ -77,6 +78,10 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     /** Komunikat do pokazania, gdy dopasowanie się nie udało. Null = wszystko OK. */
     private val _matchFailure = MutableStateFlow<ContactMatchFailure?>(null)
     val matchFailure: StateFlow<ContactMatchFailure?> = _matchFailure.asStateFlow()
+
+    /** Numery, dla których zapisaliśmy już zaproszenie w tym uruchomieniu ekranu. */
+    private val _invitedPhones = MutableStateFlow<Set<String>>(emptySet())
+    val invitedPhones: StateFlow<Set<String>> = _invitedPhones.asStateFlow()
 
     private val contactMatchRepository = ContactMatchRepository()
 
@@ -268,4 +273,37 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     /** Czy ten numer ma już konto w Verbigem. */
     fun matchFor(phone: String): ContactMatch? =
         _phoneMatches.value[PhoneContactsImporter.normalize(phone)]
+
+    /**
+     * Zapisuje zaproszenie dla jednego kontaktu z książki.
+     *
+     * Numer wysyłamy wyłącznie jako skrót — patrz `ContactMatchRepository`. Jeśli
+     * osoba zdążyła w międzyczasie założyć konto, funkcja od razu tworzy zaproszenie
+     * do znajomych zamiast zostawiać zaproszenie, którego nikt już nie rozwiąże.
+     *
+     * Ekran i tak otwiera potem arkusz udostępniania: link i zaproszenie pod numer
+     * to dwa różne sposoby na ten sam cel, a każdy z osobna jest niepełny.
+     */
+    fun inviteContact(contact: PhoneContact) {
+        viewModelScope.launch {
+            _matchFailure.value = null
+            try {
+                val status = contactMatchRepository.invite(contact)
+                if (status != ContactInviteStatus.NOOP) {
+                    _invitedPhones.value = _invitedPhones.value + contact.phone
+                }
+                if (status == ContactInviteStatus.FRIEND_REQUESTED) {
+                    // Konto istniało — odśwież matching, żeby wiersz pokazał „Napisz".
+                    matchPhoneContacts(_phoneContacts.value)
+                }
+            } catch (e: ContactMatchException) {
+                Log.w("ContactsViewModel", "Inviting a contact failed: ${e.reason}")
+                _matchFailure.value = e.reason
+            }
+        }
+    }
+
+    /** Czy zaproszenie dla tego numeru zostało już zapisane. */
+    fun isInvited(phone: String): Boolean =
+        _invitedPhones.value.contains(PhoneContactsImporter.normalize(phone))
 }

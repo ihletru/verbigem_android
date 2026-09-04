@@ -237,4 +237,28 @@
     <string name="contacts_match_error">Kişiler şu anda kontrol edilemedi.</string>
     <string name="contacts_match_rate_limited">Çok fazla deneme. Biraz sonra tekrar dene.</string>
     <string name="contacts_match_unauthenticated">Kişileri kontrol etmek için giriş yap.</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">Numaranı doğrula</string>
+    <string name="phone_verify_code_title">Kodu gir</string>
+    <string name="phone_verify_intro">Numaranı kaydetmiş olan arkadaşların seni burada bulabilecek. Numaranın kendisi bu telefondan çıkmaz, yalnızca ondan üretilen tek yönlü bir kod gönderilir.</string>
+    <string name="phone_verify_country">Algılanan ülke: %1$s</string>
+    <string name="phone_verify_hint">+90 532 123 45 67</string>
+    <string name="phone_verify_send">SMS ile kod gönder</string>
+    <string name="phone_verify_code_sent">%1$s numarasına SMS gönderdik</string>
+    <string name="phone_verify_code_hint">SMS\'teki kod</string>
+    <string name="phone_verify_confirm">Onayla</string>
+    <string name="phone_verify_resend">Tekrar gönder</string>
+    <string name="phone_verify_skip">Şimdi değil</string>
+    <string name="phone_verify_done">Numara doğrulandı</string>
+    <string name="phone_verify_done_body">Artık numaranı rehberinde kayıtlı tutan arkadaşların seni Verbigem\'de görebilir.</string>
+    <string name="phone_verify_close">Kapat</string>
+    <string name="phone_verify_error_bad_number">Bu numarayı okuyamadım. Ülke koduyla birlikte yaz, örn. +90 532 123 45 67.</string>
+    <string name="phone_verify_error_send">Şu anda yapılamadı. %1$s</string>
+    <string name="phone_verify_error_code">Bu, gönderdiğimiz koda benzemiyor.</string>
+    <string name="profile_phone_title">Telefon numarası</string>
+    <string name="profile_phone_verified">Doğrulandı, numaranı kaydetmiş olanlar seni bulabilir.</string>
+    <string name="profile_phone_unverified">Doğrulanmadı, kimse seni numarayla bulamaz.</string>
+    <string name="profile_phone_action">Numarayı doğrula</string>
+    <string name="contacts_invite_saved">Davet edildi</string>
 </resources>

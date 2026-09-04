@@ -25,7 +25,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.data.repository.PhoneVerificationRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.ui.components.BottomNav
 import com.verbigem.app.ui.screens.auth.AuthViewModel
@@ -42,6 +45,8 @@ import com.verbigem.app.ui.screens.conversation.ConversationScreen
 import com.verbigem.app.ui.screens.conversation.ConversationViewModel
 import com.verbigem.app.ui.screens.ocr.OcrScreen
 import com.verbigem.app.ui.screens.ocr.OcrViewModel
+import com.verbigem.app.ui.screens.phone.PhoneVerificationScreen
+import com.verbigem.app.ui.screens.phone.PhoneVerificationViewModel
 import com.verbigem.app.ui.screens.profile.ProfileScreen
 import com.verbigem.app.ui.screens.profile.ProfileViewModel
 import com.verbigem.app.ui.screens.translator.TranslatorScreen
@@ -84,6 +89,37 @@ fun AppNavigation(
     // FirebaseAuth restores the session asynchronously, so on a cold start from a
     // notification `currentUser` is often still null at first composition. Waiting for
     // it beats navigating to a thread the app would immediately consider signed-out.
+
+    // ── Phone verification gate (task 2.6) ────────────────────────────────────
+    //
+    // Shown the first time the user reaches Chat or Contacts without a verified
+    // number. Nowhere else: the Translator is the app's main job, and nagging on
+    // startup is the fastest way to get "Skip" tapped without reading.
+    //
+    // `initial = true` is deliberate — the listener needs a round trip, and showing
+    // the gate for the split second before it answers would flash a screen most users
+    // have already completed.
+    //
+    // `LocalContext.current` is read OUTSIDE `remember`: a `remember` lambda is not a
+    // composable scope, so calling it there does not compile.
+    val context = LocalContext.current
+    val phoneRepository = remember { PhoneVerificationRepository() }
+    val uid = authRepository.currentUser?.uid
+    val phoneVerified by remember(uid) {
+        if (uid == null) flowOf(true) else phoneRepository.watchPhoneVerified(uid)
+    }.collectAsState(initial = true)
+
+    val preferences = remember(context) { PreferencesManager(context.applicationContext) }
+    // A long, not a boolean: "skip" is permanent today, but a timestamp leaves room
+    // for "ask again next month" without a migration.
+    val phoneGateSkippedAt by preferences.phoneGateSkippedAtFlow.collectAsState(initial = 0L)
+
+    LaunchedEffect(currentRoute, phoneVerified, phoneGateSkippedAt) {
+        if (currentRoute !in listOf(Screen.Chat.route, Screen.Contacts.route)) return@LaunchedEffect
+        if (phoneVerified || phoneGateSkippedAt != 0L) return@LaunchedEffect
+        navController.navigate(Screen.PhoneVerification.route) { launchSingleTop = true }
+    }
+
     LaunchedEffect(openChatUid) {
         val targetUid = openChatUid?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         var user = authRepository.currentUser
@@ -217,6 +253,18 @@ fun AppNavigation(
                     )
                 }
 
+                composable(Screen.PhoneVerification.route) {
+                    val phoneViewModel: PhoneVerificationViewModel = viewModel()
+                    PhoneVerificationScreen(
+                        viewModel = phoneViewModel,
+                        // Either way we leave the same way: back to wherever the gate
+                        // interrupted. Verified or skipped, the gate has done its job
+                        // and must not come back on the next recomposition.
+                        onDone = { navController.popBackStack() },
+                        onSkip = { navController.popBackStack() }
+                    )
+                }
+
                 composable(Screen.Ocr.route) {
                     val ocrViewModel: OcrViewModel = viewModel()
                     LaunchedEffect(isPro) {
@@ -233,6 +281,11 @@ fun AppNavigation(
                         onLogout = {
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        onOpenPhoneVerification = {
+                            navController.navigate(Screen.PhoneVerification.route) {
+                                launchSingleTop = true
                             }
                         }
                     )

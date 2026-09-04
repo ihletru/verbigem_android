@@ -237,4 +237,28 @@
     <string name="contacts_match_error">Kontakte konnten gerade nicht geprüft werden.</string>
     <string name="contacts_match_rate_limited">Zu viele Prüfungen auf einmal. Versuch es später noch einmal.</string>
     <string name="contacts_match_unauthenticated">Melde dich an, um die Kontakte zu prüfen.</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">Nummer bestätigen</string>
+    <string name="phone_verify_code_title">Code eingeben</string>
+    <string name="phone_verify_intro">Freunde, die deine Nummer schon haben, finden dich hier. Die Nummer selbst verlässt dieses Handy nicht - wir senden nur einen Einweg-Code, der daraus berechnet wird.</string>
+    <string name="phone_verify_country">Erkanntes Land: %1$s</string>
+    <string name="phone_verify_hint">+49 151 12345678</string>
+    <string name="phone_verify_send">Code per SMS senden</string>
+    <string name="phone_verify_code_sent">SMS gesendet an %1$s</string>
+    <string name="phone_verify_code_hint">Code aus der SMS</string>
+    <string name="phone_verify_confirm">Bestätigen</string>
+    <string name="phone_verify_resend">Erneut senden</string>
+    <string name="phone_verify_skip">Später</string>
+    <string name="phone_verify_done">Nummer bestätigt</string>
+    <string name="phone_verify_done_body">Ab jetzt sehen dich Freunde, die deine Nummer im Telefonbuch haben, in Verbigem.</string>
+    <string name="phone_verify_close">Schließen</string>
+    <string name="phone_verify_error_bad_number">Diese Nummer verstehe ich nicht. Bitte mit Landesvorwahl, z. B. +49 151 12345678.</string>
+    <string name="phone_verify_error_send">Das hat gerade nicht geklappt. %1$s</string>
+    <string name="phone_verify_error_code">Das sieht nicht nach dem Code aus, den wir gesendet haben.</string>
+    <string name="profile_phone_title">Telefonnummer</string>
+    <string name="profile_phone_verified">Bestätigt - wer deine Nummer hat, kann dich finden.</string>
+    <string name="profile_phone_unverified">Nicht bestätigt - niemand kann dich über die Nummer finden.</string>
+    <string name="profile_phone_action">Nummer bestätigen</string>
+    <string name="contacts_invite_saved">Eingeladen</string>
 </resources>

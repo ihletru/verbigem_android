@@ -51,9 +51,11 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onOpenPhoneVerification: () -> Unit
 ) {
     val profile by viewModel.userProfile.collectAsState()
+    val phoneVerified by viewModel.phoneVerified.collectAsState()
     val nicknameInput by viewModel.nicknameInput.collectAsState()
     val currentTheme by viewModel.currentTheme.collectAsState(initial = "calm")
     val currentMode by viewModel.currentMode.collectAsState(initial = "day")
@@ -188,6 +190,41 @@ fun ProfileScreen(
                         color = VerbigemTheme.colors.success,
                         modifier = Modifier.padding(top = 4.dp)
                     )
+                }
+            }
+        }
+
+        // Numer telefonu.
+        // To jest jedyna droga powrotna po „Pomiń" na bramce weryfikacji — czat
+        // działa bez numeru, więc bez tego wpisu pominięcie byłoby nieodwracalne.
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.profile_phone_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(
+                        if (phoneVerified) R.string.profile_phone_verified
+                        else R.string.profile_phone_unverified
+                    ),
+                    fontSize = 14.sp,
+                    color = if (phoneVerified) VerbigemTheme.colors.success else VerbigemTheme.colors.ink
+                )
+                if (!phoneVerified) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = onOpenPhoneVerification,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                    ) {
+                        Text(stringResource(R.string.profile_phone_action), fontSize = 13.sp)
+                    }
                 }
             }
         }

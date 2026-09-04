@@ -237,4 +237,28 @@
     <string name="contacts_match_error">暂时无法检查你的联系人。</string>
     <string name="contacts_match_rate_limited">检查过于频繁，请稍后再试。</string>
     <string name="contacts_match_unauthenticated">登录后才能检查联系人。</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">验证你的手机号</string>
+    <string name="phone_verify_code_title">输入验证码</string>
+    <string name="phone_verify_intro">已经存了你号码的朋友就能在这里找到你。号码本身不会离开这部手机，我们只发送由它生成的单向验证码。</string>
+    <string name="phone_verify_country">识别到的国家/地区：%1$s</string>
+    <string name="phone_verify_hint">+86 138 0013 8000</string>
+    <string name="phone_verify_send">发送短信验证码</string>
+    <string name="phone_verify_code_sent">验证码已发送至 %1$s</string>
+    <string name="phone_verify_code_hint">短信中的验证码</string>
+    <string name="phone_verify_confirm">确认</string>
+    <string name="phone_verify_resend">重新发送</string>
+    <string name="phone_verify_skip">暂不验证</string>
+    <string name="phone_verify_done">号码已验证</string>
+    <string name="phone_verify_done_body">从现在起，通讯录里存有你号码的朋友就能在 Verbigem 中看到你。</string>
+    <string name="phone_verify_close">关闭</string>
+    <string name="phone_verify_error_bad_number">无法识别这个号码。请带上国家/地区代码，例如 +86 138 0013 8000。</string>
+    <string name="phone_verify_error_send">刚才未能完成。%1$s</string>
+    <string name="phone_verify_error_code">这看起来不像我们发送的验证码。</string>
+    <string name="profile_phone_title">手机号码</string>
+    <string name="profile_phone_verified">已验证，存有你号码的人可以找到你。</string>
+    <string name="profile_phone_unverified">未验证，别人无法通过号码找到你。</string>
+    <string name="profile_phone_action">验证号码</string>
+    <string name="contacts_invite_saved">已邀请</string>
 </resources>

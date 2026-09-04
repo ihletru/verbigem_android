@@ -50,9 +50,11 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | `a4e65d5` |
 | 2.2 | Secret Manager + App Check | ✅ **zrobione** (pepper ustawiony; App Check per wariant, egzekucja odroczona) | — | *w toku* |
 | 2.3 | `matchContacts` (HMAC, whereIn po 30, rate limit) | 🟡 **wdrożone** (działa od 2.6 — katalog pusty) | 27 | *w toku* |
+| 2.4 | `inviteByPhone` + `verifyPhone` + `onPhoneVerified` | 🟡 **kod gotowy** (czeka na deploy) | 27 | *w toku* |
 | 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **wdrożone na produkcję** (test push u Milosza został) | 27 | `a4e65d5` |
+| 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (wymaga wpisania SHA w konsoli Firebase) | 27 | *w toku* |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
-| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1/2.2/2.3/2.5/2.7 zrobione; **2.4 i 2.6 nie zaczęte**) | — | — |
+| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1/2.2/2.3/2.5/2.7 zrobione; **2.4 i 2.6 czekają na deploy**) | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
@@ -92,6 +94,82 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
 - **1.16** ⬜ test na telefonie (karta kontaktu) — **zostaje dla Milosza**.
 - **1.17** ⬜ test na telefonie (push FCM) — **zostaje dla Milosza** (patrz faza 2 niżej).
+- **1.18** ⬜ test na telefonie (weryfikacja numeru 2.6) — **zostaje dla Milosza**,
+  ale **najpierw trzeba wpisać SHA w konsoli Firebase** (blok niżej).
+
+**Co zrobione w sesji 2026-09-04, wieczorem (faza 2 — 2.4 i 2.6):**
+
+- **2.4** 🟡 **Trzy nowe funkcje w `functions/src/invites.ts`:**
+  - `verifyPhone` (callable, **bez argumentów**) — numer bierze z
+    `request.auth.token.phone_number`, czyli z tokena który Firebase wystawia po
+    Phone Auth. **Nie ma parametru do sfałszowania.** Zapisuje na `users/{uid}`
+    `phoneVerified` + `phoneHash` + `phoneVerifiedAt` — i ani jednego numeru.
+  - `inviteByPhone(hashes)` — zapisuje `invites/{hmac}_{fromUid}`.
+    **Identyfikator zawiera `fromUid`**, inaczej druga osoba zapraszająca ten sam
+    numer nadpisałaby pierwszą (plan mówił `invites/{hmac}` — to była usterka
+    projektowa, poprawiona). Jeśli numer ma już konto, zamiast zaproszenia od razu
+    powstaje zaproszenie do znajomych — wiszące zaproszenie nie zostałoby nigdy
+    rozwiązane, bo trigger reaguje tylko na **zmianę** numeru.
+  - `onPhoneVerified` (trigger `onDocumentWritten` na `users/{uid}`) — uzgadnia
+    `phoneDirectory` (dopisuje nowy HMAC, usuwa stary przy zmianie numeru) i
+    rozwiązuje czekające zaproszenia na znajomości. **Trigger, nie część
+    `verifyPhone`:** `phoneDirectory` to dane pochodne, a dane pochodne powinny
+    podążać za źródłem prawdy, nie za tym, który wywołujący akurat pamiętał.
+    Pierwsza instrukcja to wczesne wyjście — dokument `users/{uid}` zmienia się
+    przy każdej edycji profilu.
+  - Znajomość tworzona jest **dokładnie** tak jak w `ChatRepository`
+    (`{uidA}__{uidB}`, `uidA` = mniejszy leksykograficznie, `members`, `status:
+    pending`, `requestedBy`, `nicknameA/B`), w transakcji — żeby wyścig dwóch
+    zaproszeń nie wskrzesił odrzuconego.
+  - Wspólne moduły: `phoneHash.ts` (SHA-256 / HMAC / E.164), `directory.ts`
+    (`lookupDirectory`, `lookupProfiles`), `rateLimit.ts` (wspólne okno dla
+    `matchContacts` i `inviteByPhone`), `secrets.ts`.
+
+- **2.6** 🟡 **Weryfikacja numeru w aplikacji:**
+  - `PhoneVerificationRepository` — Phone Auth → `linkWithCredential` na istniejącym
+    koncie → `getIdToken(true)` → `verifyPhone`.
+    **☠️ KLUCZOWE: `requireSmsValidation(true)`** w `PhoneAuthOptions`. Bez tego
+    Firebase potrafi zweryfikować numer w locie albo przechwycić SMS-a i
+    **samodzielnie zalogować użytkownika** — czyli wylogować go z dotychczasowego
+    konta i wstawić nowe, oparte tylko na numerze. Opcja istnieje w
+    `firebase-auth` 23.0.0 (sprawdzone `javap`iem w AAR).
+    **`getIdToken(true)` też jest obowiązkowy** — dotychczasowy token powstał
+    przed dodaniem numeru i nadal twierdzi, że go nie ma.
+  - `PhoneVerificationScreen` + ViewModel: numer → SMS → kod, „Nie teraz".
+    Bramka w `AppNavigation`: przy pierwszym wejściu w **Czat albo Kontakty**,
+    nigdzie indziej (tłumacz to główna robota aplikacji — nagabywanie na starcie to
+    najszybsza droga do kliknięcia „Pomiń" bez czytania).
+  - **„Pomiń" jest trwałe**, więc droga powrotna musiała powstać: Profil →
+    „Numer telefonu" → „Potwierdź numer". Bez tego wpisu pominięcie byłoby
+    nieodwracalne.
+  - Stringi × 6 (22 nowe klucze).
+
+**☠️ WYMAGANE PRZED TESTEM 2.6 — odciski SHA w konsoli Firebase.**
+Phone Auth nie zadziała, dopóki certyfikat podpisu nie będzie zarejestrowany:
+Firebase Console → Project settings (koło zębate) → Your apps → aplikacja Android →
+**Add fingerprint**. Dla debugowego keystore'a (`C:\Users\milo\.android\debug.keystore`):
+
+```
+SHA1:   EC:9D:EB:58:CD:F2:48:3A:7E:FE:2B:73:C2:C7:90:1B:9D:6D:3C:CC
+SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:90:98:8D:CA:AD:EC:CA:94
+```
+
+Trzeba wpisać **oba**, potem pobrać nowy `google-services.json` i podmienić go
+w `app/`. Przy pierwszym wydaniu na Play to samo trzeba powtórzyć dla certyfikatu
+wydania.
+
+**⚠️ Normalizacja E.164 — zmieniona, i był to ostatni moment.**
+Poprzednia uwaga („2.6 musi użyć tej samej lekkiej normalizacji") była błędnym
+kierunkiem: lekka normalizacja nie potrafi rozwinąć `0981 123 456` do
+`+595981123456`, więc w Paragwaju matching nie znalazłby **nikogo**. Nowy
+`PhoneNumbers.kt` używa `android.telephony.PhoneNumberUtils.formatNumberToE164`
+(biblioteka libphonenumber jest w systemie, bez nowej zależności) z domyślnym
+krajem z karty SIM, a w razie braku — z locale urządzenia. Kraj zgadujemy, więc
+`e164Candidates` zwraca **listę** możliwych postaci (zwykle jedną, czasem dwie) i
+aplikacja haszuje każdą. Zmiana była możliwa tylko dlatego, że `phoneDirectory`
+jest nadal pusty — po weryfikacji pierwszych numerów każda zmiana normalizacji
+oznaczałaby przeliczenie całego katalogu.
+Pozostała luka: ekspat z zagraniczną kartą SIM. Zakryje ją libphonenumber (3.x).
 
 **Co zrobione w sesji 2026-09-04, po południu (faza 2 — 2.2, 2.3, 2.7):**
 
@@ -210,6 +288,23 @@ z drugiego konta (aplikacja w tle / ekran zgaszony), sprawdzić powiadomienie,
 akcję „Odpowiedz" (czy wiadomość doszła) i „Oznacz jako przeczytane", oraz
 tap → czy otwiera właściwy wątek. Podgląd treści jest domyślnie WYŁĄCZONY,
 więc na ekranie blokady ma być „Nowa wiadomość", nie treść.
+
+**1.18** ⬜ **test weryfikacji numeru (2.6) — zostaje dla Milosza:**
+0. **Warunek wstępny:** SHA1 + SHA256 debugowego keystore'a wpisane w Firebase
+   Console → Project settings → Your apps → Android → **Add fingerprint**,
+   pobrany nowy `google-services.json` i podmieniony w `app/`. Bez tego SMS
+   w ogóle nie przyjdzie.
+1. Wejść w Czat (albo Kontakty) → bramka ma się pokazać **raz**.
+2. Wpisać swój numer, dostać SMS, wpisać kod → ekran „potwierdzony".
+3. **Sprawdzić, czy nie zostałeś wylogowany** — to najważniejszy punkt tego testu.
+   Jeśli po weryfikacji profil jest pusty albo każe się logować, to znaczy, że
+   `requireSmsValidation(true)` nie zadziałało i Firebase podmieniło konto.
+4. Profil → „Numer telefonu" ma pokazywać „Potwierdzony".
+5. Zaprosić z drugiego konta numer, który **nie ma** konta → w Konsoli powinien
+   pojawić się dokument `invites/{hmac}_{uid}`. Potem zweryfikować ten numer na
+   drugim koncie → w `friendships` ma powstać znajomość `pending`, a dokument
+   z `invites` ma zniknąć.
+6. „Nie teraz" → bramka nie wraca; droga powrotna to Profil → „Potwierdź numer".
 
 **Co zrobione po fazie 1 — 1.13 Karta kontaktu (2026-09-04):**
 

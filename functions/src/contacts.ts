@@ -1,19 +1,12 @@
-import * as admin from "firebase-admin";
-import { defineSecret } from "firebase-functions/params";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions";
-import * as crypto from "crypto";
-
-const db = admin.firestore();
-const phonePepper = defineSecret("PHONE_HASH_PEPPER");
-
-/** Firestore caps `in` queries at 30 values — larger arrays are rejected outright. */
-const FIRESTORE_IN_LIMIT = 30;
+import { directoryId, isSha256Hex } from "./phoneHash";
+import { enforceRateLimit } from "./rateLimit";
+import { phonePepper } from "./secrets";
+import { lookupDirectory, lookupProfiles } from "./directory";
 
 /** A large address book is a few hundred numbers; 1000 leaves headroom. */
 const MAX_HASHES = 1000;
-
-const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 /**
  * Rate limit per user.
@@ -62,7 +55,7 @@ export const matchContacts = onCall(
     }
     const me = request.auth.uid;
 
-    await enforceRateLimit(me);
+    await enforceRateLimit(me, "matchContacts", RATE_LIMIT_CALLS, RATE_LIMIT_WINDOW_MS);
 
     const raw = (request.data as { hashes?: unknown } | undefined)?.hashes;
     if (!Array.isArray(raw)) {
@@ -74,9 +67,7 @@ export const matchContacts = onCall(
 
     // Anything that is not a well-formed SHA-256 hex string is either a client bug
     // or someone probing with raw phone numbers. Drop it rather than echo it back.
-    const hashes = raw.filter(
-      (h): h is string => typeof h === "string" && SHA256_HEX.test(h)
-    );
+    const hashes = raw.filter(isSha256Hex);
     if (hashes.length === 0) return { matches: [] };
 
     const pepper = process.env.PHONE_HASH_PEPPER;
@@ -89,47 +80,19 @@ export const matchContacts = onCall(
     // the contacts it sent without us ever returning a hash.
     const indexByHmac = new Map<string, number>();
     hashes.forEach((hash, index) => {
-      const mac = crypto.createHmac("sha256", pepper).update(hash).digest("hex");
+      const mac = directoryId(hash, pepper);
       if (!indexByHmac.has(mac)) indexByHmac.set(mac, index);
     });
 
-    const hmacs = [...indexByHmac.keys()];
+    const uidByHmac = await lookupDirectory([...indexByHmac.keys()]);
     const uidByIndex = new Map<number, string>();
-
-    for (let i = 0; i < hmacs.length; i += FIRESTORE_IN_LIMIT) {
-      const chunk = hmacs.slice(i, i + FIRESTORE_IN_LIMIT);
-      const snap = await db
-        .collection("phoneDirectory")
-        .where(admin.firestore.FieldPath.documentId(), "in", chunk)
-        .get();
-
-      for (const doc of snap.docs) {
-        const index = indexByHmac.get(doc.id);
-        if (index === undefined) continue;
-        const uid = doc.get("uid");
-        // Never match the caller with themselves.
-        if (typeof uid !== "string" || uid === me) continue;
-        uidByIndex.set(index, uid);
-      }
+    for (const [mac, index] of indexByHmac) {
+      const uid = uidByHmac.get(mac);
+      // Never match the caller with themselves.
+      if (uid && uid !== me) uidByIndex.set(index, uid);
     }
 
-    const uids = [...new Set(uidByIndex.values())];
-    const profiles = new Map<string, { nickname: string; photoURL: string }>();
-
-    for (let i = 0; i < uids.length; i += FIRESTORE_IN_LIMIT) {
-      const chunk = uids.slice(i, i + FIRESTORE_IN_LIMIT);
-      const snap = await db
-        .collection("usersPublic")
-        .where(admin.firestore.FieldPath.documentId(), "in", chunk)
-        .get();
-
-      for (const doc of snap.docs) {
-        profiles.set(doc.id, {
-          nickname: (doc.get("nickname") as string | undefined) ?? "",
-          photoURL: (doc.get("photoURL") as string | undefined) ?? "",
-        });
-      }
-    }
+    const profiles = await lookupProfiles([...new Set(uidByIndex.values())]);
 
     const matches = [...uidByIndex.entries()].map(([index, uid]) => ({
       index,
@@ -141,49 +104,3 @@ export const matchContacts = onCall(
     return { matches };
   }
 );
-
-/**
- * Sliding-window counter kept in `users/{uid}/rateLimits/matchContacts`.
- *
- * A transaction rather than a plain `increment`: two concurrent calls would both
- * read the same count and both let themselves through. The document is writable by
- * the owner under the current rules, which is fine — the worst a client can do is
- * lock itself out for an hour.
- */
-async function enforceRateLimit(uid: string): Promise<void> {
-  const ref = db.doc(`users/${uid}/rateLimits/matchContacts`);
-  const now = Date.now();
-
-  const allowed = await db.runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const windowStart = snap.get("windowStart");
-    const count = snap.get("count");
-
-    const fresh =
-      !snap.exists ||
-      typeof windowStart !== "number" ||
-      now - windowStart >= RATE_LIMIT_WINDOW_MS ||
-      typeof count !== "number";
-
-    // Keep the call that gets rejected out of the counter, otherwise a client
-    // hammering the endpoint would push its own window forward forever.
-    if (!fresh && count >= RATE_LIMIT_CALLS) return false;
-
-    tx.set(
-      ref,
-      fresh
-        ? { windowStart: now, count: 1, updatedAt: now }
-        : { count: count + 1, updatedAt: now },
-      { merge: true }
-    );
-    return true;
-  });
-
-  if (!allowed) {
-    logger.warn("matchContacts rate limited", { uid });
-    throw new HttpsError(
-      "resource-exhausted",
-      "Too many contact lookups. Try again later."
-    );
-  }
-}

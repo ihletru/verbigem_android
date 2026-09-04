@@ -7,16 +7,20 @@ import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.data.repository.PhoneVerificationRepository
 import com.verbigem.app.notifications.FcmTokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val authRepository = AuthRepository()
     private val preferencesManager = PreferencesManager(application)
+    private val phoneVerificationRepository = PhoneVerificationRepository()
 
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
@@ -27,6 +31,16 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     val currentTheme = preferencesManager.themeFlow
     val currentMode = preferencesManager.modeFlow
     val currentUiLang = preferencesManager.uiLangFlow
+
+    /**
+     * Whether this account can be found by people who have its number in their
+     * address book. Read from Firestore rather than from Firebase Auth's provider
+     * list, because "verified" is a fact the Cloud Function records — and it is the
+     * same field the entry screen's gate reads.
+     */
+    val phoneVerified: StateFlow<Boolean> =
+        phoneVerificationRepository.watchPhoneVerified(authRepository.currentUser?.uid.orEmpty())
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         val user = authRepository.currentUser

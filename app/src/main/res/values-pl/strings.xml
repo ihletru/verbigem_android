@@ -244,4 +244,28 @@
     <string name="contacts_match_error">Nie udało się sprawdzić kontaktów.</string>
     <string name="contacts_match_rate_limited">Za dużo sprawdzeń naraz. Spróbuj za chwilę.</string>
     <string name="contacts_match_unauthenticated">Zaloguj się, żeby sprawdzić kontakty.</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">Potwierdź swój numer</string>
+    <string name="phone_verify_code_title">Wpisz kod</string>
+    <string name="phone_verify_intro">Znajomi, którzy mają już Twój numer, odnajdą Cię tutaj. Sam numer nie opuszcza tego telefonu - wysyłamy tylko jednokierunkowy skrót z niego policzony.</string>
+    <string name="phone_verify_country">Wykryty kraj: %1$s</string>
+    <string name="phone_verify_hint">+48 601 234 567</string>
+    <string name="phone_verify_send">Wyślij kod SMS</string>
+    <string name="phone_verify_code_sent">Wysłaliśmy SMS na %1$s</string>
+    <string name="phone_verify_code_hint">Kod z SMS-a</string>
+    <string name="phone_verify_confirm">Potwierdź</string>
+    <string name="phone_verify_resend">Wyślij ponownie</string>
+    <string name="phone_verify_skip">Nie teraz</string>
+    <string name="phone_verify_done">Numer potwierdzony</string>
+    <string name="phone_verify_done_body">Od teraz znajomi, którzy mają Twój numer w książce adresowej, zobaczą Cię w Verbigem.</string>
+    <string name="phone_verify_close">Zamknij</string>
+    <string name="phone_verify_error_bad_number">Nie rozpoznaję tego numeru. Podaj go z numerem kraju, np. +48 601 234 567.</string>
+    <string name="phone_verify_error_send">Nie udało się tego zrobić. %1$s</string>
+    <string name="phone_verify_error_code">To nie wygląda na kod, który wysłaliśmy.</string>
+    <string name="profile_phone_title">Numer telefonu</string>
+    <string name="profile_phone_verified">Potwierdzony - osoby, które mają Twój numer, mogą Cię znaleźć.</string>
+    <string name="profile_phone_unverified">Niepotwierdzony - nikt nie znajdzie Cię po numerze.</string>
+    <string name="profile_phone_action">Potwierdź numer</string>
+    <string name="contacts_invite_saved">Zaproszony</string>
 </resources>

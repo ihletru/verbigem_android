@@ -17,6 +17,13 @@ sealed class Screen(val route: String) {
         fun createRoute(uid: String) = "contact/$uid"
     }
     data object Contacts : Screen("contacts")
+
+    /**
+     * Phone verification (task 2.6). Reached automatically the first time the user
+     * opens Chat or Contacts without a verified number, and by hand from Profile.
+     */
+    data object PhoneVerification : Screen("phone_verification")
+
     data object Profile : Screen("profile")
     data object Ocr : Screen("ocr")
     data object Login : Screen("login")

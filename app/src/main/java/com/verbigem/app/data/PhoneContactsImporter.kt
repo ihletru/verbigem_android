@@ -9,7 +9,20 @@ import androidx.core.content.ContextCompat
 /** Jeden wpis z książki telefonicznej, po normalizacji numeru. */
 data class PhoneContact(
     val name: String,
-    val phone: String
+    /**
+     * Luźna normalizacja ([PhoneNumbers.loosely]): cyfry i wiodący `+`.
+     * Dobra do wyświetlania i do linków `wa.me` / `smsto`.
+     */
+    val phone: String,
+    /**
+     * Możliwe pełne postacie E.164, od najbardziej prawdopodobnej.
+     *
+     * Matching idzie po skrótach, więc numer zapisany krajowo (`0981 123 456`)
+     * musi zostać rozwinięty do `+595981123456` **przed** haszowaniem — inaczej
+     * skrót nie zgadza się z tym, co funkcja policzyła z numeru zweryfikowanego
+     * przez Firebase Auth. Bez libphonenumber kraj tylko zgadujemy, stąd lista.
+     */
+    val e164Candidates: List<String> = emptyList()
 )
 
 /**
@@ -32,6 +45,7 @@ object PhoneContactsImporter {
     fun read(context: Context): List<PhoneContact> {
         if (!hasPermission(context)) return emptyList()
 
+        val isos = PhoneNumbers.defaultCountryIsos(context)
         val contacts = mutableListOf<PhoneContact>()
         val projection = arrayOf(
             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
@@ -53,10 +67,14 @@ object PhoneContactsImporter {
                 val iPhone = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 while (cursor.moveToNext()) {
                     val name = if (iName >= 0) cursor.getString(iName).orEmpty().trim() else ""
-                    val phone = normalize(if (iPhone >= 0) cursor.getString(iPhone).orEmpty() else "")
-                    if (phone.isNotBlank()) {
-                        contacts += PhoneContact(name = name.ifBlank { phone }, phone = phone)
-                    }
+                    val raw = if (iPhone >= 0) cursor.getString(iPhone).orEmpty() else ""
+                    val phone = PhoneNumbers.loosely(raw)
+                    if (phone.isBlank()) continue
+                    contacts += PhoneContact(
+                        name = name.ifBlank { phone },
+                        phone = phone,
+                        e164Candidates = PhoneNumbers.e164Candidates(raw, isos)
+                    )
                 }
             }
         }
@@ -65,18 +83,9 @@ object PhoneContactsImporter {
     }
 
     /**
-     * Lekka normalizacja: zostawiamy cyfry i wiodący `+`, `00` zamieniamy na `+`.
-     * Bez libphonenumber nie ma pewności co do numeru kierunkowego kraju, więc
-     * wynik nadaje się do ręcznego wysłania (wa.me / smsto), a nie do matchingu —
-     * matching i tak idzie po skrótach i jest tematem fazy 2/3.
+     * Wygodny skrót tam, gdzie nie mamy kontekstu (np. podgląd w logach).
+     * Wynik nadaje się do linków `wa.me` / `smsto`, **nie** do haszowania —
+     * do matchingu używaj [PhoneNumbers.e164Candidates].
      */
-    fun normalize(raw: String): String {
-        val trimmed = raw.filter { it.isDigit() || it == '+' }
-        return when {
-            trimmed.isBlank() -> ""
-            trimmed.startsWith("+") -> trimmed
-            trimmed.startsWith("00") -> "+" + trimmed.removePrefix("00")
-            else -> trimmed
-        }
-    }
+    fun normalize(raw: String): String = PhoneNumbers.loosely(raw)
 }

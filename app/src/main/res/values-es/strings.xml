@@ -237,4 +237,28 @@
     <string name="contacts_match_error">No se pudieron comprobar los contactos ahora mismo.</string>
     <string name="contacts_match_rate_limited">Demasiadas comprobaciones seguidas. Inténtalo más tarde.</string>
     <string name="contacts_match_unauthenticated">Inicia sesión para comprobar tus contactos.</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">Confirma tu número</string>
+    <string name="phone_verify_code_title">Introduce el código</string>
+    <string name="phone_verify_intro">Los amigos que ya tienen tu número podrán encontrarte aquí. El número en sí nunca sale de este teléfono: solo enviamos un código unidireccional calculado a partir de él.</string>
+    <string name="phone_verify_country">País detectado: %1$s</string>
+    <string name="phone_verify_hint">+34 612 345 678</string>
+    <string name="phone_verify_send">Enviar código por SMS</string>
+    <string name="phone_verify_code_sent">Enviamos un SMS a %1$s</string>
+    <string name="phone_verify_code_hint">Código del SMS</string>
+    <string name="phone_verify_confirm">Confirmar</string>
+    <string name="phone_verify_resend">Reenviar</string>
+    <string name="phone_verify_skip">Ahora no</string>
+    <string name="phone_verify_done">Número confirmado</string>
+    <string name="phone_verify_done_body">Desde ahora, los amigos que tengan tu número en su agenda te verán en Verbigem.</string>
+    <string name="phone_verify_close">Cerrar</string>
+    <string name="phone_verify_error_bad_number">No reconozco ese número. Escríbelo con el prefijo del país, p. ej. +34 612 345 678.</string>
+    <string name="phone_verify_error_send">No se pudo hacer ahora mismo. %1$s</string>
+    <string name="phone_verify_error_code">Ese no parece el código que enviamos.</string>
+    <string name="profile_phone_title">Número de teléfono</string>
+    <string name="profile_phone_verified">Confirmado: quien tenga tu número podrá encontrarte.</string>
+    <string name="profile_phone_unverified">Sin confirmar: nadie podrá encontrarte por tu número.</string>
+    <string name="profile_phone_action">Confirmar número</string>
+    <string name="contacts_invite_saved">Invitado</string>
 </resources>

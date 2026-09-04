@@ -855,6 +855,54 @@ kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
 |---|---|---|
 | `onMessageCreated` | trigger Firestore `chats/{chatId}/messages/{msgId}` | push FCM do pozostałych członków czatu |
 | `matchContacts` | callable (HTTPS) | dopasowanie kontaktów po HMAC numeru telefonu (2.3) |
+| `inviteByPhone` | callable (HTTPS) | zapraszanie numerów, które nie mają jeszcze konta (2.4) |
+| `verifyPhone` | callable (HTTPS) | zapis faktu „to konto ma zweryfikowany numer" (2.6) |
+| `onPhoneVerified` | trigger Firestore `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia (2.4) |
+
+### Weryfikacja numeru (2.6) — jak to działa
+
+**Aplikacja NIGDY nie wysyła numeru do naszego backendu.** Kolejność:
+
+1. Firebase Phone Auth wysyła SMS i dowiązuje numer do konta
+   (`linkWithCredential` — nie `signInWithCredential`, bo konto już istnieje).
+2. Firebase wkłada zweryfikowany numer E.164 do tokena ID.
+3. `getIdToken(true)` odświeża token — bez tego funkcja widziałaby token sprzed
+   dodania numeru.
+4. `verifyPhone` czyta `request.auth.token.phone_number` i zapisuje na `users/{uid}`
+   tylko `phoneVerified` + `phoneHash` + `phoneVerifiedAt`. **Nie ma parametru
+   do sfałszowania**, bo klient nie jest pytany o numer.
+5. `onPhoneVerified` (trigger) dopisuje `phoneDirectory/{hmac}` i rozwiązuje
+   zaproszenia oczekujące pod tym numerem.
+
+☠️ **`requireSmsValidation(true)` w `PhoneAuthOptions` jest obowiązkowe.**
+Bez niego Firebase potrafi zweryfikować numer w locie albo sam przechwycić SMS-a
+i **samodzielnie zalogować użytkownika** — wylogowując go z dotychczasowego konta
+i wstawiając nowe, oparte tylko na numerze. Metoda istnieje w `firebase-auth` 23.0.0.
+
+☠️ **Przed pierwszym testem trzeba wpisać odciski SHA certyfikatu** w Firebase
+Console → Project settings → Your apps → aplikacja Android → **Add fingerprint**,
+potem pobrać nowy `google-services.json`. Bez tego Phone Auth nie przejdzie.
+Debugowy keystore (`C:\Users\milo\.android\debug.keystore`, hasło `android`):
+
+```
+SHA1:   EC:9D:EB:58:CD:F2:48:3A:7E:FE:2B:73:C2:C7:90:1B:9D:6D:3C:CC
+SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:90:98:8D:CA:AD:EC:CA:94
+```
+
+### Normalizacja numerów (E.164)
+
+Matching porównuje **skróty**, nie łańcuchy: `0981 123 456` i `+595981123456` haszują
+się zupełnie inaczej. Dlatego każdy numer musi być pełnym E.164 **przed** haszowaniem.
+
+`app/src/main/java/com/verbigem/app/data/PhoneNumbers.kt` robi to przez
+`android.telephony.PhoneNumberUtils.formatNumberToE164` — libphonenumber jest w
+systemie, więc nie dokładamy zależności. Bez numeru kierunkowego kraj się zgaduje
+(karta SIM, potem locale urządzenia), więc `e164Candidates` zwraca **listę** możliwych
+postaci i aplikacja haszuje każdą.
+
+Zmiana normalizacji po weryfikacji pierwszych numerów oznaczałaby **przeliczenie
+całego `phoneDirectory`** — rób ją tylko wtedy, gdy katalog jest pusty.
+Pozostała luka: ekspat z zagraniczną kartą SIM. Zakryje ją libphonenumber (faza 3.x).
 
 ### App Check
 
@@ -927,7 +975,8 @@ po prostu by je skasowało: płatności, OCR i portfel przestałyby działać.
 Zawsze podawaj nazwy:
 
 ```bash
-firebase deploy --only functions:onMessageCreated,functions:matchContacts \
+firebase deploy --only functions:onMessageCreated,functions:matchContacts,\
+functions:inviteByPhone,functions:verifyPhone,functions:onPhoneVerified \
   --project mini-verbigem
 ```
 

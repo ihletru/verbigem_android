@@ -34,6 +34,14 @@ class PreferencesManager(private val context: Context) {
          * message. Asking once and remembering is the whole point of the flag.
          */
         private val KEY_ASKED_NOTIF_PERM = booleanPreferencesKey("asked_notif_perm")
+
+        /**
+         * Timestamp of the moment the user dismissed the phone-verification gate.
+         *
+         * 0 means "never". A boolean would do the same job today, but storing the
+         * moment keeps the door open for "ask again after a month" without a migration.
+         */
+        private val KEY_PHONE_GATE_SKIPPED_AT = longPreferencesKey("phone_gate_skipped_at")
     }
 
     val themeFlow: Flow<String> = context.dataStore.data.map { it[KEY_THEME] ?: "calm" }
@@ -47,6 +55,8 @@ class PreferencesManager(private val context: Context) {
     val lastSyncHistoryFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_HISTORY] ?: 0L }
     val lastSyncOcrFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_OCR] ?: 0L }
     val askedNotifPermFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_ASKED_NOTIF_PERM] ?: false }
+    val phoneGateSkippedAtFlow: Flow<Long> =
+        context.dataStore.data.map { it[KEY_PHONE_GATE_SKIPPED_AT] ?: 0L }
 
     suspend fun setTheme(theme: String) = context.dataStore.edit { it[KEY_THEME] = theme }
     suspend fun setMode(mode: String) = context.dataStore.edit { it[KEY_MODE] = mode }
@@ -62,4 +72,14 @@ class PreferencesManager(private val context: Context) {
     suspend fun setLastSyncOcr(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_OCR] = ts }
     suspend fun setAskedNotifPerm(asked: Boolean) =
         context.dataStore.edit { it[KEY_ASKED_NOTIF_PERM] = asked }
+
+    /**
+     * Marks the phone-verification gate as dismissed.
+     *
+     * "Skip" is permanent on purpose: the chat works fine without a number, and a
+     * user who said no once does not want to say it again on every visit. The way
+     * back in is Profile → Phone number.
+     */
+    suspend fun setPhoneGateSkippedAt(ts: Long) =
+        context.dataStore.edit { it[KEY_PHONE_GATE_SKIPPED_AT] = ts }
 }

@@ -346,6 +346,12 @@ fun ContactsScreen(
                     } else {
                         Button(
                             onClick = {
+                                // Najpierw zapisujemy zaproszenie pod skrótem numeru,
+                                // potem otwieramy arkusz udostępniania. Jedno bez
+                                // drugiego jest niepełne: zaproszenie działa tylko
+                                // jeśli ta osoba kiedyś potwierdzi numer, a link
+                                // tylko jeśli go kliknie od razu.
+                                viewModel.inviteContact(contact)
                                 val link = InviteLinks.forUser(currentUid)
                                 context.shareText(
                                     context.getString(R.string.contacts_invite_message, link)
@@ -354,7 +360,14 @@ fun ContactsScreen(
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
                         ) {
-                            Text(stringResource(R.string.contacts_perm_invite), fontSize = 12.sp)
+                            Text(
+                                text = if (viewModel.isInvited(contact.phone)) {
+                                    stringResource(R.string.contacts_invite_saved)
+                                } else {
+                                    stringResource(R.string.contacts_perm_invite)
+                                },
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }

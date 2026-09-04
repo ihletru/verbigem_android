@@ -21,3 +21,13 @@ export { onMessageCreated } from "./messaging";
 // time. If you ever comment this line back out, do it to unblock an unrelated deploy,
 // not because the secret went missing.
 export { matchContacts } from "./contacts";
+
+// Phone verification and invitations (task 2.4/2.6), 2026-09-04.
+//
+// `verifyPhone` proves the account owns a number WITHOUT the client ever sending one:
+// Firebase Phone Auth puts the E.164 number in the ID token and the function hashes
+// what it finds there. `onPhoneVerified` then derives `phoneDirectory` from the user
+// document, so the directory follows the source of truth instead of one caller.
+// `inviteByPhone` needs the pepper like `matchContacts` does — see `secrets.ts` for
+// why both import the same declaration instead of each calling `defineSecret`.
+export { verifyPhone, inviteByPhone, onPhoneVerified } from "./invites";

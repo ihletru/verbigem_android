@@ -244,4 +244,28 @@
     <string name="contacts_match_error">Could not check your contacts just now.</string>
     <string name="contacts_match_rate_limited">Too many checks at once. Try again in a while.</string>
     <string name="contacts_match_unauthenticated">Sign in to check which contacts use Verbigem.</string>
+
+    <!-- Weryfikacja numeru telefonu (2.6) + zapraszanie po numerze -->
+    <string name="phone_verify_title">Confirm your number</string>
+    <string name="phone_verify_code_title">Enter the code</string>
+    <string name="phone_verify_intro">Friends who already have your number will find you here. The number itself never leaves this phone - we only send a one-way code made from it.</string>
+    <string name="phone_verify_country">Detected country: %1$s</string>
+    <string name="phone_verify_hint">+595 981 123 456</string>
+    <string name="phone_verify_send">Text me a code</string>
+    <string name="phone_verify_code_sent">We texted %1$s</string>
+    <string name="phone_verify_code_hint">Code from the SMS</string>
+    <string name="phone_verify_confirm">Confirm</string>
+    <string name="phone_verify_resend">Send again</string>
+    <string name="phone_verify_skip">Not now</string>
+    <string name="phone_verify_done">Number confirmed</string>
+    <string name="phone_verify_done_body">From now on, friends who have your number in their address book will see you in Verbigem.</string>
+    <string name="phone_verify_close">Close</string>
+    <string name="phone_verify_error_bad_number">I cannot read that number. Enter it with the country code, e.g. +595 981 123 456.</string>
+    <string name="phone_verify_error_send">That did not work just now. %1$s</string>
+    <string name="phone_verify_error_code">That does not look like the code we sent.</string>
+    <string name="profile_phone_title">Phone number</string>
+    <string name="profile_phone_verified">Confirmed - people who have your number can find you.</string>
+    <string name="profile_phone_unverified">Not confirmed - nobody can find you by number.</string>
+    <string name="profile_phone_action">Confirm number</string>
+    <string name="contacts_invite_saved">Invited</string>
 </resources>
