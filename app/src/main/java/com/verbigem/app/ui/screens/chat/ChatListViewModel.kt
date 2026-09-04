@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.model.ChatSummary
+import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
@@ -23,7 +24,10 @@ data class ChatRow(
     val lastMessage: String,
     val lastMessageAt: Long,
     val lastMessageIsMine: Boolean,
-    val unread: Boolean
+    val unread: Boolean,
+    /** Pinned conversations float to the top of the inbox. */
+    val pinned: Boolean = false,
+    val muted: Boolean = false
 )
 
 class ChatListViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,6 +39,7 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
     private val authRepository = AuthRepository()
     private val chatRepository = ChatRepository()
     private val readDao = AppDatabase.getInstance(application).chatReadDao()
+    private val hiddenDao = AppDatabase.getInstance(application).chatHiddenDao()
 
     private val _rows = MutableStateFlow<List<ChatRow>>(emptyList())
     val rows: StateFlow<List<ChatRow>> = _rows.asStateFlow()
@@ -46,6 +51,8 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
     private val profiles = MutableStateFlow<Map<String, PublicProfile>>(emptyMap())
     private val friendNicks = MutableStateFlow<Map<String, String>>(emptyMap())
     private val reads = MutableStateFlow<Map<String, Long>>(emptyMap())
+    private val settings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
+    private val hiddenChatIds = MutableStateFlow<Set<String>>(emptySet())
 
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -84,6 +91,19 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                     recompute()
                 }
             }
+            // Alias / pin / mute / block, keyed by the other person's uid.
+            viewModelScope.launch {
+                chatRepository.watchContactSettings(uid).collect { map ->
+                    settings.value = map
+                    recompute()
+                }
+            }
+            viewModelScope.launch {
+                hiddenDao.watchAll().collect { rows ->
+                    hiddenChatIds.value = rows.map { it.chatId }.toSet()
+                    recompute()
+                }
+            }
         }
     }
 
@@ -107,25 +127,39 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                 val other = summary.otherUid(me)
                 if (other.isBlank()) null else summary to other
             }
+            // Blocked and deleted conversations never reach the inbox. Both are
+            // local-only decisions: the other person still sees the thread.
+            .filterNot { (summary, other) ->
+                summary.chatId in hiddenChatIds.value ||
+                    (settings.value[other]?.blocked == true)
+            }
             .map { (summary, other) ->
+                val contact = settings.value[other] ?: ContactSettings.EMPTY
                 ChatRow(
                     chatId = summary.chatId,
                     otherUid = other,
-                    nickname = displayName(other),
+                    nickname = displayName(other, contact.alias),
                     avatar = profiles.value[other]?.photoURL?.takeIf { it.isNotBlank() } ?: "🙂",
                     lastMessage = summary.lastMessage,
                     lastMessageAt = summary.lastMessageAt,
                     lastMessageIsMine = summary.lastMessageAuthorId == me,
                     // Local watermark vs. the newest message in the conversation.
-                    unread = summary.lastMessageAt > (reads.value[summary.chatId] ?: 0L) &&
-                        summary.lastMessageAuthorId != me
+                    // Muting hides the dot — there are no push notifications to
+                    // silence yet, so this is what "mute" can honestly mean today.
+                    unread = !contact.muted &&
+                        summary.lastMessageAt > (reads.value[summary.chatId] ?: 0L) &&
+                        summary.lastMessageAuthorId != me,
+                    pinned = contact.pinned,
+                    muted = contact.muted
                 )
             }
-            .sortedByDescending { it.lastMessageAt }
+            .sortedWith(compareByDescending<ChatRow> { it.pinned }
+                .thenByDescending { it.lastMessageAt })
         _isLoading.value = false
     }
 
-    private fun displayName(uid: String): String {
+    private fun displayName(uid: String, alias: String): String {
+        if (alias.isNotBlank()) return alias
         val fromProfile = profiles.value[uid]?.nickname?.takeIf { it.isNotBlank() }
         if (fromProfile != null) return fromProfile
         return friendNicks.value[uid]?.takeIf { it.isNotBlank() } ?: uid.take(6)

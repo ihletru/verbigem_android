@@ -8,6 +8,14 @@ sealed class Screen(val route: String) {
     data object ChatThread : Screen("chat/{uid}") {
         fun createRoute(uid: String) = "chat/$uid"
     }
+
+    /**
+     * Per-contact settings for one person: alias, translation language, pin, mute,
+     * block. Reached from the thread header and from Contacts.
+     */
+    data object ContactCard : Screen("contact/{uid}") {
+        fun createRoute(uid: String) = "contact/$uid"
+    }
     data object Contacts : Screen("contacts")
     data object Profile : Screen("profile")
     data object Ocr : Screen("ocr")

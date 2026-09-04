@@ -201,4 +201,28 @@
     <string name="chat_today">今天</string>
     <string name="chat_yesterday">昨天</string>
     <string name="chat_load_older">加载更早的消息</string>
+
+    <!-- 联系人资料卡（阶段 1.13） -->
+    <string name="cancel">取消</string>
+    <string name="action_open_contact_card">联系人详情</string>
+    <string name="contact_card_title">联系人</string>
+    <string name="contact_card_alias">你看到的名称</string>
+    <string name="contact_card_alias_note">只有你能看到这个名称，对方仍保留自己的昵称。</string>
+    <string name="contact_card_lang_title">将对方消息翻译为</string>
+    <string name="contact_card_lang_auto">自动（%1$s）</string>
+    <string name="contact_card_lang_note">仅适用于你收到的消息；你发送的消息保持你输入的语言。</string>
+    <string name="contact_card_prefs">会话</string>
+    <string name="contact_card_pin">置顶</string>
+    <string name="contact_card_mute">静音</string>
+    <string name="contact_card_mute_note">隐藏未读圆点；推送静音会随通知功能一起上线。</string>
+    <string name="contact_card_block">屏蔽</string>
+    <string name="contact_card_block_note">在本机收件箱中隐藏该会话。对方仍可发消息——服务器端屏蔽稍后提供。</string>
+    <string name="contact_card_note">备注</string>
+    <string name="contact_card_note_placeholder">仅自己可见…</string>
+    <string name="contact_card_write">发消息</string>
+    <string name="contact_card_delete">删除会话</string>
+    <string name="contact_card_delete_title">删除该会话？</string>
+    <string name="contact_card_delete_body">它将从本手机的收件箱中消失，对方仍保留消息——Verbigem 目前还无法从云端删除。</string>
+    <string name="contact_card_restore">恢复会话</string>
+    <string name="contact_card_not_friend">你们还不是好友——消息仍可发送，只是无需邀请即可进入聊天。</string>
 </resources>

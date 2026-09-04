@@ -208,4 +208,28 @@
     <string name="chat_today">Today</string>
     <string name="chat_yesterday">Yesterday</string>
     <string name="chat_load_older">Load earlier messages</string>
+
+    <!-- Contact card (phase 1.13) -->
+    <string name="cancel">Cancel</string>
+    <string name="action_open_contact_card">Contact details</string>
+    <string name="contact_card_title">Contact</string>
+    <string name="contact_card_alias">Name shown to you</string>
+    <string name="contact_card_alias_note">Only you see this name. Your friend keeps their own nickname.</string>
+    <string name="contact_card_lang_title">Translate their messages into</string>
+    <string name="contact_card_lang_auto">Auto (%1$s)</string>
+    <string name="contact_card_lang_note">Applies to messages you receive. Messages you send stay in the language you type them in.</string>
+    <string name="contact_card_prefs">Conversation</string>
+    <string name="contact_card_pin">Pin to top</string>
+    <string name="contact_card_mute">Mute</string>
+    <string name="contact_card_mute_note">Hides the unread dot. Silencing push notifications arrives with notifications themselves.</string>
+    <string name="contact_card_block">Block</string>
+    <string name="contact_card_block_note">Hides the conversation from your inbox on this device. Your friend can still write — blocking on the server comes later.</string>
+    <string name="contact_card_note">Note</string>
+    <string name="contact_card_note_placeholder">Private to you…</string>
+    <string name="contact_card_write">Write a message</string>
+    <string name="contact_card_delete">Delete conversation</string>
+    <string name="contact_card_delete_title">Delete this conversation?</string>
+    <string name="contact_card_delete_body">It disappears from your inbox on this phone. Your friend keeps the messages — Verbigem cannot delete them from the cloud yet.</string>
+    <string name="contact_card_restore">Restore conversation</string>
+    <string name="contact_card_not_friend">You are not friends yet — messages still work, they just land in chat without an invitation.</string>
 </resources>

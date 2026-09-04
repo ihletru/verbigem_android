@@ -84,11 +84,13 @@ import java.util.Locale
 fun ChatThreadScreen(
     viewModel: ChatThreadViewModel,
     otherUid: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onOpenContactCard: () -> Unit
 ) {
     val bubbles by viewModel.bubbles.collectAsState()
     val inputText by viewModel.inputText.collectAsState()
-    val myLang by viewModel.myLang.collectAsState()
+    val translationLang by viewModel.translationLang.collectAsState()
+    val contactSettings by viewModel.contactSettings.collectAsState()
     val otherLang by viewModel.otherLang.collectAsState()
     val translations by viewModel.translations.collectAsState()
     val translating by viewModel.translating.collectAsState()
@@ -106,6 +108,13 @@ fun ChatThreadScreen(
 
     val labelToday = stringResource(R.string.chat_today)
     val labelYesterday = stringResource(R.string.chat_yesterday)
+    val openCardLabel = stringResource(R.string.action_open_contact_card)
+
+    // The alias lives in MY contact settings, so it is mine alone — the other
+    // person's own nickname keeps whatever they set for themselves.
+    val headerName = contactSettings.alias.takeIf { it.isNotBlank() }
+        ?: otherProfile?.nickname?.takeIf { it.isNotBlank() }
+        ?: otherUid.take(6)
 
     LaunchedEffect(otherUid) {
         viewModel.openThread(otherUid)
@@ -152,34 +161,47 @@ fun ChatThreadScreen(
                     tint = VerbigemTheme.colors.ink
                 )
             }
-            Box(
+            // Tapping the name opens the contact card (alias, translation language,
+            // pin / mute / block). The whole block is the target, not just the text —
+            // a 38 dp avatar plus a name is a much easier hit than a line of text.
+            Row(
                 modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .background(VerbigemTheme.colors.bg)
-                    .border(1.dp, VerbigemTheme.colors.border, CircleShape),
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(onClick = onOpenContactCard)
+                    .padding(4.dp)
+                    .semantics { contentDescription = openCardLabel },
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(otherProfile?.photoURL ?: "🙂", fontSize = 18.sp)
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = otherProfile?.nickname?.takeIf { it.isNotBlank() } ?: otherUid.take(6),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = VerbigemTheme.colors.ink,
-                    maxLines = 1
-                )
-                Text(
-                    text = if (otherTyping) {
-                        stringResource(R.string.chat_typing)
-                    } else {
-                        stringResource(R.string.chat_other_lang, otherLang.displayName)
-                    },
-                    fontSize = 11.sp,
-                    color = if (otherTyping) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
-                )
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(VerbigemTheme.colors.bg)
+                        .border(1.dp, VerbigemTheme.colors.border, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(otherProfile?.photoURL ?: "🙂", fontSize = 18.sp)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = headerName,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = VerbigemTheme.colors.ink,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = if (otherTyping) {
+                            stringResource(R.string.chat_typing)
+                        } else {
+                            stringResource(R.string.chat_other_lang, otherLang.displayName)
+                        },
+                        fontSize = 11.sp,
+                        color = if (otherTyping) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
+                    )
+                }
             }
         }
 
@@ -235,7 +257,7 @@ fun ChatThreadScreen(
                     }
                     MessageBubble(
                         bubble = bubble,
-                        myLang = myLang,
+                        targetLang = translationLang,
                         translated = translations[bubble.id],
                         isTranslating = bubble.id in translating,
                         hasFailed = bubble.id in failed,
@@ -318,7 +340,8 @@ fun ChatThreadScreen(
 @Composable
 private fun MessageBubble(
     bubble: ChatBubble,
-    myLang: LangCode,
+    /** Language the incoming text was translated into (profile default or per-contact override). */
+    targetLang: LangCode,
     translated: String?,
     isTranslating: Boolean,
     hasFailed: Boolean,
@@ -348,7 +371,7 @@ private fun MessageBubble(
     val displayLang = when {
         bubble.isMine -> bubble.sourceLang
         showOriginal -> bubble.sourceLang
-        translated != null -> myLang.code
+        translated != null -> targetLang.code
         else -> bubble.hintLang.takeIf { it.isNotBlank() } ?: bubble.sourceLang
     }
 

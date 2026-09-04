@@ -106,10 +106,37 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
      a podpowiedź tłumaczy na `speakLangSource` rozmówcy pobrany z `usersPublic`.
      Odsłuch (`speak()`) czyta w języku aktualnie wyświetlanego tekstu.
      Docelowo właściwe tłumaczenie dzieje się u odbiorcy — patrz `chat_kontakty.md`.
+     **Język docelowy tłumaczenia** to `ChatThreadViewModel.translationLang` =
+     `langOverride` z karty kontaktu (jeśli ustawiony) albo `speakLangSource` z profilu.
+     Zmiana któregokolwiek czyści mapę tłumaczeń w pamięci i wraca do auto-tłumaczenia,
+     ale **nie rusza cache w Room** (kluczowany językiem, więc stare tłumaczenia żyją).
    - **`chats/{chatId}` musi istnieć i mieć `members` ZANIM poleci wiadomość** — reguły
      bezpieczeństwa dla `messages` robią `get(/chats/$(chatId)).data.members`. Dlatego
      `sendMessage()` najpierw upsertuje dokument czatu, potem dodaje wiadomość.
      Bez tego wysłanie czegokolwiek było niemożliwe.
+   - **Karta kontaktu (`contact/{uid}`)** — ustawienia per rozmówca, prywatne dla
+     mnie: alias (nazwa widoczna tylko u mnie), język tłumaczenia, przypięcie,
+     wyciszenie, blokada, notatka. Wchodzi się z nagłówka wątku i z ikony ⓘ w
+     Kontaktach. Szczegóły w `chat_kontakty.md` (zadanie 1.13).
+     - Dane leżą w **`users/{uid}/contacts/{otherUid}`** — pod MOIM dokumentem, nie
+       w znajomości, bo to moje zdanie o kimś: nadany przeze mnie alias nie może
+       pojawić się na cudzym telefonie. Reguła: odczyt/zapis tylko właściciel +
+       whitelist 7 pól.
+     - **Firestore, nie Room** — Firestore trzyma własny cache offline na Androidzie,
+       więc karta działa bez sieci, a ustawienia idą za kontem na drugie urządzenie
+       bez wymyślania nowego mechanizmu syncu.
+     - **`langOverride` = język, NA KTÓRY tłumaczone są przychodzące wiadomości.**
+       Puste = język z mojego profilu. Celowo NIE zmienia `sourceLang` wiadomości
+       wychodzących: to pole musi opisywać to, co faktycznie napisałem, bo inaczej
+       odbiorca tłumaczyłby z błędnego języka źródłowego.
+     - **„Zablokuj" i „wycisz" są dziś lokalne.** Blokada ukrywa rozmowę w mojej
+       skrzynce (nie da się jej egzekwować serwerowo bez Cloud Functions — faza 2),
+       wyciszenie gasi kropkę nieprzeczytanych (nie ma jeszcze pushy do wyciszenia).
+       Komunikaty w UI mówią to wprost, zamiast obiecywać więcej.
+     - **„Usuń rozmowę" = ukrycie lokalne.** Wiadomości w Firestore są append-only
+       i nie ma funkcji, która by je sprzątała, więc tabela `chat_hidden` w Room
+       (migracja v6→v7) chowa rozmowę u mnie; rozmówca zachowuje wątek. Karta daje
+       „Przywróć rozmowę".
 
 4. **Kontakty i Znajomi (Contacts)**:
    - Wyszukiwanie użytkowników po nicku/e-mailu.
@@ -211,7 +238,12 @@ Najważniejsze ustalenia (szczegóły w `chat_kontakty.md`):
   `sourceLang` + własne tłumaczenie jako podpowiedź (fallback dla odbiorców bez
   pobranego modelu). **Zrealizowane w fazie 1** (cache w `chat_translations`).
 - **Faza 1 (skrzynka + wątek) jest w kodzie gotowa** — bez backendu, bez Cloud
-  Functions. Szczegóły w `chat_kontakty.md`.
+  Functions. **Wydana jako v26** (na produkcji; test na telefonie u Milosza).
+  Szczegóły w `chat_kontakty.md`.
+- **Karta kontaktu (1.13) jest w kodzie gotowa** — alias, język tłumaczenia per
+  kontakt, przypnij / wycisz / zablokuj, notatka, usuń rozmowę. Czeka na wydanie.
+  **Blokada i wyciszenie są na razie lokalne** (brak Cloud Functions), a
+  „usuń rozmowę" to ukrycie lokalne (wiadomości w Firestore są append-only).
 - **Nie da się zaimportować listy kontaktów z WhatsApp ani Telegrama** (brak API).
   Źródłem listy jest **książka telefoniczna + opcjonalnie plik `.vcf`**, a WhatsApp
   / SMS / e-mail są **kanałami dostarczenia** na wyjściu.
@@ -295,7 +327,7 @@ app/src/main/
 │   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager) + reaktywny sync (ConnectivityObserver)
 │   ├── data/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline (trigger sync na włączenie netu)
-│   │   ├── local/                  # Room v6: HistoryEntity/Dao, OcrHistoryEntity/Dao, TtsConfigEntity/Dao, PendingDeleteEntity/Dao, ChatRoomEntities (chat_translations, chat_outbox, chat_reads, chat_deleted_messages), ChatRoomDaos + DataStore Preferences
+│   │   ├── local/                  # Room v7: HistoryEntity/Dao, OcrHistoryEntity/Dao, TtsConfigEntity/Dao, PendingDeleteEntity/Dao, ChatRoomEntities (chat_translations, chat_outbox, chat_reads, chat_deleted_messages, chat_hidden), ChatRoomDaos + DataStore Preferences
 │   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage (+SenderTranslation), ChatSummary, Friendship, EngineChoice, TranslationHistory, TtsConfig
 │   │   ├── AppLinks.kt             # Polityka prywatności (URL wg języka), InviteLinks, openUrl(), shareText()
 │   │   ├── PhoneContactsImporter.kt # Odczyt książki telefonicznej (ContactsContract) — dane zostają na urządzeniu
@@ -313,7 +345,7 @@ app/src/main/
 │   └── ui/
 │       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView, ProFeatureButton (Pro+grayscale+tooltip)
 │       ├── navigation/             # AppNavigation, Screen
-│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatListScreen, ChatThreadScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
+│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatListScreen, ChatThreadScreen, ContactCardScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
@@ -511,6 +543,9 @@ tekst w `LangCode.fromCode(item.targetLang)` — języku zapisanym przy tym konk
 w bieżącym języku UI (który może się różnić od języka sprzed tygodnia). Dotyczy obu ekranów
 (Translator `speakHistory`, OCR `speakHistory`). Wynik/edycja OCR czytają w bieżącym `targetLang`
 (`viewModel.speak(text, targetLang)`).
+- v6→v7 (karta kontaktu): `chat_hidden` (`chatId` PK, `hiddenAt`) — rozmowy usunięte
+  ze skrzynki („usuń rozmowę"). Ustawienia per kontakt idą do Firestore, nie do Room
+  — patrz wyżej.
 - v5→v6 (faza 1 czatu): cztery tabele —
   - `chat_translations` (`msgId` + `targetLang` = PK, `chatId`, `translatedText`,
     `updatedAt`) — cache tłumaczeń wykonanych na TYM urządzeniu (decyzja D1),
@@ -774,6 +809,11 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
     odczytu (jeden dokument na uczestnika; reguła: tylko własny dokument).
   - `chats/{chatId}/typing/{uid}` — `{uid, expiresAt}` — wskaźnik „pisze…"
     (wygaśnięcie po 8 s, więc padnięta aplikacja nie udaje że pisze).
+  - `users/{uid}/contacts/{otherUid}` — ustawienia per kontakt (`ContactSettings`):
+    `alias`, `langOverride`, `muted`, `pinned`, `blocked`, `note`, `updatedAt`.
+    Odczyt i zapis **tylko właściciela** + whitelist pól (bez niej klient mógłby
+    dopisać flagi, które serwer zacznie rozumieć w fazie 2). Pod `users/{uid}`,
+    nie w `friendships` — to moje zdanie o kimś, nie wspólna umowa.
   - `app_config/tts` — konfiguracja TTS Pro (modele OpenRouter + apiKey).
   - `app_config/update` — metadane auto-update (versionCode, apkUrl, onPlayStore).
 - **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:

@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -54,7 +55,8 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 @Composable
 fun ContactsScreen(
     viewModel: ContactsViewModel,
-    onOpenChat: (String) -> Unit
+    onOpenChat: (String) -> Unit,
+    onOpenContactCard: (String) -> Unit
 ) {
     val friends by viewModel.friends.collectAsState()
     val incoming by viewModel.incoming.collectAsState()
@@ -358,8 +360,18 @@ fun ContactsScreen(
                     text = "💬 $friendName",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = VerbigemTheme.colors.ink
+                    color = VerbigemTheme.colors.ink,
+                    modifier = Modifier.weight(1f)
                 )
+                // Separate target from the row itself: tapping the row starts a chat,
+                // tapping the info button opens the card (alias, language, block…).
+                IconButton(onClick = { onOpenContactCard(otherUid) }) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = stringResource(R.string.action_open_contact_card),
+                        tint = VerbigemTheme.colors.muted
+                    )
+                }
             }
         }
     }

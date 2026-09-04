@@ -208,4 +208,28 @@
     <string name="chat_today">Dziś</string>
     <string name="chat_yesterday">Wczoraj</string>
     <string name="chat_load_older">Wczytaj starsze wiadomości</string>
+
+    <!-- Karta kontaktu (faza 1.13) -->
+    <string name="cancel">Anuluj</string>
+    <string name="action_open_contact_card">Szczegóły kontaktu</string>
+    <string name="contact_card_title">Kontakt</string>
+    <string name="contact_card_alias">Nazwa widoczna dla Ciebie</string>
+    <string name="contact_card_alias_note">Tę nazwę widzisz tylko Ty. Znajomy zachowuje swój nick.</string>
+    <string name="contact_card_lang_title">Tłumacz jego wiadomości na</string>
+    <string name="contact_card_lang_auto">Auto (%1$s)</string>
+    <string name="contact_card_lang_note">Dotyczy wiadomości, które odbierasz. Wysyłane zostają w języku, w którym piszesz.</string>
+    <string name="contact_card_prefs">Rozmowa</string>
+    <string name="contact_card_pin">Przypnij na górze</string>
+    <string name="contact_card_mute">Wycisz</string>
+    <string name="contact_card_mute_note">Ukrywa kropkę nieprzeczytanych. Wyciszanie powiadomień przyjdzie razem z powiadomieniami.</string>
+    <string name="contact_card_block">Zablokuj</string>
+    <string name="contact_card_block_note">Ukrywa rozmowę w Twojej skrzynce na tym telefonie. Znajomy nadal może pisać — blokada po stronie serwera przyjdzie później.</string>
+    <string name="contact_card_note">Notatka</string>
+    <string name="contact_card_note_placeholder">Tylko dla Ciebie…</string>
+    <string name="contact_card_write">Napisz wiadomość</string>
+    <string name="contact_card_delete">Usuń rozmowę</string>
+    <string name="contact_card_delete_title">Usunąć tę rozmowę?</string>
+    <string name="contact_card_delete_body">Zniknie z Twojej skrzynki na tym telefonie. Znajomy zachowa wiadomości — Verbigem nie potrafi jeszcze usunąć ich z chmury.</string>
+    <string name="contact_card_restore">Przywróć rozmowę</string>
+    <string name="contact_card_not_friend">Nie jesteście jeszcze znajomymi — wiadomości i tak działają, trafiają do czatu bez zaproszenia.</string>
 </resources>

@@ -66,3 +66,18 @@ data class ChatDeletedEntity(
     val msgId: String = "",
     val deletedAt: Long = System.currentTimeMillis()
 )
+
+/**
+ * Conversations the user removed from their inbox ("usuń rozmowę").
+ *
+ * Messages are append-only in Firestore (`allow update, delete: if false`), and
+ * there is no Cloud Function to prune them yet, so deleting a conversation can
+ * only ever be local: the row hides it from MY inbox while the other person keeps
+ * the thread intact. That is the same honesty rule as "delete for me" on a single
+ * message — see the contact card, which says so out loud.
+ */
+@Entity(tableName = "chat_hidden", primaryKeys = ["chatId"])
+data class ChatHiddenEntity(
+    val chatId: String = "",
+    val hiddenAt: Long = System.currentTimeMillis()
+)

@@ -63,3 +63,17 @@ interface ChatDeletedDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: ChatDeletedEntity)
 }
+
+@Dao
+interface ChatHiddenDao {
+
+    @Query("SELECT * FROM chat_hidden")
+    fun watchAll(): Flow<List<ChatHiddenEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun hide(entity: ChatHiddenEntity)
+
+    /** Brings a removed conversation back into the inbox. */
+    @Query("DELETE FROM chat_hidden WHERE chatId = :chatId")
+    suspend fun unhide(chatId: String)
+}

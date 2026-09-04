@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -161,14 +162,29 @@ private fun ChatRowCard(row: ChatRow, onClick: () -> Unit) {
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = row.nickname,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = VerbigemTheme.colors.ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // A pinned conversation is the only row that carries a marker; muted
+                // ones deliberately show nothing, since silence is the absence of a
+                // badge, not a badge of its own.
+                if (row.pinned) {
+                    Icon(
+                        Icons.Default.PushPin,
+                        contentDescription = stringResource(R.string.contact_card_pin),
+                        tint = VerbigemTheme.colors.accent,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                }
+                Text(
+                    text = row.nickname,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = VerbigemTheme.colors.ink,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = if (row.lastMessageIsMine) {

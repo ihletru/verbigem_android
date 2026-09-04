@@ -201,4 +201,28 @@
     <string name="chat_today">Bugün</string>
     <string name="chat_yesterday">Dün</string>
     <string name="chat_load_older">Eski mesajları yükle</string>
+
+    <!-- Kişi kartı (aşama 1.13) -->
+    <string name="cancel">İptal</string>
+    <string name="action_open_contact_card">Kişi ayrıntıları</string>
+    <string name="contact_card_title">Kişi</string>
+    <string name="contact_card_alias">Sana görünen ad</string>
+    <string name="contact_card_alias_note">Bu adı yalnızca sen görürsün. Karşı taraf kendi takma adını korur.</string>
+    <string name="contact_card_lang_title">Gelen mesajları şuna çevir</string>
+    <string name="contact_card_lang_auto">Otomatik (%1$s)</string>
+    <string name="contact_card_lang_note">Aldığın mesajlar için geçerlidir. Gönderdiklerin, yazdığın dilde kalır.</string>
+    <string name="contact_card_prefs">Sohbet</string>
+    <string name="contact_card_pin">Üste sabitle</string>
+    <string name="contact_card_mute">Sessize al</string>
+    <string name="contact_card_mute_note">Okunmamış noktasını gizler. Bildirim sessize alma, bildirimlerle birlikte gelecek.</string>
+    <string name="contact_card_block">Engelle</string>
+    <string name="contact_card_block_note">Sohbeti bu cihazdaki gelen kutusunda gizler. Karşı taraf yazmaya devam edebilir — sunucu tarafı engelleme sonra gelecek.</string>
+    <string name="contact_card_note">Not</string>
+    <string name="contact_card_note_placeholder">Yalnızca sana özel…</string>
+    <string name="contact_card_write">Mesaj yaz</string>
+    <string name="contact_card_delete">Sohbeti sil</string>
+    <string name="contact_card_delete_title">Bu sohbet silinsin mi?</string>
+    <string name="contact_card_delete_body">Bu telefondaki gelen kutusundan kaybolur. Karşı taraf mesajları korur — Verbigem henüz buluttan silemiyor.</string>
+    <string name="contact_card_restore">Sohbeti geri getir</string>
+    <string name="contact_card_not_friend">Henüz arkadaş değilsiniz — mesajlar yine çalışır, davet olmadan sohbete düşer.</string>
 </resources>

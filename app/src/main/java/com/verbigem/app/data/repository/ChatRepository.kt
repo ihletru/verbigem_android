@@ -6,6 +6,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.verbigem.app.data.model.ChatMessage
 import com.verbigem.app.data.model.ChatSummary
+import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.SenderTranslation
 import kotlinx.coroutines.channels.awaitClose
@@ -294,5 +295,70 @@ class ChatRepository {
     suspend fun declineFriendship(friendshipId: String) {
         firestore.collection("friendships").document(friendshipId)
             .delete().await()
+    }
+
+    // --------------------------------------------------------- contact settings
+
+    /**
+     * Every per-contact setting `uid` has, keyed by the other person's uid.
+     *
+     * One listener for the whole subcollection rather than one per contact: the
+     * inbox needs the map anyway (alias / pinned / blocked / muted all affect how
+     * rows are drawn), and a single listener costs one subscription instead of N.
+     * Contacts with no document simply do not appear in the map — the UI falls
+     * back to [ContactSettings.EMPTY], so "no settings" never allocates documents.
+     */
+    fun watchContactSettings(uid: String): Flow<Map<String, ContactSettings>> = callbackFlow {
+        if (uid.isBlank()) {
+            trySend(emptyMap())
+            awaitClose { }
+            return@callbackFlow
+        }
+        val listener = firestore.collection("users").document(uid)
+            .collection("contacts")
+            .addSnapshotListener { snap, error ->
+                if (error != null) {
+                    android.util.Log.w("ChatRepository", "Contact settings listener failed", error)
+                    trySend(emptyMap())
+                    return@addSnapshotListener
+                }
+                trySend(
+                    snap?.documents?.associate { doc ->
+                        doc.id to (doc.toObject(ContactSettings::class.java) ?: ContactSettings.EMPTY)
+                    } ?: emptyMap()
+                )
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Writes the given settings for one contact. Passing [ContactSettings.EMPTY]
+     * does not delete the document (an empty document is still cheaper to write
+     * than to explain) — use [clearContactSettings] to remove it outright.
+     */
+    suspend fun saveContactSettings(uid: String, otherUid: String, settings: ContactSettings) {
+        if (uid.isBlank() || otherUid.isBlank()) return
+        try {
+            firestore.collection("users").document(uid)
+                .collection("contacts").document(otherUid)
+                .set(settings.copy(updatedAt = System.currentTimeMillis()))
+                .await()
+        } catch (e: Exception) {
+            // Losing an alias is annoying; losing the thread is not acceptable, so
+            // this never surfaces as an error.
+            android.util.Log.w("ChatRepository", "Could not save contact settings", e)
+        }
+    }
+
+    /** Removes the document entirely, returning the contact to defaults. */
+    suspend fun clearContactSettings(uid: String, otherUid: String) {
+        if (uid.isBlank() || otherUid.isBlank()) return
+        try {
+            firestore.collection("users").document(uid)
+                .collection("contacts").document(otherUid)
+                .delete().await()
+        } catch (e: Exception) {
+            android.util.Log.w("ChatRepository", "Could not clear contact settings", e)
+        }
     }
 }

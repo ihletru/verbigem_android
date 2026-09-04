@@ -11,6 +11,7 @@ import com.verbigem.app.data.local.ChatOutboxEntity
 import com.verbigem.app.data.local.ChatReadEntity
 import com.verbigem.app.data.local.ChatTranslationEntity
 import com.verbigem.app.data.model.ChatMessage
+import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
@@ -105,6 +106,31 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     /** Language of the other side — the target for our outgoing sender-hint. */
     private val _otherLang = MutableStateFlow(LangCode.EN)
     val otherLang: StateFlow<LangCode> = _otherLang.asStateFlow()
+
+    /**
+     * Per-contact settings, including the alias shown in the header and the
+     * language override. See [translationLang] for how the override is applied.
+     */
+    private val _contactSettings = MutableStateFlow(ContactSettings.EMPTY)
+    val contactSettings: StateFlow<ContactSettings> = _contactSettings.asStateFlow()
+
+    /**
+     * The language incoming messages are translated INTO: the per-contact override
+     * if one is set, otherwise my profile language.
+     *
+     * This is deliberately NOT the language my outgoing messages are tagged with.
+     * That one has to describe what I actually typed, or the receiver would
+     * translate from the wrong source language.
+     *
+     * Started EAGERLY, not WhileSubscribed: [enqueueTranslations] and [retranslate]
+     * read `.value` from inside the ViewModel. A lazily-started StateFlow that has
+     * no subscriber yet silently hands back its initial value, which would make the
+     * thread translate into Polish regardless of the profile or the override.
+     */
+    val translationLang: StateFlow<LangCode> =
+        combine(_myLang, _contactSettings) { mine, settings ->
+            if (settings.langOverride.isBlank()) mine else LangCode.fromCode(settings.langOverride)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, LangCode.PL)
 
     private val _isPro = MutableStateFlow(false)
     val isPro: StateFlow<Boolean> = _isPro.asStateFlow()
@@ -204,6 +230,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
 
         _otherUid.value = otherUid
         _otherProfile.value = null
+        _contactSettings.value = ContactSettings.EMPTY
         _showOriginal.value = emptySet()
         _remoteMsg.value = emptyList()
         _olderMsg.value = emptyList()
@@ -231,6 +258,22 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 _otherProfile.value = public
                 // Outgoing hints are translated into THEIR language (decision D1).
                 _otherLang.value = LangCode.fromCode(public.speakLangSource)
+            }
+        }
+        // Alias + per-contact translation language. Changing the language invalidates
+        // the in-memory map exactly like a profile language change does (the Room
+        // cache is keyed by language, so old rows survive untouched).
+        viewModelScope.launch {
+            chatRepository.watchContactSettings(me).collect { map ->
+                val settings = map[otherUid] ?: ContactSettings.EMPTY
+                val previousLang = _contactSettings.value.langOverride
+                _contactSettings.value = settings
+                if (settings.langOverride != previousLang) {
+                    _translations.value = emptyMap()
+                    requested.clear()
+                    autoTranslate = true
+                    recompute()
+                }
             }
         }
         flushOutbox()
@@ -374,7 +417,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
      */
     private fun enqueueTranslations() {
         if (!autoTranslate) return
-        val target = _myLang.value
+        val target = translationLang.value
         _bubbles.value.forEach { bubble ->
             if (bubble.isMine || bubble.status != BubbleStatus.SENT) return@forEach
             if (LangCode.fromCode(bubble.sourceLang) == target) return@forEach
@@ -434,7 +477,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         autoTranslate = true
         viewModelScope.launch {
             translationDao.deleteForMessage(msgId)
-            translateInto(bubble, _myLang.value)
+            translateInto(bubble, translationLang.value)
         }
     }
 

@@ -5,12 +5,18 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **Faza 1 (skrzynka + wątek) WYKONANA w kodzie.**
-Skrzynka odbiorcza, wątek `chat/{uid}`, tłumaczenie u odbiorcy z cache w Room,
-kolejka offline z `clientMsgId`, potwierdzenia odczytu i „pisze…" przez subkolekcje,
-paginacja, menu długiego naciśnięcia, stringi × 6. Reguły zaktualizowane.
-**Test na telefonie (0.9 + 1.14) zostaje dla Milosza** — APK v26 do zbudowania
-i wdrożenia po pozytywnym buildzie.
+Ostatnia aktualizacja: 2026-09-04 — **1.13 Karta kontaktu WYKONANA w kodzie.**
+`users/{uid}/contacts/{otherUid}` (alias, język tłumaczenia, przypnij, wycisz,
+zablokuj, notatka) + ekran `contact/{uid}` + reguły wdrożone + Room v7
+(`chat_hidden` dla „usuń rozmowę"). Alias i przypięcie żyją już w skrzynce,
+`langOverride` steruje tłumaczeniem u odbiorcy.
+
+**Stan wydań:** v26 (faza 0 + faza 1) **jest na produkcji** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 26`.
+**1.13 czeka na wydanie** (build przeszedł, `app-debug.apk` gotowy):
+wymaga podbicia `versionCode` na 27 i wrzucenia `app-debug-v27.apk`.
+**Testy na telefonie (0.9, 1.14, 1.16) nadal są u Milosza** — bez nich nie ma
+podstaw, żeby uznać fazę 1 za domkniętą.
 
 > **B6 rozstrzygnięte 2026-09-03 — Milosz miał rację tylko połowicznie.**
 > Zweryfikowane na żywym kodzie (`ui/components/BottomNav.kt`):
@@ -31,10 +37,10 @@ i wdrożenia po pozytywnym buildzie.
 
 | Faza | Nazwa | Status | versionCode | Commit |
 |---|---|---|---|---|
-| 0 | Ratunek fundamentów | 🟡 **kod gotowy** (0.9 — test na telefonie został) | 26 | *w tym samym commicie co faza 1* |
-| 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy** (1.14 — test na telefonie został) | 26 | *do commita* |
+| 0 | Ratunek fundamentów | 🟡 **kod gotowy, v26 na produkcji** (0.9 — test na telefonie został) | 26 | `bae1df0` |
+| 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
 | 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
-| 1.13 | Karta kontaktu | ⬜ odłożone (faza 1 bez niej; osobny tor) | — | — |
+| 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | *do commita* |
 | 2 | Backend: Cloud Functions | ⬜ nie rozpoczęta | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
@@ -70,9 +76,44 @@ i wdrożenia po pozytywnym buildzie.
 - **1.11** ✅ Wskaźnik „pisze…": subkolekcja `typing/{uid}` z `expiresAt`,
   zapis throttlowany (4 s), heartbeat 1,5 s w VM odświeża wygaśnięcie.
 - **1.12** ⬜ wyszukiwanie w wiadomościach — **odłożone** (patrz niżej).
-- **1.13** ⬜ karta kontaktu — **odłożone** (patrz niżej).
-- **1.14** ⬜ test na telefonie — **zostaje dla Milosza**.
+- **1.13** ✅ karta kontaktu — **wykonana** (szczegóły w bloku niżej).
+- **1.14** ⬜ test na telefonie (faza 1) — **zostaje dla Milosza**.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
+- **1.16** ⬜ test na telefonie (karta kontaktu) — **zostaje dla Milosza**.
+
+**Co zrobione po fazie 1 — 1.13 Karta kontaktu (2026-09-04):**
+
+- **Model + repozytorium.** `ContactSettings` w `CommonModels.kt` (`alias`,
+  `langOverride`, `muted`, `pinned`, `blocked`, `note`, `updatedAt`).
+  `ChatRepository`: jeden listener `watchContactSettings(uid)` na całą
+  subkolekcję (jeden subskrypcja zamiast N) + `saveContactSettings` /
+  `clearContactSettings`. Błąd zapisu idzie tylko do logcatu — utrata aliasu
+  jest irytująca, utrata wątku nie do przyjęcia, więc nigdy nie wywala UI.
+- **Ekran `ContactCardScreen` + `ContactCardViewModel`.** Alias, język
+  tłumaczenia (Auto + 6 języków jako chipy), przypnij / wycisz / zablokuj,
+  notatka, „Napisz wiadomość", „Usuń rozmowę" z dialogiem potwierdzenia.
+  Wchodzi się z nagłówka wątku i z ikony ⓘ przy znajomym w Kontaktach.
+- **Zapis z debounce 500 ms** dla pól tekstowych (alias, notatka), natychmiastowy
+  dla przełączników. Flaga `pendingWrite` wycisza listener Firestore w trakcie
+  własnego zapisu — bez niej snapshot przychodzący w środku pisania cofałby tekst.
+- **Integracja ze skrzynką:** alias w nazwie, przypięte na górę
+  (`compareByDescending<ChatRow> { it.pinned }.thenByDescending { it.lastMessageAt }`),
+  zablokowane i usunięte odfiltrowane, wyciszone bez kropki nieprzeczytanych.
+- **Integracja z wątkiem:** nagłówek klikalny → karta; `translationLang`
+  (override ❔ profil) steruje celem tłumaczenia; zmiana języka czyści mapę
+  w pamięci, ale nie rusza cache w Room (kluczowany językiem).
+- **Room v6→v7:** tabela `chat_hidden` dla „usuń rozmowę". Wiadomości w Firestore
+  są append-only i nie ma funkcji, która by je sprzątała, więc usunięcie może być
+  tylko lokalnym ukryciem — dialog mówi to wprost.
+- **Stringi × 6 + reguły Firestore wdrożone** (`users/{uid}/contacts/{otherUid}`:
+  właściciel + whitelist 7 pól).
+- **Build:** `assembleDebug` przeszedł (1m20s, NDK z cache).
+
+**Uczciwość funkcji — zapisane w stringach, nie tylko w komentarzach:**
+„zablokuj" i „wycisz" są **lokalne** (brak Cloud Functions do egzekwowania
+blokady i brak pushy do wyciszania), a „usuń rozmowę" **nie kasuje** wiadomości
+u rozmówcy. Teksty w UI o tym mówią — nie wolno ich „poprawić" na brzmiące lepiej,
+dopóki faza 2 nie dowiezie prawdziwej blokady.
 
 > **Decyzja: `readReceipts` zamiast łagodzenia `update` na `messages`.**
 > Plan zakładał dopuszczenie `update` na wiadomościach, żeby odbiorca mógł
@@ -90,9 +131,9 @@ i wdrożenia po pozytywnym buildzie.
   pobranych stronach, a prawdziwe wyszukiwanie wymaga pola `searchText` +
   (docelowo) indeksu. Lepiej zrobić je razem z fazą 2, kiedy możemy też
   dodać trigger zapisujący `searchText`.
-- **1.13 Karta kontaktu** (alias, język per kontakt, wycisz, zablokuj, przypnij)
-  — to osobny, duży kawałek UI, który nie blokuje użyteczności czatu. Wchodzi
-  jako własny tor po teście na telefonie.
+- ~~**1.13 Karta kontaktu**~~ — **WYKONANE** (2026-09-04), patrz blok wyżej.
+  Zrobione bez czekania na test telefonu, bo to własny tor: nie dotyka
+  wysyłania ani tłumaczenia, tylko nakłada się na już działającą skrzynkę.
 
 **Co zrobione w sesji 2026-09-03 → 04, noc (faza 0):**
 
@@ -315,9 +356,17 @@ users/{uid}/fcmTokens/{token}         ← rejestracja tokenów do pushy
   token, platform, updatedAt
 ```
 
-### 5.2 Room — migracja v5 → v6
+### 5.2 Room — migracja v5 → v7
 
-Cztery nowe tabele. Wzorowane na istniejącym `pending_deletes` (małe, wyspecjalizowane).
+Cztery nowe tabele w v6 + jedna w v7. Wzorowane na istniejącym `pending_deletes`
+(małe, wyspecjalizowane).
+
+- **`chat_hidden`** (v6→v7, zadanie 1.13) — rozmowy usunięte ze skrzynki.
+  `chatId TEXT PK, hiddenAt INTEGER`. Wiadomości w Firestore są append-only, więc
+  „usuń rozmowę" nie ma jak ich skasować — zostaje ukrycie lokalne.
+  **Ustawienia per kontakt NIE trafiły do Room** — idą do Firestore
+  (`users/{uid}/contacts/{otherUid}`), bo Firestore i tak trzyma cache offline,
+  a ustawienia mają iść za kontem na drugie urządzenie bez nowego mechanizmu syncu.
 
 - **`chat_translations`** — cache tłumaczeń, żeby nie mielić modelu przy każdej
   rekompozycji i żeby działało offline.
@@ -424,9 +473,16 @@ Czat 1:1 w pełni użyteczny, **bez backendu**.
       tańszy do presence — do rozważenia, jeśli koszty urosną).
 - [ ] **1.12** Wyszukiwanie w wiadomościach — klientowo po pobranych stronach.
       Docelowo pole `searchText` (lowercase) + `whereGreaterThanOrEqualTo`.
-- [ ] **1.13** Karta kontaktu (`users/{uid}/contacts/{otherUid}`): alias,
-      język per kontakt (auto-wykrywany z rozmowy + ręczne nadpisanie),
-      wycisz, zablokuj, przypnij, usuń rozmowę.
+- [x] **1.13** Karta kontaktu (`users/{uid}/contacts/{otherUid}`): alias,
+      język tłumaczenia (ręczne nadpisanie profilu), wycisz, zablokuj, przypnij,
+      notatka, usuń rozmowę (ukrycie lokalne). Ekran `contact/{uid}`,
+      wejście z nagłówka wątku i z Kontaktów. **Zostaje:** auto-wykrywanie
+      języka z rozmowy (oryginalny pomysł) — wymagałoby licznika języków
+      per wątek i progu pewności; ręczny wybór daje użytkownikowi kontrolę
+      i jest przewidywalny. Do przemyślenia w fazie 2.
+- [ ] **1.16** Test na telefonie (karta kontaktu): alias widoczny w skrzynce
+      i w nagłówku, przypięcie sortuje, blokada ukrywa, zmiana języka
+      przetłumaczenia w locie.
 - [ ] **1.14** Wszystkie stringi × 6 języków. Build + test na telefonie.
 - [ ] **1.15** README + commit + push.
 
@@ -512,7 +568,7 @@ Każda zmiana wymaga `firebase deploy --only firestore:rules --project mini-verb
 | `friendships/{id}` | zapytania po `members`; blokada zmiany `members`/`uidA`/`uidB` przy update | 0 ✅ wdrożone |
 | `chats/{chatId}/messages` | **złagodzić `update: if false`** — odbiorca może zmienić tylko własny klucz w `readBy` | 1 |
 | `chats/{chatId}` | update tylko dla członków, tylko `lastMessage*`/`readState.<uid>`/`typing.<uid>` | 1 |
-| `users/{uid}/contacts/{otherUid}` | read/write tylko właściciel | 1 |
+| `users/{uid}/contacts/{otherUid}` | read/write tylko właściciel + whitelist 7 pól (`alias`, `langOverride`, `muted`, `pinned`, `blocked`, `note`, `updatedAt`) | 1 ✅ wdrożone |
 | `phoneDirectory`, `invites` | **brak dostępu klienta** (tylko funkcje) | 2 |
 | `users/{uid}` | `phoneVerified`/`phoneHash` nie do zapisu z klienta (chronione przez `hasAny`) | 2 |
 | `chat_attachments/**` | Storage: tylko członkowie czatu | 5 |

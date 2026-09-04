@@ -147,6 +147,43 @@ data class Friendship(
     fun isOutgoing(me: String): Boolean = !isAccepted && requestedBy == me
 }
 
+/**
+ * Per-contact settings, private to the owner: `users/{uid}/contacts/{otherUid}`.
+ *
+ * These are MY opinions about someone else, so they live under my own `users`
+ * document and are never readable by the other person — an alias I give a contact
+ * must not show up on their device.
+ *
+ * Kept in Firestore rather than Room on purpose: Firestore keeps its own offline
+ * cache on Android, so the card still renders with no network, and the settings
+ * follow the account to a second device without inventing a new sync mechanism.
+ *
+ * `langOverride` is the language incoming messages from this contact are translated
+ * INTO, overriding the profile default. Blank means "use my profile language".
+ * It deliberately does NOT change the language my outgoing messages are tagged
+ * with — that one has to match what I actually type, or the receiver would
+ * translate from the wrong source.
+ */
+data class ContactSettings(
+    /** Shown instead of the nickname everywhere in the UI. Blank = no alias. */
+    val alias: String = "",
+    /** Language code (see [LangCode]) for incoming translations. Blank = profile default. */
+    val langOverride: String = "",
+    /** Suppresses the unread dot in the inbox. Server-side push silencing lands in phase 2. */
+    val muted: Boolean = false,
+    /** Floats the conversation to the top of the inbox. */
+    val pinned: Boolean = false,
+    /** Hides the conversation from my inbox. Client-side only — see the note in the README. */
+    val blocked: Boolean = false,
+    /** Free-form note, visible on the contact card only. */
+    val note: String = "",
+    val updatedAt: Long = 0
+) {
+    companion object {
+        val EMPTY = ContactSettings()
+    }
+}
+
 data class TranslationHistory(
     val id: Long = 0,
     // Stable cross-device key (UUID); empty only for pre-sync local rows.

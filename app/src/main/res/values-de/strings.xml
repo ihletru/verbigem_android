@@ -201,4 +201,28 @@
     <string name="chat_today">Heute</string>
     <string name="chat_yesterday">Gestern</string>
     <string name="chat_load_older">Ältere Nachrichten laden</string>
+
+    <!-- Kontaktkarte (Phase 1.13) -->
+    <string name="cancel">Abbrechen</string>
+    <string name="action_open_contact_card">Kontaktdetails</string>
+    <string name="contact_card_title">Kontakt</string>
+    <string name="contact_card_alias">Name für dich</string>
+    <string name="contact_card_alias_note">Nur du siehst diesen Namen. Dein Kontakt behält seinen Spitznamen.</string>
+    <string name="contact_card_lang_title">Nachrichten übersetzen nach</string>
+    <string name="contact_card_lang_auto">Auto (%1$s)</string>
+    <string name="contact_card_lang_note">Gilt für empfangene Nachrichten. Gesendete bleiben in der Sprache, in der du schreibst.</string>
+    <string name="contact_card_prefs">Unterhaltung</string>
+    <string name="contact_card_pin">Oben anheften</string>
+    <string name="contact_card_mute">Stumm</string>
+    <string name="contact_card_mute_note">Versteckt den Punkt für Ungelesenes. Push-Stummschaltung kommt mit den Benachrichtigungen.</string>
+    <string name="contact_card_block">Blockieren</string>
+    <string name="contact_card_block_note">Versteckt die Unterhaltung auf diesem Gerät. Schreiben kann die Person weiterhin — die serverseitige Sperre kommt später.</string>
+    <string name="contact_card_note">Notiz</string>
+    <string name="contact_card_note_placeholder">Nur für dich…</string>
+    <string name="contact_card_write">Nachricht schreiben</string>
+    <string name="contact_card_delete">Unterhaltung löschen</string>
+    <string name="contact_card_delete_title">Diese Unterhaltung löschen?</string>
+    <string name="contact_card_delete_body">Sie verschwindet auf diesem Handy aus deinem Postfach. Dein Kontakt behält die Nachrichten — Verbigem kann sie noch nicht aus der Cloud löschen.</string>
+    <string name="contact_card_restore">Unterhaltung wiederherstellen</string>
+    <string name="contact_card_not_friend">Ihr seid noch keine Kontakte — Nachrichten funktionieren trotzdem, sie kommen ohne Einladung im Chat an.</string>
 </resources>

@@ -33,6 +33,8 @@ import com.verbigem.app.ui.screens.chat.ChatListScreen
 import com.verbigem.app.ui.screens.chat.ChatListViewModel
 import com.verbigem.app.ui.screens.chat.ChatThreadScreen
 import com.verbigem.app.ui.screens.chat.ChatThreadViewModel
+import com.verbigem.app.ui.screens.chat.ContactCardScreen
+import com.verbigem.app.ui.screens.chat.ContactCardViewModel
 import com.verbigem.app.ui.screens.contacts.ContactsScreen
 import com.verbigem.app.ui.screens.contacts.ContactsViewModel
 import com.verbigem.app.ui.screens.conversation.ConversationScreen
@@ -155,7 +157,24 @@ fun AppNavigation(
                     ChatThreadScreen(
                         viewModel = chatThreadViewModel,
                         otherUid = otherUid,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onOpenContactCard = {
+                            navController.navigate(Screen.ContactCard.createRoute(otherUid))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.ContactCard.route,
+                    arguments = listOf(navArgument("uid") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val otherUid = backStackEntry.arguments?.getString("uid").orEmpty()
+                    val contactCardViewModel: ContactCardViewModel = viewModel()
+                    ContactCardScreen(
+                        viewModel = contactCardViewModel,
+                        otherUid = otherUid,
+                        onBack = { navController.popBackStack() },
+                        onOpenThread = { uid -> navController.navigate(Screen.ChatThread.createRoute(uid)) }
                     )
                 }
 
@@ -165,6 +184,9 @@ fun AppNavigation(
                         viewModel = contactsViewModel,
                         onOpenChat = { targetUid ->
                             navController.navigate(Screen.ChatThread.createRoute(targetUid))
+                        },
+                        onOpenContactCard = { targetUid ->
+                            navController.navigate(Screen.ContactCard.createRoute(targetUid))
                         }
                     )
                 }

@@ -201,4 +201,28 @@
     <string name="chat_today">Hoy</string>
     <string name="chat_yesterday">Ayer</string>
     <string name="chat_load_older">Cargar mensajes anteriores</string>
+
+    <!-- Ficha de contacto (fase 1.13) -->
+    <string name="cancel">Cancelar</string>
+    <string name="action_open_contact_card">Detalles del contacto</string>
+    <string name="contact_card_title">Contacto</string>
+    <string name="contact_card_alias">Nombre que ves tú</string>
+    <string name="contact_card_alias_note">Solo tú ves este nombre. La otra persona conserva su apodo.</string>
+    <string name="contact_card_lang_title">Traducir sus mensajes a</string>
+    <string name="contact_card_lang_auto">Auto (%1$s)</string>
+    <string name="contact_card_lang_note">Aplica a los mensajes que recibes. Los que envías se quedan en el idioma en que los escribes.</string>
+    <string name="contact_card_prefs">Conversación</string>
+    <string name="contact_card_pin">Fijar arriba</string>
+    <string name="contact_card_mute">Silenciar</string>
+    <string name="contact_card_mute_note">Oculta el punto de no leídos. El silencio de notificaciones llegará con las notificaciones.</string>
+    <string name="contact_card_block">Bloquear</string>
+    <string name="contact_card_block_note">Oculta la conversación de tu bandeja en este móvil. La otra persona puede seguir escribiendo — el bloqueo en el servidor llegará más adelante.</string>
+    <string name="contact_card_note">Nota</string>
+    <string name="contact_card_note_placeholder">Solo para ti…</string>
+    <string name="contact_card_write">Escribir un mensaje</string>
+    <string name="contact_card_delete">Eliminar conversación</string>
+    <string name="contact_card_delete_title">¿Eliminar esta conversación?</string>
+    <string name="contact_card_delete_body">Desaparecerá de tu bandeja en este móvil. La otra persona conserva los mensajes — Verbigem todavía no puede borrarlos de la nube.</string>
+    <string name="contact_card_restore">Restaurar conversación</string>
+    <string name="contact_card_not_friend">Todavía no sois contactos — los mensajes funcionan igual, llegan al chat sin invitación.</string>
 </resources>
