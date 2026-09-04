@@ -888,6 +888,19 @@ firebase deploy --only functions --project mini-verbigem
 podnieść runtime (`firebase.json` → `runtime`) i `engines.node` w `functions/package.json`
 na nodejs22, inaczej deploy przestanie działać.
 
+⚠️ **Pierwszy deploy funkcji 2. gen na projekcie ZAWSZE sypie błędem Eventarc:**
+`Permission denied while using the Eventarc Service Agent`. Uprawnienia Service Agent
+propagują się z opóźnieniem — po prostu powtórzyć deploy po kilku minutach (drugi
+przeszedł od razu). Nie szukać błędu w kodzie.
+
+⚠️ **Po udanym deployu CLI żąda polityki czyszczenia obrazów:** kontenery w Artifact
+Registry rosną z każdym deployem i kosztują. Ustawione jednorazowo:
+
+```bash
+firebase functions:artifacts:setpolicy --location us-central1 --days 7 --force \
+  --project mini-verbigem
+```
+
 ### Sekrety (Secret Manager)
 
 `matchContacts` potrzebuje pieprzu do HMAC numerów telefonów:

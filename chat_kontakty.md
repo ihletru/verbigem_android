@@ -48,7 +48,7 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
 | 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
 | 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | *w toku* |
-| 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **kod gotowy, DO WDROŻENIA** (test push u Milosza) | 27 | *w toku* |
+| 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **wdrożone na produkcję** (test push u Milosza został) | 27 | `a4e65d5` |
 | 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1 ✅, 2.5 🟡; 2.2–2.4, 2.6–2.7 nie zaczęte) | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
@@ -88,6 +88,7 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 - **1.14** ⬜ test na telefonie (faza 1) — **zostaje dla Milosza**.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
 - **1.16** ⬜ test na telefonie (karta kontaktu) — **zostaje dla Milosza**.
+- **1.17** ⬜ test na telefonie (push FCM) — **zostaje dla Milosza** (patrz faza 2 niżej).
 
 **Co zrobione w sesji 2026-09-04 (faza 2 — 2.1 i 2.5):**
 
@@ -141,10 +142,28 @@ Z polem `notification` Android sam renderuje powiadomienie w tle i **nie wywołu
 tylko dla wiadomości przychodzących przy otwartej aplikacji. Data-only daje pełną
 kontrolę zawsze; ceną jest Doze, stąd `priority: "high"` i TTL 4 tygodnie.
 
-**Uczciwość: 2.5 nie jest wdrożone.** Reguły `fcmTokens` i funkcja
-`onMessageCreated` czekają na `firebase deploy`. Do tego czasu push nie działa,
-a `FcmTokenManager` będzie logował `PERMISSION_DENIED` (błąd jest przechwytywany,
-aplikacja działa dalej).
+**Wdrożone 2026-09-04:** reguły `fcmTokens` **i** funkcja `onMessageCreated`
+(`firebase deploy`, projekt `mini-verbigem`, region `us-central1`).
+**Push wymaga APK z tym kodem** (v27, jeszcze nie wydany) — tokeny rejestrują się
+dopiero po uruchomieniu aplikacji z `FcmTokenManager`.
+
+**⚠️ Pierwszy deploy funkcji 2. gen zawsze rzuca błąd Eventarc.** Firebase mówi
+wprost: „retry the deployment in a few minutes" — uprawnienia Service Agent
+propagują się z opóźnieniem. Drugi deploy przeszedł. Po udanym deployu CLI żąda
+jeszcze `functions:artifacts:setpolicy` (obrazy kontenerów w Artifact Registry
+rosną i kosztują); ustawione na 7 dni.
+
+**⚠️ `matchContacts` jest napisany, ale celowo NIE wyeksportowany**
+(zakomentowany w `functions/src/index.ts`). Deklaruje sekret `PHONE_HASH_PEPPER`,
+a Firebase weryfikuje istnienie sekretów przy deployu — wyeksportowanie go
+przed `functions:secrets:set` blokuje **każdy** deploy, także pushowy. Włączyć
+przy 2.3.
+
+**1.17** ⬜ **test push na telefonie — zostaje dla Milosza:** wysłać wiadomość
+z drugiego konta (aplikacja w tle / ekran zgaszony), sprawdzić powiadomienie,
+akcję „Odpowiedz" (czy wiadomość doszła) i „Oznacz jako przeczytane", oraz
+tap → czy otwiera właściwy wątek. Podgląd treści jest domyślnie WYŁĄCZONY,
+więc na ekranie blokady ma być „Nowa wiadomość", nie treść.
 
 **Co zrobione po fazie 1 — 1.13 Karta kontaktu (2026-09-04):**
 
