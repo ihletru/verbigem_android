@@ -6,8 +6,12 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Self-update: install APK downloaded from GitHub Releases (unknown source). -->
+    <!-- Self-update: install APK downloaded from mini.verbigem.com (unknown source). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Kontakty: opcjonalne wyszukiwanie znajomych. Prosimy o nie DOPIERO po
+         ekranie prominent disclosure (ContactsPermissionScreen) — wymóg Google
+         Play. Numery nie opuszczają urządzenia (patrz polityka prywatności). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <uses-feature
         android:name="android.hardware.camera"

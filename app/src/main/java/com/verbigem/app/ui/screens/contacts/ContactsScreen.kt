@@ -1,5 +1,8 @@
 package com.verbigem.app.ui.screens.contacts
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,9 +41,14 @@ import com.verbigem.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.data.AppLinks
+import com.verbigem.app.data.InviteLinks
+import com.verbigem.app.data.openUrl
+import com.verbigem.app.data.shareText
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -54,7 +62,26 @@ fun ContactsScreen(
     val searchResults by viewModel.searchResults.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val sentRequests by viewModel.sentRequests.collectAsState()
+    val showDisclosure by viewModel.showPermissionDisclosure.collectAsState()
+    val phoneContacts by viewModel.phoneContacts.collectAsState()
+    val permissionDenied by viewModel.permissionDenied.collectAsState()
     val currentUid = viewModel.currentUid
+
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> viewModel.onPermissionResult(granted) }
+
+    // Prominent disclosure MUSI być przed systemowym dialogiem uprawnień —
+    // wymóg Google Play dla READ_CONTACTS (reguła „in-app disclosure first").
+    if (showDisclosure) {
+        ContactsPermissionScreen(
+            onContinue = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
+            onDismiss = { viewModel.dismissDisclosure() },
+            onOpenPolicy = { context.openUrl(AppLinks.privacyPolicyFor(context)) }
+        )
+        return
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -186,6 +213,98 @@ fun ContactsScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Znajomi z książki telefonicznej.
+        // Przycisk NIE prosi o uprawnienie wprost — najpierw idzie ekran
+        // prominent disclosure (`ContactsPermissionScreen`), potem system.
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.contacts_from_phone_label),
+                    color = VerbigemTheme.colors.muted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Button(
+                    onClick = { viewModel.onFindFromPhoneClicked() },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.contacts_find_phone))
+                }
+                if (permissionDenied) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.contacts_perm_denied),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.danger
+                    )
+                }
+            }
+        }
+
+        if (phoneContacts.isNotEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.contacts_perm_found, phoneContacts.size),
+                    fontSize = 12.sp,
+                    color = VerbigemTheme.colors.muted
+                )
+            }
+            items(phoneContacts) { contact ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(VerbigemTheme.colors.surface)
+                        .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = contact.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.ink
+                        )
+                        Text(
+                            text = contact.phone,
+                            fontSize = 12.sp,
+                            color = VerbigemTheme.colors.muted
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val link = InviteLinks.forUser(currentUid)
+                            context.shareText(
+                                context.getString(R.string.contacts_invite_message, link)
+                            )
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                    ) {
+                        Text(stringResource(R.string.contacts_perm_invite), fontSize = 12.sp)
                     }
                 }
             }

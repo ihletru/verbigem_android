@@ -46,6 +46,12 @@
     <string name="mode_night">夜晚</string>
     <string name="logout">退出登录</string>
 
+    <!-- 隐私（政策位于 mini.verbigem.com/privacy/）。 -->
+    <string name="privacy_label">隐私</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="privacy_policy_desc">Verbigem 如何处理您的数据</string>
+    <string name="privacy_contact_email">privacy@verbigem.com</string>
+
     <string name="conv_title">对话</string>
     <string name="conv_subtitle">两个人，一台设备。说话或输入——对方即可听到并看到翻译。</string>
     <string name="side_a_label">🅰 A 方</string>
@@ -77,6 +83,23 @@
     <string name="add_friend">+ 添加</string>
     <string name="accept">接受</string>
     <string name="decline">拒绝</string>
+
+    <!-- 联系人：READ_CONTACTS 的显著披露（Google Play 要求）。
+         措辞必须与 mini.verbigem.com/privacy/ 保持一致！ -->
+    <string name="contacts_from_phone_label">从手机通讯录</string>
+    <string name="contacts_find_phone">在我的通讯录中查找好友</string>
+    <string name="contacts_perm_title">访问通讯录</string>
+    <string name="contacts_perm_intro">为了向您显示哪些联系人已在使用 Verbigem，应用需要访问您的通讯录。</string>
+    <string name="contacts_perm_b1">Verbigem 会在您的设备上读取联系人列表，检查哪些人已经安装了本应用。</string>
+    <string name="contacts_perm_b2">进行匹配时，我们仅发送电话号码经加密的 SHA-256 哈希值。我们不会发送或存储号码本身。</string>
+    <string name="contacts_perm_b3">未使用 Verbigem 的联系人信息仅保留在您的手机上。您可以随时在 Android 设置中撤回授权。</string>
+    <string name="contacts_perm_hash_note">我们绝不会看到您联系人的电话号码，也不会出售您的通讯录或与任何人共享。</string>
+    <string name="contacts_perm_cta">继续</string>
+    <string name="contacts_perm_later">暂不</string>
+    <string name="contacts_perm_denied">未获得通讯录访问权限。您可以在 Android 设置中启用。</string>
+    <string name="contacts_perm_found">找到 %1$d 个含电话号码的联系人。</string>
+    <string name="contacts_perm_invite">邀请</string>
+    <string name="contacts_invite_message">你好！我用 Verbigem 翻译——它可在手机上离线使用。安装：%1$s</string>
 
     <string name="ocr_title">相机 OCR</string>
     <string name="ocr_pro">OCR Pro</string>

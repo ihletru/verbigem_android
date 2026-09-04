@@ -46,6 +46,12 @@
     <string name="mode_night">Noche</string>
     <string name="logout">Cerrar sesión</string>
 
+    <!-- Privacidad (la política está en mini.verbigem.com/privacy/). -->
+    <string name="privacy_label">PRIVACIDAD</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="privacy_policy_desc">Cómo trata Verbigem tus datos</string>
+    <string name="privacy_contact_email">privacy@verbigem.com</string>
+
     <string name="conv_title">Conversación</string>
     <string name="conv_subtitle">Dos personas, un dispositivo. Habla o escribe — la otra parte oye y ve la traducción.</string>
     <string name="side_a_label">🅰 Lado A</string>
@@ -77,6 +83,23 @@
     <string name="add_friend">+ Añadir</string>
     <string name="accept">Aceptar</string>
     <string name="decline">Rechazar</string>
+
+    <!-- Contactos: prominent disclosure para READ_CONTACTS (requisito de Google Play).
+         ¡El texto debe coincidir con mini.verbigem.com/privacy/! -->
+    <string name="contacts_from_phone_label">DESDE EL TELÉFONO</string>
+    <string name="contacts_find_phone">Buscar amigos en mis contactos</string>
+    <string name="contacts_perm_title">Acceso a los contactos</string>
+    <string name="contacts_perm_intro">Para mostrarte quiénes de tus contactos ya usan Verbigem, la aplicación necesita acceso a tu agenda.</string>
+    <string name="contacts_perm_b1">Verbigem lee tu lista de contactos en el dispositivo y comprueba quién ya tiene la aplicación.</string>
+    <string name="contacts_perm_b2">Para la coincidencia enviamos únicamente resúmenes cifrados SHA-256 de los números. Los números en sí no los enviamos ni los guardamos.</string>
+    <string name="contacts_perm_b3">Los contactos de personas sin Verbigem se quedan en tu teléfono. Puedes retirar tu consentimiento en cualquier momento en los ajustes de Android.</string>
+    <string name="contacts_perm_hash_note">Nunca vemos los números de teléfono de tus contactos y no vendemos ni compartimos tu agenda con nadie.</string>
+    <string name="contacts_perm_cta">Continuar</string>
+    <string name="contacts_perm_later">Ahora no</string>
+    <string name="contacts_perm_denied">Sin acceso a los contactos. Puedes activarlo en los ajustes de Android.</string>
+    <string name="contacts_perm_found">Se encontraron %1$d contactos con número de teléfono.</string>
+    <string name="contacts_perm_invite">Invitar</string>
+    <string name="contacts_invite_message">¡Hola! Traduzco con Verbigem — funciona sin conexión en el teléfono. Instálalo: %1$s</string>
 
     <string name="ocr_title">OCR de cámara</string>
     <string name="ocr_pro">OCR Pro</string>

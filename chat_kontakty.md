@@ -5,8 +5,9 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-03 (redakcja po uwagach Milosza: Blaze potwierdzony,
-polityka prywatności do wygenerowania, korekta punktu B6)
+Ostatnia aktualizacja: 2026-09-03 — **tor PP (polityka prywatności) ZROBIONY**:
+adres `privacy@verbigem.com` ustalony, polityka opublikowana w 6 językach,
+link w Profilu, ekran prominent disclosure przed `READ_CONTACTS`.
 
 > **Uwaga do następnej sesji:** punkt B6 (BottomNav) jest **nierozstrzygnięty**.
 > Milosz twierdzi, że patrzę na inny plik i że w bottom nawigacji nie ma
@@ -22,17 +23,50 @@ polityka prywatności do wygenerowania, korekta punktu B6)
 | 0 | Ratunek fundamentów | ⬜ nie rozpoczęta | — | — |
 | 1 | Skrzynka odbiorcza + wątek | ⬜ nie rozpoczęta | — | — |
 | 2 | Backend: Cloud Functions | ⬜ nie rozpoczęta | — | — |
-| 3 | Kontakty 2.0 (import, kanały) | ⬜ nie rozpoczęta | — | — |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 (kod, bez wydania) | *do commita* |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
-| PP | Polityka prywatności (§12) | ⬜ nie rozpoczęta | — | — |
+| PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 (wydano? nie) | *do commita* |
 
-**PP to osobny, lekki tor** — nie zależy od żadnej fazy, ale **blokuje fazę 3**.
-Wymaga odpowiedzi Milosza na pytanie 12.1 (adres kontaktowy do spraw prywatności).
+**Co zrobione w tej sesji (2026-09-03, wieczór):**
 
-**Gdzie skończyliśmy:** nic jeszcze nie zrobione — dokument dopiero powstał.
-**Następny krok:** Faza 0, zadanie 0.1 (`usersPublic`).
+- **Tor PP — cały zamknięty (§12):**
+  - adres kontaktowy: `privacy@verbigem.com` (ustalił Milosz),
+  - polityka opublikowana w 6 językach na `https://mini.verbigem.com/privacy/<lang>/`
+    (generator `mini/scripts/build_privacy.py`, deploy na hosting — 7 nowych
+    plików, webapp nietknięta, zweryfikowane wszystkie URLe),
+  - karta „Polityka prywatności" w `ProfileScreen` (otwiera `/privacy/<uiLang>/`),
+  - sekcja w README o polityce + pułapkach hostingu/cache.
+- **Faza 3 — ruszyła (częściowo):**
+  - **3.0** ✅ polityka opublikowana (warunek wstępny spełniony),
+  - **3.1** ✅ `READ_CONTACTS` w manifeście + `ContactsPermissionScreen`
+    (prominent disclosure **przed** systemowym dialogiem, link do polityki +
+    e-mail `privacy@verbigem.com`),
+  - **3.2** 🟡 `PhoneContactsImporter` czyta imię + numer z `ContactsContract`,
+    deduplikacja, odczyt na `Dispatchers.IO` — **brak** E.164 (libphonenumber),
+    e-maili, miniatury, `starred` i tabeli Room `external_contacts`,
+  - **3.5** 🟡 zapraszanie przez systemowy share sheet (`InviteLinks.forUser(uid)`
+    → link `mini.verbigem.com/app?inv=<uid>`) działa — **brak** osobnych kanałów
+    `smsto:` / `wa.me` / e-mail (interfejs `OutboundChannel` z §5.4).
+  - Kompilacja `assembleDebug` przechodzi (APK v25, `READ_CONTACTS` obecne).
+
+**Gdzie skończyliśmy:** kod PP + rdzeń Kontaktów leży w repo, **zbudowany**
+(APK v25), **ale nie wydany** (brak commita, pusha i wersji na hosting).
+**Następny krok (do wyboru przez Milosza):**
+1. *Szybko:* commit + push + **wydanie v26** (podbicie `versionCode` → 26,
+   `versionName` 1.0.25, APK na `dist/android/app-debug-v26.apk`, `version.json`,
+   deploy) — żeby sprawdzić politykę + kontakty na telefonie.
+2. *Planowo:* Faza 0 (`usersPublic`, B1–B6) — właściwy fundament pod czat.
+3. *Dokończenie fazy 3:* E.164 (libphonenumber), zapis do `external_contacts`,
+   kanały `smsto:`/`wa.me`, zakładki, „możesz znać".
+
+**Ważne pułapki do pamiętania:**
+- `/privacy/**` w `firebase.json` ma cache 1h (**nie** `immutable`), styl
+  inlinowany (bo `**/*.css` ma `immutable`).
+- Pliki polityki są w `mini/dist/privacy/` **i** `mini/public/privacy/`
+  (deploy bierze z `dist/`; `public/` przeżyje `npm run build`).
+- Przed deployem polityki **nie odpalać `npm run build`** (czyści `dist/`).
 
 ---
 
@@ -48,7 +82,7 @@ Potwierdzone przez Milosza 2026-09-03. Nie zmieniać bez nowej dyskusji.
 | D4 | **Dodatki w zakresie** | Kod QR + skaner, zdjęcia z OCR w czacie, głosówki (nagraj → tekst). |
 | D5 | **Czaty grupowe** | Odłożone / nie wybrane. Faza 6 zostaje w planie jako opcjonalna. |
 | D6 | **Plan Blaze** | **Potwierdzony — Milosz ma Blaze** (2026-09-03). Cloud Functions i FCM nie są zablokowane kosztowo. Nadal pilnować limitów i App Check. |
-| D7 | **Polityka prywatności** | **Nie istnieje — wygenerujemy ją sami.** 6 wersji językowych (PL/EN/DE/ES/ZH/TR), hosting na `mini.verbigem.com/privacy/`, link z aplikacji (Profil) + do zgłoszenia w Google Play. Wymagana przed fazą 3 (`READ_CONTACTS`). Szczegóły w §12. |
+| D7 | **Polityka prywatności** | **OPUBLIKOWANA (2026-09-03).** 6 wersji językowych (PL/EN/DE/ES/ZH/TR) na `mini.verbigem.com/privacy/`, link z aplikacji (Profil) + do zgłoszenia w Google Play. Kontakt: **`privacy@verbigem.com`**. Szczegóły w §12. Faza 3 odblokowana. |
 
 ---
 
@@ -307,15 +341,23 @@ Warunek: plan Blaze.
 
 ### Faza 3 — Kontakty 2.0
 
-- [ ] **3.0** **Warunek wstępny: polityka prywatności musi być opublikowana** (§12).
-      Bez niej Google Play odrzuci prośbę o `READ_CONTACTS`.
-- [ ] **3.1** `READ_CONTACTS` + ekran wyjaśnienia (prominent disclosure + link do
-      polityki, wymóg Google Play).
-- [ ] **3.2** `PhoneContactsImporter` (ContactsContract): imię, telefony, e-maile,
-      miniatura, `starred`.
+- [x] **3.0** **Warunek wstępny: polityka prywatności opublikowana** (§12) —
+      zrobione 2026-09-03.
+- [x] **3.1** `READ_CONTACTS` + ekran wyjaśnienia — **zrobione**.
+      `ContactsPermissionScreen.kt` (prominent disclosure + link do polityki +
+      e-mail `privacy@verbigem.com`) pokazywany **przed** systemowym dialogiem,
+      uprawnienie dopisane do manifestu, `PhoneContactsImporter.hasPermission()`
+      pilnuje, żeby nie prosić drugi raz.
+- [x] **3.2** `PhoneContactsImporter` (ContactsContract) — **wersja podstawowa**:
+      imię + numer, deduplikacja po numerze, odczyt na `Dispatchers.IO`.
+      **Zostaje do dorobienia:** e-maile, miniatura, `starred`, zapis do tabeli
+      Room `external_contacts` i normalizacja E.164 (libphonenumber, task 3.3).
 - [ ] **3.3** libphonenumber → normalizacja E.164.
 - [ ] **3.4** Matching przez `matchContacts` → trzy stany kontaktu z §4.1.
-- [ ] **3.5** Zapraszanie: systemowy share sheet, SMS z prefillem, `wa.me`, e-mail.
+- [~] **3.5** Zapraszanie: **systemowy share sheet już działa** (`Context.shareText`
+      + `InviteLinks.forUser(uid)` → link `https://mini.verbigem.com/app?inv=<uid>`).
+      **Zostaje:** bezpośrednie kanały SMS z prefillem (`smsto:`), `wa.me` i e-mail
+      — czyli interfejs `OutboundChannel` z §5.4.
 - [ ] **3.6** `external_contacts` + `outbox_messages` w Room; wątek jednokierunkowy
       z kompozytorem i historią wysyłek.
 - [ ] **3.7** Import `.vcf` — własny parser, zero zależności.
@@ -443,12 +485,22 @@ Do rozstrzygnięcia w trakcie — nie blokują startu fazy 0.
 
 ---
 
-## 12. Polityka prywatności — do wygenerowania
+## 12. Polityka prywatności — OPUBLIKOWANA (2026-09-03)
 
-Nie istnieje. Jest wymagana przez Google Play (zwłaszcza przy `READ_CONTACTS` —
-bez niej wniosek o dostęp do kontaktów zostanie odrzucony) i potrzebna w aplikacji
-od fazy 3. **Robimy ją sami** — treść jest prosta, bo aplikacja jest
-zaprojektowana prywatnie: tłumaczenie dzieje się na urządzeniu.
+**URL:** `https://mini.verbigem.com/privacy/` (+ `/pl/`, `/en/`, `/de/`, `/es/`,
+`/zh/`, `/tr/`). **Kontakt: `privacy@verbigem.com`.**
+
+Wymagana przez Google Play (zwłaszcza przy `READ_CONTACTS` — bez niej wniosek o
+dostęp do kontaktów zostanie odrzucony). **Zrobiliśmy ją sami** — treść jest
+prosta, bo aplikacja jest zaprojektowana prywatnie: tłumaczenie dzieje się na
+urządzeniu. Faza 3 jest odblokowana.
+
+**Struktura treści (13 sekcji, identyczna w każdym języku):** kto odpowiada za
+dane → dane tylko na urządzeniu → dane w chmurze → wiadomości czatu → numery
+telefonów i kontakty → uprawnienia → podmioty trzecie (tabela: Firebase /
+OpenRouter / DeepSeek / Hugging Face) → retencja → prawa użytkownika →
+bezpieczeństwo → dzieci (13+/16+ w EOG) → zmiany polityki → kontakt. Na górze
+jest ramka „Najważniejsze w skrócie" z 5 punktami, w tym adresem e-mail.
 
 ### 12.1 Zakres treści (do napisania)
 
@@ -467,38 +519,54 @@ zaprojektowana prywatnie: tłumaczenie dzieje się na urządzeniu.
   do ustalenia — patrz pytanie niżej).
 - **Dzieci / wiek:** standardowa klauzula 13+/16+.
 
-### 12.2 Jak to wdrożyć
+### 12.2 Jak to jest wdrożone
 
-- **Format:** 6 statycznych plików HTML, zero JS, zero buildu —
-  `mini.verbigem.com/privacy/pl`, `/en`, `/de`, `/es`, `/zh`, `/tr`,
-  plus `/privacy/index.html` przekierowujący wg `Accept-Language`.
-  Kanoniczny link do zgłoszenia w Play: `https://mini.verbigem.com/privacy/`
+- **Generator:** `verbigem/mini/scripts/build_privacy.py` — jeden plik z treścią
+  w 6 językach i arkuszem stylów, zero zależności, zero bundlera. Wypluwa
+  statyczne HTML do `public/privacy/` **i** `dist/privacy/`:
+  ```bash
+  cd verbigem/mini && python scripts/build_privacy.py
+  cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem
+  ```
+  Zmiana treści = edycja skryptu, wygenerowanie, deploy. **Bez wydania APK.**
+- **Format:** 6 katalogów `/privacy/<lang>/index.html` + `/privacy/index.html`
+  (pełna treść EN + przełącznik języków + skrypt przekierowujący wg
+  `navigator.languages`, raz na sesję). Bez JS strona i tak pokazuje politykę —
+  ważne dla crawlera Google Play.
+- **Dlaczego katalogi, nie pliki `pl.html`:** `firebase.json` ma catch-all
+  rewrite `** → /index.html` (SPA webappy). Pliki statyczne mają pierwszeństwo,
+  ale tylko przy dokładnym trafieniu — `/privacy/pl/` działa zawsze,
+  `/privacy/pl` dostaje 301 na wersję ze slashem (sprawdzone).
 - **⚠️ Pułapka hostingu (znana z README):** `firebase deploy --only hosting`
-  **zastępuje cały hosting zawartością `dist/`** — plików, których nie ma w
-  `dist/`, nie ma potem na serwerze. Dlatego:
-  1. pliki wylądować muszą w `mini/dist/privacy/` (teraz, ręcznie — **nie
-     odpalać `npm run build`**, bo czyści `dist/`),
-  2. **i** w `mini/public/privacy/`, żeby przetrwały przyszły build Vite
-     (`public/` jest kopiowane do `dist/`).
-- **Link w aplikacji:** pozycja w `ProfileScreen` (obok wyboru motywu/języka)
-  otwierająca przeglądarkę na `https://mini.verbigem.com/privacy/<uiLang>`.
-  Osobny string w `strings.xml` × 6.
-- **Dodatkowo:** ten sam URL idzie do karty sklepu Google Play i do ekranu
-  prośby o `READ_CONTACTS` (wymóg Play: prominent disclosure).
+  **zastępuje cały hosting zawartością `dist/`**. Dlatego pliki są w obu
+  miejscach: `dist/` (leci na serwer teraz) i `public/` (przetrwa przyszły
+  `npm run build`, bo Vite kopiuje `public/` → `dist/`).
+- **⚠️ Pułapka cache:** w `firebase.json` dodano `/privacy/**` →
+  `public, max-age=3600, must-revalidate`. **Nie wolno** dać tam `immutable` —
+  Cloudflare zamroziłby politykę na rok (ta sama pułapka co `/android/**`).
+  Z tego powodu **styl jest inlinowany** do każdego pliku, zamiast leżeć w
+  osobnym `.css` (reguła `**/*.css` ma `immutable`).
+- **Link w aplikacji:** karta „Polityka prywatności" w `ProfileScreen`
+  (otwiera `/privacy/<uiLang>/`) oraz ekran `ContactsPermissionScreen`
+  przed dialogiem `READ_CONTACTS`. URL-e buduje `data/AppLinks.kt` — jedno
+  źródło prawdy. Stringi × 6 (`privacy_*`, `contacts_perm_*`).
+- **Kontakt:** `privacy@verbigem.com` — ten sam adres w polityce, w ekranie
+  disclosure i w zgłoszeniu do Play.
 
 ### 12.3 Zadania
 
-- [ ] **12.1** Ustalić adres kontaktowy do spraw prywatności (np.
-      `privacy@verbigem.com`) — **pytanie do Milosza**, blokuje publikację treści.
-- [ ] **12.2** Napisać treść polityki (wersja polska + angielska jako wzorzec).
-- [ ] **12.3** Przetłumaczyć na DE / ES / ZH / TR.
-- [ ] **12.4** 6 plików HTML + `index.html` z przekierowaniem, wspólny arkusz stylów
-      (spójny z motywami aplikacji).
-- [ ] **12.5** Wrzucić do `mini/dist/privacy/` **i** `mini/public/privacy/`,
-      `firebase deploy --only hosting --project mini-verbigem`, sprawdzić
-      wszystkie 6 URLi.
-- [ ] **12.6** Pozycja „Polityka prywatności" w `ProfileScreen` + stringi × 6.
-- [ ] **12.7** README: dopisać sekcję o polityce i pułapce `dist/` vs `public/`.
+- [x] **12.1** Adres kontaktowy: **`privacy@verbigem.com`** (ustalił Milosz,
+      2026-09-03).
+- [x] **12.2** Treść polityki — 13 sekcji + ramka „w skrócie", PL i EN jako
+      wzorce.
+- [x] **12.3** Tłumaczenia DE / ES / ZH / TR.
+- [x] **12.4** 6 plików HTML + `index.html`, wspólny styl inlinowany,
+      jasny/ciemny motyw pod `prefers-color-scheme`.
+- [x] **12.5** Wrzucone do `mini/dist/privacy/` **i** `mini/public/privacy/`,
+      wdrożone, wszystkie 7 URLi sprawdzone (HTTP 200, poprawne tytuły).
+      Deploy zgłosił `uploading new files [0/7]` — webapp nietknięta.
+- [x] **12.6** Pozycja „Polityka prywatności" w `ProfileScreen` + stringi × 6.
+- [x] **12.7** README: sekcja „🔒 Polityka prywatności (opublikowana)" +
+      pułapki `dist/` vs `public/` i cache.
 
-**Kiedy:** blokuje fazę 3. Można zrobić jako osobną, lekką sesję w dowolnym
-momencie — nie zależy od żadnej innej fazy.
+**Kiedy:** zrobione 2026-09-03 jako osobny, lekki tor. Faza 3 odblokowana.

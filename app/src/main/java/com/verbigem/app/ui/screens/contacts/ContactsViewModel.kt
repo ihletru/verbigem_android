@@ -4,14 +4,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.verbigem.app.data.PhoneContact
+import com.verbigem.app.data.PhoneContactsImporter
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 data class SearchResultUser(
     val uid: String = "",
@@ -42,6 +46,18 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     private val _sentRequests = MutableStateFlow<Set<String>>(emptySet())
     val sentRequests: StateFlow<Set<String>> = _sentRequests.asStateFlow()
+
+    // --- Kontakty z książki telefonicznej (prominent disclosure + READ_CONTACTS) ---
+
+    /** true = pokaż ekran wyjaśnienia ZANIM poprosimy system o uprawnienie. */
+    private val _showPermissionDisclosure = MutableStateFlow(false)
+    val showPermissionDisclosure: StateFlow<Boolean> = _showPermissionDisclosure.asStateFlow()
+
+    private val _phoneContacts = MutableStateFlow<List<PhoneContact>>(emptyList())
+    val phoneContacts: StateFlow<List<PhoneContact>> = _phoneContacts.asStateFlow()
+
+    private val _permissionDenied = MutableStateFlow(false)
+    val permissionDenied: StateFlow<Boolean> = _permissionDenied.asStateFlow()
 
     val currentUid: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -115,6 +131,48 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     fun declineFriend(friendship: Friendship) {
         viewModelScope.launch {
             chatRepository.declineFriendship(friendship.id)
+        }
+    }
+
+    // --- Kontakty z telefonu ---
+
+    fun hasContactsPermission(): Boolean =
+        PhoneContactsImporter.hasPermission(getApplication())
+
+    /**
+     * Krok 1: użytkownik chce znaleźć znajomych. Jeśli nie mamy zgody,
+     * pokazujemy prominent disclosure — NIE odpalamy dialogu systemowego.
+     */
+    fun onFindFromPhoneClicked() {
+        if (hasContactsPermission()) {
+            loadPhoneContacts()
+        } else {
+            _showPermissionDisclosure.value = true
+        }
+    }
+
+    /** Krok 2: wynik systemowego dialogu (albo „pomiń" z ekranu wyjaśnienia). */
+    fun onPermissionResult(granted: Boolean) {
+        _showPermissionDisclosure.value = false
+        if (granted) {
+            loadPhoneContacts()
+        } else {
+            _permissionDenied.value = true
+        }
+    }
+
+    fun dismissDisclosure() {
+        _showPermissionDisclosure.value = false
+    }
+
+    private fun loadPhoneContacts() {
+        _permissionDenied.value = false
+        viewModelScope.launch {
+            // Odczyt ContentProvidera — na IO, żeby nie blokować wątku głównego
+            // przy dużej książce adresowej.
+            _phoneContacts.value = withContext(Dispatchers.IO) {
+                PhoneContactsImporter.read(getApplication())
+            }
         }
     }
 }

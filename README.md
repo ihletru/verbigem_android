@@ -71,6 +71,15 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
 4. **Kontakty i Znajomi (Contacts)**:
    - Wyszukiwanie użytkowników po nicku/e-mailu.
    - Przyjmowanie i odrzucanie zaproszeń.
+   - **Znajomi z książki telefonicznej:** odczyt kontaktów przez
+     `ContactsContract` (`PhoneContactsImporter`) — imiona i numery, deduplikacja,
+     odczyt na `Dispatchers.IO`. Dane **zostają na urządzeniu**.
+   - **Prominent disclosure:** `ContactsPermissionScreen` wyjaśnia, co i po co
+     czytamy, zanim system zapyta o `READ_CONTACTS` (wymóg Google Play). Ma link
+     do polityki prywatności i adres `privacy@verbigem.com`.
+   - **Zapraszanie:** systemowy share sheet z linkiem
+     `https://mini.verbigem.com/app?inv=<uid>` (działa z SMS, WhatsApp,
+     Telegramem, e-mailem — bez żadnej integracji i bez `SEND_SMS`).
 
 5. **OCR ze zdjęcia/aparatu (Camera OCR)**:
    - Zdjęcie z aparatu lub wybór z galerii.
@@ -135,6 +144,8 @@ Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
    - Tryby: **Dzień (Day ☀️)** / **Noc (Night 🌙)**.
    - Wybór języka interfejsu i domyślnej pary językowej.
    - Wektorowe flagi SVG dla wszystkich języków.
+   - **Polityka prywatności** — karta otwierająca `mini.verbigem.com/privacy/`
+     w przeglądarce, w języku interfejsu (szczegóły w sekcji 🔒 niżej).
 
 ---
 
@@ -161,6 +172,66 @@ Najważniejsze ustalenia (szczegóły w `chat_kontakty.md`):
 
 ---
 
+## 🔒 Polityka prywatności (opublikowana)
+
+**URL do zgłoszenia w Google Play:** `https://mini.verbigem.com/privacy/`
+Wersje językowe: `/privacy/pl/`, `/en/`, `/de/`, `/es/`, `/zh/`, `/tr/`.
+Adres kontaktowy do spraw prywatności: **privacy@verbigem.com**.
+
+**Źródło treści:** `verbigem/mini/scripts/build_privacy.py` — jeden plik z całą
+treścią w 6 językach i arkuszem stylów. To jedyne źródło prawdy; skrypt
+generuje statyczne HTML do `public/privacy/` **i** `dist/privacy/`.
+
+```bash
+cd verbigem/mini && python scripts/build_privacy.py
+cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem
+```
+
+**Dlaczego `public/` i `dist/` naraz?** `firebase deploy --only hosting`
+zastępuje hosting zawartością `dist/`. W `dist/` pliki muszą być, bo to ono
+leci na serwer. W `public/` muszą być, żeby przetrwały przyszły
+`npm run build` Vite (Vite kopiuje `public/` → `dist/`, ale najpierw `dist/`
+czyści — patrz sekcja o APK niżej).
+
+**Struktura URL-i:** katalogi (`/privacy/pl/index.html`), **nie** płaskie pliki
+`/privacy/pl.html`. `firebase.json` ma catch-all rewrite `** → /index.html`
+(webapp SPA), więc gdyby pliku nie było, `/privacy/pl` dostałoby stronę
+webappy. Ze slashem serwowany jest prawdziwy plik statyczny, a `/privacy/pl`
+dostaje 301 → `/privacy/pl/`.
+
+**`/privacy/index.html`** = pełna treść po angielsku (crawler Google Play i
+przeglądarki bez JS zawsze widzą politykę) + przełącznik języków + mały skrypt
+przekierowujący wg `navigator.languages` (raz na sesję, `sessionStorage`).
+
+**⚠️ Cache:** `firebase.json` daje `/privacy/**` nagłówek
+`public, max-age=3600, must-revalidate`. **Nigdy nie dawaj tam `immutable`** —
+Cloudflare zamroziłby politykę na rok (ta sama pułapka co przy `/android/**`).
+Styl jest **inlinowany** do każdego pliku właśnie dlatego, że reguła
+`**/*.css` ma `immutable`.
+
+### Gdzie polityka jest w aplikacji
+
+| Miejsce | Plik | Co robi |
+|---|---|---|
+| Profil → karta „Polityka prywatności" | `ProfileScreen.kt` | otwiera `/privacy/<uiLang>/` w przeglądarce |
+| Kontakty → prominent disclosure | `ContactsPermissionScreen.kt` | ekran wyjaśnienia **przed** systemowym dialogiem `READ_CONTACTS` (wymóg Play) |
+
+URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy):
+`privacyPolicy(uiLang)` w profilu (preferencja użytkownika),
+`privacyPolicyFor(context)` tam, gdzie preferencji nie mamy (czyta faktyczny
+język zasobów). Oba otwierają **przeglądarkę**, nie WebView — użytkownik widzi
+pasek adresu i naszą domenę.
+
+**Zasada spójności:** treść ekranu disclosure (stringi `contacts_perm_*` × 6
+języków) musi zgadzać się z opublikowaną polityką. Zmiana polityki na stronie
+**nie wymaga** nowego wydania APK; zmiana stringów w aplikacji — tak.
+
+**`READ_CONTACTS`** jest w manifeście, ale aplikacja prosi o nie wyłącznie po
+ekranie wyjaśnienia. Numery nie opuszczają urządzenia — do chmury (faza 2/3,
+Cloud Function `matchContacts`) mają iść wyłącznie skróty SHA-256 + HMAC.
+
+---
+
 ## 🛠️ Architektura techniczna
 
 ```
@@ -177,6 +248,8 @@ app/src/main/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline (trigger sync na włączenie netu)
 │   │   ├── local/                  # Room DB (HistoryEntity, HistoryDao, OcrHistoryEntity, OcrHistoryDao — lokalna, oddzielna historia OCR, bez syncu; TtsConfigEntity, TtsConfigDao, PendingDeleteEntity, PendingDeleteDao) + DataStore Preferences
 │   │   ├── model/                  # LangCode, UserProfile, ChatMessage, Friendship, EngineChoice, TranslationHistory, TtsConfig
+│   │   ├── AppLinks.kt             # Polityka prywatności (URL wg języka), InviteLinks, openUrl(), shareText()
+│   │   ├── PhoneContactsImporter.kt # Odczyt książki telefonicznej (ContactsContract) — dane zostają na urządzeniu
 │   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository, ProTtsRepository, SyncManager, TtsConfigSync
 │   ├── engine/
 │   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2 z promptem  i czyszczeniem
@@ -191,7 +264,7 @@ app/src/main/
 │   └── ui/
 │       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView, ProFeatureButton (Pro+grayscale+tooltip)
 │       ├── navigation/             # AppNavigation, Screen
-│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatScreen, ContactsScreen, OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
+│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 

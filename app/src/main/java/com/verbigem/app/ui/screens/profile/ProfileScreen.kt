@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -35,9 +37,12 @@ import com.verbigem.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.data.AppLinks
+import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.components.UiLangSelect
@@ -53,6 +58,7 @@ fun ProfileScreen(
     val currentTheme by viewModel.currentTheme.collectAsState(initial = "calm")
     val currentMode by viewModel.currentMode.collectAsState(initial = "day")
     val currentUiLang by viewModel.currentUiLang.collectAsState(initial = "pl")
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = Modifier
@@ -247,6 +253,64 @@ fun ProfileScreen(
                             )
                         }
                     }
+                }
+            }
+        }
+
+        // Prywatność — link do opublikowanej polityki (wymóg Google Play).
+        // Treść leży na mini.verbigem.com/privacy/<uiLang>/, więc zmiana nie wymaga
+        // nowego wydania APK. Otwieramy w przeglądarce, nie w WebView — użytkownik
+        // widzi pasek adresu i ma pewność, że to nasza domena.
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    stringResource(R.string.privacy_label),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.muted
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { context.openUrl(AppLinks.privacyPolicy(currentUiLang)) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = VerbigemTheme.colors.accent,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.privacy_policy),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.ink
+                        )
+                        Text(
+                            stringResource(R.string.privacy_policy_desc),
+                            fontSize = 12.sp,
+                            color = VerbigemTheme.colors.muted
+                        )
+                    }
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = VerbigemTheme.colors.muted,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }

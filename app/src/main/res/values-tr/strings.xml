@@ -46,6 +46,12 @@
     <string name="mode_night">Gece</string>
     <string name="logout">Çıkış yap</string>
 
+    <!-- Gizlilik (politika mini.verbigem.com/privacy/ adresinde). -->
+    <string name="privacy_label">GİZLİLİK</string>
+    <string name="privacy_policy">Gizlilik politikası</string>
+    <string name="privacy_policy_desc">Verbigem verilerinizi nasıl işler</string>
+    <string name="privacy_contact_email">privacy@verbigem.com</string>
+
     <string name="conv_title">Konuşma</string>
     <string name="conv_subtitle">İki kişi, bir cihaz. Konuş veya yaz — karşı taraf çeviriyi duyar ve görür.</string>
     <string name="side_a_label">🅰 A Tarafı</string>
@@ -77,6 +83,23 @@
     <string name="add_friend">+ Ekle</string>
     <string name="accept">Kabul et</string>
     <string name="decline">Reddet</string>
+
+    <!-- Kişiler: READ_CONTACTS için belirgin açıklama (Google Play gereksinimi).
+         Metin mini.verbigem.com/privacy/ ile uyumlu olmalı! -->
+    <string name="contacts_from_phone_label">TELEFONDAN</string>
+    <string name="contacts_find_phone">Kişilerimde arkadaş bul</string>
+    <string name="contacts_perm_title">Kişilere erişim</string>
+    <string name="contacts_perm_intro">Kişilerinizden hangilerinin Verbigem kullandığını göstermek için uygulamanın telefon rehberinize erişmesi gerekir.</string>
+    <string name="contacts_perm_b1">Verbigem kişi listenizi cihazınızda okur ve uygulamayı kimin kullandığını kontrol eder.</string>
+    <string name="contacts_perm_b2">Eşleştirme için yalnızca telefon numaralarının şifrelenmiş SHA-256 özetlerini göndeririz. Numaraların kendisini göndermeyiz ve saklamayız.</string>
+    <string name="contacts_perm_b3">Verbigem kullanmayan kişilerin bilgileri telefonunuzda kalır. Onayı Android ayarlarından istediğiniz zaman geri çekebilirsiniz.</string>
+    <string name="contacts_perm_hash_note">Kişilerinizin telefon numaralarını hiçbir zaman görmeyiz; rehberinizi satmayız veya kimseyle paylaşmayız.</string>
+    <string name="contacts_perm_cta">Devam</string>
+    <string name="contacts_perm_later">Şimdi değil</string>
+    <string name="contacts_perm_denied">Kişilere erişim yok. Android ayarlarından etkinleştirebilirsiniz.</string>
+    <string name="contacts_perm_found">%1$d kişide telefon numarası bulundu.</string>
+    <string name="contacts_perm_invite">Davet et</string>
+    <string name="contacts_invite_message">Merhaba! Verbigem ile çeviriyorum — telefonda çevrimdışı çalışıyor. Yükle: %1$s</string>
 
     <string name="ocr_title">Kamera OCR</string>
     <string name="ocr_pro">OCR Pro</string>
