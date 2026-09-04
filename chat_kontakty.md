@@ -5,21 +5,22 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **3.7 Import `.vcf` WYKONANY w kodzie i
-WYDANY** (`VcfImporter`, własny parser, zero zależności; przycisk w sekcji
-„Znajomi z książki", scalony z książką w jedną listę). Wcześniej tego samego
-dnia: **3.6 Wątek jednokierunkowy WYDANY** (`ExternalThreadScreen`, Room
-`external_contacts` + `external_outbox`, migracja `7_8`).
+Ostatnia aktualizacja: 2026-09-04 — **3.8 Zakładki w Kontaktach WYKONANE w
+kodzie i WYDANE** (`ContactsScreen` → `TabRow` + 4 zakładki: Znajomi / Zaproszenia
+/ Z telefonu / Zewnętrzne; `CombinedSearch` szuka po wszystkich naraz; wspólny
+`ContactListRow`). Wcześniej tego samego dnia: **3.7 Import `.vcf` WYDANY** i
+**3.6 Wątek jednokierunkowy WYDANY**.
 
 Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
 Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
 
-**Stan wydań:** **v31 (1.0.30) WYDANY na produkcję** — zweryfikowane
-`https://mini.verbigem.com/updates/version.json` → `versionCode: 31`. Zawiera
-v30 + 3.7 (import `.vcf`). APK: `app-debug-v31.apk`.
+**Stan wydań:** **v32 (1.0.31) WYDANY na produkcję** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 32` oraz sha256
+APK `app-debug-v32.apk?v=32` zgodny z lokalnym buildem. Zawiera v31 + 3.8
+(zakładki). APK: `app-debug-v32.apk`.
 
 > **v27, v28, v29 nigdy nie trafiły na hosting** — wersjonowanie przeskoczyło z 26
-> na 30, a potem 30 → 31 (3.7). Build v31 to najnowsza wersja po v26.
+> na 30, a potem 30 → 31 (3.7), 31 → 32 (3.8). Build v32 to najnowsza wersja po v26.
 
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
@@ -59,7 +60,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.7 zrobione; dalej 3.8–3.10) | 31 | `22f2e28` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.8 zrobione; dalej 3.9–3.10) | 32 | `6afcdde` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -210,6 +211,27 @@ node backfill_searchtext.js --apply
   Importowany wpis otwiera ten sam wątek jednokierunkowy (3.6) co wpis z książki.
 - 5 nowych stringów × 6 języków (`contacts_import_vcf`, `contacts_imported_title`,
   `contacts_import_vcf_done`, `contacts_import_vcf_none`, `contacts_import_vcf_failed`).
+
+**Co zrobione w sesji 2026-09-04, noc (faza 3 — 3.8, WYDANE w v32):**
+
+- **3.8** ✅ **Zakładki w Kontaktach.** `ContactsScreen` przepisany na `TabRow` +
+  4 zakładki: `tab_friends` (Znajomi), `tab_invites` (Zaproszenia), `tab_phone`
+  (Z telefonu), `tab_external` (Zewnętrzne). Każda zakładka to osobny composable
+  (`FriendsTab` / `InvitesTab` / `PhoneTab` / `ExternalTab`); wspólny wiersz
+  `ContactListRow(title, subtitle, onClick, trailing)`.
+- Wybór zakładki to lokalny `selectedTab` (remember). Gdy pole wyszukiwania na górze
+  jest niepuste, układ zakładek znika i pokazuje się `CombinedSearch` — jedna lista
+  trafień z trzech źródeł (znajomi po nicku, książka+import po imieniu/numerze,
+  zewnętrzni po imieniu/numerze), z nagłówkami sekcji. Puste pole wraca do zakładek.
+- `ExternalTab` czyta `externalContacts` z VM (`ExternalThreadRepository.watchContacts()`
+  w `init`) — zewnętrzni kontakty z Room (3.6). Kliknięcie otwiera wątek
+  jednokierunkowy (3.6).
+- 7 nowych stringów × 6 języków (`tab_friends`, `tab_invites`, `tab_phone`,
+  `tab_external`, `no_invites`, `contacts_external_empty`, `no_results`).
+- Pułapki przy budowie: przepisanie pliku zgubiło importy Compose (`Modifier`, `dp`,
+  `sp`, `FontWeight`, `clip`, `Dialog`) — dosypane; `CombinedSearch` wymagał dwóch
+  callbacków (PhoneContact dla trafień z książki przez `openExternal`, String dla
+  zewnętrznych przez `onOpenExternalThread`).
 
 **Co zrobione w sesji 2026-09-04, popołudniu (faza 3 — 3.6, WYDANE w v30):**
 
@@ -912,8 +934,13 @@ Warunek: plan Blaze.
       (mime `text/vcard`) — nie wymaga `READ_CONTACTS`. Wynik scalony z książką w
       jedną listę; numery już obecne pomijane. **WYDANE w v31.**
 - [ ] **3.7** Import `.vcf` — własny parser, zero zależności.
-- [ ] **3.8** Zakładki w Kontaktach: Znajomi / Zaproszenia / Z telefonu /
-      Zewnętrzne. Wyszukiwanie po wszystkich naraz.
+- [x] **3.8** **Zakładki w Kontaktach (3.8)** — `ContactsScreen` przepisany na
+      `TabRow` + 4 zakładki: Znajomi / Zaproszenia / Z telefonu / Zewnętrzne
+      (`FriendsTab` / `InvitesTab` / `PhoneTab` / `ExternalTab`, wspólny
+      `ContactListRow`). Wyszukiwanie po wszystkich naraz: niepuste pole na górze
+      ukrywa zakładki i pokazuje `CombinedSearch` (znajomi po nicku, książka+import
+      po imieniu/numerze, zewnętrzni po imieniu/numerze). 7 nowych stringów × 6.
+      **WYDANE w v32.**
 - [ ] **3.9** „Możesz znać" — znajomi moich znajomych, bez już dodanych.
 - [ ] **3.10** Stringi × 6. Build + test na telefonie. README + commit + push.
 
