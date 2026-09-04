@@ -16,11 +16,14 @@ SMS-em. Faza 2 (2.1–2.7) jest kompletna w kodzie.
 
 **Stan wydań:** v26 (faza 0 + faza 1) **jest na produkcji** — zweryfikowane
 `https://mini.verbigem.com/updates/version.json` → `versionCode: 26`.
-**v27 i v28 czekają na wydanie** (buildy przeszły): wymagają skopiowania
-`app-debug-vXX.apk` do `verbigem/mini/dist/android/`, podbicia `vite.config.ts`
-i `dist/updates/version.json` (`?v=XX` w `apkUrl`), potem
+**v29 czeka na wydanie** (build przeszedł): wymaga skopiowania
+`app-debug-v29.apk` do `verbigem/mini/dist/android/`, aktualizacji `vite.config.ts`
+i `dist/updates/version.json` (`?v=29` w `apkUrl`), potem
 `firebase deploy --only hosting`. **Nie robimy tego przed testami na telefonie** —
 nie ma sensu wypychać ludziom wersji, których nikt nie odpalił.
+
+> **v27 i v28 nigdy nie trafiły na hosting**, więc nikt ich nie dostał. v29
+> zawiera je w sobie (1.13 + 1.12 + 3.5) — wypychamy tylko ją.
 
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
@@ -60,7 +63,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
-| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
+| 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.5; dalej 3.6–3.10) | 29 | *w toku* |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
@@ -159,6 +162,41 @@ node backfill_searchtext.js --apply
   (znajdzie), `kota` (**nie** znajdzie — to jest poprawne zachowanie), `KOT`
   (znajdzie — lowercase po obu stronach), `jęść` vs `jesc` (polskie znaki
   obcinają akcenty po obu stronach). Wynik po kliknięciu otwiera właściwy wątek.
+
+**Co zrobione w sesji 2026-09-04, w nocy (faza 3 — 3.3, 3.4, 3.5):**
+
+- **3.3** ✅ **E.164 — zrobione wcześniej, przy 2.6.** `PhoneNumbers.kt` używa
+  `android.telephony.PhoneNumberUtils.formatNumberToE164`, czyli libphonenumber
+  wbudowanego w system — **zero nowych zależności**. Zgadywanie kraju (SIM →
+  locale) daje listę kandydatów i haszujemy każdy. **Zostaje luka 3.3b:** ekspat z
+  zagraniczną kartą SIM. Najlepszy możliwy sygnał to kraj **własnego** zweryfikowanego
+  numeru — wymagałoby dopisania `phoneCountry` w `verifyPhone` (numeru nie trzymamy,
+  tylko skrót, więc musi to policzyć funkcja).
+- **3.4** ✅ **Trzy stany kontaktu — zrobione.** Ma Verbigem → „Napisz" (otwiera
+  wątek). Nie ma → „Zaproś" (zapisuje zaproszenie pod skrótem numeru + otwiera
+  kanał). Trzeciego stanu z §4.1 („nie ma, ale jest na WhatsApp") **nie da się
+  odróżnić** bez zewnętrznego API — dlatego WhatsApp jest **kanałem**, nie stanem.
+  Uczciwiej mieć przycisk, który otworzy WhatsApp, niż udawać, że wiemy.
+- **3.5** ✅ **`OutboundChannel` — zrobione.** Pięć kanałów: WhatsApp, SMS, e-mail,
+  Telegram, systemowy arkusz. Dostępność liczy się **per odbiorca** („SMS" znika,
+  gdy wpis nie ma numeru). `OutboundTarget` to lekki nośnik na czas lotu, nie
+  encja z 3.6 — dostanie `toTarget()`, gdy powstanie tabela w Room.
+
+  **⚠️ Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i pójście
+  na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi,
+  ale **`t.me/share/url?url=…&text=…` potrafi**, i to z jednoczesnym podaniem
+  linku — dokładnie tym, czego potrzebuje zaproszenie. Odpada więc snackbar
+  „skopiowaliśmy do schowka". §5.4 poprawiony niżej.
+
+  **Celowo nie używamy `SmsManager`.** `SEND_SMS` w polityce Google Play to
+  wniosek, uzasadnienie i ryzyko odrzucenia — dla funkcji, która i tak musiałaby
+  spytać użytkownika, czy na pewno. `ACTION_SENDTO` daje to samo za jednym
+  kliknięciem.
+
+  **Zaproszenie zapisujemy niezależnie od wybranego kanału.** Ten sam numer, a
+  link i zaproszenie to dwa różne sposoby na ten sam cel: zaproszenie działa, gdy
+  osoba kiedyś potwierdzi numer, link — gdy kliknie go od razu. Pominięcie
+  któregoś zostawia połowę szansy.
 
 **Co zrobione w sesji 2026-09-04, wieczorem (faza 2 — 2.4 i 2.6):**
 
@@ -692,8 +730,15 @@ interface OutboundChannel {
 |---|---|---|
 | WhatsApp | `ACTION_VIEW` → `https://wa.me/<E164>?text=<urlencoded>`, `setPackage("com.whatsapp")` + fallback na chooser | Tekst jest wklejony, użytkownik musi kliknąć wysłanie. Numer musi być na WA. |
 | SMS | `ACTION_SENDTO` → `smsto:<E164>` + `EXTRA_SMS_BODY` | Prewypełnione, wymaga jednego kliknięcia. **Nie używamy `SmsManager`** — uprawnienie `SEND_SMS` to problem z polityką Google Play. |
-| Telegram | `ACTION_VIEW` → `https://t.me/<username>` + schowek + snackbar | **URL Telegrama nie potrafi wkleić tekstu.** Kopiujemy do schowka i informujemy. |
-| E-mail | `ACTION_SENDTO` → `mailto:` + `EXTRA_TEXT` | — |
+| Telegram | `ACTION_VIEW` → `https://t.me/share/url?url=<link>&text=<tekst>` | Otwiera **wybór rozmowy**, nie konkretną osobę — nie da się trafić do kogoś po numerze. |
+| E-mail | `ACTION_SENDTO` → `mailto:` + `EXTRA_SUBJECT` + `EXTRA_TEXT` | Wymaga adresu; importer czyta je osobnym zapytaniem po `CONTACT_ID`. |
+
+> **Poprawka do §5.4 (2026-09-04, przy 3.5):** pierwotna tabela zakładała
+> `t.me/<username>` i pójście na schowek, bo „URL Telegrama nie potrafi wkleić
+> tekstu". Zwykły nie potrafi, ale `t.me/share/url` **tak**. Interfejs dostał też
+> `link` osobno, bo `share/url` wymaga go jako parametru `url` — wyciąganie go z
+> treści byłoby zgadywaniem. Z tego samego powodu wiadomość (`contacts_invite_text`)
+> **nie zawiera linku**: każdy kanał składa ją sam.
 
 **Uczciwość UX:** wątek zewnętrzny jest wyraźnie oznaczony jako jednokierunkowy —
 „Wysyłka ręczna. Odpowiedzi nie wracają do Verbigem". Po handoff nie wiemy, czy
@@ -802,12 +847,20 @@ Warunek: plan Blaze.
       imię + numer, deduplikacja po numerze, odczyt na `Dispatchers.IO`.
       **Zostaje do dorobienia:** e-maile, miniatura, `starred`, zapis do tabeli
       Room `external_contacts` i normalizacja E.164 (libphonenumber, task 3.3).
-- [ ] **3.3** libphonenumber → normalizacja E.164.
-- [ ] **3.4** Matching przez `matchContacts` → trzy stany kontaktu z §4.1.
-- [~] **3.5** Zapraszanie: **systemowy share sheet już działa** (`Context.shareText`
-      + `InviteLinks.forUser(uid)` → link `https://mini.verbigem.com/app?inv=<uid>`).
-      **Zostaje:** bezpośrednie kanały SMS z prefillem (`smsto:`), `wa.me` i e-mail
-      — czyli interfejs `OutboundChannel` z §5.4.
+- [x] **3.3** libphonenumber → normalizacja E.164 — **zrobione przy okazji 2.6**
+      (`PhoneNumbers.kt`, systemowy libphonenumber przez
+      `PhoneNumberUtils.formatNumberToE164`, bez nowej zależności).
+      **Zostaje luka 3.3b:** ekspat z zagraniczną kartą SIM (zgadujemy kraj z SIM,
+      potem z locale). Najlepszy sygnał — kraj własnego zweryfikowanego numeru —
+      wymaga dopisania go w `verifyPhone`.
+- [x] **3.4** Matching przez `matchContacts` → trzy stany kontaktu z §4.1
+      — **zrobione**: ma Verbigem → „Napisz", nie ma → zaproszenie + kanał.
+      Stan „nie ma, ale jest na WhatsApp" jest nierozróżnialny bez API
+      WhatsAppa, więc WhatsApp jest kanałem, nie stanem.
+- [x] **3.5** **Warstwa kanałów wychodzących** — `data/OutboundChannel.kt`:
+      WhatsApp (`wa.me`), SMS (`smsto:`), e-mail (`mailto:`), Telegram, systemowy
+      arkusz. Wybór kanału w dialogu po kliknięciu „Zaproś". Importer czyta
+      e-maile (osobne zapytanie po `CONTACT_ID`). **Patrz blok w sekcji 1.**
 - [ ] **3.6** `external_contacts` + `outbox_messages` w Room; wątek jednokierunkowy
       z kompozytorem i historią wysyłek.
 - [ ] **3.7** Import `.vcf` — własny parser, zero zależności.

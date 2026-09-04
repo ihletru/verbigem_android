@@ -105,7 +105,6 @@
     <string name="contacts_perm_denied">Brak dostępu do kontaktów. Możesz włączyć go w ustawieniach Androida.</string>
     <string name="contacts_perm_found">Znalazłem %1$d kontaktów z numerem telefonu.</string>
     <string name="contacts_perm_invite">Zaproś</string>
-    <string name="contacts_invite_message">Cześć! Tłumaczę w Verbigem — działa offline na telefonie. Zainstaluj: %1$s</string>
 
     <!-- OCR -->
     <string name="ocr_title">OCR z aparatu</string>
@@ -246,6 +245,15 @@
     <string name="contacts_match_checking">Sprawdzam, którzy z nich mają Verbigem…</string>
     <string name="contacts_match_found">Mają już Verbigem: %1$d</string>
     <string name="contacts_match_write">Napisz</string>
+    <string name="contacts_invite_text">Cześć! Tłumaczę w Verbigem — działa offline na telefonie.</string>
+    <string name="channel_none_available">Żadna aplikacja na tym telefonie tego nie wyśle.</string>
+    <string name="channel_pick_title">Zaproś przez</string>
+    <string name="channel_other">Inne aplikacje</string>
+    <string name="channel_email_subject">Verbigem — tłumacz offline</string>
+    <string name="channel_email">E-mail</string>
+    <string name="channel_sms">SMS</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">Nie udało się sprawdzić kontaktów.</string>
     <string name="contacts_match_rate_limited">Za dużo sprawdzeń naraz. Spróbuj za chwilę.</string>
     <string name="contacts_match_unauthenticated">Zaloguj się, żeby sprawdzić kontakty.</string>

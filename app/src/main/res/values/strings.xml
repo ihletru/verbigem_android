@@ -105,7 +105,6 @@
     <string name="contacts_perm_denied">No access to contacts. You can turn it on in Android settings.</string>
     <string name="contacts_perm_found">Found %1$d contacts with a phone number.</string>
     <string name="contacts_perm_invite">Invite</string>
-    <string name="contacts_invite_message">Hi! I translate with Verbigem — it works offline on your phone. Install it: %1$s</string>
 
     <!-- OCR -->
     <string name="ocr_title">Camera OCR</string>
@@ -246,6 +245,15 @@
     <string name="contacts_match_checking">Checking which of them use Verbigem…</string>
     <string name="contacts_match_found">Already on Verbigem: %1$d</string>
     <string name="contacts_match_write">Write</string>
+    <string name="contacts_invite_text">Hi! I translate with Verbigem — it works offline on your phone.</string>
+    <string name="channel_none_available">No app on this phone can send this.</string>
+    <string name="channel_pick_title">Invite via</string>
+    <string name="channel_other">Other apps</string>
+    <string name="channel_email_subject">Verbigem — offline translator</string>
+    <string name="channel_email">E-mail</string>
+    <string name="channel_sms">SMS</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">Could not check your contacts just now.</string>
     <string name="contacts_match_rate_limited">Too many checks at once. Try again in a while.</string>
     <string name="contacts_match_unauthenticated">Sign in to check which contacts use Verbigem.</string>

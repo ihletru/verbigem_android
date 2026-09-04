@@ -3,6 +3,7 @@ package com.verbigem.app.ui.screens.contacts
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,10 +33,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
@@ -48,10 +53,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.InviteLinks
+import com.verbigem.app.data.OutboundChannel
+import com.verbigem.app.data.OutboundChannels
+import com.verbigem.app.data.OutboundTarget
+import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.openUrl
-import com.verbigem.app.data.shareText
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -75,6 +84,13 @@ fun ContactsScreen(
     val currentUid = viewModel.currentUid
 
     val context = LocalContext.current
+
+    // Dla którego kontaktu otwarty jest wybór kanału (3.5). Null = dialog zamknięty.
+    //
+    // Stan siedzi w kompozycji, nie w ViewModelu: to czysty stan UI, a po
+    // obrocie ekranu nikt nie oczekuje, że niedokończone zaproszenie wróci samo.
+    var pendingInvite by remember { mutableStateOf<PhoneContact?>(null) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> viewModel.onPermissionResult(granted) }
@@ -345,18 +361,7 @@ fun ContactsScreen(
                         }
                     } else {
                         Button(
-                            onClick = {
-                                // Najpierw zapisujemy zaproszenie pod skrótem numeru,
-                                // potem otwieramy arkusz udostępniania. Jedno bez
-                                // drugiego jest niepełne: zaproszenie działa tylko
-                                // jeśli ta osoba kiedyś potwierdzi numer, a link
-                                // tylko jeśli go kliknie od razu.
-                                viewModel.inviteContact(contact)
-                                val link = InviteLinks.forUser(currentUid)
-                                context.shareText(
-                                    context.getString(R.string.contacts_invite_message, link)
-                                )
-                            },
+                            onClick = { pendingInvite = contact },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
                         ) {
@@ -432,6 +437,115 @@ fun ContactsScreen(
                         imageVector = Icons.Default.Info,
                         contentDescription = stringResource(R.string.action_open_contact_card),
                         tint = VerbigemTheme.colors.muted
+                    )
+                }
+            }
+        }
+    }
+
+    // Wybór kanału dla zaproszenia (3.5). Renderuje się jako nakładka, więc
+    // pozycja w drzewie nie ma znaczenia — jest tu, bo to koniec ekranu.
+    pendingInvite?.let { contact ->
+        val target = OutboundTarget.from(contact)
+        // Liczone raz na kontakt: `isAvailable` pyta PackageManagera, a to nie
+        // jest coś, co chcemy robić przy każdej rekompozycji.
+        val channels = remember(contact) { OutboundChannels.availableFor(context, target) }
+
+        ChannelPickerDialog(
+            contactName = contact.name,
+            channels = channels,
+            onPick = { channel ->
+                pendingInvite = null
+                // Zaproszenie pod skrótem numeru zapisujemy NIEZALEŻNIE od kanału.
+                // To ten sam numer, a link i zaproszenie to dwa różne sposoby na
+                // ten sam cel: zaproszenie działa, gdy ta osoba kiedyś potwierdzi
+                // numer, link — gdy kliknie go od razu. Skipping jednego z nich
+                // zostawia połowę szansy.
+                viewModel.inviteContact(contact)
+                val link = InviteLinks.forUser(currentUid)
+                val text = context.getString(R.string.contacts_invite_text)
+                channel.handOff(context, target, text, link)
+            },
+            onDismiss = { pendingInvite = null }
+        )
+    }
+}
+
+/**
+ * Wybór kanału, którym oddajemy zaproszenie (3.5).
+ *
+ * Pokazujemy tylko te kanały, które mają sens dla tego wpisu — „SMS" znika, gdy
+ * kontakt nie ma numeru, „E-mail", gdy nie ma adresu. Pusta lista nie może się
+ * zdarzyć w praktyce (systemowy arkusz udostępniania jest zawsze), ale gdyby się
+ * zdarzyła, mówimy to wprost zamiast pokazywać pusty dialog.
+ */
+@Composable
+private fun ChannelPickerDialog(
+    contactName: String,
+    channels: List<OutboundChannel>,
+    onPick: (OutboundChannel) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = VerbigemTheme.colors.surface,
+            border = BorderStroke(1.dp, VerbigemTheme.colors.border)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = stringResource(R.string.channel_pick_title),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.ink
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = contactName,
+                    fontSize = 12.sp,
+                    color = VerbigemTheme.colors.muted
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (channels.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.channel_none_available),
+                        fontSize = 13.sp,
+                        color = VerbigemTheme.colors.muted
+                    )
+                } else {
+                    channels.forEach { channel ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onPick(channel) }
+                                .padding(horizontal = 12.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(channel.labelRes),
+                                fontSize = 15.sp,
+                                color = VerbigemTheme.colors.ink,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = VerbigemTheme.colors.bg
+                    )
+                ) {
+                    Text(
+                        stringResource(R.string.cancel),
+                        color = VerbigemTheme.colors.ink,
+                        fontSize = 14.sp
                     )
                 }
             }

@@ -99,7 +99,6 @@
     <string name="contacts_perm_denied">Sin acceso a los contactos. Puedes activarlo en los ajustes de Android.</string>
     <string name="contacts_perm_found">Se encontraron %1$d contactos con número de teléfono.</string>
     <string name="contacts_perm_invite">Invitar</string>
-    <string name="contacts_invite_message">¡Hola! Traduzco con Verbigem — funciona sin conexión en el teléfono. Instálalo: %1$s</string>
 
     <string name="ocr_title">OCR de cámara</string>
     <string name="ocr_pro">OCR Pro</string>
@@ -239,6 +238,15 @@
     <string name="contacts_match_checking">Comprobando quiénes usan Verbigem…</string>
     <string name="contacts_match_found">Ya están en Verbigem: %1$d</string>
     <string name="contacts_match_write">Escribir</string>
+    <string name="contacts_invite_text">¡Hola! Traduzco con Verbigem — funciona sin conexión en el móvil.</string>
+    <string name="channel_none_available">Ninguna aplicación en este teléfono puede enviarlo.</string>
+    <string name="channel_pick_title">Invitar mediante</string>
+    <string name="channel_other">Otras aplicaciones</string>
+    <string name="channel_email_subject">Verbigem — traductor sin conexión</string>
+    <string name="channel_email">Correo</string>
+    <string name="channel_sms">SMS</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">No se pudieron comprobar los contactos ahora mismo.</string>
     <string name="contacts_match_rate_limited">Demasiadas comprobaciones seguidas. Inténtalo más tarde.</string>
     <string name="contacts_match_unauthenticated">Inicia sesión para comprobar tus contactos.</string>

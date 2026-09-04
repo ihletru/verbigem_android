@@ -99,7 +99,6 @@
     <string name="contacts_perm_denied">Kein Zugriff auf Kontakte. Du kannst ihn in den Android-Einstellungen aktivieren.</string>
     <string name="contacts_perm_found">%1$d Kontakte mit Telefonnummer gefunden.</string>
     <string name="contacts_perm_invite">Einladen</string>
-    <string name="contacts_invite_message">Hallo! Ich übersetze mit Verbigem — es funktioniert offline auf dem Telefon. Installiere es: %1$s</string>
 
     <string name="ocr_title">Kamera-OCR</string>
     <string name="ocr_pro">OCR Pro</string>
@@ -239,6 +238,15 @@
     <string name="contacts_match_checking">Ich prüfe, wer davon Verbigem nutzt…</string>
     <string name="contacts_match_found">Schon bei Verbigem: %1$d</string>
     <string name="contacts_match_write">Schreiben</string>
+    <string name="contacts_invite_text">Hallo! Ich übersetze mit Verbigem — es funktioniert offline auf dem Handy.</string>
+    <string name="channel_none_available">Keine App auf diesem Telefon kann das senden.</string>
+    <string name="channel_pick_title">Einladen über</string>
+    <string name="channel_other">Andere Apps</string>
+    <string name="channel_email_subject">Verbigem — Offline-Übersetzer</string>
+    <string name="channel_email">E-Mail</string>
+    <string name="channel_sms">SMS</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">Kontakte konnten gerade nicht geprüft werden.</string>
     <string name="contacts_match_rate_limited">Zu viele Prüfungen auf einmal. Versuch es später noch einmal.</string>
     <string name="contacts_match_unauthenticated">Melde dich an, um die Kontakte zu prüfen.</string>

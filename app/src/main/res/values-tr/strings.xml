@@ -99,7 +99,6 @@
     <string name="contacts_perm_denied">Kişilere erişim yok. Android ayarlarından etkinleştirebilirsiniz.</string>
     <string name="contacts_perm_found">%1$d kişide telefon numarası bulundu.</string>
     <string name="contacts_perm_invite">Davet et</string>
-    <string name="contacts_invite_message">Merhaba! Verbigem ile çeviriyorum — telefonda çevrimdışı çalışıyor. Yükle: %1$s</string>
 
     <string name="ocr_title">Kamera OCR</string>
     <string name="ocr_pro">OCR Pro</string>
@@ -239,6 +238,15 @@
     <string name="contacts_match_checking">Hangilerinin Verbigem kullandığı kontrol ediliyor…</string>
     <string name="contacts_match_found">Zaten Verbigem\'de: %1$d</string>
     <string name="contacts_match_write">Yaz</string>
+    <string name="contacts_invite_text">Merhaba! Verbigem ile çeviriyorum — telefonda çevrimdışı çalışıyor.</string>
+    <string name="channel_none_available">Bu telefondaki hiçbir uygulama bunu gönderemez.</string>
+    <string name="channel_pick_title">Şununla davet et</string>
+    <string name="channel_other">Diğer uygulamalar</string>
+    <string name="channel_email_subject">Verbigem — çevrimdışı çevirmen</string>
+    <string name="channel_email">E-posta</string>
+    <string name="channel_sms">SMS</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">Kişiler şu anda kontrol edilemedi.</string>
     <string name="contacts_match_rate_limited">Çok fazla deneme. Biraz sonra tekrar dene.</string>
     <string name="contacts_match_unauthenticated">Kişileri kontrol etmek için giriş yap.</string>

@@ -99,7 +99,6 @@
     <string name="contacts_perm_denied">未获得通讯录访问权限。您可以在 Android 设置中启用。</string>
     <string name="contacts_perm_found">找到 %1$d 个含电话号码的联系人。</string>
     <string name="contacts_perm_invite">邀请</string>
-    <string name="contacts_invite_message">你好！我用 Verbigem 翻译——它可在手机上离线使用。安装：%1$s</string>
 
     <string name="ocr_title">相机 OCR</string>
     <string name="ocr_pro">OCR Pro</string>
@@ -239,6 +238,15 @@
     <string name="contacts_match_checking">正在检查哪些联系人已使用 Verbigem…</string>
     <string name="contacts_match_found">已在使用 Verbigem：%1$d</string>
     <string name="contacts_match_write">发消息</string>
+    <string name="contacts_invite_text">你好！我用 Verbigem 翻译——它在手机上可以离线使用。</string>
+    <string name="channel_none_available">此手机上的应用都无法发送。</string>
+    <string name="channel_pick_title">通过以下方式邀请</string>
+    <string name="channel_other">其他应用</string>
+    <string name="channel_email_subject">Verbigem — 离线翻译</string>
+    <string name="channel_email">电子邮件</string>
+    <string name="channel_sms">短信</string>
+    <string name="channel_telegram">Telegram</string>
+    <string name="channel_whatsapp">WhatsApp</string>
     <string name="contacts_match_error">暂时无法检查你的联系人。</string>
     <string name="contacts_match_rate_limited">检查过于频繁，请稍后再试。</string>
     <string name="contacts_match_unauthenticated">登录后才能检查联系人。</string>

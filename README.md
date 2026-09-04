@@ -860,6 +860,32 @@ kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
 | `onPhoneVerified` | trigger Firestore `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia (2.4) |
 | `onMessageSearchIndex` | trigger Firestore `chats/{chatId}/messages/{msgId}` | zapisuje znormalizowane `searchText` do wyszukiwania (1.12) |
 
+### Kanały wychodzące (3.5) — jak zapraszamy ludzi bez Verbigema
+
+`data/OutboundChannel.kt`: jeden interfejs, pięć implementacji. **Verbigem
+tłumaczy, potem przekazuje** — niczego nie wysyłamy sami, bo nie wiedzielibyśmy,
+czy dotarło, i udawalibyśmy, że wiemy.
+
+| Kanał | Mechanizm | Ograniczenie |
+|---|---|---|
+| WhatsApp | `ACTION_VIEW` → `wa.me/<numer>?text=…`, paczka `com.whatsapp` → `w4b` → bez paczki | Nie wiemy, czy numer jest na WA — bez zewnętrznego API się nie dowiemy |
+| SMS | `ACTION_SENDTO` → `smsto:<numer>` + `sms_body` | **Celowo nie `SmsManager`** — `SEND_SMS` to wniosek do Google Play i ryzyko odrzucenia |
+| E-mail | `ACTION_SENDTO` → `mailto:` + `EXTRA_EMAIL` | Wymaga adresu; importer czyta je osobnym zapytaniem po `CONTACT_ID` |
+| Telegram | `t.me/share/url?url=…&text=…` | Otwiera **wybór rozmowy**, nie konkretną osobę |
+| Inne | systemowy `ACTION_SEND` | Pokrywa Signal, Messenger i wszystko, czego nie przewidzieliśmy |
+
+☠️ **Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i pójście
+na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi,
+ale `t.me/share/url` **tak**, i to z jednoczesnym podaniem linku — czyli
+dokładnie tym, czego potrzebuje zaproszenie. Odpada snackbar „skopiowaliśmy".
+
+`OutboundTarget` to lekki nośnik na czas lotu, **nie** encja `external_contacts`
+z 3.6 — kiedy powstanie tabela w Room, dostanie `toTarget()`. Robienie z tego
+encji teraz byłoby zgadywaniem kształtu czegoś, czego jeszcze nie zapisujemy.
+
+Dostępność liczy się per odbiorca: „SMS" znika, gdy wpis nie ma numeru,
+„E-mail", gdy nie ma adresu albo nikt na telefonie nie ma klienta poczty.
+
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
 Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres
