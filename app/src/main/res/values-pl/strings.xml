@@ -294,4 +294,13 @@
     <string name="contacts_import_vcf_done">Zaimportowano %1$d kontakt</string>
     <string name="contacts_import_vcf_none">Plik nie zawierał żadnych kontaktów.</string>
     <string name="contacts_import_vcf_failed">Nie udało się odczytać pliku.</string>
+
+    <!-- Zakładki w Kontaktach (3.8) -->
+    <string name="tab_friends">Znajomi</string>
+    <string name="tab_invites">Zaproszenia</string>
+    <string name="tab_phone">Z telefonu</string>
+    <string name="tab_external">Zewnętrzne</string>
+    <string name="no_invites">Brak zaproszeń.</string>
+    <string name="contacts_external_empty">Brak wątków zewnętrznych. Otwórz kontakt z telefonu, by zacząć.</string>
+    <string name="no_results">Brak wyników.</string>
 </resources>

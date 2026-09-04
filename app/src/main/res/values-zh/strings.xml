@@ -287,4 +287,13 @@
     <string name="contacts_import_vcf_done">已导入 %1$d 个联系人</string>
     <string name="contacts_import_vcf_none">文件中没有联系人。</string>
     <string name="contacts_import_vcf_failed">无法读取文件。</string>
+
+    <!-- Zakładki w Kontaktach (3.8) -->
+    <string name="tab_friends">好友</string>
+    <string name="tab_invites">邀请</string>
+    <string name="tab_phone">手机</string>
+    <string name="tab_external">外部</string>
+    <string name="no_invites">暂无邀请。</string>
+    <string name="contacts_external_empty">暂无外部会话。打开一个手机联系人即可开始。</string>
+    <string name="no_results">无结果。</string>
 </resources>

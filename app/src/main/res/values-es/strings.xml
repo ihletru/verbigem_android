@@ -287,4 +287,13 @@
     <string name="contacts_import_vcf_done">Importado %1$d contacto</string>
     <string name="contacts_import_vcf_none">El archivo no contenía contactos.</string>
     <string name="contacts_import_vcf_failed">No se pudo leer el archivo.</string>
+
+    <!-- Zakładki w Kontaktach (3.8) -->
+    <string name="tab_friends">Amigos</string>
+    <string name="tab_invites">Invitaciones</string>
+    <string name="tab_phone">Teléfono</string>
+    <string name="tab_external">Externos</string>
+    <string name="no_invites">Aún no hay invitaciones.</string>
+    <string name="contacts_external_empty">Aún no hay hilos externos. Abre un contacto del teléfono para empezar.</string>
+    <string name="no_results">Sin resultados.</string>
 </resources>

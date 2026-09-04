@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.PhoneContactsImporter
 import com.verbigem.app.data.VcfImporter
+import com.verbigem.app.data.local.ExternalContactEntity
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
@@ -85,6 +86,12 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     private val _vcfReadError = MutableStateFlow(false)
     val vcfReadError: StateFlow<Boolean> = _vcfReadError.asStateFlow()
 
+    // --- Zewnętrzne kontakty (3.6 / zakładka 3.8) ---
+
+    /** Osoby, do których kiedyś napisaliśmy przez wątek jednokierunkowy. */
+    private val _externalContacts = MutableStateFlow<List<ExternalContactEntity>>(emptyList())
+    val externalContacts: StateFlow<List<ExternalContactEntity>> = _externalContacts.asStateFlow()
+
     // --- Dopasowanie książki telefonicznej do kont Verbigem (2.3) ---
 
     /** phone (znormalizowany) -> konto, które do niego pasuje. */
@@ -113,6 +120,10 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     val myProfile: StateFlow<UserProfile?> = _myProfile.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            externalThreads.watchContacts().collect { _externalContacts.value = it }
+        }
+
         val uid = currentUid
         if (uid.isNotBlank()) {
             viewModelScope.launch {

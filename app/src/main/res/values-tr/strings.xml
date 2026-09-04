@@ -287,4 +287,13 @@
     <string name="contacts_import_vcf_done">%1$d kişi içe aktarıldı</string>
     <string name="contacts_import_vcf_none">Dosyada hiç kişi yoktu.</string>
     <string name="contacts_import_vcf_failed">Dosya okunamadı.</string>
+
+    <!-- Zakładki w Kontaktach (3.8) -->
+    <string name="tab_friends">Arkadaşlar</string>
+    <string name="tab_invites">Davetler</string>
+    <string name="tab_phone">Telefon</string>
+    <string name="tab_external">Dış</string>
+    <string name="no_invites">Henüz davet yok.</string>
+    <string name="contacts_external_empty">Henüz dış sohbet yok. Başlamak için bir telefon kişisi aç.</string>
+    <string name="no_results">Sonuç yok.</string>
 </resources>

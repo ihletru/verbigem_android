@@ -944,7 +944,34 @@ numer (`TEL`) i e-mail (`EMAIL`).
 - Plik czytany przez `contentResolver` (`ActivityResultContracts.OpenDocument`,
   mime `text/vcard`), więc nie potrzebuje `READ_CONTACTS`.
 - Wynik łączony z książką w jedną listę; numery już obecne (książka lub wcześniejszy
-  import) są pomijane, żeby podwójny import nie dodał drugiego wiersza.
+  import) są pomijane, żeby podwójny   import nie dodał drugiego wiersza.
+
+### Zakładki w Kontaktach (3.8) — Znajomi / Zaproszenia / Z telefonu / Zewnętrzne
+
+Ekran `ContactsScreen` ma teraz **cztery zakładki** (`TabRow` + `Tab`) zamiast
+jednej przewijanej listy. Wybór zakładki to lokalny `selectedTab`, a każda ma
+własny composable:
+
+| Zakładka | Co pokazuje | Źródło |
+|---|---|---|
+| `tab_friends` (Znajomi) | pole szukania ludzi (nowi znajomi) + lista obecnych znajomych (`Friendship`) | `friends` z VM |
+| `tab_invites` (Zaproszenia) | nadchodzące zaproszenia z akcjami Przyjmij/Odrzuć (`Friendship`, `requestedBy`) | `incoming` z VM |
+| `tab_phone` (Z telefonu) | kontakty z książki + import `.vcf` (3.7) + Znajdź znajomych + Zaproś | `phoneContacts + importedContacts` |
+| `tab_external` (Zewnętrzne) | kontakty jednokierunkowe z Room (`external_contacts`, 3.6) — otwarcie wątku 3.6 | `externalContacts` z VM |
+
+Wspólny wiersz to `ContactListRow(title, subtitle, onClick, trailing)` — jeden
+komponent dla wszystkich zakładek i wyszukiwania.
+
+**Wyszukiwanie po wszystkich naraz:** gdy pole wyszukiwania na górze ekranu jest
+niepuste, układ zakładek znika i pokazuje się `CombinedSearch` — jedna lista
+trafień z trzech źródeł (znajomi po nicku, książka po imieniu/numerze,
+zewnętrzni po imieniu/numerze), z nagłówkami sekcji. Puste pole wraca do zakładek.
+To rozwiązuje „szukam w zakładce X, a osoba jest w Y".
+
+Rozbicie na zakładki nie zmienia logiki: kliknięcie dopasowanego kontaktu z telefonu
+otwiera czat (gdy `matchFor(phone) != null`), w przeciwnym razie wątek
+jednokierunkowy (3.6); kliknięcie wiersza zewnętrznego otwiera wątek 3.6; wiersz
+bez dopasowania otwiera dialog kanału zaproszenia (3.5).
 
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 

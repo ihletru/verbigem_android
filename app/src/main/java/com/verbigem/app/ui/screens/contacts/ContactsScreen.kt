@@ -35,6 +35,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,18 +46,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.stringResource
-import com.verbigem.app.R
-import com.verbigem.app.data.repository.ContactMatch
-import com.verbigem.app.data.repository.ContactMatchFailure
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.verbigem.app.R
+import com.verbigem.app.data.local.ExternalContactEntity
+import com.verbigem.app.data.model.Friendship
+import com.verbigem.app.data.repository.ContactMatch
+import com.verbigem.app.data.repository.ContactMatchFailure
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.InviteLinks
 import com.verbigem.app.data.OutboundChannel
@@ -82,25 +86,29 @@ fun ContactsScreen(
     val sentRequests by viewModel.sentRequests.collectAsState()
     val showDisclosure by viewModel.showPermissionDisclosure.collectAsState()
     val phoneContacts by viewModel.phoneContacts.collectAsState()
+    val importedContacts by viewModel.importedContacts.collectAsState()
     val permissionDenied by viewModel.permissionDenied.collectAsState()
     val phoneMatches by viewModel.phoneMatches.collectAsState()
     val isMatching by viewModel.isMatching.collectAsState()
     val matchFailure by viewModel.matchFailure.collectAsState()
-    val importedContacts by viewModel.importedContacts.collectAsState()
+    val externalContacts by viewModel.externalContacts.collectAsState()
     val vcfCount by viewModel.vcfImportedCount.collectAsState()
     val vcfError by viewModel.vcfReadError.collectAsState()
     val currentUid = viewModel.currentUid
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     // Tylko dla wejścia do wątku jednokierunkowego: zapis w Room musi zdążyć
     // przed nawigacją, a to jedno `suspend`, nie stan ekranu.
-    val scope = rememberCoroutineScope()
+    val openExternal: (PhoneContact) -> Unit = { contact ->
+        scope.launch {
+            viewModel.rememberExternal(contact)
+            onOpenExternalThread(contact.phone)
+        }
+    }
 
     // Dla którego kontaktu otwarty jest wybór kanału (3.5). Null = dialog zamknięty.
-    //
-    // Stan siedzi w kompozycji, nie w ViewModelu: to czysty stan UI, a po
-    // obrocie ekranu nikt nie oczekuje, że niedokończone zaproszenie wróci samo.
     var pendingInvite by remember { mutableStateOf<PhoneContact?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -124,66 +132,215 @@ fun ContactsScreen(
         return
     }
 
-    LazyColumn(
+    val tabs = listOf(
+        R.string.tab_friends,
+        R.string.tab_invites,
+        R.string.tab_phone,
+        R.string.tab_external
+    )
+    var selectedTab by remember { mutableStateOf(0) }
+
+    // Wyszukiwanie po wszystkich zakładkach naraz (3.8): gdy coś wpisano, schodzimy
+    // z układu zakładek na jedną listę trafień. Puste pole wraca do zakładek.
+    var search by remember { mutableStateOf("") }
+
+    // Scalona lista książki + importu .vcf — obie dają PhoneContact do wątku.
+    val allPhoneContacts = phoneContacts + importedContacts
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(16.dp)
     ) {
-        item {
-            Text(
-                text = stringResource(R.string.contacts_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink
+        Text(
+            text = stringResource(R.string.contacts_title),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = VerbigemTheme.colors.ink
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = search,
+            onValueChange = { search = it },
+            placeholder = { Text(stringResource(R.string.search_hint), fontSize = 13.sp) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = VerbigemTheme.colors.accent,
+                unfocusedBorderColor = VerbigemTheme.colors.border
+            ),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = VerbigemTheme.colors.muted) }
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (search.isNotBlank()) {
+            CombinedSearch(
+                query = search,
+                friends = friends,
+                phoneContacts = allPhoneContacts,
+                externalContacts = externalContacts,
+                currentUid = currentUid,
+                matchFor = viewModel::matchFor,
+                onOpenChat = onOpenChat,
+                onOpenExternalContact = openExternal,
+                onOpenExternalThread = onOpenExternalThread
             )
-        }
-
-        // Zaproszenia przychodzące
-        if (incoming.isNotEmpty()) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(VerbigemTheme.colors.surface)
-                        .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.invitations),
-                        color = VerbigemTheme.colors.muted,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
+        } else {
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = VerbigemTheme.colors.bg,
+                contentColor = VerbigemTheme.colors.accent
+            ) {
+                tabs.forEachIndexed { index, res ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(stringResource(res), fontSize = 13.sp) }
                     )
-
-                    incoming.forEach { f ->
-                        val senderName = if (f.requestedBy == f.uidA) f.nicknameA else f.nicknameB
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("👤 $senderName", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = VerbigemTheme.colors.ink)
-                            Row {
-                                IconButton(onClick = { viewModel.acceptFriend(f) }) {
-                                    Icon(Icons.Default.Check, contentDescription = stringResource(R.string.accept), tint = VerbigemTheme.colors.success)
-                                }
-                                IconButton(onClick = { viewModel.declineFriend(f) }) {
-                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.decline), tint = VerbigemTheme.colors.danger)
-                                }
-                            }
-                        }
-                    }
                 }
             }
-        }
 
-        // Wyszukiwarka ludzi
+            Spacer(modifier = Modifier.height(12.dp))
+
+            when (selectedTab) {
+                0 -> FriendsTab(
+                    friends = friends,
+                    currentUid = currentUid,
+                    searchTerm = searchTerm,
+                    searchResults = searchResults,
+                    isSearching = isSearching,
+                    sentRequests = sentRequests,
+                    onSearchTermChanged = viewModel::onSearchTermChanged,
+                    onSearchUsers = viewModel::searchUsers,
+                    onOpenChat = onOpenChat,
+                    onOpenContactCard = onOpenContactCard,
+                    onSendRequest = viewModel::sendRequest
+                )
+                1 -> InvitesTab(
+                    incoming = incoming,
+                    currentUid = currentUid,
+                    onAccept = viewModel::acceptFriend,
+                    onDecline = viewModel::declineFriend
+                )
+                2 -> PhoneTab(
+                    phoneContacts = allPhoneContacts,
+                    permissionDenied = permissionDenied,
+                    isMatching = isMatching,
+                    matchFailure = matchFailure,
+                    phoneMatches = phoneMatches,
+                    vcfCount = vcfCount,
+                    vcfError = vcfError,
+                    currentUid = currentUid,
+                    onFindFromPhone = viewModel::onFindFromPhoneClicked,
+                    onPermissionResult = viewModel::onPermissionResult,
+                    permissionLauncher = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
+                    onImportVcf = { vcfLauncher.launch(arrayOf("text/vcard", "text/x-vcard", "application/vcard", "*/*")) },
+                    matchFor = viewModel::matchFor,
+                    onOpenChat = onOpenChat,
+                    onOpenExternalThread = openExternal,
+                    onInvite = { pendingInvite = it },
+                    isInvited = viewModel::isInvited
+                )
+                3 -> ExternalTab(
+                    contacts = externalContacts,
+                    onOpenExternalThread = onOpenExternalThread
+                )
+            }
+        }
+    }
+
+    // Wybór kanału dla zaproszenia (3.5). Renderuje się jako nakładka, więc
+    // pozycja w drzewie nie ma znaczenia — jest tu, bo to koniec ekranu.
+    pendingInvite?.let { contact ->
+        val target = OutboundTarget.from(contact)
+        // Liczone raz na kontakt: `isAvailable` pyta PackageManagera, a to nie
+        // jest coś, co chcemy robić przy każdej rekompozycji.
+        val channels = remember(contact) { OutboundChannels.availableFor(context, target) }
+
+        ChannelPickerDialog(
+            contactName = contact.name,
+            channels = channels,
+            onPick = { channel ->
+                pendingInvite = null
+                // Zaproszenie pod skrótem numeru zapisujemy NIEZALEŻNIE od kanału.
+                // To ten sam numer, a link i zaproszenie to dwa różne sposoby na
+                // ten sam cel: zaproszenie działa, gdy ta osoba kiedyś potwierdzi
+                // numer, link — gdy kliknie go od razu. Skipping jednego z nich
+                // zostawia połowę szansy.
+                viewModel.inviteContact(contact)
+                val link = InviteLinks.forUser(currentUid)
+                val text = context.getString(R.string.contacts_invite_text)
+                channel.handOff(context, target, text, link)
+            },
+            onDismiss = { pendingInvite = null }
+        )
+    }
+}
+
+/** Jeden wiersz listy — wspólny dla zakładek i wyszukiwania. */
+@Composable
+private fun ContactListRow(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailing: @Composable (() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(VerbigemTheme.colors.surface)
+            .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = VerbigemTheme.colors.ink,
+                maxLines = 1
+            )
+            if (subtitle.isNotBlank()) {
+                Text(
+                    text = subtitle,
+                    fontSize = 12.sp,
+                    color = VerbigemTheme.colors.muted,
+                    maxLines = 1
+                )
+            }
+        }
+        if (trailing != null) trailing()
+    }
+}
+
+@Composable
+private fun FriendsTab(
+    friends: List<Friendship>,
+    currentUid: String,
+    searchTerm: String,
+    searchResults: List<SearchResultUser>,
+    isSearching: Boolean,
+    sentRequests: Set<String>,
+    onSearchTermChanged: (String) -> Unit,
+    onSearchUsers: () -> Unit,
+    onOpenChat: (String) -> Unit,
+    onOpenContactCard: (String) -> Unit,
+    onSendRequest: (String, String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Szukanie ludzi — dodawanie nowych znajomych mieszka w zakładce Znajomi,
+        // bo to tu trafiają po przyjęciu zaproszenia.
         item {
             Column(
                 modifier = Modifier
@@ -200,11 +357,10 @@ fun ContactsScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = searchTerm,
-                        onValueChange = { viewModel.onSearchTermChanged(it) },
+                        onValueChange = onSearchTermChanged,
                         placeholder = { Text(stringResource(R.string.search_hint), fontSize = 13.sp) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
@@ -213,11 +369,9 @@ fun ContactsScreen(
                             unfocusedBorderColor = VerbigemTheme.colors.border
                         )
                     )
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     Button(
-                        onClick = { viewModel.searchUsers() },
+                        onClick = onSearchUsers,
                         enabled = searchTerm.trim().length >= 2 && !isSearching,
                         colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
                         shape = RoundedCornerShape(12.dp)
@@ -229,7 +383,6 @@ fun ContactsScreen(
                         }
                     }
                 }
-
                 if (searchResults.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     searchResults.forEach { user ->
@@ -246,7 +399,7 @@ fun ContactsScreen(
                                 Text(stringResource(R.string.sent_request), fontSize = 12.sp, color = VerbigemTheme.colors.muted)
                             } else {
                                 Button(
-                                    onClick = { viewModel.sendRequest(user.uid, user.nickname) },
+                                    onClick = { onSendRequest(user.uid, user.nickname) },
                                     colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
@@ -259,9 +412,101 @@ fun ContactsScreen(
             }
         }
 
-        // Znajomi z książki telefonicznej.
-        // Przycisk NIE prosi o uprawnienie wprost — najpierw idzie ekran
-        // prominent disclosure (`ContactsPermissionScreen`), potem system.
+        item {
+            Text(
+                text = stringResource(R.string.friends),
+                color = VerbigemTheme.colors.muted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (friends.isEmpty()) {
+            item { Text(stringResource(R.string.no_friends), color = VerbigemTheme.colors.muted, fontSize = 13.sp) }
+        }
+
+        items(friends) { f ->
+            val otherUid = if (f.uidA == currentUid) f.uidB else f.uidA
+            val friendName = if (f.uidA == currentUid) f.nicknameB else f.nicknameA
+            ContactListRow(
+                title = "💬 $friendName",
+                subtitle = "",
+                onClick = { onOpenChat(otherUid) },
+                trailing = {
+                    IconButton(onClick = { onOpenContactCard(otherUid) }) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = stringResource(R.string.action_open_contact_card),
+                            tint = VerbigemTheme.colors.muted
+                        )
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun InvitesTab(
+    incoming: List<Friendship>,
+    currentUid: String,
+    onAccept: (Friendship) -> Unit,
+    onDecline: (Friendship) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (incoming.isEmpty()) {
+            item {
+                Text(stringResource(R.string.no_invites), color = VerbigemTheme.colors.muted, fontSize = 13.sp)
+            }
+        }
+        items(incoming) { f ->
+            val senderName = if (f.requestedBy == f.uidA) f.nicknameA else f.nicknameB
+            ContactListRow(
+                title = "👤 $senderName",
+                subtitle = "",
+                onClick = {},
+                trailing = {
+                    Row {
+                        IconButton(onClick = { onAccept(f) }) {
+                            Icon(Icons.Default.Check, contentDescription = stringResource(R.string.accept), tint = VerbigemTheme.colors.success)
+                        }
+                        IconButton(onClick = { onDecline(f) }) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.decline), tint = VerbigemTheme.colors.danger)
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhoneTab(
+    phoneContacts: List<PhoneContact>,
+    permissionDenied: Boolean,
+    isMatching: Boolean,
+    matchFailure: ContactMatchFailure?,
+    phoneMatches: Map<String, ContactMatch>,
+    vcfCount: Int?,
+    vcfError: Boolean,
+    currentUid: String,
+    onFindFromPhone: () -> Unit,
+    onPermissionResult: (Boolean) -> Unit,
+    permissionLauncher: () -> Unit,
+    onImportVcf: () -> Unit,
+    matchFor: (String) -> ContactMatch?,
+    onOpenChat: (String) -> Unit,
+    onOpenExternalThread: (PhoneContact) -> Unit,
+    onInvite: (PhoneContact) -> Unit,
+    isInvited: (String) -> Boolean
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         item {
             Column(
                 modifier = Modifier
@@ -279,33 +524,22 @@ fun ContactsScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Button(
-                    onClick = { viewModel.onFindFromPhoneClicked() },
+                    onClick = onFindFromPhone,
                     colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.contacts_find_phone))
                 }
-                // Import .vcf (3.7) — kontakt z wizytówki, której nie ma w książce.
-                // Osobny przycisk, nie ten sam: szukanie z książki pyta o uprawnienie
-                // READ_CONTACTS, a .vcf czyta wybrany plik — to dwie różne ścieżki.
                 Button(
-                    onClick = { vcfLauncher.launch(arrayOf("text/vcard", "text/x-vcard", "application/vcard", "*/*")) },
+                    onClick = onImportVcf,
                     colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.contacts_import_vcf))
                 }
@@ -338,14 +572,10 @@ fun ContactsScreen(
             }
         }
 
-        // Książka + zaimportowane .vcf (3.7) jako jedna lista: obie dają
-        // `PhoneContact`, którym można otworzyć wątek jednokierunkowy (3.6).
-        val allPhoneContacts = phoneContacts + importedContacts
-
-        if (allPhoneContacts.isNotEmpty()) {
+        if (phoneContacts.isNotEmpty()) {
             item {
                 Text(
-                    text = stringResource(R.string.contacts_perm_found, allPhoneContacts.size),
+                    text = stringResource(R.string.contacts_perm_found, phoneContacts.size),
                     fontSize = 12.sp,
                     color = VerbigemTheme.colors.muted
                 )
@@ -380,178 +610,135 @@ fun ContactsScreen(
                     )
                 }
             }
-            if (importedContacts.isNotEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(R.string.contacts_imported_title),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = VerbigemTheme.colors.muted,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-            items(allPhoneContacts) { contact ->
-                val match = viewModel.matchFor(contact.phone)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(VerbigemTheme.colors.surface)
-                        .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
-                        // Kliknięcie w osobę zawsze otwiera rozmowę — prawdziwą, gdy
-                        // ma konto, jednokierunkową, gdy nie ma. Przycisk obok jest
-                        // od zapraszania, czyli od czegoś innego.
-                        .clickable {
-                            if (match != null) {
-                                onOpenChat(match.uid)
-                            } else {
-                                // Najpierw zapis w Room, potem nawigacja: wątek czyta
-                                // kontakt po kluczu telefonu, więc otwarty przed
-                                // zapisem zastałby pusty ekran.
-                                scope.launch {
-                                    viewModel.rememberExternal(contact)
-                                    onOpenExternalThread(contact.phone)
-                                }
+            items(phoneContacts) { contact ->
+                val match = matchFor(contact.phone)
+                ContactListRow(
+                    title = contact.name,
+                    subtitle = match?.nickname?.takeIf { it.isNotBlank() } ?: contact.phone,
+                    onClick = {
+                        if (match != null) {
+                            onOpenChat(match.uid)
+                        } else {
+                            onOpenExternalThread(contact)
+                        }
+                    },
+                    trailing = {
+                        if (match != null) {
+                            Button(
+                                onClick = { onOpenChat(match.uid) },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                            ) {
+                                Text(stringResource(R.string.contacts_match_write), fontSize = 12.sp)
+                            }
+                        } else {
+                            Button(
+                                onClick = { onInvite(contact) },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                            ) {
+                                Text(
+                                    text = if (isInvited(contact.phone)) {
+                                        stringResource(R.string.contacts_invite_saved)
+                                    } else {
+                                        stringResource(R.string.contacts_perm_invite)
+                                    },
+                                    fontSize = 12.sp
+                                )
                             }
                         }
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = contact.name,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = VerbigemTheme.colors.ink
-                        )
-                        // When the number has an account we show THAT name, not the
-                        // address-book spelling — it is the name they chose here.
-                        Text(
-                            text = match?.nickname?.takeIf { it.isNotBlank() } ?: contact.phone,
-                            fontSize = 12.sp,
-                            color = if (match != null) VerbigemTheme.colors.accent
-                            else VerbigemTheme.colors.muted
-                        )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    if (match != null) {
-                        Button(
-                            onClick = { onOpenChat(match.uid) },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
-                        ) {
-                            Text(stringResource(R.string.contacts_match_write), fontSize = 12.sp)
-                        }
-                    } else {
-                        Button(
-                            onClick = { pendingInvite = contact },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
-                        ) {
-                            Text(
-                                text = if (viewModel.isInvited(contact.phone)) {
-                                    stringResource(R.string.contacts_invite_saved)
-                                } else {
-                                    stringResource(R.string.contacts_perm_invite)
-                                },
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // Lista znajomych
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(VerbigemTheme.colors.surface)
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.friends),
-                    color = VerbigemTheme.colors.muted,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-
-                if (friends.isEmpty()) {
-                    Text(stringResource(R.string.no_friends), color = VerbigemTheme.colors.muted, fontSize = 13.sp)
-                }
-            }
-        }
-
-        items(friends) { f ->
-            val otherUid = if (f.uidA == currentUid) f.uidB else f.uidA
-            val friendName = if (f.uidA == currentUid) f.nicknameB else f.nicknameA
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(VerbigemTheme.colors.surface)
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
-                    .clickable { onOpenChat(otherUid) }
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = VerbigemTheme.colors.accent
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "💬 $friendName",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = VerbigemTheme.colors.ink,
-                    modifier = Modifier.weight(1f)
-                )
-                // Separate target from the row itself: tapping the row starts a chat,
-                // tapping the info button opens the card (alias, language, block…).
-                IconButton(onClick = { onOpenContactCard(otherUid) }) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = stringResource(R.string.action_open_contact_card),
-                        tint = VerbigemTheme.colors.muted
-                    )
-                }
             }
         }
     }
+}
 
-    // Wybór kanału dla zaproszenia (3.5). Renderuje się jako nakładka, więc
-    // pozycja w drzewie nie ma znaczenia — jest tu, bo to koniec ekranu.
-    pendingInvite?.let { contact ->
-        val target = OutboundTarget.from(contact)
-        // Liczone raz na kontakt: `isAvailable` pyta PackageManagera, a to nie
-        // jest coś, co chcemy robić przy każdej rekompozycji.
-        val channels = remember(contact) { OutboundChannels.availableFor(context, target) }
+@Composable
+private fun ExternalTab(
+    contacts: List<ExternalContactEntity>,
+    onOpenExternalThread: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (contacts.isEmpty()) {
+            item {
+                Text(stringResource(R.string.contacts_external_empty), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+            }
+        }
+        items(contacts, key = { it.phone }) { entity ->
+            ContactListRow(
+                title = entity.name.takeIf { it.isNotBlank() } ?: entity.phone,
+                subtitle = entity.email.takeIf { it.isNotBlank() } ?: entity.phone,
+                onClick = { onOpenExternalThread(entity.phone) }
+            )
+        }
+    }
+}
 
-        ChannelPickerDialog(
-            contactName = contact.name,
-            channels = channels,
-            onPick = { channel ->
-                pendingInvite = null
-                // Zaproszenie pod skrótem numeru zapisujemy NIEZALEŻNIE od kanału.
-                // To ten sam numer, a link i zaproszenie to dwa różne sposoby na
-                // ten sam cel: zaproszenie działa, gdy ta osoba kiedyś potwierdzi
-                // numer, link — gdy kliknie go od razu. Skipping jednego z nich
-                // zostawia połowę szansy.
-                viewModel.inviteContact(contact)
-                val link = InviteLinks.forUser(currentUid)
-                val text = context.getString(R.string.contacts_invite_text)
-                channel.handOff(context, target, text, link)
-            },
-            onDismiss = { pendingInvite = null }
-        )
+@Composable
+private fun CombinedSearch(
+    query: String,
+    friends: List<Friendship>,
+    phoneContacts: List<PhoneContact>,
+    externalContacts: List<ExternalContactEntity>,
+    currentUid: String,
+    matchFor: (String) -> ContactMatch?,
+    onOpenChat: (String) -> Unit,
+    onOpenExternalContact: (PhoneContact) -> Unit,
+    onOpenExternalThread: (String) -> Unit
+) {
+    val q = query.trim().lowercase()
+    val friendHits = friends.filter {
+        (if (it.uidA == currentUid) it.nicknameB else it.nicknameA).lowercase().contains(q)
+    }
+    val phoneHits = phoneContacts.filter {
+        it.name.lowercase().contains(q) || it.phone.contains(q)
+    }
+    val externalHits = externalContacts.filter {
+        it.name.lowercase().contains(q) || it.phone.contains(q)
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (friendHits.isNotEmpty()) {
+            item { Text(stringResource(R.string.tab_friends), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted) }
+            items(friendHits) { f ->
+                val otherUid = if (f.uidA == currentUid) f.uidB else f.uidA
+                val name = if (f.uidA == currentUid) f.nicknameB else f.nicknameA
+                ContactListRow(title = "💬 $name", subtitle = "", onClick = { onOpenChat(otherUid) })
+            }
+        }
+        if (phoneHits.isNotEmpty()) {
+            item { Text(stringResource(R.string.tab_phone), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted) }
+            items(phoneHits) { contact ->
+                val match = matchFor(contact.phone)
+                ContactListRow(
+                    title = contact.name,
+                    subtitle = match?.nickname?.takeIf { it.isNotBlank() } ?: contact.phone,
+                onClick = {
+                    if (match != null) onOpenChat(match.uid) else onOpenExternalContact(contact)
+                }
+                )
+            }
+        }
+        if (externalHits.isNotEmpty()) {
+            item { Text(stringResource(R.string.tab_external), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted) }
+            items(externalHits, key = { it.phone }) { entity ->
+                ContactListRow(
+                    title = entity.name.takeIf { it.isNotBlank() } ?: entity.phone,
+                    subtitle = entity.email.takeIf { it.isNotBlank() } ?: entity.phone,
+                    onClick = { onOpenExternalThread(entity.phone) }
+                )
+            }
+        }
+        if (friendHits.isEmpty() && phoneHits.isEmpty() && externalHits.isEmpty()) {
+            item { Text(stringResource(R.string.no_results), fontSize = 13.sp, color = VerbigemTheme.colors.muted) }
+        }
     }
 }
 
