@@ -21,8 +21,9 @@ zablokuj, notatka) + ekran `contact/{uid}` + reguły wdrożone + Room v7
 `https://mini.verbigem.com/updates/version.json` → `versionCode: 26`.
 **1.13 czeka na wydanie** (build przeszedł, `app-debug.apk` gotowy):
 wymaga podbicia `versionCode` na 27 i wrzucenia `app-debug-v27.apk`.
-**Testy na telefonie (0.9, 1.14, 1.16) nadal są u Milosza** — bez nich nie ma
-podstaw, żeby uznać fazę 1 za domkniętą.
+**Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer) nadal są u Milosza** —
+bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte. Test 1.18 wymaga
+wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1, punkt 1.18).
 
 > **B6 rozstrzygnięte 2026-09-03 — Milosz miał rację tylko połowicznie.**
 > Zweryfikowane na żywym kodzie (`ui/components/BottomNav.kt`):
@@ -50,11 +51,11 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | `a4e65d5` |
 | 2.2 | Secret Manager + App Check | ✅ **zrobione** (pepper ustawiony; App Check per wariant, egzekucja odroczona) | — | *w toku* |
 | 2.3 | `matchContacts` (HMAC, whereIn po 30, rate limit) | 🟡 **wdrożone** (działa od 2.6 — katalog pusty) | 27 | *w toku* |
-| 2.4 | `inviteByPhone` + `verifyPhone` + `onPhoneVerified` | 🟡 **kod gotowy** (czeka na deploy) | 27 | *w toku* |
+| 2.4 | `inviteByPhone` + `verifyPhone` + `onPhoneVerified` | 🟡 **wdrożone na produkcję** (test u Milosza został) | 27 | `3a50734` |
 | 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **wdrożone na produkcję** (test push u Milosza został) | 27 | `a4e65d5` |
-| 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (wymaga wpisania SHA w konsoli Firebase) | 27 | *w toku* |
+| 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
-| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1/2.2/2.3/2.5/2.7 zrobione; **2.4 i 2.6 czekają na deploy**) | — | — |
+| 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
