@@ -26,6 +26,14 @@ class PreferencesManager(private val context: Context) {
         private val KEY_PROMPTED_ACCURATE = booleanPreferencesKey("prompted_accurate")
         private val KEY_LAST_SYNC_HISTORY = longPreferencesKey("last_sync_history")
         private val KEY_LAST_SYNC_OCR = longPreferencesKey("last_sync_ocr")
+        /**
+         * Whether the POST_NOTIFICATIONS prompt has already been shown.
+         *
+         * Android only prompts twice before it stops asking altogether, and the app
+         * must not burn those on a user who opens the inbox before ever expecting a
+         * message. Asking once and remembering is the whole point of the flag.
+         */
+        private val KEY_ASKED_NOTIF_PERM = booleanPreferencesKey("asked_notif_perm")
     }
 
     val themeFlow: Flow<String> = context.dataStore.data.map { it[KEY_THEME] ?: "calm" }
@@ -38,6 +46,7 @@ class PreferencesManager(private val context: Context) {
     val promptedAccurateFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_PROMPTED_ACCURATE] ?: false }
     val lastSyncHistoryFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_HISTORY] ?: 0L }
     val lastSyncOcrFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_OCR] ?: 0L }
+    val askedNotifPermFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_ASKED_NOTIF_PERM] ?: false }
 
     suspend fun setTheme(theme: String) = context.dataStore.edit { it[KEY_THEME] = theme }
     suspend fun setMode(mode: String) = context.dataStore.edit { it[KEY_MODE] = mode }
@@ -51,4 +60,6 @@ class PreferencesManager(private val context: Context) {
     suspend fun setPromptedAccurate(prompted: Boolean) = context.dataStore.edit { it[KEY_PROMPTED_ACCURATE] = prompted }
     suspend fun setLastSyncHistory(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_HISTORY] = ts }
     suspend fun setLastSyncOcr(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_OCR] = ts }
+    suspend fun setAskedNotifPerm(asked: Boolean) =
+        context.dataStore.edit { it[KEY_ASKED_NOTIF_PERM] = asked }
 }

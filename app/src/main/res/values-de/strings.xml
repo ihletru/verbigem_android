@@ -225,4 +225,10 @@
     <string name="contact_card_delete_body">Sie verschwindet auf diesem Handy aus deinem Postfach. Dein Kontakt behält die Nachrichten — Verbigem kann sie noch nicht aus der Cloud löschen.</string>
     <string name="contact_card_restore">Unterhaltung wiederherstellen</string>
     <string name="contact_card_not_friend">Ihr seid noch keine Kontakte — Nachrichten funktionieren trotzdem, sie kommen ohne Einladung im Chat an.</string>
+    <string name="notif_channel_messages_name">Nachrichten</string>
+    <string name="notif_channel_messages_desc">Benachrichtigungen über neue Chat-Nachrichten.</string>
+    <string name="notif_group_summary">Neue Nachrichten</string>
+    <string name="notif_action_reply">Antworten</string>
+    <string name="notif_action_mark_read">Als gelesen markieren</string>
+    <string name="notif_new_message">Neue Nachricht</string>
 </resources>

@@ -1,0 +1,23 @@
+{
+  "name": "verbigem-mini-functions",
+  "description": "Cloud Functions for Verbigem Mini (chat push + contact matching)",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions --project mini-verbigem",
+    "deploy": "npm run build && firebase deploy --only functions --project mini-verbigem",
+    "logs": "firebase functions:log --project mini-verbigem"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

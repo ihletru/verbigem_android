@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.delay
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.ui.components.BottomNav
@@ -49,7 +50,12 @@ import com.verbigem.app.ui.screens.translator.TranslatorViewModel
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    /**
+     * Other person's uid to open straight away — set when the user taps a chat
+     * notification. Null (or blank) means "nothing to open".
+     */
+    openChatUid: String? = null
 ) {
     val authRepository = AuthRepository()
     val currentUser = authRepository.currentUser
@@ -72,6 +78,26 @@ fun AppNavigation(
 
     // Shared Pro flag, updated once FirebaseAuth restores the session and the profile is read.
     var isPro by remember { mutableStateOf(false) }
+
+    // Notification tap -> straight into the conversation.
+    //
+    // FirebaseAuth restores the session asynchronously, so on a cold start from a
+    // notification `currentUser` is often still null at first composition. Waiting for
+    // it beats navigating to a thread the app would immediately consider signed-out.
+    LaunchedEffect(openChatUid) {
+        val targetUid = openChatUid?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        var user = authRepository.currentUser
+        var waitedMs = 0
+        while (user == null && waitedMs < 3000) {
+            delay(150)
+            waitedMs += 150
+            user = authRepository.currentUser
+        }
+        if (user == null) return@LaunchedEffect
+        navController.navigate(Screen.ChatThread.createRoute(targetUid)) {
+            launchSingleTop = true
+        }
+    }
 
     Scaffold(
         bottomBar = {

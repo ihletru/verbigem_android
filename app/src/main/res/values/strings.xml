@@ -232,4 +232,10 @@
     <string name="contact_card_delete_body">It disappears from your inbox on this phone. Your friend keeps the messages — Verbigem cannot delete them from the cloud yet.</string>
     <string name="contact_card_restore">Restore conversation</string>
     <string name="contact_card_not_friend">You are not friends yet — messages still work, they just land in chat without an invitation.</string>
+    <string name="notif_channel_messages_name">Messages</string>
+    <string name="notif_channel_messages_desc">Notifications about new chat messages.</string>
+    <string name="notif_group_summary">New messages</string>
+    <string name="notif_action_reply">Reply</string>
+    <string name="notif_action_mark_read">Mark as read</string>
+    <string name="notif_new_message">New message</string>
 </resources>

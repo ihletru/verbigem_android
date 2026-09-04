@@ -225,4 +225,10 @@
     <string name="contact_card_delete_body">Desaparecerá de tu bandeja en este móvil. La otra persona conserva los mensajes — Verbigem todavía no puede borrarlos de la nube.</string>
     <string name="contact_card_restore">Restaurar conversación</string>
     <string name="contact_card_not_friend">Todavía no sois contactos — los mensajes funcionan igual, llegan al chat sin invitación.</string>
+    <string name="notif_channel_messages_name">Mensajes</string>
+    <string name="notif_channel_messages_desc">Notificaciones sobre mensajes nuevos del chat.</string>
+    <string name="notif_group_summary">Mensajes nuevos</string>
+    <string name="notif_action_reply">Responder</string>
+    <string name="notif_action_mark_read">Marcar como leída</string>
+    <string name="notif_new_message">Mensaje nuevo</string>
 </resources>

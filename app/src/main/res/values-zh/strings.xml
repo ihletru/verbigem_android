@@ -225,4 +225,10 @@
     <string name="contact_card_delete_body">它将从本手机的收件箱中消失，对方仍保留消息——Verbigem 目前还无法从云端删除。</string>
     <string name="contact_card_restore">恢复会话</string>
     <string name="contact_card_not_friend">你们还不是好友——消息仍可发送，只是无需邀请即可进入聊天。</string>
+    <string name="notif_channel_messages_name">消息</string>
+    <string name="notif_channel_messages_desc">聊天新消息的通知。</string>
+    <string name="notif_group_summary">新消息</string>
+    <string name="notif_action_reply">回复</string>
+    <string name="notif_action_mark_read">标为已读</string>
+    <string name="notif_new_message">新消息</string>
 </resources>

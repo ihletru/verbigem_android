@@ -1,5 +1,7 @@
 package com.verbigem.app
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -63,16 +65,29 @@ class MainActivity : ComponentActivity() {
      */
     private val downloadProgress = MutableStateFlow(UpdateManager.DownloadProgress())
 
+    /**
+     * The conversation a notification tap wants to open, or null.
+     *
+     * A flow rather than a plain field because the value can arrive twice: once on a
+     * cold start (in `onCreate`'s intent) and again later via [onNewIntent] when the
+     * activity is already alive. Only a flow gets the second one into Compose.
+     */
+    private val openChatUid = MutableStateFlow<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         preferencesManager = PreferencesManager(this)
+        handleChatIntent(intent)
 
         setContent {
             val themeName by preferencesManager.themeFlow.collectAsState(initial = "calm")
             val modeName by preferencesManager.modeFlow.collectAsState(initial = "day")
             val uiLang by preferencesManager.uiLangFlow.collectAsState(initial = "pl")
+            // Read here, in the parent scope, so a notification that lands while the
+            // app is open still pushes the new value down into AppNavigation.
+            val chatUid by openChatUid.collectAsState()
 
             LocalizationWrapper(uiLang) {
                 VerbigemAppTheme(
@@ -90,12 +105,45 @@ class MainActivity : ComponentActivity() {
                             updateManager = updateManager,
                             progressState = downloadProgress
                         ) {
-                            AppNavigation()
+                            AppNavigation(openChatUid = chatUid)
                         }
                     }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Required, otherwise getIntent() keeps handing back the original launch
+        // intent and a second notification tap re-opens the first conversation.
+        setIntent(intent)
+        handleChatIntent(intent)
+    }
+
+    private fun handleChatIntent(intent: Intent?) {
+        val uid = intent?.getStringExtra(EXTRA_OPEN_CHAT_UID)
+        if (!uid.isNullOrBlank()) openChatUid.value = uid
+    }
+
+    companion object {
+        const val EXTRA_OPEN_CHAT_UID = "open_chat_uid"
+
+        /**
+         * Intent that brings the app to the front on a given conversation.
+         *
+         * `chatId` here is the *other person's uid* — that is what `Screen.ChatThread`
+         * routes on, and the thread derives the real chat id from the two uids.
+         * An empty string means "just open the inbox".
+         */
+        fun intentForChat(context: Context, chatId: String): Intent =
+            Intent(context, MainActivity::class.java).apply {
+                putExtra(EXTRA_OPEN_CHAT_UID, chatId)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                if (chatId.isBlank()) removeExtra(EXTRA_OPEN_CHAT_UID)
+            }
     }
 }
 

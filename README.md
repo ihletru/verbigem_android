@@ -814,6 +814,10 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
     Odczyt i zapis **tylko właściciela** + whitelist pól (bez niej klient mógłby
     dopisać flagi, które serwer zacznie rozumieć w fazie 2). Pod `users/{uid}`,
     nie w `friendships` — to moje zdanie o kimś, nie wspólna umowa.
+  - `users/{uid}/fcmTokens/{token}` — tokeny FCM do powiadomień push. **ID dokumentu
+    to token**, żeby Cloud Function mogła skasować martwy token po samym ID (bez
+    odczytu). Jeden dokument = jedno urządzenie, więc push idzie na telefon i tablet.
+    Odczyt/zapis tylko właściciel + whitelist pól.
   - `app_config/tts` — konfiguracja TTS Pro (modele OpenRouter + apiKey).
   - `app_config/update` — metadane auto-update (versionCode, apkUrl, onPlayStore).
 - **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:
@@ -837,8 +841,99 @@ Kotlin/Compose (ani po polsku, ani po angielsku).
   auto-update i TTS: `match /app_config/{doc} { allow read: if true; allow write: if false; }`
   (app czyta `app_config/update` i `app_config/tts` PRZED loginem). Bez tego dokumenty są
   blokowane (`PERMISSION_DENIED`) i app nie wykrywa update'u ani nie pobiera konfiguracji TTS.
-- **Pliki konfiguracyjne w repo:** `firebase.json` (wskazuje `firestore.rules`), `.firebaserc`
-  (projekt `mini-verbigem`).
+- **Pliki konfiguracyjne w repo:** `firebase.json` (wskazuje `firestore.rules`, blok
+  `functions` i reguły), `.firebaserc` (projekt `mini-verbigem`).
+
+---
+
+## ☁️ Cloud Functions (`functions/`) — Node 20 + TypeScript
+
+Backend czatu. **Wymaga planu Blaze** (decyzja D6 — wykupiony). Kod w `functions/src/`,
+kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
+
+| Funkcja | Typ | Co robi |
+|---|---|---|
+| `onMessageCreated` | trigger Firestore `chats/{chatId}/messages/{msgId}` | push FCM do pozostałych członków czatu |
+| `matchContacts` | callable (HTTPS) | dopasowanie kontaktów po HMAC numeru telefonu (faza 2.3) |
+
+### Jak deployować
+
+```bash
+cd functions
+npm install         # raz, po klonie
+npm run build       # tsc -> lib/  (deploy i tak to robi przez predeploy w firebase.json)
+
+# z katalogu głównego projektu:
+firebase deploy --only functions --project mini-verbigem
+firebase deploy --only firestore:rules --project mini-verbigem   # po zmianie reguł
+firebase functions:log --project mini-verbigem                   # logi
+```
+
+`firebase.json` ma `predeploy: ["npm --prefix \"$RESOURCE_DIR\" run build"]`, więc
+deploy sam kompiluje — `npm run build` ręcznie jest tylko po to, żeby złapać błąd typów
+bez czekania na upload.
+
+⚠️ **Deploy katalogu `functions/`:** Firebase CLI uruchamia lokalny serwer discovery,
+który ładuje `lib/index.js` i ma **domyślnie 10 s** na odpowiedź. Na tej maszynie
+zimny start Node + `firebase-admin` to za mało i deploy kończy się
+`User code failed to load. Cannot determine backend specification. Timeout after 10000`.
+Rozwiązanie (wartość w sekundach):
+
+```bash
+export FUNCTIONS_DISCOVERY_TIMEOUT=60
+firebase deploy --only functions --project mini-verbigem
+```
+
+⚠️ **Node 20 jest przestarzały** — Google wyłączy go 2026-10-30. Przed tą datą trzeba
+podnieść runtime (`firebase.json` → `runtime`) i `engines.node` w `functions/package.json`
+na nodejs22, inaczej deploy przestanie działać.
+
+### Sekrety (Secret Manager)
+
+`matchContacts` potrzebuje pieprzu do HMAC numerów telefonów:
+
+```bash
+printf '%s' "$(openssl rand -hex 32)" | \
+  firebase functions:secrets:set PHONE_HASH_PEPPER --project mini-verbigem
+```
+
+⚠️ **Rotacja pieprzu unieważnia wszystkie dopasowania** — stare hashe w `phoneDirectory`
+przestaną się zgadzać. Zmiana wymaga przeliczenia katalogu, nie tylko podmiany sekretu.
+Funkcja nie wdroży się bez ustawionego sekretu (deploy pyta o to automatycznie).
+
+### Powiadomienia push — decyzje, których nie wolno zmienić niechcący
+
+1. **Wiadomość FCM jest `data-only` (bez pola `notification`).** Z polem `notification`
+   Android sam renderuje powiadomienie, gdy aplikacja jest w tle, i **nie wywołuje
+   `onMessageReceived`** — akcje „Odpowiedz" i „Oznacz jako przeczytane" działałyby
+   tylko dla wiadomości przychodzących przy otwartej aplikacji. Data-only daje pełną
+   kontrolę zawsze; ceną jest podatność na Doze, dlatego `priority: "high"` + TTL 4 tyg.
+2. **Kanał `verbigem_messages`.** Identyfikator jest po obu stronach: `functions/src/
+   messaging.ts` (komentarz) i `VerbigemNotifications.ensureChannel()`. Zmiana w jednym
+   miejscu bez drugiego = ciche zniknięcie powiadomień na Androidzie 8+.
+3. **Podgląd treści DOMYŚLNIE WYŁĄCZONY.** `buildBody()` zwraca „Nowa wiadomość",
+   chyba że `app_config/notifications` ma `showMessagePreview == true`. Push wychodzi
+   z urządzenia i przechodzi przez serwery Google — to inna historia prywatności niż
+   „tłumaczenie dzieje się na Twoim telefonie". Bezpieczeństwo niejawne: brak dokumentu
+   = podgląd wyłączony. Przełącznik w Firestore, da się włączyć bez nowego APK.
+4. **Treść podglądu z `senderTranslation`, nie z `text`.** Podpowiedź nadawcy powstała
+   *w języku odbiorcy* (decyzja D1), więc to jedyna wersja, którą ten człowiek przeczyta.
+   Surowy `text` jest w języku nadawcy.
+5. **Wyciszenie jest honorowane w chmurze**, nie na urządzeniu (`muted === true` na
+   `users/{odbiorca}/contacts/{nadawca}`) — wyciszony czat nie budzi telefonu.
+6. **Token = ID dokumentu.** FCM zwraca `messaging/registration-token-not-registered`
+   dla martwych tokenów; funkcja kasuje je po ID, bez odczytu.
+
+Po stronie aplikacji: `VerbigemMessagingService` (odbiera), `FcmTokenManager`
+(`users/{uid}/fcmTokens/{token}`, rejestracja w `VerbigemApplication` po odtworzeniu
+sesji, usunięcie przy wylogowaniu), `VerbigemNotifications` (kanał, grupa per czat,
+MessagingStyle z historią, akcje), `NotificationActionReceiver` (odpowiedź + przeczytane
+pod `goAsync()`, bo robią zapis do Firestore).
+
+Uprawnienie `POST_NOTIFICATIONS` (Android 13+) jest proszone **raz, przy pierwszym
+otwarciu skrzynki czatu** — nie na starcie aplikacji, bo użytkownik nie ma wtedy
+powodu chcieć powiadomień, a Android przestaje pytać po dwóch odmowach. Flaga
+`asked_notif_perm` w DataStore.
 
 ---
 

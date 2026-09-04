@@ -12,6 +12,10 @@
          ekranie prominent disclosure (ContactsPermissionScreen) — wymóg Google
          Play. Numery nie opuszczają urządzenia (patrz polityka prywatności). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Android 13+ requires this at runtime, not just install time. The prompt is
+         shown once, when the user first opens the chat inbox — asking on a cold start
+         (before they have ever sent a message) is the classic way to get "Deny". -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -48,6 +52,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- FCM. `exported="false"`: only the system (Google Play services) may
+             deliver to it, and it carries no intent-filter, so nothing else can. -->
+        <service
+            android:name=".notifications.VerbigemMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Handles "Reply" and "Mark as read" from a chat notification. -->
+        <receiver
+            android:name=".notifications.NotificationActionReceiver"
+            android:exported="false" />
 
         <!-- Exposes downloaded APK to the package installer via content:// URI. -->
         <provider

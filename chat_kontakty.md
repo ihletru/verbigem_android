@@ -5,7 +5,13 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **1.13 Karta kontaktu WYKONANA w kodzie.**
+Ostatnia aktualizacja: 2026-09-04 — **faza 2 wystartowała: 2.1 i 2.5 w kodzie.**
+`functions/` (Node 20 + TS) gotowy, `onMessageCreated` wysyła push FCM, aplikacja
+rejestruje tokeny w `users/{uid}/fcmTokens/{token}` i pokazuje powiadomienia z
+kanałem, grupą oraz akcjami „Odpowiedz" / „Oznacz jako przeczytane". **Reguły
+`fcmTokens` i funkcja czekają na `firebase deploy`** — do tego czasu push nie działa.
+
+Wcześniej tego samego dnia: **1.13 Karta kontaktu WYKONANA w kodzie.**
 `users/{uid}/contacts/{otherUid}` (alias, język tłumaczenia, przypnij, wycisz,
 zablokuj, notatka) + ekran `contact/{uid}` + reguły wdrożone + Room v7
 (`chat_hidden` dla „usuń rozmowę"). Alias i przypięcie żyją już w skrzynce,
@@ -41,7 +47,9 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 | 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
 | 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
 | 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
-| 2 | Backend: Cloud Functions | ⬜ nie rozpoczęta | — | — |
+| 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | *w toku* |
+| 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **kod gotowy, DO WDROŻENIA** (test push u Milosza) | 27 | *w toku* |
+| 2 | Backend: Cloud Functions | 🟡 **w toku** (2.1 ✅, 2.5 🟡; 2.2–2.4, 2.6–2.7 nie zaczęte) | — | — |
 | 3 | Kontakty 2.0 (import, kanały) | 🟡 **częściowo** (3.0–3.2/3.5) | 25 | `93c6fe1` |
 | 4 | Kody QR | ⬜ nie rozpoczęta | — | — |
 | 5 | Media: zdjęcia + OCR, głosówki | ⬜ nie rozpoczęta | — | — |
@@ -80,6 +88,63 @@ podstaw, żeby uznać fazę 1 za domkniętą.
 - **1.14** ⬜ test na telefonie (faza 1) — **zostaje dla Milosza**.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
 - **1.16** ⬜ test na telefonie (karta kontaktu) — **zostaje dla Milosza**.
+
+**Co zrobione w sesji 2026-09-04 (faza 2 — 2.1 i 2.5):**
+
+- **2.1** ✅ **`functions/` od zera:** `package.json` (Node 20, `firebase-admin` 12,
+  `firebase-functions` 6), `tsconfig.json` (commonjs, strict, `noUnusedLocals`),
+  `.gitignore` (`node_modules/`, `lib/`), `src/index.ts`. `npm install` + `npm run
+  build` przechodzą czysto. `firebase.json` dostał blok `functions` z `runtime:
+  nodejs20` i `predeploy: npm run build`. Sekcja „☁️ Cloud Functions" w README:
+  tabela funkcji, komendy deployu, Secret Manager, 6 decyzji pushy.
+- **2.5** ✅ **FCM end-to-end w kodzie:**
+  - `functions/src/messaging.ts` — `onDocumentCreated(chats/{chatId}/messages/{msgId})`
+    → `sendEachForMulticast` do pozostałych członków. `members` czytane z dokumentu
+    czatu (wiadomość jest append-only i nie ma rosteru). Martwe tokeny kasowane po ID.
+    `Promise.allSettled` — nieudany push **nigdy** nie failuje triggera (wiadomość już
+    jest w Firestore, retry = podwójne powiadomienia).
+  - **Treść pusha = `senderTranslation`, nie `text`** (D1: podpowiedź nadawcy powstała
+    w języku odbiorcy). **Podgląd DOMYŚLNIE WYŁĄCZONY** — `app_config/notifications`
+    musi mieć `showMessagePreview == true`, inaczej „Nowa wiadomość". Push wychodzi z
+    urządzenia i idzie przez serwery Google, więc failuje zamknięty.
+  - **Wyciszenie honorowane w chmurze** (`users/{odbiorca}/contacts/{nadawca}` →
+    `muted === true`), nie na urządzeniu: wyciszony czat nie budzi telefonu.
+  - **Android:** `VerbigemMessagingService`, `FcmTokenManager`
+    (`users/{uid}/fcmTokens/{token}` — **ID dokumentu = token**, żeby funkcja mogła
+    kasować bez odczytu), `VerbigemNotifications` (kanał `verbigem_messages`, grupa
+    per czat + podsumowanie, MessagingStyle z historią, akcje),
+    `NotificationActionReceiver` (odpowiedź + „oznacz jako przeczytane" pod
+    `goAsync()`, bo robią zapis do Firestore).
+  - **Kanał powiadomień** tworzony w `VerbigemApplication.onCreate`, nie przy
+    pierwszym pushu — użytkownik szukający „jak to wyłączyć" znajdzie go w ustawieniach.
+  - **Tap → wątek:** `MainActivity.intentForChat()` + `onNewIntent` + flow
+    `openChatUid` w Compose. `AppNavigation` czeka na odtworzenie sesji Auth
+    (do 3 s), bo na zimnym starcie `currentUser` jest jeszcze nullem.
+  - **`POST_NOTIFICATIONS` proszony raz, przy pierwszym otwarciu skrzynki**
+    (flaga `asked_notif_perm` w DataStore) — nie na starcie aplikacji: Android
+    przestaje pytać po dwóch odmowach, więc szkoda je przepalać.
+  - **Reguły Firestore:** `users/{uid}/fcmTokens/{token}` (właściciel + whitelist
+    pól + `data.token == token`). **Nowe stringi × 6** (6 kluczy `notif_*`).
+  - **Wylogowanie kasuje token przed `signOut()`** — po wylogowaniu `currentUser`
+    jest null i dokument zostałby osierocony.
+
+**⚠️ Pułapka: `MessagingStyle` ma własną metodę `apply()`.**
+`NotificationCompat.MessagingStyle.apply { ... }` **nie wywołuje** kotlinowej
+funkcji `apply` — `MessagingStyle` deklaruje własny element
+`apply(NotificationBuilderWithBuilderAccessor)`, który ją przysłania. Kompilator
+zgłasza „Unresolved reference" dla każdego wywołania wewnątrz lambdy. Na tej
+klasie piszemy zwykłe instrukcje, nie `.apply {}`.
+
+**⚠️ Decyzja: FCM jest `data-only` (bez pola `notification`).**
+Z polem `notification` Android sam renderuje powiadomienie w tle i **nie wywołuje
+`onMessageReceived`** — akcje „Odpowiedz" / „Oznacz jako przeczytane" działałyby
+tylko dla wiadomości przychodzących przy otwartej aplikacji. Data-only daje pełną
+kontrolę zawsze; ceną jest Doze, stąd `priority: "high"` i TTL 4 tygodnie.
+
+**Uczciwość: 2.5 nie jest wdrożone.** Reguły `fcmTokens` i funkcja
+`onMessageCreated` czekają na `firebase deploy`. Do tego czasu push nie działa,
+a `FcmTokenManager` będzie logował `PERMISSION_DENIED` (błąd jest przechwytywany,
+aplikacja działa dalej).
 
 **Co zrobione po fazie 1 — 1.13 Karta kontaktu (2026-09-04):**
 

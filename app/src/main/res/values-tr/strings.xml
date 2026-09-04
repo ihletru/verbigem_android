@@ -225,4 +225,10 @@
     <string name="contact_card_delete_body">Bu telefondaki gelen kutusundan kaybolur. Karşı taraf mesajları korur — Verbigem henüz buluttan silemiyor.</string>
     <string name="contact_card_restore">Sohbeti geri getir</string>
     <string name="contact_card_not_friend">Henüz arkadaş değilsiniz — mesajlar yine çalışır, davet olmadan sohbete düşer.</string>
+    <string name="notif_channel_messages_name">Mesajlar</string>
+    <string name="notif_channel_messages_desc">Yeni sohbet mesajları hakkında bildirimler.</string>
+    <string name="notif_group_summary">Yeni mesajlar</string>
+    <string name="notif_action_reply">Yanıtla</string>
+    <string name="notif_action_mark_read">Okundu olarak işaretle</string>
+    <string name="notif_new_message">Yeni mesaj</string>
 </resources>

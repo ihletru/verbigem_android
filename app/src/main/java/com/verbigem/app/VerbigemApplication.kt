@@ -6,6 +6,8 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.verbigem.app.data.ConnectivityObserver
 import com.verbigem.app.data.repository.SyncManager
+import com.verbigem.app.notifications.FcmTokenManager
+import com.verbigem.app.notifications.VerbigemNotifications
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +24,11 @@ class VerbigemApplication : Application() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
 
+        // Create the channel at startup, not on the first push: a channel only appears
+        // in the system notification settings once it exists, and a user who goes
+        // looking for "how do I turn these off" before the first message should find it.
+        VerbigemNotifications.ensureChannel(this)
+
         // Firebase Auth restores the signed-in session asynchronously AFTER this call, so reading
         // FirebaseAuth.getInstance().currentUser here is frequently null. Subscribe to auth state
         // changes and trigger the startup sync only once the user is actually available.
@@ -36,6 +43,11 @@ class VerbigemApplication : Application() {
                     } catch (e: Exception) {
                         Log.e(TAG, "Startup sync failed", e)
                     }
+                    // Push token registration belongs here, not in the messaging
+                    // service: on a cold start `onNewToken` fires before FirebaseAuth
+                    // has restored the session, so there would be no uid to attach it
+                    // to. `onNewToken` still covers later rotations.
+                    FcmTokenManager.registerCurrentToken(user.uid)
                 }
             }
         }

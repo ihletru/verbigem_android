@@ -27,18 +27,26 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
+import com.verbigem.app.data.local.PreferencesManager
+import com.verbigem.app.notifications.VerbigemNotifications
 import com.verbigem.app.ui.theme.VerbigemTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -59,6 +67,28 @@ fun ChatListScreen(
 ) {
     val rows by viewModel.rows.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    // Notification permission, asked here rather than at startup.
+    //
+    // Android 13+ treats POST_NOTIFICATIONS like any dangerous permission, but asking
+    // before the user has any reason to want a push mostly earns a "Deny" — and after
+    // two denials the system stops offering. The inbox is the moment it makes sense:
+    // they are looking at conversations, so "tell me when one of these answers" is a
+    // coherent question. Asked once, then remembered.
+    val context = LocalContext.current
+    val preferences = remember(context) { PreferencesManager(context) }
+    val askedBefore by preferences.askedNotifPermFlow.collectAsState(initial = false)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* Granted or not, we never ask again — see KEY_ASKED_NOTIF_PERM. */ }
+
+    LaunchedEffect(askedBefore) {
+        if (askedBefore) return@LaunchedEffect
+        // `hasPermission` is true below Android 13, where the prompt does not exist.
+        if (VerbigemNotifications.hasPermission(context)) return@LaunchedEffect
+        preferences.setAskedNotifPerm(true)
+        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     Column(
         modifier = Modifier

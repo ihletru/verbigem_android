@@ -7,6 +7,7 @@ import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.notifications.FcmTokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -87,6 +88,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun signOut() {
-        authRepository.signOut()
+        // Remove this device's push token BEFORE the session is dropped — afterwards
+        // `currentUser` is null and the token would be orphaned until the Cloud
+        // Function notices a failed send and prunes it.
+        viewModelScope.launch {
+            FcmTokenManager.unregisterCurrentToken()
+            authRepository.signOut()
+        }
     }
 }
