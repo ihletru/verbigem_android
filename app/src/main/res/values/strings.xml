@@ -208,6 +208,11 @@
     <string name="chat_today">Today</string>
     <string name="chat_yesterday">Yesterday</string>
     <string name="chat_load_older">Load earlier messages</string>
+    <string name="chat_search_min_length">Type at least %1$d characters</string>
+    <string name="chat_search_no_results">No messages match “%1$s”</string>
+    <string name="chat_search_prefix_hint">Only matches the beginning of a message.</string>
+    <string name="chat_search_clear">Clear search</string>
+    <string name="chat_search_placeholder">Search messages</string>
 
     <!-- Contact card (phase 1.13) -->
     <string name="cancel">Cancel</string>

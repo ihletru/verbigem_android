@@ -10,10 +10,12 @@ import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.ChatRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** One row of the inbox: the conversation plus everything needed to draw it. */
 data class ChatRow(
@@ -30,10 +32,27 @@ data class ChatRow(
     val muted: Boolean = false
 )
 
+/** One message that matched a search, with everything needed to draw the row. */
+data class MessageSearchHit(
+    val chatId: String,
+    val otherUid: String,
+    val nickname: String,
+    val avatar: String,
+    val text: String,
+    val createdAt: Long,
+    val isMine: Boolean
+)
+
 class ChatListViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TAG = "ChatListViewModel"
+
+        /**
+         * Krótsze zapytania niż 3 znaki są bez sensu: to jedno zapytanie do Firestore
+         * na rozmowę, a jedna i dwie litery trafią w większość wiadomości w bazie.
+         */
+        const val MIN_SEARCH_LENGTH = 3
     }
 
     private val authRepository = AuthRepository()
@@ -46,6 +65,25 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // ── Wyszukiwanie w wiadomościach (1.12) ─────────────────────────────────
+    //
+    // Uruchamiane jawnie (przycisk / akcja IME), nie przy każdym naciśnięciu
+    // klawisza: koszt to jedno zapytanie na rozmowę, więc wyszukiwanie na żywo
+    // mieliłoby Firestore przy każdej literze bez żadnej korzyści dla użytkownika.
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _searchHits = MutableStateFlow<List<MessageSearchHit>>(emptyList())
+    val searchHits: StateFlow<List<MessageSearchHit>> = _searchHits.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
+
+    /** Czy wyszukiwanie w ogóle było uruchomione — odróżnia „brak wyników" od „nie szukano". */
+    private val _searchDone = MutableStateFlow(false)
+    val searchDone: StateFlow<Boolean> = _searchDone.asStateFlow()
 
     private val chats = MutableStateFlow<List<ChatSummary>>(emptyList())
     private val profiles = MutableStateFlow<Map<String, PublicProfile>>(emptyMap())
@@ -105,6 +143,61 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    fun onSearchQueryChanged(value: String) {
+        _searchQuery.value = value
+        if (value.isBlank()) {
+            clearSearch()
+            return
+        }
+        // Edycja zapytania cofa skrzynkę do listy rozmów: stare wyniki nie pasują
+        // do nowego tekstu, a trzymanie ich na ekranie kłamałoby o tym, co znaleziono.
+        _searchHits.value = emptyList()
+        _searchDone.value = false
+    }
+
+    /** Szuka tylko w rozmowach, które użytkownik i tak widzi (bez zablokowanych i ukrytych). */
+    fun search() {
+        val query = _searchQuery.value.trim()
+        if (query.length < MIN_SEARCH_LENGTH) return
+        if (currentUid.isBlank()) return
+
+        val visible = _rows.value
+        if (visible.isEmpty()) {
+            _searchHits.value = emptyList()
+            _searchDone.value = true
+            return
+        }
+
+        _isSearching.value = true
+        viewModelScope.launch {
+            val hits = withContext(Dispatchers.IO) {
+                chatRepository.searchMessages(visible.map { it.chatId }, query)
+            }
+            val byChatId = visible.associateBy { it.chatId }
+            _searchHits.value = hits.mapNotNull { hit ->
+                val row = byChatId[hit.chatId] ?: return@mapNotNull null
+                MessageSearchHit(
+                    chatId = hit.chatId,
+                    otherUid = row.otherUid,
+                    nickname = row.nickname,
+                    avatar = row.avatar,
+                    text = hit.text,
+                    createdAt = hit.createdAt,
+                    isMine = hit.authorId == currentUid
+                )
+            }
+            _isSearching.value = false
+            _searchDone.value = true
+        }
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
+        _searchHits.value = emptyList()
+        _searchDone.value = false
+        _isSearching.value = false
     }
 
     private fun fetchProfile(uid: String) {

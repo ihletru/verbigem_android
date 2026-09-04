@@ -201,6 +201,11 @@
     <string name="chat_today">Bugün</string>
     <string name="chat_yesterday">Dün</string>
     <string name="chat_load_older">Eski mesajları yükle</string>
+    <string name="chat_search_min_length">En az %1$d karakter yazın</string>
+    <string name="chat_search_no_results">„%1$s” ile eşleşen mesaj yok</string>
+    <string name="chat_search_prefix_hint">Yalnızca mesajın başıyla eşleşir.</string>
+    <string name="chat_search_clear">Aramayı temizle</string>
+    <string name="chat_search_placeholder">Mesajlarda ara</string>
 
     <!-- Kişi kartı (aşama 1.13) -->
     <string name="cancel">İptal</string>

@@ -5,25 +5,29 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **faza 2 wystartowała: 2.1 i 2.5 w kodzie.**
-`functions/` (Node 20 + TS) gotowy, `onMessageCreated` wysyła push FCM, aplikacja
-rejestruje tokeny w `users/{uid}/fcmTokens/{token}` i pokazuje powiadomienia z
-kanałem, grupą oraz akcjami „Odpowiedz" / „Oznacz jako przeczytane". **Reguły
-`fcmTokens` i funkcja czekają na `firebase deploy`** — do tego czasu push nie działa.
+Ostatnia aktualizacja: 2026-09-04 — **1.12 Wyszukiwanie w wiadomościach WYKONANE
+w kodzie** (trigger `onMessageSearchIndex`, reguła blokująca `searchText` klientowi,
+zapytanie prefiksowe per czat, UI w skrzynce, backfill gotowy). Zaległość z fazy 1,
+która czekała dokładnie na backend.
 
-Wcześniej tego samego dnia: **1.13 Karta kontaktu WYKONANA w kodzie.**
-`users/{uid}/contacts/{otherUid}` (alias, język tłumaczenia, przypnij, wycisz,
-zablokuj, notatka) + ekran `contact/{uid}` + reguły wdrożone + Room v7
-(`chat_hidden` dla „usuń rozmowę"). Alias i przypięcie żyją już w skrzynce,
-`langOverride` steruje tłumaczeniem u odbiorcy.
+Wcześniej tego samego dnia: **2.4 i 2.6 wdrożone na produkcję** — `verifyPhone`,
+`inviteByPhone`, `onPhoneVerified` działają, aplikacja potrafi zweryfikować numer
+SMS-em. Faza 2 (2.1–2.7) jest kompletna w kodzie.
 
 **Stan wydań:** v26 (faza 0 + faza 1) **jest na produkcji** — zweryfikowane
 `https://mini.verbigem.com/updates/version.json` → `versionCode: 26`.
-**1.13 czeka na wydanie** (build przeszedł, `app-debug.apk` gotowy):
-wymaga podbicia `versionCode` na 27 i wrzucenia `app-debug-v27.apk`.
-**Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer) nadal są u Milosza** —
-bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte. Test 1.18 wymaga
-wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1, punkt 1.18).
+**v27 i v28 czekają na wydanie** (buildy przeszły): wymagają skopiowania
+`app-debug-vXX.apk` do `verbigem/mini/dist/android/`, podbicia `vite.config.ts`
+i `dist/updates/version.json` (`?v=XX` w `apkUrl`), potem
+`firebase deploy --only hosting`. **Nie robimy tego przed testami na telefonie** —
+nie ma sensu wypychać ludziom wersji, których nikt nie odpalił.
+
+**Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
+nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
+- **1.18** wymaga wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1).
+- **1.19** wymaga **najpierw testu 0.9, potem backfillu** (`node
+  backfill_searchtext.js --apply`) — `chats` jest w produkcji puste, nie ma czego
+  indeksować, dopóki nie powstanie pierwsza rozmowa.
 
 > **B6 rozstrzygnięte 2026-09-03 — Milosz miał rację tylko połowicznie.**
 > Zweryfikowane na żywym kodzie (`ui/components/BottomNav.kt`):
@@ -46,7 +50,7 @@ wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1, punkt 1.18).
 |---|---|---|---|---|
 | 0 | Ratunek fundamentów | 🟡 **kod gotowy, v26 na produkcji** (0.9 — test na telefonie został) | 26 | `bae1df0` |
 | 1 | Skrzynka odbiorcza + wątek | 🟡 **kod gotowy, v26 na produkcji** (1.14 — test na telefonie został) | 26 | `bae1df0` |
-| 1.12 | Wyszukiwanie w wiadomościach | ⬜ odłożone (patrz „Odłożone" niżej) | — | — |
+| 1.12 | Wyszukiwanie w wiadomościach | 🟡 **kod gotowy** (1.19 — test na telefonie został; **backfill po 0.9**) | 28 | *w toku* |
 | 1.13 | Karta kontaktu | 🟡 **kod gotowy** (1.16 — test na telefonie został) | 27 | `4f39292` |
 | 2.1 | Szkielet `functions/` (Node 20 + TS) | ✅ **zrobione** (kod + dokumentacja w README) | — | `a4e65d5` |
 | 2.2 | Secret Manager + App Check | ✅ **zrobione** (pepper ustawiony; App Check per wariant, egzekucja odroczona) | — | *w toku* |
@@ -89,7 +93,7 @@ wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1, punkt 1.18).
   `readBy` na wiadomości — patrz „Decyzja: readReceipts zamiast `update`".
 - **1.11** ✅ Wskaźnik „pisze…": subkolekcja `typing/{uid}` z `expiresAt`,
   zapis throttlowany (4 s), heartbeat 1,5 s w VM odświeża wygaśnięcie.
-- **1.12** ⬜ wyszukiwanie w wiadomościach — **odłożone** (patrz niżej).
+- **1.12** 🟡 wyszukiwanie w wiadomościach — **wykonane** (szczegóły w bloku niżej).
 - **1.13** ✅ karta kontaktu — **wykonana** (szczegóły w bloku niżej).
 - **1.14** ⬜ test na telefonie (faza 1) — **zostaje dla Milosza**.
 - **1.15** ✅ README + `chat_kontakty.md`; commit + push na koniec sesji.
@@ -97,6 +101,64 @@ wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1, punkt 1.18).
 - **1.17** ⬜ test na telefonie (push FCM) — **zostaje dla Milosza** (patrz faza 2 niżej).
 - **1.18** ⬜ test na telefonie (weryfikacja numeru 2.6) — **zostaje dla Milosza**,
   ale **najpierw trzeba wpisać SHA w konsoli Firebase** (blok niżej).
+- **1.19** ⬜ test na telefonie (wyszukiwanie 1.12) — **zostaje dla Milosza**,
+  ale dopiero **po backfillu** (blok niżej).
+
+**Co zrobione w sesji 2026-09-04, noc (1.12 — wyszukiwanie w wiadomościach):**
+
+- **1.12** 🟡 **Wyszukiwanie w wiadomościach — zrobione, czeka na backfill i test.**
+  Z fazy 1 zostało odłożone z jednego powodu: `searchText` musiał zapisywać backend.
+  Backend istnieje od 2.x, więc przeszkoda zniknęła.
+
+  - **Trigger `onMessageSearchIndex`** (`functions/src/searchIndex.ts`), osobna
+    funkcja od `onMessageCreated` choć reaguje na ten sam dokument: push i
+    indeksowanie nie mają ze sobą nic wspólnego, a wspólny handler oznaczałby, że
+    padnięty FCM zatrzymuje też wyszukiwanie (albo odwrotnie).
+    `onDocumentCreated` + zapis `merge` — **nie ma pętli**, update nie wyzwala
+    create.
+  - **Reguła:** klient **nie może** napisać `searchText`
+    (`!('searchText' in request.resource.data)`). Gdyby mógł, indeksowałby coś
+    innego niż wysłał i wypychał własne wiadomości na każde cudze zapytanie.
+  - **Normalizacja musi być identyczna po obu stronach** — `searchIndex.ts` ↔
+    `data/MessageSearch.kt`: NFD → `\p{M}` → lowercase → trim → 2000 znaków.
+    Bez NFD „jestes" nie znajdzie „jesteś". **Rozjazd objawia się ciszą:**
+    wszystkie zapytania zwracają zero i nic w logach o tym nie mówi.
+  - **Zapytanie per czat, nie collection group.** Group query przemiatałoby każdą
+    rozmowę w bazie, a reguły nie potrafią go ograniczyć — dostęp decyduje `get()`
+    na nadrzędnym czacie, czego group query nie wyrazi. Przejście po **własnej**
+    liście rozmów trzyma odczyt wewnątrz dokumentów, których jestem członkiem.
+    Brak `orderBy` (sortowanie po dacie wymagałoby indeksu złożonego — sortujemy
+    kilkanaście trafień na urządzeniu).
+  - **Prefiks, nie pełny tekst.** Firestore nie ma full-text; jedyna tania
+    sztuczka to zakres `>= q` i `< q + "\uF8FF"`. „kot" znajdzie „kot ma Alego",
+    ale **nie** „Ala ma kota" — **napisane wprost w UI**, bo inaczej użytkownik
+    zalicza to jako błąd, a nie ograniczenie.
+  - **Szukanie odpala się akcją „szukaj" na klawiaturze**, nie przy każdej
+    literze: koszt to jedno zapytanie na rozmowę. Edycja pola cofa skrzynkę do
+    listy rozmów (stare wyniki nie pasują do nowego tekstu). Minimum 3 znaki.
+  - **Szukamy tylko w rozmowach widocznych w skrzynce** — zablokowane i usunięte
+    są wykluczone, bo i tak bierzemy `chatId` z listy, którą widzi użytkownik.
+    Szukanie w czymś, czego celowo nie pokazujemy, byłoby niespójne.
+  - **Backfill `backfill_searchtext.js`** (dry run domyślnie, `--apply` zapisuje).
+    Trigger indeksuje tylko nowe wiadomości. Skrypt **importuje** normalizację ze
+    zbudowanego `functions/lib/searchIndex` — celowo nie niesie własnej kopii.
+    Wymaga `cd functions && npm run build`.
+
+**⚠️ KOLEJNOŚĆ: najpierw test 0.9, potem backfill, potem test 1.19.**
+`chats` i `friendships` są w produkcji **puste** (sprawdzone REST-em) — nie ma
+czego indeksować, dopóki Milosz nie doda znajomego i nie napisze pierwszej
+wiadomości. Po teście 0.9:
+
+```bash
+cd functions && npm run build && cd ..
+node backfill_searchtext.js            # dry run — sprawdzić liczniki
+node backfill_searchtext.js --apply
+```
+
+- **1.19** — scenariusz testu: napisz „kot ma Alego", potem szukaj `kot`
+  (znajdzie), `kota` (**nie** znajdzie — to jest poprawne zachowanie), `KOT`
+  (znajdzie — lowercase po obu stronach), `jęść` vs `jesc` (polskie znaki
+  obcinają akcenty po obu stronach). Wynik po kliknięciu otwiera właściwy wątek.
 
 **Co zrobione w sesji 2026-09-04, wieczorem (faza 2 — 2.4 i 2.6):**
 
@@ -353,10 +415,9 @@ dopóki faza 2 nie dowiezie prawdziwej blokady.
 
 **Odłożone z fazy 1 (świadomie, nie zapomniane):**
 
-- **1.12 Wyszukiwanie w wiadomościach** — bez backendu i tak działałoby tylko po
-  pobranych stronach, a prawdziwe wyszukiwanie wymaga pola `searchText` +
-  (docelowo) indeksu. Lepiej zrobić je razem z fazą 2, kiedy możemy też
-  dodać trigger zapisujący `searchText`.
+- ~~**1.12 Wyszukiwanie w wiadomościach**~~ — **WYKONANE** (2026-09-04), patrz
+  blok niżej. Czekało dokładnie na to, po co była mowa w fazie 1: trigger
+  zapisujący `searchText`. Backend istnieje od 2.x, więc przeszkoda zniknęła.
 - ~~**1.13 Karta kontaktu**~~ — **WYKONANE** (2026-09-04), patrz blok wyżej.
   Zrobione bez czekania na test telefonu, bo to własny tor: nie dotyka
   wysyłania ani tłumaczenia, tylko nakłada się na już działającą skrzynkę.
@@ -697,8 +758,8 @@ Czat 1:1 w pełni użyteczny, **bez backendu**.
       własny klucz w `readBy` i `readState`. Wskaźniki ✓ / ✓✓.
 - [ ] **1.11** Wskaźnik „pisze…" + obecność (Firestore z throttlem 5 s; RTDB jest
       tańszy do presence — do rozważenia, jeśli koszty urosną).
-- [ ] **1.12** Wyszukiwanie w wiadomościach — klientowo po pobranych stronach.
-      Docelowo pole `searchText` (lowercase) + `whereGreaterThanOrEqualTo`.
+- [x] **1.12** Wyszukiwanie w wiadomościach — pole `searchText` zapisywane przez
+      Cloud Function, zapytanie prefiksowe per czat. **Zostaje:** test 1.19.
 - [x] **1.13** Karta kontaktu (`users/{uid}/contacts/{otherUid}`): alias,
       język tłumaczenia (ręczne nadpisanie profilu), wycisz, zablokuj, przypnij,
       notatka, usuń rozmowę (ukrycie lokalne). Ekran `contact/{uid}`,

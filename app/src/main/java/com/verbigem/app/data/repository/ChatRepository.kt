@@ -4,16 +4,30 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
+import com.verbigem.app.data.MessageSearch
 import com.verbigem.app.data.model.ChatMessage
 import com.verbigem.app.data.model.ChatSummary
 import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.SenderTranslation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+
+/** One message that matched a search. */
+data class MessageHit(
+    val chatId: String,
+    val messageId: String,
+    val authorId: String,
+    val text: String,
+    val createdAt: Long
+)
 
 class ChatRepository {
 
@@ -58,6 +72,71 @@ class ChatRepository {
                 } ?: emptyList())
             }
         awaitClose { listener.remove() }
+    }
+
+    // ----------------------------------------------------------------- search
+
+    /**
+     * Finds messages whose text starts with [rawQuery], across the given chats.
+     *
+     * **One query per chat, not a collection-group query.** A collection-group query
+     * on `messages` would sweep every conversation in the database, and the security
+     * rules cannot scope it — access is decided by a `get()` on the parent chat, which
+     * a group query cannot express. Walking the user's OWN chat list keeps the read
+     * inside documents they are already a member of.
+     *
+     * **Prefix only.** Firestore has no full-text search; the range trick below
+     * (`>= q`, `< q + F8FF`) matches the beginning of the indexed string, so "kot"
+     * finds "kot ma Alego" but not "Ala ma kota". Stating that in the UI beats
+     * letting the user discover it.
+     *
+     * No `orderBy`: adding one to a range query would force a composite index. Sorting
+     * the handful of hits on the device is free and needs no deploy coordination.
+     *
+     * A failure in one chat is logged and skipped — a thread the user cannot read
+     * must not erase results from the ones they can.
+     */
+    suspend fun searchMessages(
+        chatIds: List<String>,
+        rawQuery: String,
+        limitPerChat: Long = 20
+    ): List<MessageHit> {
+        val query = MessageSearch.normalize(rawQuery)
+        if (query.isBlank() || chatIds.isEmpty()) return emptyList()
+
+        val upper = query + MessageSearch.PREFIX_UPPER_BOUND_SUFFIX
+
+        return coroutineScope {
+            chatIds.map { chatId ->
+                async(Dispatchers.IO) {
+                    runCatching {
+                        messagesQuery(chatId)
+                            .whereGreaterThanOrEqualTo("searchText", query)
+                            .whereLessThan("searchText", upper)
+                            .limit(limitPerChat)
+                            .get()
+                            .await()
+                            .documents
+                            .mapNotNull { doc ->
+                                val text = doc.getString("text") ?: return@mapNotNull null
+                                val createdAt = doc.getTimestamp("createdAt")?.toDate()?.time
+                                    ?: return@mapNotNull null
+                                MessageHit(
+                                    chatId = chatId,
+                                    messageId = doc.id,
+                                    authorId = doc.getString("authorId").orEmpty(),
+                                    text = text,
+                                    createdAt = createdAt
+                                )
+                            }
+                    }.onFailure {
+                        android.util.Log.w("ChatRepository", "Search failed in chat $chatId", it)
+                    }.getOrDefault(emptyList())
+                }
+            }.awaitAll()
+                .flatten()
+                .sortedByDescending { it.createdAt }
+        }
     }
 
     /** One-shot fetch of the page strictly older than [before]. Empty list = no more history. */

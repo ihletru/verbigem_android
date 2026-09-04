@@ -201,6 +201,11 @@
     <string name="chat_today">今天</string>
     <string name="chat_yesterday">昨天</string>
     <string name="chat_load_older">加载更早的消息</string>
+    <string name="chat_search_min_length">至少输入 %1$d 个字符</string>
+    <string name="chat_search_no_results">没有匹配“%1$s”的消息</string>
+    <string name="chat_search_prefix_hint">仅匹配消息的开头。</string>
+    <string name="chat_search_clear">清除搜索</string>
+    <string name="chat_search_placeholder">搜索消息</string>
 
     <!-- 联系人资料卡（阶段 1.13） -->
     <string name="cancel">取消</string>

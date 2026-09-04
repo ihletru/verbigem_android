@@ -201,6 +201,11 @@
     <string name="chat_today">Hoy</string>
     <string name="chat_yesterday">Ayer</string>
     <string name="chat_load_older">Cargar mensajes anteriores</string>
+    <string name="chat_search_min_length">Escribe al menos %1$d caracteres</string>
+    <string name="chat_search_no_results">Ningún mensaje coincide con «%1$s»</string>
+    <string name="chat_search_prefix_hint">Solo coincide con el principio del mensaje.</string>
+    <string name="chat_search_clear">Borrar búsqueda</string>
+    <string name="chat_search_placeholder">Buscar en mensajes</string>
 
     <!-- Ficha de contacto (fase 1.13) -->
     <string name="cancel">Cancelar</string>

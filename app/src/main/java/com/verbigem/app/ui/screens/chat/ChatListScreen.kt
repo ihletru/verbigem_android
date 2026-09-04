@@ -19,17 +19,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,6 +75,11 @@ fun ChatListScreen(
 ) {
     val rows by viewModel.rows.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchHits by viewModel.searchHits.collectAsState()
+    val isSearching by viewModel.isSearching.collectAsState()
+    val searchDone by viewModel.searchDone.collectAsState()
 
     // Notification permission, asked here rather than at startup.
     //
@@ -123,11 +136,34 @@ fun ChatListScreen(
             }
         }
 
+        // Szukanie ma sens dopiero gdy jest w czym — puste konto nie ma wiadomości,
+        // a pole obiecywałoby coś, czego nie da się spełnić.
+        if (rows.isNotEmpty()) {
+            MessageSearchField(
+                query = searchQuery,
+                onQueryChanged = viewModel::onSearchQueryChanged,
+                onSearch = viewModel::search,
+                onClear = viewModel::clearSearch
+            )
+        }
+
         when {
             isLoading && rows.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = VerbigemTheme.colors.accent)
                 }
+            }
+            isSearching -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = VerbigemTheme.colors.accent)
+                }
+            }
+            searchDone && searchQuery.isNotBlank() -> {
+                SearchResults(
+                    hits = searchHits,
+                    query = searchQuery,
+                    onOpenThread = onOpenThread
+                )
             }
             rows.isEmpty() -> {
                 Column(
@@ -162,6 +198,180 @@ fun ChatListScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * Pole wyszukiwania w wiadomościach (1.12).
+ *
+ * Wyszukiwanie odpala się akcją „szukaj" na klawiaturze, nie przy każdej literze:
+ * kosztem jest jedno zapytanie do Firestore na rozmowę, więc szukanie na żywo
+ * mieliłoby bazę bez żadnej korzyści dla użytkownika.
+ */
+@Composable
+private fun MessageSearchField(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    onSearch: () -> Unit,
+    onClear: () -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
+        shape = RoundedCornerShape(14.dp),
+        placeholder = {
+            Text(
+                stringResource(R.string.chat_search_placeholder),
+                fontSize = 14.sp,
+                color = VerbigemTheme.colors.muted
+            )
+        },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint = VerbigemTheme.colors.muted,
+                modifier = Modifier.size(18.dp)
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(R.string.chat_search_clear),
+                        tint = VerbigemTheme.colors.muted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = VerbigemTheme.colors.accent,
+            unfocusedBorderColor = VerbigemTheme.colors.border
+        )
+    )
+}
+
+/**
+ * Wyniki wyszukiwania.
+ *
+ * Podpowiedź o prefiksach jest wyświetlana zawsze — Firestore nie ma wyszukiwania
+ * pełnotekstowego i dopasowuje początek zindeksowanego ciągu. Napisane wprost
+ * oszczędza użytkownikowi domyślania się, czemu „kota" nic nie znalazło.
+ */
+@Composable
+private fun SearchResults(
+    hits: List<MessageSearchHit>,
+    query: String,
+    onOpenThread: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
+            Text(
+                text = stringResource(R.string.chat_search_prefix_hint),
+                fontSize = 11.sp,
+                color = VerbigemTheme.colors.muted,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+        if (hits.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (query.trim().length < ChatListViewModel.MIN_SEARCH_LENGTH) {
+                            stringResource(
+                                R.string.chat_search_min_length,
+                                ChatListViewModel.MIN_SEARCH_LENGTH
+                            )
+                        } else {
+                            stringResource(R.string.chat_search_no_results, query.trim())
+                        },
+                        fontSize = 14.sp,
+                        color = VerbigemTheme.colors.muted
+                    )
+                }
+            }
+        } else {
+            items(hits, key = { it.chatId + "/" + it.createdAt + "/" + it.text.hashCode() }) { hit ->
+                MessageHitCard(hit = hit, onClick = { onOpenThread(hit.otherUid) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageHitCard(hit: MessageSearchHit, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(VerbigemTheme.colors.surface)
+            .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(VerbigemTheme.colors.bg)
+                .border(1.dp, VerbigemTheme.colors.border, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(hit.avatar, fontSize = 20.sp)
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = hit.nickname,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = VerbigemTheme.colors.ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = if (hit.isMine) {
+                    stringResource(R.string.chat_you_prefix, hit.text)
+                } else {
+                    hit.text
+                },
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = formatListTimestamp(hit.createdAt),
+            fontSize = 11.sp,
+            color = VerbigemTheme.colors.muted
+        )
     }
 }
 

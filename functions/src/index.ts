@@ -31,3 +31,8 @@ export { matchContacts } from "./contacts";
 // `inviteByPhone` needs the pepper like `matchContacts` does — see `secrets.ts` for
 // why both import the same declaration instead of each calling `defineSecret`.
 export { verifyPhone, inviteByPhone, onPhoneVerified } from "./invites";
+
+// Search indexing (task 1.12), 2026-09-04. Reacts to the same document as
+// `onMessageCreated` on purpose — see the comment in `searchIndex.ts` for why they
+// are two functions and not one.
+export { onMessageSearchIndex } from "./searchIndex";

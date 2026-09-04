@@ -858,6 +858,37 @@ kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
 | `inviteByPhone` | callable (HTTPS) | zapraszanie numerów, które nie mają jeszcze konta (2.4) |
 | `verifyPhone` | callable (HTTPS) | zapis faktu „to konto ma zweryfikowany numer" (2.6) |
 | `onPhoneVerified` | trigger Firestore `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia (2.4) |
+| `onMessageSearchIndex` | trigger Firestore `chats/{chatId}/messages/{msgId}` | zapisuje znormalizowane `searchText` do wyszukiwania (1.12) |
+
+### Wyszukiwanie w wiadomościach (1.12) — jak to działa
+
+Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres
+po prefiksie: `where >= q` i `where < q + "\uF8FF"` (`\uF8FF` to ostatnia dozwolona
+wartość z prywatnego obszaru UTF-8). Dlatego „kot" znajdzie „kot ma Alego", ale
+**nie** „Ala ma kota" — ograniczenie jest napisane wprost w UI, zamiast żeby
+użytkownik miał się go domyślić.
+
+`searchText` to dane pochodne, więc zapisuje je wyłącznie Cloud Function — reguły
+zabraniają klientowi dotknąć tego pola. Gdyby klient mógł je ustawić, mógłby
+zaindeksować coś innego niż wysłał i wypychać własne wiadomości na każde cudze
+zapytanie.
+
+**Transformacja musi być identyczna po obu stronach** (`functions/src/searchIndex.ts`
+↔ `app/.../data/MessageSearch.kt`): NFD → zdjęcie znaków łącznych (`\p{M}`) →
+lowercase → trim → 2000 znaków. Bez NFD polski użytkownik piszący „jestes" nigdy
+nie znalazłby własnego „jesteś". Rozjazd obu implementacji objawia się **ciszą**:
+każde zapytanie zwraca zero wyników i nic w logach o tym nie mówi.
+
+**Zapytanie idzie per czat, nie jako collection group.** Zapytanie grupowe
+przemiatałoby każdą rozmowę w bazie, a reguły nie potrafią go ograniczyć — dostęp
+decyduje `get()` na nadrzędnym czacie, czego group query nie wyrazi. Przejście po
+własnej liście rozmów trzyma odczyt wewnątrz dokumentów, których użytkownik i tak
+jest członkiem.
+
+**Backfill:** trigger indeksuje tylko nowe wiadomości. Dla historii sprzed wdrożenia
+jest `backfill_searchtext.js` (dry run domyślnie, `--apply` zapisuje). Wymaga
+`cd functions && npm run build` — skrypt importuje normalizację ze zbudowanego
+`lib/`, żeby nie trzymać drugiej kopii.
 
 ### Weryfikacja numeru (2.6) — jak to działa
 
@@ -976,7 +1007,8 @@ Zawsze podawaj nazwy:
 
 ```bash
 firebase deploy --only functions:onMessageCreated,functions:matchContacts,\
-functions:inviteByPhone,functions:verifyPhone,functions:onPhoneVerified \
+functions:inviteByPhone,functions:verifyPhone,functions:onPhoneVerified,\
+functions:onMessageSearchIndex \
   --project mini-verbigem
 ```
 

@@ -201,6 +201,11 @@
     <string name="chat_today">Heute</string>
     <string name="chat_yesterday">Gestern</string>
     <string name="chat_load_older">Ältere Nachrichten laden</string>
+    <string name="chat_search_min_length">Mindestens %1$d Zeichen eingeben</string>
+    <string name="chat_search_no_results">Keine Nachrichten zu „%1$s“</string>
+    <string name="chat_search_prefix_hint">Findet nur den Anfang einer Nachricht.</string>
+    <string name="chat_search_clear">Suche löschen</string>
+    <string name="chat_search_placeholder">Nachrichten suchen</string>
 
     <!-- Kontaktkarte (Phase 1.13) -->
     <string name="cancel">Abbrechen</string>
