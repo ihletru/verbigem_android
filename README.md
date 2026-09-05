@@ -313,6 +313,22 @@ Cloud Function `matchContacts`) mają iść wyłącznie skróty SHA-256 + HMAC.
 
 ---
 
+## 🎨 Branding — ikona launchera i logo webapp
+
+Zasoby graficzne (docelowo logo **Firefly**, przezroczyste PNG):
+
+- **Ikona apki (Android):** `app/src/main/res/drawable/ic_launcher_firefly.png`
+  (RGBA, przezroczyste tło) + `app/src/main/res/drawable/ic_launcher_foreground.xml`,
+  który opakowuje je w `<inset android:drawable="@drawable/ic_launcher_firefly"
+  android:inset="20%" />` (wpisuje PNG w safe-zone 66dp/108dp). minSDK 26 →
+  nie trzeba rasterowych mipmap (legacy).
+  ⚠️ Nie podmieniaj na nieprzezroczyste PNG — `logov.png` (RGB, białe tło wypieczone)
+  zostało celowo odrzucone; używaj **tylko** przezroczystych (RGBA).
+- **Logo webapp (mini):** `verbigem/mini/public/logo-firefly.png`, serwowane pod
+  `/logo-firefly.png`. Wyświetlane przed `<h1>Mini Verbigem</h1>` na `TranslatorPage.tsx`
+  i `LoginPage.tsx`. Vite kopiuje `public/` → `dist/` przy `npm run build`, więc
+  zmiana pliku w `public/` wymaga przebudowania webappy (zob. *Flow wydania*, krok 5).
+
 ## 🛠️ Architektura techniczna
 
 ```

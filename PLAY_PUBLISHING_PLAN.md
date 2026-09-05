@@ -199,6 +199,14 @@ polityki. (sekcja 6)
 3. Zbierać feedback, poprawki (nowy `versionCode`).
 
 **Faza 5 — Produkcja**
+0. **App Check enforcement** (gdy pierwszy **Play-signed release** jest już w Sklepie):
+   zob. README → *### App Check* (pełny TODO). Kolejność: zarejestruj appkę w Firebase
+   App Check (provider **Play Integrity**) + dodaj **SHA-256 certyfikatu podpisującego
+   Play** (Play Console → Setup → App integrity); włącz `enforce` na **Firebase Auth**,
+   **Firestore** i **Storage**; w `functions/src/contacts.ts` przestaw `matchContacts`
+   na `enforceAppCheck: true`; wycofaj debug-tokeny.
+   ⚠️ **NIE** włączaj `enforce` na debug-sideload dystrybucji auto-update — Play Integrity
+   nie poświadczy appki, której nie zainstalował Play, i odrzuci wszystkich userów.
 1. Zgłosić do produkcji (po udanych testach zamkniętych).
 2. Recenzja Play (zwykle kilka dni).
 3. Publikacja (Managed Publishing — możesz ręcznie puścić).
