@@ -272,6 +272,11 @@
     <string name="phone_verify_error_bad_number">Bu numarayı okuyamadım. Ülke koduyla birlikte yaz, örn. +90 532 123 45 67.</string>
     <string name="phone_verify_error_send">Şu anda yapılamadı. %1$s</string>
     <string name="phone_verify_error_code">Bu, gönderdiğimiz koda benzemiyor.</string>
+    <string name="phone_verify_error_region">Bu ülkeye SMS gönderimi kapalı. (Firebase: Authentication -> Settings -> SMS region policy altında bölgeyi etkinleştirin.)</string>
+    <string name="phone_verify_error_provider_off">Firebase\'de telefonla giriş kapalı. (Authentication -> Sign-in method -> Phone.)</string>
+    <string name="phone_verify_error_app_not_authorized">Bu sürüm Firebase\'e kayıtlı değil. Project settings -> Your apps altında SHA-1 ve SHA-256 ekleyin.</string>
+    <string name="phone_verify_error_too_many">Şu anda çok fazla kod istendi. Birkaç dakika bekleyip tekrar deneyin.</string>
+    <string name="phone_verify_error_network">Bağlantı yok. İnternetini kontrol edip tekrar deneyin.</string>
     <string name="profile_phone_title">Telefon numarası</string>
     <string name="profile_phone_verified">Doğrulandı, numaranı kaydetmiş olanlar seni bulabilir.</string>
     <string name="profile_phone_unverified">Doğrulanmadı, kimse seni numarayla bulamaz.</string>

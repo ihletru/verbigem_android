@@ -279,6 +279,11 @@
     <string name="phone_verify_error_bad_number">I cannot read that number. Enter it with the country code, e.g. +595 981 123 456.</string>
     <string name="phone_verify_error_send">That did not work just now. %1$s</string>
     <string name="phone_verify_error_code">That does not look like the code we sent.</string>
+    <string name="phone_verify_error_region">Text messages to this country are switched off. (Firebase: enable the region under Authentication -> Settings -> SMS region policy.)</string>
+    <string name="phone_verify_error_provider_off">Phone sign-in is switched off in Firebase. (Authentication -> Sign-in method -> Phone.)</string>
+    <string name="phone_verify_error_app_not_authorized">This build is not registered in Firebase. Add its SHA-1 and SHA-256 under Project settings -> Your apps.</string>
+    <string name="phone_verify_error_too_many">Too many codes for now. Wait a few minutes and try again.</string>
+    <string name="phone_verify_error_network">No connection. Check your internet and try again.</string>
     <string name="profile_phone_title">Phone number</string>
     <string name="profile_phone_verified">Confirmed - people who have your number can find you.</string>
     <string name="profile_phone_unverified">Not confirmed - nobody can find you by number.</string>

@@ -117,23 +117,50 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
                             }
                             is PhoneLinkResult.Failed -> {
                                 _isBusy.value = false
-                                _error.value = context.getString(
-                                    R.string.phone_verify_error_send,
-                                    linked.message
-                                )
+                                _error.value =
+                                    messageFor(context, linked.errorCode, linked.message)
                             }
                         }
                     }
                 }
                 is PhoneCodeRequest.Failed -> {
-                    _error.value = context.getString(
-                        R.string.phone_verify_error_send,
-                        result.message
-                    )
+                    _error.value = messageFor(context, result.errorCode, result.message)
                 }
             }
         }
     }
+
+    /**
+     * Zamienia surowy błąd Firebase na zdanie, z którego wynika, co zrobić.
+     *
+     * Teksty Firebase są pisane dla programisty ("This operation is not allowed.")
+     * i — co gorsza — jeden kod skrywa kilka różnych usterek: pod
+     * `ERROR_OPERATION_NOT_ALLOWED` (status 17006) przychodzi zarówno wyłączony
+     * dostawca logowania, jak i **nieodblokowany region SMS**. Ten drugi przypadek
+     * wyglądał identycznie jak problem z odciskiem SHA i przez to kosztował cały
+     * wieczór. Tam, gdzie jeden kod skrywa dwie przyczyny, patrzymy jeszcze na
+     * słowa w komunikacie.
+     */
+    private fun messageFor(context: Context, errorCode: String?, detail: String): String =
+        when (errorCode) {
+            "ERROR_OPERATION_NOT_ALLOWED" ->
+                if (detail.contains("region", ignoreCase = true)) {
+                    context.getString(R.string.phone_verify_error_region)
+                } else {
+                    context.getString(R.string.phone_verify_error_provider_off)
+                }
+            "ERROR_APP_NOT_AUTHORIZED", "ERROR_INVALID_APP_CREDENTIAL" ->
+                context.getString(R.string.phone_verify_error_app_not_authorized)
+            "ERROR_QUOTA_EXCEEDED", "ERROR_TOO_MANY_REQUESTS" ->
+                context.getString(R.string.phone_verify_error_too_many)
+            "ERROR_INVALID_PHONE_NUMBER" ->
+                context.getString(R.string.phone_verify_error_bad_number)
+            "ERROR_INVALID_VERIFICATION_CODE", "ERROR_SESSION_EXPIRED" ->
+                context.getString(R.string.phone_verify_error_code)
+            "ERROR_NETWORK_REQUEST_FAILED", "ERROR_WEB_NETWORK_REQUEST_FAILED" ->
+                context.getString(R.string.phone_verify_error_network)
+            else -> context.getString(R.string.phone_verify_error_send, detail)
+        }
 
     fun confirm(context: Context) {
         val code = _codeInput.value.trim()
@@ -151,12 +178,7 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
                 }
                 is PhoneLinkResult.Failed -> {
                     _isBusy.value = false
-                    // Firebase's own message is English and technical ("The sms code has
-                    // expired..."), so it is appended as detail rather than shown alone.
-                    _error.value = context.getString(
-                        R.string.phone_verify_error_send,
-                        result.message
-                    )
+                    _error.value = messageFor(context, result.errorCode, result.message)
                 }
             }
         }

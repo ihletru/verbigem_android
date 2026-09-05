@@ -1152,9 +1152,34 @@ Instant verification obsługujemy przez `onVerificationCompleted` →
 `PhoneCodeRequest.AutoVerified`, który dowiązuje numer przez `linkWithCredential`
 (nie loguje użytkownika na nowe konto).
 
+☠️ **SMS nie wyjdzie, dopóki nie odblokujesz regionu (v39, status 17006).** W nowym
+projekcie Firebase domyślna polityka to `allowlistOnly` z **pustą listą regionów** —
+czyli SMS nie wychodzi **nigdzie**, choć dostawca „Phone" jest włączony, a odciski
+SHA się zgadzają. Objaw to `FirebaseAuthException` o kodzie
+`ERROR_OPERATION_NOT_ALLOWED` (status 17006) z dopiskiem
+`[ SMS unable to be sent until this region enabled by the app developer. ]`.
+
+To pułapka dlatego, że **ten sam kod** dostajesz przy wyłączonym dostawcy logowania —
+przez to wyglądał na problem z odciskiem SHA i kosztował cały wieczór. Dlatego
+`PhoneVerificationViewModel.messageFor` rozróżnia te dwa przypadki po słowie
+„region" w komunikacie Firebase.
+
+Sprawdzenie i naprawa z linii komend (token bierze się z `firebase login`):
+
+```bash
+node check_sms_region.js          # drukuje smsRegionConfig
+node set_sms_region.js PY,PL      # allowlistOnly.allowedRegions = [PY, PL]
+```
+
+Ręcznie: Firebase Console → **Authentication → Settings → SMS region policy**.
+Każdy dopisany region to realny koszt SMS-a i realne ryzyko SMS-pumpingu, więc
+lista powinna zostać krótka — na dziś: `PY`.
+
 ☠️ **Przed pierwszym testem trzeba wpisać odciski SHA certyfikatu** w Firebase
 Console → Project settings → Your apps → aplikacja Android → **Add fingerprint**,
 potem pobrać nowy `google-services.json`. Bez tego Phone Auth nie przejdzie.
+Dopisz **oba**: SHA-1 *i* SHA-256 — Phone Auth weryfikuje aplikację przez
+Play Integrity i potrafi odrzucić build, dla którego widzi tylko jeden z nich.
 Debugowy keystore (`C:\Users\milo\.android\debug.keystore`, hasło `android`):
 
 ```
@@ -1190,6 +1215,13 @@ SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:
   łapiemy teraz w `onVerificationCompleted` → `PhoneCodeRequest.AutoVerified` i
   dowiązujemy numer przez `linkWithCredential`. ⚠️ Źródłem błędu była błędna
   adnotacja w tym README z poprzedniej wersji (☠️ wyżej, przy 2.6) — poprawiona.
+- **Poprawka v39 — błędy Phone Auth mówią, co zrobić.** `PhoneCodeRequest.Failed`
+  i `PhoneLinkResult.Failed` niosą teraz maszynowy `errorCode`
+  (`FirebaseAuthException.errorCode`), a `PhoneVerificationViewModel.messageFor`
+  zamienia go na konkret: nieodblokowany region, wyłączony dostawca, niezarejestrowany
+  build (SHA), limit SMS-ów, zły numer, brak sieci, zły kod. Surowy tekst Firebase
+  zostaje tylko jako ostateczność. Logi dostają linię
+  `Phone verification failed [code=...]` — to ona zdradziła status 17006.
 
 ### Normalizacja numerów (E.164)
 

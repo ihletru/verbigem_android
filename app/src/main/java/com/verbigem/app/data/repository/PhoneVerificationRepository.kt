@@ -4,6 +4,7 @@ import android.app.Activity
 import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
@@ -28,13 +29,19 @@ sealed interface PhoneCodeRequest {
      */
     data class AutoVerified(val credential: PhoneAuthCredential) : PhoneCodeRequest
 
-    data class Failed(val message: String) : PhoneCodeRequest
+    /**
+     * @param errorCode kod maszynowy Firebase (`ERROR_OPERATION_NOT_ALLOWED`,
+     *                  `ERROR_QUOTA_EXCEEDED`, ...) — ekran zamienia go na coś,
+     *                  z czego człowiek wyciągnie wniosek. `null`, gdy przyszło
+     *                  coś innego niż `FirebaseAuthException`.
+     */
+    data class Failed(val message: String, val errorCode: String? = null) : PhoneCodeRequest
 }
 
 /** Co się stało z potwierdzeniem kodu. */
 sealed interface PhoneLinkResult {
     object Linked : PhoneLinkResult
-    data class Failed(val message: String) : PhoneLinkResult
+    data class Failed(val message: String, val errorCode: String? = null) : PhoneLinkResult
 }
 
 /**
@@ -116,8 +123,7 @@ class PhoneVerificationRepository {
             }
 
             override fun onVerificationFailed(e: FirebaseException) {
-                Log.w(TAG, "Phone verification failed", e)
-                onResult(PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: ""))
+                onResult(failure(e))
             }
 
             override fun onCodeSent(
@@ -145,6 +151,20 @@ class PhoneVerificationRepository {
         }
     }
 
+    /**
+     * Tekst Firebase jest pisany dla programisty ("This operation is not allowed"),
+     * a kilka zupełnie różnych usterek przychodzi pod **tym samym** kodem
+     * `ERROR_OPERATION_NOT_ALLOWED` (status 17006): wyłączony dostawca logowania
+     * *i* nieodblokowany region SMS. Dlatego obok tekstu niesiemy kod — ekran
+     * zdecyduje, co z tym zrobić.
+     */
+    private fun failure(e: FirebaseException): PhoneCodeRequest.Failed {
+        val code = (e as? FirebaseAuthException)?.errorCode
+        Log.w(TAG, "Phone verification failed [code=$code] ${e.message}")
+        Log.w(TAG, "Phone verification failed", e)
+        return PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: "", code)
+    }
+
     /** Jeden punkt wejścia dla ekranu: pierwsza wysyłka albo ponowna. */
     fun sendCodeOrResend(
         activity: Activity,
@@ -169,7 +189,7 @@ class PhoneVerificationRepository {
                 onResult(PhoneCodeRequest.AutoVerified(credential))
             }
             override fun onVerificationFailed(e: FirebaseException) {
-                onResult(PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: ""))
+                onResult(failure(e))
             }
 
             override fun onCodeSent(
@@ -248,7 +268,10 @@ class PhoneVerificationRepository {
             PhoneLinkResult.Linked
         } catch (e: Exception) {
             Log.w(TAG, "Linking the phone number failed", e)
-            PhoneLinkResult.Failed(e.localizedMessage ?: e.message ?: "")
+            PhoneLinkResult.Failed(
+                e.localizedMessage ?: e.message ?: "",
+                (e as? FirebaseAuthException)?.errorCode
+            )
         }
     }
 

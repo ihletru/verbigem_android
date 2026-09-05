@@ -272,6 +272,11 @@
     <string name="phone_verify_error_bad_number">Diese Nummer verstehe ich nicht. Bitte mit Landesvorwahl, z. B. +49 151 12345678.</string>
     <string name="phone_verify_error_send">Das hat gerade nicht geklappt. %1$s</string>
     <string name="phone_verify_error_code">Das sieht nicht nach dem Code aus, den wir gesendet haben.</string>
+    <string name="phone_verify_error_region">SMS in dieses Land sind abgeschaltet. (Firebase: Region aktivieren unter Authentication -> Settings -> SMS region policy.)</string>
+    <string name="phone_verify_error_provider_off">Die Telefon-Anmeldung ist in Firebase deaktiviert. (Authentication -> Sign-in method -> Phone.)</string>
+    <string name="phone_verify_error_app_not_authorized">Dieser Build ist nicht in Firebase registriert. SHA-1 und SHA-256 unter Project settings -> Your apps hinzufügen.</string>
+    <string name="phone_verify_error_too_many">Zu viele Codes auf einmal. Warte ein paar Minuten und versuche es erneut.</string>
+    <string name="phone_verify_error_network">Keine Verbindung. Prüfe dein Internet und versuche es erneut.</string>
     <string name="profile_phone_title">Telefonnummer</string>
     <string name="profile_phone_verified">Bestätigt - wer deine Nummer hat, kann dich finden.</string>
     <string name="profile_phone_unverified">Nicht bestätigt - niemand kann dich über die Nummer finden.</string>

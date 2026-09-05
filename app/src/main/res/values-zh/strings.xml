@@ -272,6 +272,11 @@
     <string name="phone_verify_error_bad_number">无法识别这个号码。请带上国家/地区代码，例如 +86 138 0013 8000。</string>
     <string name="phone_verify_error_send">刚才未能完成。%1$s</string>
     <string name="phone_verify_error_code">这看起来不像我们发送的验证码。</string>
+    <string name="phone_verify_error_region">无法向此国家/地区发送短信。（Firebase：请在 Authentication -> Settings -> SMS region policy 中启用该地区。）</string>
+    <string name="phone_verify_error_provider_off">Firebase 中的手机号登录已关闭。（Authentication -> Sign-in method -> Phone。）</string>
+    <string name="phone_verify_error_app_not_authorized">此版本未在 Firebase 中注册。请在 Project settings -> Your apps 中添加其 SHA-1 和 SHA-256。</string>
+    <string name="phone_verify_error_too_many">当前请求验证码过于频繁。请稍等几分钟再试。</string>
+    <string name="phone_verify_error_network">没有网络连接。请检查网络后重试。</string>
     <string name="profile_phone_title">手机号码</string>
     <string name="profile_phone_verified">已验证，存有你号码的人可以找到你。</string>
     <string name="profile_phone_unverified">未验证，别人无法通过号码找到你。</string>

@@ -279,6 +279,11 @@
     <string name="phone_verify_error_bad_number">Nie rozpoznaję tego numeru. Podaj go z numerem kraju, np. +48 601 234 567.</string>
     <string name="phone_verify_error_send">Nie udało się tego zrobić. %1$s</string>
     <string name="phone_verify_error_code">To nie wygląda na kod, który wysłaliśmy.</string>
+    <string name="phone_verify_error_region">SMS-y do tego kraju są wyłączone. (Firebase: włącz region w Authentication -> Settings -> SMS region policy.)</string>
+    <string name="phone_verify_error_provider_off">Logowanie numerem telefonu jest wyłączone w Firebase. (Authentication -> Sign-in method -> Phone.)</string>
+    <string name="phone_verify_error_app_not_authorized">Ta wersja nie jest zarejestrowana w Firebase. Dodaj jej SHA-1 i SHA-256 w Project settings -> Your apps.</string>
+    <string name="phone_verify_error_too_many">Za dużo kodów w krótkim czasie. Odczekaj kilka minut i spróbuj znowu.</string>
+    <string name="phone_verify_error_network">Brak połączenia. Sprawdź internet i spróbuj znowu.</string>
     <string name="profile_phone_title">Numer telefonu</string>
     <string name="profile_phone_verified">Potwierdzony - osoby, które mają Twój numer, mogą Cię znaleźć.</string>
     <string name="profile_phone_unverified">Niepotwierdzony - nikt nie znajdzie Cię po numerze.</string>

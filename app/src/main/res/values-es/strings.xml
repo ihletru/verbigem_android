@@ -272,6 +272,11 @@
     <string name="phone_verify_error_bad_number">No reconozco ese número. Escríbelo con el prefijo del país, p. ej. +34 612 345 678.</string>
     <string name="phone_verify_error_send">No se pudo hacer ahora mismo. %1$s</string>
     <string name="phone_verify_error_code">Ese no parece el código que enviamos.</string>
+    <string name="phone_verify_error_region">Los SMS a este país están desactivados. (Firebase: activa la región en Authentication -> Settings -> SMS region policy.)</string>
+    <string name="phone_verify_error_provider_off">El inicio de sesión por teléfono está desactivado en Firebase. (Authentication -> Sign-in method -> Phone.)</string>
+    <string name="phone_verify_error_app_not_authorized">Esta versión no está registrada en Firebase. Añade su SHA-1 y SHA-256 en Project settings -> Your apps.</string>
+    <string name="phone_verify_error_too_many">Demasiados códigos por ahora. Espera unos minutos y vuelve a intentarlo.</string>
+    <string name="phone_verify_error_network">Sin conexión. Revisa tu internet e inténtalo de nuevo.</string>
     <string name="profile_phone_title">Número de teléfono</string>
     <string name="profile_phone_verified">Confirmado: quien tenga tu número podrá encontrarte.</string>
     <string name="profile_phone_unverified">Sin confirmar: nadie podrá encontrarte por tu número.</string>
