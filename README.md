@@ -1255,6 +1255,20 @@ Debugowy token do wpisania ręcznie (Firebase Console → App Check → **Debug 
 pojawia się w logcat po tagiem `FirebaseAppCheck`. Jest per instalacja, więc trzeba
 go wpisać ponownie po reinstalacji.
 
+📌 **TODO: włączyć wymuszanie (enforcement) App Check PO dodaniu appki do Google Play.**
+Dziś `enforce` jest wyłączony, bo debug-sideload nie przejdzie Play Integrity (odrzuciłby
+każdego usera). Gdy opublikujesz pierwszy **Play-signed release** i przełączysz dystrybucję
+na sklep (`onPlayStore: true` w `version.json` + `apkUrl` przestaje być używane), zrób:
+1. Firebase Console → **App Check** → zarejestruj appkę Android, provider **Play Integrity**,
+   dodaj **SHA-256 certyfikatu podpisującego Play** (z Play Console → Setup → App integrity).
+2. App Check → **APIs** → włącz `enforce` na **Firebase Auth**, **Firestore** i **Storage**
+   (App Check wymusza się usługa po usłudze — osobno).
+3. W `functions/src/contacts.ts` przestaw `matchContacts` na `enforceAppCheck: true`
+   (TODO w kodzie mówi gdzie).
+4. Wycofaj debug-tokeny (debug provider służy tylko do lokalnego testowania).
+⚠️ Bez kroku 1 (Play-signed build + SHA z Play) wymuszanie odrzuci wszystkich użytkowników —
+   nie włączaj `enforce` na debugowej dystrybucji auto-update.
+
 ### Jak deployować
 
 ```bash
