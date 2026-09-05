@@ -75,6 +75,22 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
 | PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
 
+## Karta testów na telefonie (u Milosza, v37)
+
+Jedna lista zamiast sześciu rozrzuconych bloków. **Kolejność jest ważna** — 1.19
+bez 0.9 i backfillu zwróci zero, bo w produkcji nie ma jeszcze żadnej wiadomości.
+
+| # | Co | Jak sprawdzić | Blokuje |
+|---|---|---|---|
+| **1.18** | Weryfikacja numeru (2.6) | Profil → potwierdź numer → „wyślij SMS" → SMS przychodzi, ekran przechodzi do pola z kodem, po wpisaniu → komunikat „gotowe". **Naprawione w v37** („no activity"). | — |
+| **0.9** | Dodanie znajomego + pierwsza wiadomość | Znajomi → dodaj → napisz cokolwiek. Bez tego `chats` i `friendships` są w produkcji puste. | 1.19 |
+| — | **Backfill** (po 0.9) | `cd functions && npm run build && cd .. && node backfill_searchtext.js` (dry run), potem `--apply` | 1.19 |
+| **1.19** | Wyszukiwanie w wiadomościach | Napisz „kot ma Alego", szukaj `kot` (znajdzie), `kota` (**nie** znajdzie — to poprawne), `KOT` (znajdzie), `jęść`/`jesc` (znajdzie) | — |
+| **1.14** | Czat — faza 1 | Skrzynka, wątek, tłumaczenie u odbiorcy, „pokaż oryginał", menu po długim naciśnięciu (kopiuj/czytaj/cytuj/usuń) | — |
+| **1.16** | Karta kontaktu | Kliknięcie awatara/nicku w wątku → karta z aliasem, językiem, blokadą | — |
+| **1.17** | Push FCM | Wiadomość od drugiej osoby przy zamkniętej aplikacji → powiadomienie, kliknięcie otwiera właściwy wątek | — |
+| **5.x** | Media (Faza 5, w v36) | Wyślij zdjęcie w czacie → miniatura, kliknięcie = pełny ekran; nagraj głosówkę → transkrypcja STT na żywo | — |
+
 **Co zrobione w sesji 2026-09-05 (fix 2.6 — „no activity", WYDANE w v37):**
 
 - **Zgłoszenie:** w Profilu → potwierdzenie numeru → „wyślij SMS" kończy się
