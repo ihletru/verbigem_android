@@ -315,4 +315,8 @@
     <string name="photo">Foto</string>
     <string name="ocr_text">Text vom Foto</string>
     <string name="voice_message">Sprachnachricht</string>
+    <string name="record_voice">Sprache aufnehmen</string>
+    <string name="voice_listening">Höre zu…</string>
+    <string name="voice_stop">Stopp</string>
+    <string name="voice_not_available">Spracherkennung auf diesem Gerät nicht verfügbar</string>
 </resources>

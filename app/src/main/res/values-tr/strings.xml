@@ -315,4 +315,8 @@
     <string name="photo">Foto</string>
     <string name="ocr_text">Fotoğraftaki metin</string>
     <string name="voice_message">Sesli mesaj</string>
+    <string name="record_voice">Sesi kaydet</string>
+    <string name="voice_listening">Dinliyor…</string>
+    <string name="voice_stop">Durdur</string>
+    <string name="voice_not_available">Sesli tanıma bu cihazda kullanılamıyor</string>
 </resources>

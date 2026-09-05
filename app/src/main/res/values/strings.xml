@@ -322,4 +322,8 @@
     <string name="photo">Photo</string>
     <string name="ocr_text">Text from photo</string>
     <string name="voice_message">Voice message</string>
+    <string name="record_voice">Record voice</string>
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_stop">Stop</string>
+    <string name="voice_not_available">Speech recognition is unavailable on this device</string>
 </resources>

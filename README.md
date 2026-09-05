@@ -1070,10 +1070,18 @@ typów `image/*` i `audio/*` do 25 MB.
   zwykły tekst). Inbox pokazuje zlokalizowany placeholder (`R.string.photo`) zamiast
   pustego podglądu. Błędy uploadu/OCR tylko logowane (retry w 5.4).
   ⚠️ Działa w pełni dopiero po wdrożeniu `storage.rules` (5.1).
-- **5.3 (plan):** nagranie → upload `m4a` → transkrypcja STT na nadawcy przez
-  istniejący `SpeechManager` → tekst podlega zwykłemu tłumaczeniu u odbiorcy.
+- **5.3 (zrobione — transkrypcja na żywo):** głosówka to rozpoznawanie mowy NA ŻYWO
+  przez `SpeechManager.startListening` (systemowy `SpeechRecognizer`). Wynik
+  (`transcript`) idzie do `ChatMessage.transcript` i jest tłumaczony u odbiorcy jak
+  zwykły tekst (`recompute()` kładzie `transcript` w `text` dla `type="audio"`).
+  Przycisk mikrofonu w pasku wprowadzania + czerwona kropka + bieżący tekst podczas
+  nagrywania; uprawnienie `RECORD_AUDIO` proszone w locie. ⚠️ **Odchylenie od planu:**
+  `SpeechRecognizer` nie przyjmuje nagranego pliku `.m4a` i nie dzieli mikrofonu z
+  `MediaRecorder`em, więc „nagraj plik → potem przetransponuj" NIE jest możliwe na
+  urządzeniu. Odtwarzanie oryginalnego audio (m4a) to osobny temat (serwerowe STT) —
+  patrz 5.4. Ikona mikrofonu przy bubble'ach audio w wątku.
 - **5.4 (plan):** pobieranie z postępem, cache offline, podgląd na pełnym ekranie
-  (wspólne dla 5.2 i 5.3).
+  (wspólne dla 5.2 i 5.3). Odtwarzanie m4a dla głosówek (gdy będzie serwerowe STT).
 
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 

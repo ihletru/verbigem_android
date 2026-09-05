@@ -315,4 +315,8 @@
     <string name="photo">照片</string>
     <string name="ocr_text">照片中的文字</string>
     <string name="voice_message">语音消息</string>
+    <string name="record_voice">录音</string>
+    <string name="voice_listening">正在聆听…</string>
+    <string name="voice_stop">停止</string>
+    <string name="voice_not_available">此设备不支持语音识别</string>
 </resources>

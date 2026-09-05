@@ -172,6 +172,14 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private val _loadingOlder = MutableStateFlow(false)
     val loadingOlder: StateFlow<Boolean> = _loadingOlder.asStateFlow()
 
+    /** Faza 5.3: czy trwa nagrywanie/rozpoznawanie głosu (SpeechRecognizer na żywo). */
+    private val _isListening = MutableStateFlow(false)
+    val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
+
+    /** Faza 5.3: bieżący (częściowy) wynik rozpoznawania — pokazywany w UI. */
+    private val _voiceInterim = MutableStateFlow("")
+    val voiceInterim: StateFlow<String> = _voiceInterim.asStateFlow()
+
     private val _tick = MutableStateFlow(0L)
     private val _typingUntil = MutableStateFlow<Map<String, Long>>(emptyMap())
 
@@ -380,6 +388,84 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "sendImage failed for $clientMsgId", e)
+                // TODO 5.4: obsługa błędu (retry) — na razie tylko log.
+            }
+        }
+    }
+
+    /**
+     * Faza 5.3: głosówka. `SpeechRecognizer` (przez `SpeechManager`) rozpoznaje mowę
+     * NA ŻYWO — nie przyjmuje nagranego pliku `.m4a` i nie dzieli mikrofonu z
+     * `MediaRecorder`em, więc „nagraj plik → potem przetransponuj" nie jest możliwe
+     * na urządzeniu. Dlatego głosówka to transkrypcja na żywo: wynik (`transcript`)
+     * idzie do dokumentu wiadomości i jest tłumaczony u odbiorcy jak zwykły tekst.
+     * Odtwarzanie oryginalnego audio (m4a) to osobny temat (serwerowe STT) — 5.4.
+     */
+    fun startVoice() {
+        if (_isListening.value) return
+        if (!speechManager.isSttAvailable()) {
+            // TODO (UI): pokaż Snackbar z R.string.voice_not_available.
+            Log.w(TAG, "STT niedostępne na tym urządzeniu")
+            return
+        }
+        _voiceInterim.value = ""
+        _isListening.value = true
+        speechManager.startListening(
+            lang = _myLang.value,
+            onInterim = { _voiceInterim.value = it },
+            onFinal = { text ->
+                _isListening.value = false
+                _voiceInterim.value = ""
+                if (text.isNotBlank()) sendVoice(text)
+            },
+            onError = { err ->
+                _isListening.value = false
+                _voiceInterim.value = ""
+                Log.w(TAG, "STT failed: $err")
+            }
+        )
+    }
+
+    /** Przerywa trwające rozpoznawanie głosu. */
+    fun stopVoice() {
+        speechManager.stopListening()
+        _isListening.value = false
+        _voiceInterim.value = ""
+    }
+
+    /**
+     * Faza 5.3: wysyła głosówkę. `transcript` to przetranskrybowany tekst (w języku
+     * nadawcy); liczymy też podpowiedź w języku odbiorcy (jak przy zwykłym tekście),
+     * by odbiorca widział coś zanim jego model przetłumaczy `transcript`.
+     */
+    private fun sendVoice(transcript: String) {
+        val id = chatId ?: return
+        if (currentUid.isBlank()) return
+        val clientMsgId = UUID.randomUUID().toString()
+        viewModelScope.launch {
+            try {
+                val target = _otherLang.value
+                val hint = try {
+                    translationMutex.withLock {
+                        hyMt2Engine.translateSegmented(transcript, LangCode.fromCode(_myLang.value.code), target)
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Voice hint translation failed", e)
+                    ""
+                }
+                chatRepository.sendMessage(
+                    chatId = id,
+                    authorId = currentUid,
+                    text = "",
+                    sourceLang = _myLang.value.code,
+                    hintLang = target.code,
+                    hintText = hint,
+                    clientMsgId = clientMsgId,
+                    type = "audio",
+                    transcript = transcript
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "sendVoice failed for $clientMsgId", e)
                 // TODO 5.4: obsługa błędu (retry) — na razie tylko log.
             }
         }
@@ -594,9 +680,14 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         val remoteBubbles = merged.values.map { msg ->
             ChatBubble(
                 id = msg.id,
-                // Dla zdjęcia `text` niesie OCR, żeby istniejąca logika tłumaczenia
-                // (enqueueTranslations / translateInto) przetłumaczyła go jak zwykły tekst.
-                text = if (msg.isImage()) msg.ocrText else msg.text,
+                // Dla zdjęcia `text` niesie OCR, a dla głosówki `transcript` — żeby
+                // istniejąca logika tłumaczenia (enqueueTranslations / translateInto)
+                // przetłumaczyła je jak zwykły tekst u odbiorcy.
+                text = when {
+                    msg.isAudio() -> msg.transcript
+                    msg.isImage() -> msg.ocrText
+                    else -> msg.text
+                },
                 sourceLang = msg.sourceLang,
                 isMine = msg.authorId == me,
                 createdAt = msg.createdAt?.toDate()?.time ?: System.currentTimeMillis(),

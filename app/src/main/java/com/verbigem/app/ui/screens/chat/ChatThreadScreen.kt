@@ -1,5 +1,8 @@
 package com.verbigem.app.ui.screens.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +38,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -60,6 +65,8 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -110,6 +117,17 @@ fun ChatThreadScreen(
 
     val listState = rememberLazyListState()
     var menuFor by remember { mutableStateOf<String?>(null) }
+
+    // Faza 5.3: głosówki — stan nagrywania + uprawnienie mikrofonu.
+    val isListening by viewModel.isListening.collectAsState()
+    val voiceInterim by viewModel.voiceInterim.collectAsState()
+    val context = LocalContext.current
+    val recordPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) viewModel.startVoice()
+        else Log.w("ChatThread", "Brak zgody na mikrofon (RECORD_AUDIO)")
+    }
 
     val labelToday = stringResource(R.string.chat_today)
     val labelYesterday = stringResource(R.string.chat_yesterday)
@@ -315,42 +333,88 @@ fun ChatThreadScreen(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { imagePicker.launch("image/*") },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Image,
-                    contentDescription = stringResource(R.string.attach_image),
-                    tint = VerbigemTheme.colors.muted
+            if (isListening) {
+                // Faza 5.3: trwa rozpoznawanie — czerwona kropka + bieżący tekst + stop.
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(Color.Red)
                 )
-            }
-            OutlinedTextField(
-                value = inputText,
-                onValueChange = { viewModel.onInputChanged(it) },
-                placeholder = { Text(stringResource(R.string.message_hint), fontSize = 13.sp) },
-                modifier = Modifier.weight(1f),
-                maxLines = 4,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = VerbigemTheme.colors.accent,
-                    unfocusedBorderColor = VerbigemTheme.colors.border
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = voiceInterim.takeIf { it.isNotBlank() }
+                        ?: stringResource(R.string.voice_listening),
+                    fontSize = 14.sp,
+                    color = VerbigemTheme.colors.ink,
+                    modifier = Modifier.weight(1f)
                 )
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            IconButton(
-                onClick = { viewModel.sendMessage() },
-                enabled = inputText.isNotBlank(),
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(VerbigemTheme.colors.accent)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = stringResource(R.string.send),
-                    tint = Color.White
+                IconButton(
+                    onClick = { viewModel.stopVoice() },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        contentDescription = stringResource(R.string.voice_stop),
+                        tint = VerbigemTheme.colors.accent
+                    )
+                }
+            } else {
+                // Faza 5.3: mikrofon — nagrywanie głosówki (transkrypcja na żywo).
+                IconButton(
+                    onClick = {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) viewModel.startVoice()
+                        else recordPermission.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Mic,
+                        contentDescription = stringResource(R.string.record_voice),
+                        tint = VerbigemTheme.colors.muted
+                    )
+                }
+                IconButton(
+                    onClick = { imagePicker.launch("image/*") },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = stringResource(R.string.attach_image),
+                        tint = VerbigemTheme.colors.muted
+                    )
+                }
+                OutlinedTextField(
+                    value = inputText,
+                    onValueChange = { viewModel.onInputChanged(it) },
+                    placeholder = { Text(stringResource(R.string.message_hint), fontSize = 13.sp) },
+                    modifier = Modifier.weight(1f),
+                    maxLines = 4,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = VerbigemTheme.colors.accent,
+                        unfocusedBorderColor = VerbigemTheme.colors.border
+                    )
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = { viewModel.sendMessage() },
+                    enabled = inputText.isNotBlank(),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(VerbigemTheme.colors.accent)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = stringResource(R.string.send),
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
@@ -425,11 +489,29 @@ private fun MessageBubble(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }
-            Text(
-                text = displayText,
-                color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,
-                fontSize = 15.sp
-            )
+            // Faza 5.3: głosówka — ikona mikrofonu przed transkrybowanym tekstem.
+            if (bubble.type == "audio") {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Mic,
+                        contentDescription = null,
+                        tint = if (bubble.isMine) Color.White.copy(alpha = 0.85f) else VerbigemTheme.colors.muted,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = displayText,
+                        color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,
+                        fontSize = 15.sp
+                    )
+                }
+            } else {
+                Text(
+                    text = displayText,
+                    color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,
+                    fontSize = 15.sp
+                )
+            }
 
             // Translated incoming message: keep the original visible under it.
             if (isTranslated && !showOriginal) {
