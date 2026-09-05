@@ -1055,12 +1055,11 @@ z `chats/{chatId}.members` (ten sam wektor zaufania co `firestore.rules`). Zapis
 jest ograniczony do **nowych** obiektów (brak nadpisywania cudzych plików) oraz
 typów `image/*` i `audio/*` do 25 MB.
 
-- **5.1 (fundament, zrobiony):** zależność `firebase-storage` (z BOM 33.2.0,
+- **5.1 (fundament, zrobiony + wdrożony):** zależność `firebase-storage` (z BOM 33.2.0,
   bez `version.ref`), plik `storage.rules` i sekcja `"storage"` w `firebase.json`.
-  ⚠️ **Wdrożenie reguł czeka na włączenie Firebase Storage w konsoli**
-  (`console.firebase.google.com/project/mini-verbigem/storage` → „Get Started") —
-  bez tego `firebase deploy --only storage` zwraca błąd „Storage has not been set
-  up". Kod się buduje niezależnie od tego.
+  **Reguły wdrożone 2026-09-04** (`firebase deploy --only storage` → Deploy complete),
+  po włączeniu Firebase Storage w konsoli (bucket `gs://mini-verbigem.firebasestorage.app`).
+  Upload załączników (5.2 zdjęcia, 5.3 głosówki) działa w locie.
 - **5.2 (zrobiony):** zdjęcie → upload do Storage (`StorageRepository.uploadAttachment`,
   `putFile` strumieniowo z content URI) → opcjonalny OCR na nadawcy przez istniejący
   `OcrManager.recognizeText` → `ocrText` w dokumencie wiadomości. Odbiorca renderuje
@@ -1080,14 +1079,14 @@ typów `image/*` i `audio/*` do 25 MB.
   `MediaRecorder`em, więc „nagraj plik → potem przetransponuj" NIE jest możliwe na
   urządzeniu. Odtwarzanie oryginalnego audio (m4a) to osobny temat (serwerowe STT) —
   patrz 5.4. Ikona mikrofonu przy bubble'ach audio w wątku.
-- **5.4 (częściowo zrobione):** podgląd zdjęcia na pełnym ekranie (`Dialog` +
+- **5.4 (zrobione):** podgląd zdjęcia na pełnym ekranie (`Dialog` +
   `SubcomposeAsyncImage`, `ContentScale.Fit`, zamknięcie kliknięciem/przyciskiem)
   oraz wskaźnik postępu pobierania (slot `loading` z `CircularProgressIndicator`)
   i ikona błędu w miniaturach (`SubcomposeAsyncImage` zamiast `AsyncImage`).
   **Cache offline:** Coil domyślnie cache'uje obrazy na dysku, więc odtworzenie
-  działa offline bez dodatkowego kodu. ⚠️ **Nie zrobione:** odtwarzanie `m4a`
-  dla głosówek (wymaga serwerowego STT — osobna decyzja) oraz retry błędów
-  uploadu (TODO w `sendImage`/`sendVoice`).
+  działa offline bez dodatkowego kodu. Odtwarzanie `m4a` dla głosówek **celowo
+  pominięte** — 5.3 daje transkrypcję na żywo (on-device), co wystarcza; serwerowe
+  STT nie jest potrzebne. Retry błędów uploadu to TODO (w `sendImage`/`sendVoice`).
 
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
