@@ -1143,10 +1143,14 @@ jest `backfill_searchtext.js` (dry run domyślnie, `--apply` zapisuje). Wymaga
 5. `onPhoneVerified` (trigger) dopisuje `phoneDirectory/{hmac}` i rozwiązuje
    zaproszenia oczekujące pod tym numerem.
 
-☠️ **`requireSmsValidation(true)` w `PhoneAuthOptions` jest obowiązkowe.**
-Bez niego Firebase potrafi zweryfikować numer w locie albo sam przechwycić SMS-a
-i **samodzielnie zalogować użytkownika** — wylogowując go z dotychczasowego konta
-i wstawiając nowe, oparte tylko na numerze. Metoda istnieje w `firebase-auth` 23.0.0.
+☠️ **`requireSmsValidation(true)` w `PhoneAuthOptions` NIE WOLNO używać** przy zwykłej
+weryfikacji numeru. Ta flaga istnieje **TYLKO** dla uwierzytelniania wieloskładnikowego
+(MFA) i rzuca `IllegalArgumentException: You cannot require sms validation without
+setting a multi-factor session`, gdy nie ustawiono `setMultiFactorSession`. W v37
+doprowadziła do **crashu przy każdym kliknięciu „wyślij SMS"** (naprawione w v38).
+Instant verification obsługujemy przez `onVerificationCompleted` →
+`PhoneCodeRequest.AutoVerified`, który dowiązuje numer przez `linkWithCredential`
+(nie loguje użytkownika na nowe konto).
 
 ☠️ **Przed pierwszym testem trzeba wpisać odciski SHA certyfikatu** w Firebase
 Console → Project settings → Your apps → aplikacja Android → **Add fingerprint**,
@@ -1180,6 +1184,12 @@ SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:
   bo spacje w numerze powodowały `IllegalArgumentException` w `verifyPhoneNumber`.
 - `PhoneVerificationRepository` — `verifyPhoneNumber` jest owinięte w `try-catch`,
   żeby wyjątek synchroniczny nie wychodził poza callback i nie zabijał UI.
+- **Poprawka v38 — crash po „wyślij SMS":** usunięto `.requireSmsValidation(true)`
+  z `PhoneAuthOptions`. Flaga działa **TYLKO** z MFA (`setMultiFactorSession`) i
+  rzucała `IllegalArgumentException` przy każdym wysłaniu kodu. Instant verification
+  łapiemy teraz w `onVerificationCompleted` → `PhoneCodeRequest.AutoVerified` i
+  dowiązujemy numer przez `linkWithCredential`. ⚠️ Źródłem błędu była błędna
+  adnotacja w tym README z poprzedniej wersji (☠️ wyżej, przy 2.6) — poprawiona.
 
 ### Normalizacja numerów (E.164)
 

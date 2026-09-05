@@ -5,11 +5,11 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-05 — **fix 2.6: „Nie udało się tego zrobić.
-no activity" WYDANY w v37** — przyczyna nie była w Firebase ani w SHA, tylko
-w `LocalizationWrapper` (`createConfigurationContext` ucinał łańcuch
-`baseContext`, więc `findActivity()` znajdował `null`). Szczegóły w bloku sesji
-niżej i w README przy „Weryfikacja numeru (2.6)".
+Ostatnia aktualizacja: 2026-09-05 — **fix 2.6: crash po kliknięciu „wyślij SMS"
+WYDANY w v38** (poprzednio „no activity" WYDANY w v37). Przyczyna crashu:
+`requireSmsValidation(true)` w `PhoneAuthOptions` — flaga działa TYLKO w MFA i
+rzuca `IllegalArgumentException` bez `setMultiFactorSession`. Szczegóły w bloku
+sesji niżej i w README przy „Weryfikacja numeru (2.6)".
 
 Wcześniej: **Faza 3 (Kontakty 2.0) ZAMKNIĘTA** (3.0–3.10
 zrobione). Ostatnie: **3.9 „Możesz znać" WYDANE w v33** (Cloud Function
@@ -82,7 +82,7 @@ bez 0.9 i backfillu zwróci zero, bo w produkcji nie ma jeszcze żadnej wiadomo�
 
 | # | Co | Jak sprawdzić | Blokuje |
 |---|---|---|---|
-| **1.18** | Weryfikacja numeru (2.6) | Profil → potwierdź numer → „wyślij SMS" → SMS przychodzi, ekran przechodzi do pola z kodem, po wpisaniu → komunikat „gotowe". **Naprawione w v37** („no activity"). | — |
+| **1.18** | Weryfikacja numeru (2.6) | Profil → potwierdź numer → „wyślij SMS" → SMS przychodzi (lub weryfikacja w locie), ekran przechodzi do DONE. **Crash po kliknięciu naprawiony w v38** (usunięte `requireSmsValidation(true)`). Wcześniej „no activity" naprawione w v37. | — |
 | **0.9** | Dodanie znajomego + pierwsza wiadomość | Znajomi → dodaj → napisz cokolwiek. Bez tego `chats` i `friendships` są w produkcji puste. | 1.19 |
 | — | **Backfill** (po 0.9) | `cd functions && npm run build && cd .. && node backfill_searchtext.js` (dry run), potem `--apply` | 1.19 |
 | **1.19** | Wyszukiwanie w wiadomościach | Napisz „kot ma Alego", szukaj `kot` (znajdzie), `kota` (**nie** znajdzie — to poprawne), `KOT` (znajdzie), `jęść`/`jesc` (znajdzie) | — |
@@ -123,6 +123,41 @@ bez 0.9 i backfillu zwróci zero, bo w produkcji nie ma jeszcze żadnej wiadomo�
   `vite.config.ts` podbite na 37, `firebase deploy --only hosting`.
 - **Test u Milosza (1.18):** Profil → potwierdź numer → „wyślij SMS" → SMS
   powinien przyjść, ekran przejść do pola z kodem, po wpisaniu → „gotowe".
+
+**Co zrobione w sesji 2026-09-05 (fix 2.6 — crash po kliknięciu „wyślij SMS",
+WYDANE w v38):**
+
+- **Zgłoszenie (kontynuacja po v37):** po naprawie „no activity" (v37) aplikacja
+  przestała wyświetlać błąd, ale **crashowała przy kliknięciu „wyślij SMS"**.
+- **Diagnoza** (adb `dumpsys dropbox --print data_app_crash` z podpiętego
+  telefonu): `java.lang.IllegalArgumentException: You cannot require sms
+  validation without setting a multi-factor session` w `PhoneAuthOptions$Builder
+  .build()` — wywołane z `PhoneVerificationRepository.sendCode`.
+- **Przyczyna:** `.requireSmsValidation(true)` w `PhoneAuthOptions`. Flaga
+  **istnieje TYLKO dla uwierzytelniania wieloskładnikowego (MFA)** i rzuca wyjątek,
+  gdy nie ustawiono `setMultiFactorSession`. W v36 nigdy nie wybuchła, bo
+  `sendCode` wcześniej przerywał na `findActivity() == null` (błąd „no activity");
+  fix v37 odblokował wykonanie aż do `.build()`, więc wyjątek wyszedł na wierzch.
+  ⚠️ W README (sekcja 2.6) i w skillu `verbigem-android-build-deploy` stała
+  **błędna** adnotacja „requireSmsValidation(true) jest obowiązkowe" — to ona
+  wprowadziła flagę. Obie poprawione.
+- **Naprawa (2 pliki):**
+  - `PhoneVerificationRepository.kt` — usunięto `.requireSmsValidation(true)` z
+    obu builderów (`sendCode` + `resendCode`). Dodano `PhoneCodeRequest
+    .AutoVerified` (niesie `PhoneAuthCredential` z `onVerificationCompleted`) oraz
+    `confirmWithCredential()` / prywatne `link()` (sprawdza `auth.currentUser` i
+    `startedUid`, by nie podmienić konta; potem `linkWithCredential` →
+    `getIdToken(true)` → `verifyPhone`). `onVerificationCompleted` zamiast martwego
+    logu zwraca teraz `AutoVerified(credential)`.
+  - `PhoneVerificationViewModel.kt` — obsługa `PhoneCodeRequest.AutoVerified`:
+    pobiera credential i woła `repository.confirmWithCredential(...)`, po sukcesie
+    przechodzi do `PhoneVerificationStep.DONE`.
+- **Wydanie:** `versionCode 38` / `1.0.37`, `assembleDebug` (BUILD SUCCESSFUL,
+  4m33s, NDK OK), APK → `mini/dist/android/app-debug-v38.apk`, `version.json`
+  (updates + android) + `vite.config.ts` podbite na 38, `firebase deploy --only
+  hosting` (release complete). Lokalny sha256 APK: `6dea72f7…c9e7ad`.
+- **Test u Milosza (1.18):** Profil → potwierdź numer → „wyślij SMS" → SMS
+  przychodzi (lub weryfikacja w locie) → ekran przechodzi do DONE, bez crashu.
 
 **Co zrobione w sesji 2026-09-04 (faza 1):**
 

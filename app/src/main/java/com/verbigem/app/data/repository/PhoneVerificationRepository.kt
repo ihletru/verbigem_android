@@ -17,7 +17,17 @@ import java.util.concurrent.TimeUnit
 
 /** Co się stało z wysłaniem SMS-a. */
 sealed interface PhoneCodeRequest {
+    /** SMS wysłany — kod wpisuje użytkownik. */
     object Sent : PhoneCodeRequest
+
+    /**
+     * Firebase potwierdziło numer **bez** SMS-a (instant verification) i od razu
+     * dało credential. Brak SMS-a w tym wariancie to nie błąd, tylko oszczędzona
+     * minuta użytkownika — trzeba go obsłużyć, bo inaczej ekran czeka na kod,
+     * który nigdy nie przyjdzie.
+     */
+    data class AutoVerified(val credential: PhoneAuthCredential) : PhoneCodeRequest
+
     data class Failed(val message: String) : PhoneCodeRequest
 }
 
@@ -34,14 +44,23 @@ sealed interface PhoneLinkResult {
  * `phoneDirectory`, więc nikt z książki adresowej go nie znajdzie. Sam czat działa
  * bez tego — numer jest wyłącznie po to, żeby być odnajdywalnym.
  *
- * ### Dlaczego `requireSmsValidation(true)`
+ * ### ☠️ `requireSmsValidation(true)` — NIE WOLNO go tu użyć (crash v37)
  *
- * Standardowy `verifyPhoneNumber` potrafi zweryfikować numer „w locie" (instant
- * validation) albo automatycznie przechwycić SMS i **samodzielnie zalogować
- * użytkownika**. W tym miejscu byłoby to katastrofą: Firebase wylogowałoby
- * dotychczasowe konto i zalogowało nowe, oparte tylko na numerze. `requireSmsValidation`
- * wyłącza obie te ścieżki — SMS zawsze przychodzi, a my sami wołamy
- * `linkWithCredential` na koncie, które jest już zalogowane.
+ * Ta flaga istnieje **wyłącznie dla MFA** i `PhoneAuthOptions.Builder.build()`
+ * odrzuca ją bez sesji wieloskładnikowej:
+ * `IllegalArgumentException: You cannot require sms validation without setting a
+ * multi-factor session.` (`firebase-auth` 23.0.0). Przez rok nie wyszło to na jaw,
+ * bo `sendCode` kończył się wcześniej na `findActivity() == null` (patrz
+ * `LocalizedContext`) i `build()` nigdy się nie wykonywał.
+ *
+ * Obawa, którą flaga miała gasić, była zresztą nieprawdziwa: Firebase **samo nigdy
+ * nie loguje użytkownika**. `onVerificationCompleted` dostarcza credential i nic
+ * więcej — konto podmienia dopiero `signInWithCredential`, którego tu nie ma. My
+ * wołamy wyłącznie `linkWithCredential`, czyli dopisujemy numer do konta, które
+ * już jest zalogowane.
+ *
+ * Instant verification (bez SMS-a) trzeba za to **obsłużyć**: inaczej ekran czeka
+ * na kod, który nigdy nie przyjdzie. Robi to `PhoneCodeRequest.AutoVerified`.
  *
  * ### Kto zna numer
  *
@@ -87,9 +106,13 @@ class PhoneVerificationRepository {
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                // Nie powinno się zdarzyć przy `requireSmsValidation(true)`, ale gdyby
-                // jednak — nigdy nie podmieniajmy konta w tle.
-                Log.w(TAG, "onVerificationCompleted fired despite requireSmsValidation")
+                // Instant verification: Firebase udowodniło własność numeru bez
+                // wysyłania SMS-a. To NIE jest automatyczne logowanie — Firebase
+                // samo nigdy nie podmienia zalogowanego konta, dopóki aplikacja nie
+                // wywoła `signInWithCredential`. My wołamy wyłącznie
+                // `linkWithCredential`, więc numer trafia do konta, które już jest.
+                Log.i(TAG, "Phone verified instantly, no SMS needed")
+                onResult(PhoneCodeRequest.AutoVerified(credential))
             }
 
             override fun onVerificationFailed(e: FirebaseException) {
@@ -112,7 +135,6 @@ class PhoneVerificationRepository {
             .setTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .setActivity(activity)
             .setCallbacks(callbacks)
-            .requireSmsValidation(true)
             .build()
 
         try {
@@ -143,7 +165,9 @@ class PhoneVerificationRepository {
         startedUid = auth.currentUser?.uid
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            override fun onVerificationCompleted(credential: PhoneAuthCredential) = Unit
+            override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                onResult(PhoneCodeRequest.AutoVerified(credential))
+            }
             override fun onVerificationFailed(e: FirebaseException) {
                 onResult(PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: ""))
             }
@@ -164,7 +188,6 @@ class PhoneVerificationRepository {
             .setActivity(activity)
             .setCallbacks(callbacks)
             .setForceResendingToken(token)
-            .requireSmsValidation(true)
             .build()
 
         try {
@@ -193,9 +216,26 @@ class PhoneVerificationRepository {
             // numeru do obcego użytkownika byłoby nieodwracalne.
             return PhoneLinkResult.Failed("account changed")
         }
+        return link(PhoneAuthProvider.getCredential(id, code))
+    }
+
+    /** Wariant bez SMS-a: Firebase samo skleiło credential (instant verification). */
+    suspend fun confirmWithCredential(credential: PhoneAuthCredential): PhoneLinkResult {
+        val user = auth.currentUser
+        if (user == null) {
+            return PhoneLinkResult.Failed("not signed in")
+        }
+        if (user.uid != startedUid) {
+            return PhoneLinkResult.Failed("account changed")
+        }
+        return link(credential)
+    }
+
+    private suspend fun link(credential: PhoneAuthCredential): PhoneLinkResult {
+        val user = auth.currentUser
+            ?: return PhoneLinkResult.Failed("not signed in")
 
         return try {
-            val credential = PhoneAuthProvider.getCredential(id, code)
             user.linkWithCredential(credential).await()
 
             // Bez tego `verifyPhone` zobaczy token bez `phone_number` — token jest

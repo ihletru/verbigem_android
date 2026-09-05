@@ -103,6 +103,28 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
                     _sentTo.value = e164
                     _step.value = PhoneVerificationStep.CODE
                 }
+                is PhoneCodeRequest.AutoVerified -> {
+                    // Firebase udowodniło numer bez SMS-a. Nie ma na co czekać —
+                    // dowiązujemy od razu i idziemy do ekranu „gotowe".
+                    _sentTo.value = e164
+                    _isBusy.value = true
+                    viewModelScope.launch {
+                        when (val linked =
+                            repository.confirmWithCredential(result.credential)) {
+                            is PhoneLinkResult.Linked -> {
+                                _isBusy.value = false
+                                _step.value = PhoneVerificationStep.DONE
+                            }
+                            is PhoneLinkResult.Failed -> {
+                                _isBusy.value = false
+                                _error.value = context.getString(
+                                    R.string.phone_verify_error_send,
+                                    linked.message
+                                )
+                            }
+                        }
+                    }
+                }
                 is PhoneCodeRequest.Failed -> {
                     _error.value = context.getString(
                         R.string.phone_verify_error_send,
