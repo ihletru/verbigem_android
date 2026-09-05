@@ -248,7 +248,7 @@
     <string name="contacts_match_checking">Sprawdzam, którzy z nich mają Verbigem…</string>
     <string name="contacts_match_found">Mają już Verbigem: %1$d</string>
     <string name="contacts_match_write">Napisz</string>
-    <string name="contacts_invite_text">Cześć! Tłumaczę w Verbigem — działa offline na telefonie.</string>
+    <string name="contacts_invite_text">Cześć! Sprawdź Verbingem - tłumaczy z AI czaty i rozmowy offline</string>
     <string name="channel_none_available">Żadna aplikacja na tym telefonie tego nie wyśle.</string>
     <string name="channel_pick_title">Zaproś przez</string>
     <string name="channel_other">Inne aplikacje</string>

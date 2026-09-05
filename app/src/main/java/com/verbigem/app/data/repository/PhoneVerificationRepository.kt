@@ -115,7 +115,12 @@ class PhoneVerificationRepository {
             .requireSmsValidation(true)
             .build()
 
-        PhoneAuthProvider.verifyPhoneNumber(options)
+        try {
+            PhoneAuthProvider.verifyPhoneNumber(options)
+        } catch (e: Exception) {
+            Log.w(TAG, "verifyPhoneNumber threw immediately", e)
+            onResult(PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: "unknown"))
+        }
     }
 
     /** Jeden punkt wejścia dla ekranu: pierwsza wysyłka albo ponowna. */
@@ -162,7 +167,12 @@ class PhoneVerificationRepository {
             .requireSmsValidation(true)
             .build()
 
-        PhoneAuthProvider.verifyPhoneNumber(options)
+        try {
+            PhoneAuthProvider.verifyPhoneNumber(options)
+        } catch (e: Exception) {
+            Log.w(TAG, "verifyPhoneNumber (resend) threw immediately", e)
+            onResult(PhoneCodeRequest.Failed(e.localizedMessage ?: e.message ?: "unknown"))
+        }
     }
 
     /**

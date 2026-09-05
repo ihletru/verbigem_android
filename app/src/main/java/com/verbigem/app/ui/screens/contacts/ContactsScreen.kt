@@ -67,6 +67,7 @@ import com.verbigem.app.data.InviteLinks
 import com.verbigem.app.data.OutboundChannel
 import com.verbigem.app.data.OutboundChannels
 import com.verbigem.app.data.OutboundTarget
+import com.verbigem.app.data.SystemShareChannel
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.ui.theme.VerbigemTheme
@@ -286,15 +287,15 @@ fun ContactsScreen(
             channels = channels,
             onPick = { channel ->
                 pendingInvite = null
-                // Zaproszenie pod skrótem numeru zapisujemy NIEZALEŻNIE od kanału.
-                // To ten sam numer, a link i zaproszenie to dwa różne sposoby na
-                // ten sam cel: zaproszenie działa, gdy ta osoba kiedyś potwierdzi
-                // numer, link — gdy kliknie go od razu. Skipping jednego z nich
-                // zostawia połowę szansy.
-                viewModel.inviteContact(contact)
                 val link = InviteLinks.forUser(currentUid)
                 val text = context.getString(R.string.contacts_invite_text)
-                channel.handOff(context, target, text, link)
+                val handedOff = channel.handOff(context, target, text, link)
+                // Systemowy arkusz udostępniania nie daje wyniku (użytkownik może
+                // anulować), więc nie oznaczamy kontaktu jako zaproszonego — inaczej
+                // „Inne aplikacje" → anuluj zostawiałby fałszywy status.
+                if (handedOff && channel !is SystemShareChannel) {
+                    viewModel.inviteContact(contact)
+                }
             },
             onDismiss = { pendingInvite = null }
         )
@@ -871,13 +872,13 @@ private fun ChannelPickerDialog(
                     )
                 } else {
                     channels.forEach { channel ->
-                        Row(
+                        Button(
+                            onClick = { onPick(channel) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { onPick(channel) }
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp)),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg)
                         ) {
                             Text(
                                 text = stringResource(channel.labelRes),
@@ -886,6 +887,7 @@ private fun ChannelPickerDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 

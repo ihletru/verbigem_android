@@ -874,6 +874,16 @@ czy dotarło, i udawalibyśmy, że wiemy.
 | Telegram | `t.me/share/url?url=…&text=…` | Otwiera **wybór rozmowy**, nie konkretną osobę |
 | Inne | systemowy `ACTION_SEND` | Pokrywa Signal, Messenger i wszystko, czego nie przewidzieliśmy |
 
+**Poprawki UI/logiki (v35+):**
+- Dialog wyboru kanału renderuje każdą opcję jako `Button` (z tłem + obramowaniem)
+  zamiast płaskiego `Row` + `clickable` — tekst „Inne aplikacje" jest teraz wewnątrz
+  widocznego przycisku.
+- `inviteContact` jest wołane **po** `channel.handOff` i tylko gdy `handOff` zwróci
+  `true` **oraz** kanał nie jest `SystemShareChannel`. Dzięki temu anulowanie
+  systemowego arkusza udostępniania nie oznacza kontaktu fałszywie jako zaproszony.
+- Tekst zaproszenia zaktualizowany we wszystkich językach (PL: *„Cześć! Sprawdź
+  Verbingem - tłumaczy z AI czaty i rozmowy offline"*).
+
 ☠️ **Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i pójście
 na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi,
 ale `t.me/share/url` **tak**, i to z jednoczesnym podaniem linku — czyli
@@ -1147,6 +1157,15 @@ Debugowy keystore (`C:\Users\milo\.android\debug.keystore`, hasło `android`):
 SHA1:   EC:9D:EB:58:CD:F2:48:3A:7E:FE:2B:73:C2:C7:90:1B:9D:6D:3C:CC
 SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:90:98:8D:CA:AD:EC:CA:94
 ```
+
+**Poprawki defensywne (v35+):**
+- `PhoneVerificationViewModel.sendCode` — jeśli `context.findActivity()` zwróci `null`,
+  ustawia `_error` zamiast kończyć się cicho (`?: return` był głównym podejrzanym
+  o „nic się nie dzieje" po kliknięciu).
+- `resolveE164` — fallback `raw.trim()` usuwa teraz białe znaki (`replace("\\s+"`)),
+  bo spacje w numerze powodowały `IllegalArgumentException` w `verifyPhoneNumber`.
+- `PhoneVerificationRepository` — `verifyPhoneNumber` jest owinięte w `try-catch`,
+  żeby wyjątek synchroniczny nie wychodził poza callback i nie zabijał UI.
 
 ### Normalizacja numerów (E.164)
 

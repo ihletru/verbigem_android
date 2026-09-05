@@ -241,7 +241,7 @@
     <string name="contacts_match_checking">正在检查哪些联系人已使用 Verbigem…</string>
     <string name="contacts_match_found">已在使用 Verbigem：%1$d</string>
     <string name="contacts_match_write">发消息</string>
-    <string name="contacts_invite_text">你好！我用 Verbigem 翻译——它在手机上可以离线使用。</string>
+    <string name="contacts_invite_text">你好！试试 Verbingem — 用 AI 翻译聊天和对话，离线也能用。</string>
     <string name="channel_none_available">此手机上的应用都无法发送。</string>
     <string name="channel_pick_title">通过以下方式邀请</string>
     <string name="channel_other">其他应用</string>

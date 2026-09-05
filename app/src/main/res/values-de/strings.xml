@@ -241,7 +241,7 @@
     <string name="contacts_match_checking">Ich prüfe, wer davon Verbigem nutzt…</string>
     <string name="contacts_match_found">Schon bei Verbigem: %1$d</string>
     <string name="contacts_match_write">Schreiben</string>
-    <string name="contacts_invite_text">Hallo! Ich übersetze mit Verbigem — es funktioniert offline auf dem Handy.</string>
+    <string name="contacts_invite_text">Hallo! Probier Verbingem aus – übersetzt mit KI Chats und Gespräche offline.</string>
     <string name="channel_none_available">Keine App auf diesem Telefon kann das senden.</string>
     <string name="channel_pick_title">Einladen über</string>
     <string name="channel_other">Andere Apps</string>

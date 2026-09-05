@@ -241,7 +241,7 @@
     <string name="contacts_match_checking">Comprobando quiénes usan Verbigem…</string>
     <string name="contacts_match_found">Ya están en Verbigem: %1$d</string>
     <string name="contacts_match_write">Escribir</string>
-    <string name="contacts_invite_text">¡Hola! Traduzco con Verbigem — funciona sin conexión en el móvil.</string>
+    <string name="contacts_invite_text">¡Hola! Prueba Verbingem — traduce chats y conversaciones con IA, sin conexión.</string>
     <string name="channel_none_available">Ninguna aplicación en este teléfono puede enviarlo.</string>
     <string name="channel_pick_title">Invitar mediante</string>
     <string name="channel_other">Otras aplicaciones</string>

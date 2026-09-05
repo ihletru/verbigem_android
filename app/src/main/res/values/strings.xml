@@ -248,7 +248,7 @@
     <string name="contacts_match_checking">Checking which of them use Verbigem…</string>
     <string name="contacts_match_found">Already on Verbigem: %1$d</string>
     <string name="contacts_match_write">Write</string>
-    <string name="contacts_invite_text">Hi! I translate with Verbigem — it works offline on your phone.</string>
+    <string name="contacts_invite_text">Hi! Check out Verbingem — it translates chats and conversations with AI, offline.</string>
     <string name="channel_none_available">No app on this phone can send this.</string>
     <string name="channel_pick_title">Invite via</string>
     <string name="channel_other">Other apps</string>

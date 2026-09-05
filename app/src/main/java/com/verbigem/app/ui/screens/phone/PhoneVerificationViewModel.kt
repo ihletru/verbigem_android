@@ -80,7 +80,11 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun sendCode(context: Context, resend: Boolean = false) {
-        val activity = context.findActivity() ?: return
+        val activity = context.findActivity()
+        if (activity == null) {
+            _error.value = context.getString(R.string.phone_verify_error_send, "no activity")
+            return
+        }
         val e164 = resolveE164()
         if (e164 == null) {
             _error.value = context.getString(R.string.phone_verify_error_bad_number)
@@ -149,7 +153,7 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
         val raw = _phoneInput.value
         val isos = PhoneNumbers.defaultCountryIsos(getApplication())
         return PhoneNumbers.e164Candidates(raw, isos).firstOrNull()
-            ?: raw.trim().takeIf { it.startsWith("+") && it.length >= 8 }
+            ?: raw.trim().replace("\\s+".toRegex(), "").takeIf { it.startsWith("+") && it.length >= 8 }
     }
 }
 
