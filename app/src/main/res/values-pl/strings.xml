@@ -326,4 +326,5 @@
     <string name="voice_listening">Słucham…</string>
     <string name="voice_stop">Stop</string>
     <string name="voice_not_available">Rozpoznawanie mowy niedostępne na tym urządzeniu</string>
+    <string name="image_close">Zamknij podgląd</string>
 </resources>

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -62,10 +63,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -117,6 +120,8 @@ fun ChatThreadScreen(
 
     val listState = rememberLazyListState()
     var menuFor by remember { mutableStateOf<String?>(null) }
+    // Faza 5.4: URL zdjęcia otwartego w podglądzie na pełnym ekranie (null = zamknięte).
+    var previewImageUrl by remember { mutableStateOf<String?>(null) }
 
     // Faza 5.3: głosówki — stan nagrywania + uprawnienie mikrofonu.
     val isListening by viewModel.isListening.collectAsState()
@@ -296,7 +301,8 @@ fun ChatThreadScreen(
                         onQuote = { viewModel.quote(bubble.id) },
                         onDelete = { viewModel.deleteForMe(bubble.id) },
                         onSpeak = { text, lang -> viewModel.speak(text, lang) },
-                        onSpeakPro = { text, lang -> viewModel.speakPro(text, lang) }
+                        onSpeakPro = { text, lang -> viewModel.speakPro(text, lang) },
+                        onOpenImage = { previewImageUrl = it }
                     )
                 }
             }
@@ -417,6 +423,54 @@ fun ChatThreadScreen(
                 }
             }
         }
+
+        // Faza 5.4: podgląd zdjęcia na pełnym ekranie.
+        if (previewImageUrl != null) {
+            Dialog(
+                onDismissRequest = { previewImageUrl = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .clickable { previewImageUrl = null },
+                    contentAlignment = Alignment.Center
+                ) {
+                    SubcomposeAsyncImage(
+                        model = previewImageUrl,
+                        contentDescription = stringResource(R.string.photo),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit,
+                        loading = {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(32.dp),
+                                strokeWidth = 3.dp
+                            )
+                        },
+                        error = {
+                            Icon(
+                                Icons.Filled.Warning,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    )
+                    IconButton(
+                        onClick = { previewImageUrl = null },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.image_close),
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -441,7 +495,9 @@ private fun MessageBubble(
     onQuote: () -> Unit,
     onDelete: () -> Unit,
     onSpeak: (String, String) -> Unit,
-    onSpeakPro: (String, String) -> Unit
+    onSpeakPro: (String, String) -> Unit,
+    /** Faza 5.4: otwiera zdjęcie w podglądzie na pełnym ekranie. */
+    onOpenImage: (String) -> Unit
 ) {
     val clipboard = LocalClipboardManager.current
     val isTranslated = !bubble.isMine && translated != null
@@ -476,16 +532,43 @@ private fun MessageBubble(
                 .combinedClickable(onClick = {}, onLongClick = onOpenMenu)
                 .padding(10.dp)
         ) {
-            // Faza 5.2: miniatura zdjęcia (URL z Storage ładowany przez Coil).
+            // Faza 5.2/5.4: miniatura zdjęcia (Coil) + klik → podgląd na pełnym ekranie,
+            // wskaźnik postępu pobierania (loading) i ikona błędu (error).
             if (bubble.type == "image" && bubble.attachmentUrl.isNotBlank()) {
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = bubble.attachmentUrl,
                     contentDescription = stringResource(R.string.photo),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onOpenImage(bubble.attachmentUrl) },
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            Modifier.fillMaxWidth().height(180.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = VerbigemTheme.colors.accent,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    },
+                    error = {
+                        Box(
+                            Modifier.fillMaxWidth().height(180.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.Warning,
+                                contentDescription = null,
+                                tint = VerbigemTheme.colors.muted,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }

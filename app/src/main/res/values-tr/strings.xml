@@ -319,4 +319,5 @@
     <string name="voice_listening">Dinliyor…</string>
     <string name="voice_stop">Durdur</string>
     <string name="voice_not_available">Sesli tanıma bu cihazda kullanılamıyor</string>
+    <string name="image_close">Önizlemeyi kapat</string>
 </resources>

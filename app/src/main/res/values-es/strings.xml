@@ -319,4 +319,5 @@
     <string name="voice_listening">Escuchando…</string>
     <string name="voice_stop">Detener</string>
     <string name="voice_not_available">El reconocimiento de voz no está disponible en este dispositivo</string>
+    <string name="image_close">Cerrar vista previa</string>
 </resources>

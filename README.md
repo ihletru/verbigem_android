@@ -1080,8 +1080,14 @@ typów `image/*` i `audio/*` do 25 MB.
   `MediaRecorder`em, więc „nagraj plik → potem przetransponuj" NIE jest możliwe na
   urządzeniu. Odtwarzanie oryginalnego audio (m4a) to osobny temat (serwerowe STT) —
   patrz 5.4. Ikona mikrofonu przy bubble'ach audio w wątku.
-- **5.4 (plan):** pobieranie z postępem, cache offline, podgląd na pełnym ekranie
-  (wspólne dla 5.2 i 5.3). Odtwarzanie m4a dla głosówek (gdy będzie serwerowe STT).
+- **5.4 (częściowo zrobione):** podgląd zdjęcia na pełnym ekranie (`Dialog` +
+  `SubcomposeAsyncImage`, `ContentScale.Fit`, zamknięcie kliknięciem/przyciskiem)
+  oraz wskaźnik postępu pobierania (slot `loading` z `CircularProgressIndicator`)
+  i ikona błędu w miniaturach (`SubcomposeAsyncImage` zamiast `AsyncImage`).
+  **Cache offline:** Coil domyślnie cache'uje obrazy na dysku, więc odtworzenie
+  działa offline bez dodatkowego kodu. ⚠️ **Nie zrobione:** odtwarzanie `m4a`
+  dla głosówek (wymaga serwerowego STT — osobna decyzja) oraz retry błędów
+  uploadu (TODO w `sendImage`/`sendVoice`).
 
 ### Wyszukiwanie w wiadomościach (1.12) — jak to działa
 
