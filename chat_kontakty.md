@@ -5,7 +5,13 @@ który da się zbudować i przetestować na telefonie. **Każdą sesję zaczynam
 sekcji „Postęp", a kończymy jej aktualizacją** — dzięki temu kolejna sesja wie,
 gdzie skończyliśmy, bez czytania całego pliku.
 
-Ostatnia aktualizacja: 2026-09-04 — **Faza 3 (Kontakty 2.0) ZAMKNIĘTA** (3.0–3.10
+Ostatnia aktualizacja: 2026-09-05 — **fix 2.6: „Nie udało się tego zrobić.
+no activity" WYDANY w v37** — przyczyna nie była w Firebase ani w SHA, tylko
+w `LocalizationWrapper` (`createConfigurationContext` ucinał łańcuch
+`baseContext`, więc `findActivity()` znajdował `null`). Szczegóły w bloku sesji
+niżej i w README przy „Weryfikacja numeru (2.6)".
+
+Wcześniej: **Faza 3 (Kontakty 2.0) ZAMKNIĘTA** (3.0–3.10
 zrobione). Ostatnie: **3.9 „Możesz znać" WYDANE w v33** (Cloud Function
 `suggestFriends` + sekcja w zakładce Znajomi) i **3.10 audyt stringów ×6**
 (przejściowy: 257 kluczy w 6 językach, zero braków, zero hardkodowań; v33 już
@@ -15,11 +21,12 @@ kompletna, brak nowego wydania). Wcześniej: **3.8 Zakładki WYDANE**,
 Wcześniej: **2.4 i 2.6** działają, aplikacja potrafi zweryfikować numer SMS-em.
 Faza 2 (2.1–2.7) kompletna w kodzie. **3.5** (kanały wychodzące) zrobione.
 
-**Stan wydań:** **v33 (1.0.32) WYDANY na produkcję** — zweryfikowane
-`https://mini.verbigem.com/updates/version.json` → `versionCode: 33` oraz sha256
-APK `app-debug-v33.apk?v=33` zgodny z lokalnym buildem. Zawiera v32 + 3.9
-(„Możesz znać"). APK: `app-debug-v33.apk`. Funkcja `suggestFriends` wdrożona
-PO NAZWIE (`functions:suggestFriends`) — pozostałe 5 funkcji produkcyjnych nietknięte.
+**Stan wydań:** **v37 (1.0.36) WYDANY na produkcję** — zweryfikowane
+`https://mini.verbigem.com/updates/version.json` → `versionCode: 37` oraz sha256
+APK `app-debug-v37.apk?v=37` zgodny z lokalnym buildem. Zawiera v36 + fix „no
+activity" z 2.6. APK: `mini/dist/android/app-debug-v37.apk`.
+Poprzednio: **v36 (1.0.35) WYDANY** (Faza 5 media + fixy tr strings.xml),
+przed nim **v33 (1.0.32)** z 3.9 („Możesz znać").
 
 > **v27, v28, v29 nigdy nie trafiły na hosting** — wersjonowanie przeskoczyło z 26
 > na 30, a potem 30 → 31 (3.7), 31 → 32 (3.8), 32 → 33 (3.9). Build v33 to najnowsza wersja po v26.
@@ -59,7 +66,7 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 2.3 | `matchContacts` (HMAC, whereIn po 30, rate limit) | 🟡 **wdrożone** (działa od 2.6 — katalog pusty) | 27 | *w toku* |
 | 2.4 | `inviteByPhone` + `verifyPhone` + `onPhoneVerified` | 🟡 **wdrożone na produkcję** (test u Milosza został) | 27 | `3a50734` |
 | 2.5 | FCM: tokeny + `onMessageCreated` → push | 🟡 **wdrożone na produkcję** (test push u Milosza został) | 27 | `a4e65d5` |
-| 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **kod gotowy** (SHA w konsoli + test u Milosza) | 27 | `3a50734` |
+| 2.6 | Weryfikacja numeru w aplikacji (D3) | 🟡 **fix „no activity" WYDANY w v37** (SHA w konsoli + test u Milosza) | 37 | `3a50734` |
 | 2.7 | Reguły `phoneDirectory` / `invites` | ✅ **częściowo zrobione** (reguły wdrożone; sama kolekcja czeka na 2.6) | — | *w toku* |
 | 2 | Backend: Cloud Functions | 🟡 **kod kompletny** (2.1–2.7 zrobione; **testy na telefonie u Milosza**: 1.17 push, 1.18 numer) | 27 | `3a50734` |
 | 3 | Kontakty 2.0 (import, kanały) | 🟢 **zrobione** (3.0–3.10) | 33 | `6afcdde` |
@@ -67,6 +74,39 @@ nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za d
 | 5 | Media: zdjęcia + OCR, głosówki | 🟡 **w toku** (5.1–5.4 zrobione w kodzie, build OK; reguły Storage wdrożone 2026-09-04 — Firebase Storage włączone; release v35 czeka na testy telefonu Milosza) | — | — |
 | 6 | Czaty grupowe | ⏸ odłożone (nie wybrane) | — | — |
 | PP | Polityka prywatności (§12) | ✅ **zrobione** | 25 | `93c6fe1` |
+
+**Co zrobione w sesji 2026-09-05 (fix 2.6 — „no activity", WYDANE w v37):**
+
+- **Zgłoszenie:** w Profilu → potwierdzenie numeru → „wyślij SMS" kończy się
+  komunikatem **„Nie udało się tego zrobić. no activity"**. SHA były już wpisane
+  w konsoli Firebase, więc to nie była przyczyna.
+- **Diagnoza:** komunikat pochodzi z jednego miejsca —
+  `PhoneVerificationViewModel.sendCode`, `context.findActivity() == null`.
+  `PhoneAuthOptions.setActivity()` wymaga prawdziwej Activity, a ViewModel dostaje
+  tylko `LocalContext.current`. Ten kontekst okazywał się **nie** Activity, bo
+  `MainActivity.LocalizationWrapper` podmieniał go na
+  `context.createConfigurationContext(config)` — a to zwraca goły `ContextImpl`,
+  **nie** `ContextWrapper`, więc łańcuch `baseContext` urywał się w tym miejscu.
+  Ten sam mechanizm wcześniej wywalił `rememberLauncherForActivityResult`
+  w `OcrScreen` (naprawione obejściem `LocalActivityResultRegistryOwner`,
+  nie przyczyną).
+- **Naprawa (3 pliki):**
+  - `MainActivity.kt` — nowa prywatna klasa `LocalizedContext(base, locale)
+    : ContextWrapper(base)`, nadpisująca tylko `getResources()` / `getAssets()`.
+    Język działa identycznie, a Activity zostaje w łańcuchu.
+  - `VerbigemApplication.kt` — `foregroundActivity()` (słaba referencja
+    odświeżana w `MainActivity.onResume`) jako fallback, gdyby kiedyś znów nie
+    dało się wyciągnąć Activity z kontekstu.
+  - `PhoneVerificationViewModel.kt` — `context.findActivity()
+    ?: VerbigemApplication.foregroundActivity()`.
+- **Reguła na przyszłość (zapisana też w README):** każdy kontekst podmieniany
+  w `LocalContext` **musi** dziedziczyć po `ContextWrapper` i mieć Activity
+  u podstawy. Inaczej cicho giną wszystkie `findOwner<T>()`.
+- **Wydanie:** `versionCode 37` / `1.0.36`, `assembleDebug`, APK →
+  `mini/dist/android/app-debug-v37.apk`, `version.json` (updates + android) +
+  `vite.config.ts` podbite na 37, `firebase deploy --only hosting`.
+- **Test u Milosza (1.18):** Profil → potwierdź numer → „wyślij SMS" → SMS
+  powinien przyjść, ekran przejść do pola z kodem, po wpisaniu → „gotowe".
 
 **Co zrobione w sesji 2026-09-04 (faza 1):**
 

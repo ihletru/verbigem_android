@@ -1,7 +1,9 @@
 package com.verbigem.app
 
+import android.app.Activity
 import android.app.Application
 import android.util.Log
+import java.lang.ref.WeakReference
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
@@ -85,5 +87,24 @@ class VerbigemApplication : Application() {
 
     companion object {
         private const val TAG = "VerbigemApplication"
+
+        /**
+         * The Activity the user is currently looking at, held weakly.
+         *
+         * A fallback, not the main road: a few APIs insist on a real Activity (Firebase
+         * Phone Auth does) while the code that needs them sits in a ViewModel and only
+         * has a `Context`. Normally that Context unwraps back to the Activity, but any
+         * future wrapper that forgets `ContextWrapper` breaks the chain again — and the
+         * symptom is a terse "no activity" in the UI, with nothing in the logs.
+         * MainActivity refreshes this on every resume.
+         */
+        @Volatile
+        private var foreground: WeakReference<Activity>? = null
+
+        fun noteForegroundActivity(activity: Activity) {
+            foreground = WeakReference(activity)
+        }
+
+        fun foregroundActivity(): Activity? = foreground?.get()
     }
 }

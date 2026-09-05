@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.verbigem.app.R
+import com.verbigem.app.VerbigemApplication
 import com.verbigem.app.data.PhoneNumbers
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.repository.PhoneCodeRequest
@@ -80,7 +81,10 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
     }
 
     fun sendCode(context: Context, resend: Boolean = false) {
-        val activity = context.findActivity()
+        // Firebase Phone Auth needs the Activity itself, and all we get handed is a
+        // Context. Unwrapping is the normal path; the application keeps the resumed
+        // Activity as a fallback for the day some wrapper breaks the chain again.
+        val activity = context.findActivity() ?: VerbigemApplication.foregroundActivity()
         if (activity == null) {
             _error.value = context.getString(R.string.phone_verify_error_send, "no activity")
             return

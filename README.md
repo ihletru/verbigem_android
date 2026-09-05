@@ -1162,6 +1162,20 @@ SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:
 - `PhoneVerificationViewModel.sendCode` — jeśli `context.findActivity()` zwróci `null`,
   ustawia `_error` zamiast kończyć się cicho (`?: return` był głównym podejrzanym
   o „nic się nie dzieje" po kliknięciu).
+- **PRAWDZIWA PRZYCZYNA „Nie udało się tego zrobić. no activity" (v37):**
+  `MainActivity.LocalizationWrapper` podmieniał `LocalContext` na
+  `context.createConfigurationContext(config)`. Ten kontekst to goły `ContextImpl`,
+  **nie** `ContextWrapper` — łańcuch `baseContext` urywał się w tym miejscu, więc
+  `findActivity()` (i każdy `findOwner<ActivityResultRegistryOwner>`) znajdował `null`.
+  Naprawione przez klasę `LocalizedContext(base, locale) : ContextWrapper(base)`,
+  która nadpisuje tylko `getResources()`/`getAssets()` — język działa tak samo, a
+  Activity pozostaje w łańcuchu. **Reguła na przyszłość: każdy kontekst, który
+  podmieniamy w `LocalContext`, MUSI dziedziczyć po `ContextWrapper` i mieć
+  Activity u podstawy.** Ten sam błąd wcześniej objawił się crashem
+  `rememberLauncherForActivityResult` w `OcrScreen`.
+- Dodatkowy fallback: `VerbigemApplication.foregroundActivity()` (słaba referencja
+  odświeżana w `MainActivity.onResume`) — `sendCode` bierze Activity stamtąd, gdyby
+  kiedyś znów nie dało się go wyciągnąć z kontekstu.
 - `resolveE164` — fallback `raw.trim()` usuwa teraz białe znaki (`replace("\\s+"`)),
   bo spacje w numerze powodowały `IllegalArgumentException` w `verifyPhoneNumber`.
 - `PhoneVerificationRepository` — `verifyPhoneNumber` jest owinięte w `try-catch`,

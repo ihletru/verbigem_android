@@ -1,8 +1,11 @@
 package com.verbigem.app
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.AssetManager
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -130,6 +133,13 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         handleChatIntent(intent)
         handleDeepLink(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Lets the rest of the app reach a real Activity without walking a context
+        // chain — see VerbigemApplication.foregroundActivity().
+        VerbigemApplication.noteForegroundActivity(this)
     }
 
     private fun handleChatIntent(intent: Intent?) {
@@ -412,24 +422,50 @@ fun LocalizationWrapper(langCode: String, content: @Composable () -> Unit) {
     // surrounding context is the ComponentActivity itself, so this cast is safe.
     val activity = context as ComponentActivity
     val locale = remember(langCode) { Locale.forLanguageTag(langCode) }
-    val configuration = remember(langCode) {
-        val config = Configuration(context.resources.configuration)
-        config.setLocale(locale)
-        config
-    }
-    val localizedContext = remember(langCode) {
-        context.createConfigurationContext(configuration)
-    }
+    // A wrapper around the Activity, NOT the context createConfigurationContext()
+    // hands back — see LocalizedContext below for why that distinction matters.
+    val localizedContext = remember(langCode) { LocalizedContext(activity, locale) }
 
-    // Provide both the localized context AND the ActivityResultRegistryOwner.
-    // The localized context is a ConfigurationContext wrapper (not the ComponentActivity),
-    // so without re-providing LocalActivityResultRegistryOwner, compose navigation screens
-    // that call rememberLauncherForActivityResult (e.g. OcrScreen) crash with
-    // "No ActivityResultRegistryOwner was provided via LocalActivityResultRegistryOwner".
+    // Re-providing the registry owner is no longer strictly required now that
+    // LocalContext is a real ContextWrapper over the Activity, but it costs nothing
+    // and it keeps screens that call rememberLauncherForActivityResult (e.g. OcrScreen)
+    // independent of what the surrounding context happens to be.
     CompositionLocalProvider(
         LocalContext provides localizedContext,
         LocalActivityResultRegistryOwner provides activity
     ) {
         content()
     }
+}
+
+/**
+ * An Activity that answers `getResources()` in a different language.
+ *
+ * The obvious way to switch languages at runtime is
+ * `context.createConfigurationContext(config)`, and that is what this used to do. The
+ * problem is what it returns: a bare `ContextImpl`, **not** a `ContextWrapper`. That
+ * severs the `baseContext` chain leading back to the Activity, and everything that
+ * walks that chain then quietly finds nothing:
+ *
+ * - `PhoneAuthOptions.setActivity()` needs a real Activity, so the phone-verification
+ *   screen (which only ever has a `Context`) reported **"no activity"** and refused to
+ *   send the code. Same for `rememberLauncherForActivityResult`, which used to crash
+ *   with "No ActivityResultRegistryOwner was provided".
+ *
+ * Wrapping the Activity instead keeps both properties at once: `getResources()` returns
+ * resources with the requested locale, and `baseContext` still resolves to MainActivity.
+ */
+private class LocalizedContext(base: Context, locale: Locale) : ContextWrapper(base) {
+
+    private val localizedResources: Resources = run {
+        val config = Configuration(base.resources.configuration)
+        config.setLocale(locale)
+        base.createConfigurationContext(config).resources
+    }
+
+    override fun getResources(): Resources = localizedResources
+
+    // Kept in step with getResources(): a Resources and its AssetManager are a pair,
+    // and handing out the un-localized one would be a subtle inconsistency.
+    override fun getAssets(): AssetManager = localizedResources.assets
 }
