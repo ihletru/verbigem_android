@@ -5,8 +5,11 @@
 // every "Text me a code" tap failed with status 17006:
 //   "SMS unable to be sent until this region enabled by the app developer."
 //
-// Usage: node set_sms_region.js PY,PL   (defaults to PY alone)
-// Check what is set right now: node check_sms_region.js
+// Usage:
+//   node set_sms_region.js PY,PL   -> allowlistOnly: { allowedRegions: [PY, PL] }
+//   node set_sms_region.js ALL     -> allowByDefault: { disallowedRegions: [] }
+//                                    (every region allowed; withdraw risky ones later)
+//   node check_sms_region.js        -> print the current smsRegionConfig
 //
 // No credential lives in this file: we reuse the public OAuth client of
 // firebase-tools itself (the same constants as node_modules/firebase-tools/lib/api.js)
@@ -21,7 +24,9 @@ const CLIENT_ID =
   "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com";
 const CLIENT_SECRET = "j9iVZfS8kkCEFUPaAeJV0sAi";
 
-const regions = (process.argv[2] || "PY").split(",").map((s) => s.trim().toUpperCase());
+const arg = (process.argv[2] || "PY").trim().toUpperCase();
+const allowAll = arg === "ALL" || arg === "*";
+const regions = arg.split(",").map((s) => s.trim().toUpperCase());
 const cfg = JSON.parse(fs.readFileSync(CFG, "utf8"));
 
 function post(url, body) {
@@ -93,7 +98,9 @@ async function accessToken() {
   const before = await request("GET", base, token);
   console.log("BEFORE smsRegionConfig:", JSON.parse(before.body).smsRegionConfig);
 
-  const body = { smsRegionConfig: { allowlistOnly: { allowedRegions: regions } } };
+  const body = allowAll
+    ? { smsRegionConfig: { allowByDefault: { disallowedRegions: [] } } }
+    : { smsRegionConfig: { allowlistOnly: { allowedRegions: regions } } };
   const r = await request("PATCH", base + "?updateMask=smsRegionConfig", token, body);
   console.log("PATCH HTTP", r.status);
   if (r.status !== 200) {
