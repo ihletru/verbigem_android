@@ -241,7 +241,7 @@
     <string name="contacts_match_checking">Hangilerinin Verbigem kullandığı kontrol ediliyor…</string>
     <string name="contacts_match_found">Zaten Verbigem\'de: %1$d</string>
     <string name="contacts_match_write">Yaz</string>
-    <string name="contacts_invite_text">Merhaba! Verbingem'i dene — yapay zeka ile sohbetleri ve görüşmeleri çevirir, çevrimdışı.</string>
+    <string name="contacts_invite_text">Merhaba! Verbingem\'i dene — yapay zeka ile sohbetleri ve görüşmeleri çevirir, çevrimdışı.</string>
     <string name="channel_none_available">Bu telefondaki hiçbir uygulama bunu gönderemez.</string>
     <string name="channel_pick_title">Şununla davet et</string>
     <string name="channel_other">Diğer uygulamalar</string>
