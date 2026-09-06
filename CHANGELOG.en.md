@@ -1,7 +1,5 @@
 # Verbigem Android — changelog
 
-Newest first. Every release is also published as a GitHub Release:
-<https://github.com/ihletru/verbigem_android/releases>
 
 > ⚠️ Tags `v1.0.1`–`v1.0.3` are **early historical builds** (versionCode 2–3).
 > The current version is **v1.0.39** (versionCode 40).
@@ -44,4 +42,3 @@ Pro OCR + OCR history, the keyboard no longer covers the Translator.
 ## v1.0.1 — versionCode 2
 
 Auto-update test build. Read Pro / Delete icons, Firestore sync,
-auto-update from GitHub Releases.

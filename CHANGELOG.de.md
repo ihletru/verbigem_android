@@ -1,7 +1,5 @@
 # Verbigem Android — Änderungsprotokoll
 
-Neueste zuerst. Jede Version wird zusätzlich als GitHub Release veröffentlicht:
-<https://github.com/ihletru/verbigem_android/releases>
 
 > ⚠️ Die Tags `v1.0.1`–`v1.0.3` sind **frühe historische Builds** (versionCode 2–3).
 > Die aktuelle Version ist **v1.0.39** (versionCode 40).
@@ -44,4 +42,3 @@ Pro-OCR + OCR-Verlauf, die Tastatur verdeckt den Übersetzer nicht mehr.
 ## v1.0.1 — versionCode 2
 
 Auto-Update-Testbuild. Icons „Pro vorlesen" / Löschen, Firestore-Sync,
-Auto-Update von GitHub Releases.

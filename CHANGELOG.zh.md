@@ -1,7 +1,5 @@
 # Verbigem Android — 更新日志
 
-最新内容在最上方。每个版本也会作为 GitHub Release 发布：
-<https://github.com/ihletru/verbigem_android/releases>
 
 > ⚠️ `v1.0.1`–`v1.0.3` 标签属于**早期历史构建**（versionCode 2–3）。
 > 当前版本为 **v1.0.39**（versionCode 40）。
@@ -44,4 +42,3 @@ Pro OCR + OCR 历史记录，键盘不再遮挡翻译器。
 ## v1.0.1 — versionCode 2
 
 自动更新测试构建。Pro 朗读 / 删除图标、Firestore 同步、
-从 GitHub Releases 自动更新。

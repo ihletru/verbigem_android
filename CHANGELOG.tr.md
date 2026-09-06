@@ -1,7 +1,5 @@
 # Verbigem Android — değişiklik geçmişi
 
-En yeniler üstte. Her sürüm ayrıca GitHub Release olarak da yayımlanır:
-<https://github.com/ihletru/verbigem_android/releases>
 
 > ⚠️ `v1.0.1`–`v1.0.3` etiketleri **erken tarihli derlemelerdir** (versionCode 2–3).
 > Güncel sürüm **v1.0.39** (versionCode 40).
@@ -44,4 +42,3 @@ Pro OCR + OCR geçmişi, klavye artık Çevirmen'i kapatmıyor.
 ## v1.0.1 — versionCode 2
 
 Otomatik güncelleme test derlemesi. Pro Oku / Sil simgeleri, Firestore senkronizasyonu,
-GitHub Releases'ten otomatik güncelleme.
