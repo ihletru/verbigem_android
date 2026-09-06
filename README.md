@@ -1459,5 +1459,5 @@ z generowaniem pliku przez Vite).
 `.gitignore` wyklucza: `build/`, `llama_master/`, `*.gguf`, `model_probe/`, `build_log*`,
 `crash_log*`, `local.properties`, `.workbuddy-ai/`.
 Po każdej zmianie większej niż kosmetyczna: **zaktualizuj README, potem commit + `git push`.**
-Projekt `mini` (webapp + hosting) **nie ma repozytorium git** — deploy idzie tylko przez
-`firebase deploy`.
+Projekt `mini` (webapp + hosting) **ma repozytorium git** (`verbigem-mini`, prywatne) —
+deploy hostingu idzie przez `firebase deploy --project mini-verbigem`.
