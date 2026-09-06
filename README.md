@@ -2,7 +2,8 @@
 
 > 📦 **Aktualna wersja: `v1.0.39`** (versionCode 40) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
-> [Historia zmian (CHANGELOG.md)](CHANGELOG.md)
+> [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
+> [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
 
 > ℹ️ Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
 > Tagi `v1.0.1`–`v1.0.3` to wczesne buildy historyczne (versionCode 2–3).
