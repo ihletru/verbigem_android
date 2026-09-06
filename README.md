@@ -11,589 +11,277 @@ Natywna aplikacja na system Android stworzona w **100% w języku Kotlin** z wyko
 
 Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
 
+Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_ARCHIWUM.md`**.
+
 ---
 
 ## 🌟 Kluczowe funkcje
 
-1. **Translator (Ekran główny)**:
-   - Tłumaczenie pomiędzy 6 językami: **Polski (PL)**, **Angielski (EN)**, **Hiszpański (ES)**, **Chiński (ZH)**, **Niemiecki (DE)**, **Turecki (TR)**.
-   - Wybór silników:
-     - ⚡ **Hy-MT2 Szybki** (TQ1.25 / 1.25Bit ~440 MB) — najlżejszy, działa na słabszych telefonach,
-     - 🎯 **Hy-MT2 Dokładny** (Q4_K_M ~1.1 GB) — bezkompromisowa jakość WMT,
-     - ⚖️ **Oba (porównaj)** — jednoczesne generowanie obu wersji,
-     - ☁️ **API online** — chmurowy fallback DeepSeek z portfelem.
-   - **Push-to-talk (🎤):** przycisk mikrofonu po lewej stronie od przycisku OCR. Trzymaj → nagrywa
-     mowę w języku źródłowym (SpeechRecognizer STT z podglądem na żywo), puszcz → kończy nagrywać
-     i konwertuje na tekst. Nowo rozpoznany tekst **dodaje się** do istniejącego tekstu w polu
-     (append, nie overwrite). Placeholder pola informuje: „Wpisz lub zamień mowę albo zdjęcie na tekst
-     do przetłumaczenia”. W trakcie nagrywania mikrofon jest czerwony z podglądem tekstu na żywo.
-   - **Czytaj Pro (💎):** płatne czytanie przez **OpenRouter TTS** (konfigurowane w
-     `app_config/tts` na Firestore — domyślny model `google/gemini-3.1-flash-tts-preview`,
-     osobny model dla chińskiego `fish-audio/s2.1-pro`). Klucz + modele synchronizowane
-     z bazy lokalnej (Room) — zarządzane przez webapp admina (planowane).
-   - **Skasuj:** czyszczenie wpisanego tekstu i wyniku tłumaczenia.
-   - Automatyczny in-app model downloader z Hugging Face.
-   - Historia ostatnich tłumaczeń w lokalnej bazie **Room Database (SQLite)** —
-     każdy wiersz ma akcje: kopiuj, udostępnij, czytaj (offline), czytaj pro (💎), skasuj.
-   - **Startowa synchronizacja z Firestore** (zasada „nowsze wygrywa" / last-write-wins
-     po `updatedAt`): profil użytkownika, historia tłumaczeń i konfiguracja TTS Pro.
-   - **Auto-aktualizacja APK (Firebase Hosting):** Plik `dist/android/version.json` w projekcie
-     webapp (`verbigem/mini`) wdeployowany na Firebase Hosting pod `https://mini.verbigem.com/android/version.json`
-     trzyma najnowszy `versionCode` + `versionName` + `apkUrl` + `updatedAt`. App (`UpdateManager.kt`)
-     pobiera ten plik przy starcie, porównuje `versionCode` z zainstalowaną wersją
-     i — gdy plik na Hostingu ma wyższy `versionCode` — pyta o zgodę, pobiera APK z
-     `apkUrl` (też `mini.verbigem.com/android/`) i instaluje. Fallback: Firestore `app_config/update`
-     (gdy Hosting niedostępny). Po rejestracji w Google Play otwiera sklep zamiast pobierać APK.
-     - Deploy: `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
-       Zmiana wersji = edycja `dist/android/version.json` + wrzucenie APK do `dist/android/` + redeploy.
-     - **Domena `.com`, NIE `.web.app`** — ROM Xiaomi (Private DNS) nie resolwi `*.web.app` w app.
-     - GitHub (repo, raw, API) NIE jest już używane do update'ów.
+### 1. Translator (ekran główny)
 
-2. **Rozmowa lokalna (Conversation)**:
-   - Dwie osoby dzielą jeden telefon (Strona A / Strona B).
-   - **Klawiatura nie zasłania karty wpisywania tekstu** — w `ConversationScreen` kolejność
-     modyfikatorów to `imePadding()` **PRZED** `verticalScroll()`:
-     ```kotlin
-     Modifier.fillMaxSize().imePadding().padding(16.dp).verticalScroll(scrollState)
-     ```
-     Użyte PO (`==` wewnątrz) `verticalScroll()` dokłada tylko pusty margines na końcu
-     treści, a **viewport zostaje pełnej wysokości** — wtedy `bringIntoViewRequester`
-     "przewija pole do widoku" = na sam dół ekranu, czyli dokładnie pod klawiaturę
-     (objaw: karta edycji schowana za klawiaturą). Odwrócona kolejność zwęża viewport o
-     wysokość IME, więc "do widoku" znaczy "nad klawiaturą".
-     Druga połowa naprawy: klawiatura wjeżdża **~250 ms po** tym jak pole dostaje focus,
-     więc sam `onFocusEvent` nie wystarcza — `LaunchedEffect(WindowInsets.isImeVisible)`
-     z `delay(250)` odpala `bringIntoView()` ponownie, gdy IME jest już na ekranie.
-     (Manifest ma `android:windowSoftInputMode="adjustResize"`, a `MainActivity` woła
-     `enableEdgeToEdge()` — bez tego `imePadding()` jest zerem.)
-   - Natywne rozpoznawanie mowy **SpeechRecognizer (STT)** z podglądem na żywo.
-   - Po skończeniu mowy: natychmiastowe tłumaczenie modelem **Hy-MT2-1.8B** i automatyczny odczyt głosem **TextToSpeech (TTS)** dla drugiej osoby.
-   - Automatyczne przełączanie aktywnej strony rozmowy.
+- Tłumaczenie między 6 językami: **PL, EN, ES, ZH, DE, TR**.
+- Silniki: ⚡ **Hy-MT2 Szybki** (TQ1.25 / 1.25Bit ~440 MB) · 🎯 **Hy-MT2 Dokładny** (Q4_K_M ~1.1 GB) · ⚖️ **Oba (porównaj)** · ☁️ **API online** (fallback DeepSeek z portfelem).
+- **Push-to-talk (🎤):** przycisk po lewej od OCR. Trzymaj → nagrywa (SpeechRecognizer STT z podglądem na żywo), puść → dopisuje rozpoznany tekst do pola (**append, nie overwrite**). W trakcie nagrywania mikrofon jest czerwony.
+- **Czytaj Pro (💎):** płatne TTS przez **OpenRouter**, konfigurowane w `app_config/tts` na Firestore (domyślny model `google/gemini-3.1-flash-tts-preview`, osobny dla ZH: `fish-audio/s2.1-pro`). Szczegóły niżej.
+- **Skasuj** — czyszczenie wejścia i wyniku. Automatyczny downloader modeli z Hugging Face.
+- **Historia w Room (SQLite)** — wiersz ma akcje: kopiuj, udostępnij, czytaj (offline), czytaj Pro (💎), skasuj.
+- **Startowa synchronizacja z Firestore** (last-write-wins po `updatedAt`): profil, historia, konfiguracja TTS Pro.
+- **Auto-aktualizacja APK** z Firebase Hosting — patrz sekcja **📦 Auto-aktualizacja APK**.
 
-3. **Czat zdalny 1:1 (Chat)**:
-   - Komunikator czasu rzeczywistego (Firebase Firestore).
-   - **Skrzynka odbiorcza (`ChatListScreen`)** — lista konwersacji: avatar, nick,
-     podgląd ostatniej wiadomości, godzina, kropka nieprzeczytanych. Sortowanie po
-     `lastMessageAt` dzieje się **w aplikacji**, nie w Firestore (`whereArrayContains`
-     + `orderBy` na innym polu wymagałoby indeksu złożonego, wdrażanego osobno).
-   - **Wątek (`ChatThreadScreen`)** — trasa `chat/{uid}`, bańki, dzielniki dni,
-     wskaźniki ✓ (wysłane) / ✓✓ (przeczytane), „pisze…", menu po długim naciśnięciu
-     (kopiuj / czytaj / czytaj Pro / pokaż oryginał / cytuj / usuń u mnie).
-   - **Tłumaczenie dzieje się u ODBIORCY (decyzja D1):** nadawca wysyła **oryginał**
-     w `sourceLang` + własne tłumaczenie jako podpowiedź (`senderTranslation` —
-     fallback dla odbiorców bez pobranego modelu). Odbiorca tłumaczy lokalnie
-     Hy-MT2 na swój `speakLangSource` i **zapisuje wynik w Room** (`chat_translations`),
-     żeby nie mielić modelu przy każdej rekompozycji. Przełącznik „pokaż oryginał"
-     na każdej bańce + „Przetłumacz" ponownie po zmianie języka.
-   - **Kolejka offline (`chat_outbox`):** kliknięcie Wyślij jest natychmiastowe —
-     wiersz ląduje w Room, bańka pokazuje „wysyłanie", a `ConnectivityObserver`
-     wyzwala wysyłkę. Id dokumentu w Firestore = `clientMsgId` (UUID wygenerowane
-     przed wywołaniem sieci), więc ponowienie po zerwanym połączeniu **nie tworzy
-     duplikatu** (`set()` na tym samym id jest no-op).
-   - **Potwierdzenia odczytu i „pisze…" żyją w subkolekcjach**
-     `chats/{chatId}/readReceipts/{uid}` i `chats/{chatId}/typing/{uid}` — jeden
-     dokument na uczestnika. Reguła sprowadza się do „możesz pisać tylko swój
-     dokument", dzięki czemu **nie trzeba** łagodzić `update: if false` na
-     `messages` (wiadomości pozostają append-only). Kropka nieprzeczytanych w
-     skrzynce liczy się z lokalnej tabeli `chat_reads` (zero odczytów z chmury).
-   - Paginacja: live listener tylko na 50 najnowszych wiadomości, starsze strony
-     doczytywane `startAfter` przy dojechaniu do góry listy.
-   - Podgląd oryginału i odsłuch audio (TTS offline oraz Czytaj Pro 💎).
-   - **Wyszukiwanie ludzi idzie przez `usersPublic/{uid}`** — `users/{uid}` jest czytelne
-     tylko dla właściciela, więc odpytywanie go z innego konta zawsze kończyło się
-     `PERMISSION_DENIED`. `AuthRepository` utrzymuje publiczną wizytówkę (nick, e-mail,
-     avatar, języki + zlowercasowane `searchNick`/`searchEmail`), a `ensureProfile()`
-     odnawia ją przy każdym logowaniu (samoleczący backfill).
-   - **Znajomości są symetryczne:** dokument `friendships` ma `members: [uidA, uidB]`
-     i zapytanie idzie `whereArrayContains("members", uid)`. Jeden listener w
-     `ChatRepository` zasila trzy strumienie: `watchAccepted` / `watchIncoming` /
-     `watchOutgoing`. (Dawniej filtr był na samo `uidA`, więc osoba o uid sortującym się
-     druga nie widziała znajomego wcale.)
-   - **Język z profilu, nie na sztywno.** Nadawca pisze w swoim `speakLangSource`,
-     a podpowiedź tłumaczy na `speakLangSource` rozmówcy pobrany z `usersPublic`.
-     Odsłuch (`speak()`) czyta w języku aktualnie wyświetlanego tekstu.
-     Docelowo właściwe tłumaczenie dzieje się u odbiorcy — patrz `chat_kontakty.md`.
-     **Język docelowy tłumaczenia** to `ChatThreadViewModel.translationLang` =
-     `langOverride` z karty kontaktu (jeśli ustawiony) albo `speakLangSource` z profilu.
-     Zmiana któregokolwiek czyści mapę tłumaczeń w pamięci i wraca do auto-tłumaczenia,
-     ale **nie rusza cache w Room** (kluczowany językiem, więc stare tłumaczenia żyją).
-   - **`chats/{chatId}` musi istnieć i mieć `members` ZANIM poleci wiadomość** — reguły
-     bezpieczeństwa dla `messages` robią `get(/chats/$(chatId)).data.members`. Dlatego
-     `sendMessage()` najpierw upsertuje dokument czatu, potem dodaje wiadomość.
-     Bez tego wysłanie czegokolwiek było niemożliwe.
-   - **Karta kontaktu (`contact/{uid}`)** — ustawienia per rozmówca, prywatne dla
-     mnie: alias (nazwa widoczna tylko u mnie), język tłumaczenia, przypięcie,
-     wyciszenie, blokada, notatka. Wchodzi się z nagłówka wątku i z ikony ⓘ w
-     Kontaktach. Szczegóły w `chat_kontakty.md` (zadanie 1.13).
-     - Dane leżą w **`users/{uid}/contacts/{otherUid}`** — pod MOIM dokumentem, nie
-       w znajomości, bo to moje zdanie o kimś: nadany przeze mnie alias nie może
-       pojawić się na cudzym telefonie. Reguła: odczyt/zapis tylko właściciel +
-       whitelist 7 pól.
-     - **Firestore, nie Room** — Firestore trzyma własny cache offline na Androidzie,
-       więc karta działa bez sieci, a ustawienia idą za kontem na drugie urządzenie
-       bez wymyślania nowego mechanizmu syncu.
-     - **`langOverride` = język, NA KTÓRY tłumaczone są przychodzące wiadomości.**
-       Puste = język z mojego profilu. Celowo NIE zmienia `sourceLang` wiadomości
-       wychodzących: to pole musi opisywać to, co faktycznie napisałem, bo inaczej
-       odbiorca tłumaczyłby z błędnego języka źródłowego.
-     - **„Zablokuj" i „wycisz" są dziś lokalne.** Blokada ukrywa rozmowę w mojej
-       skrzynce (nie da się jej egzekwować serwerowo bez Cloud Functions — faza 2),
-       wyciszenie gasi kropkę nieprzeczytanych (nie ma jeszcze pushy do wyciszenia).
-       Komunikaty w UI mówią to wprost, zamiast obiecywać więcej.
-     - **„Usuń rozmowę" = ukrycie lokalne.** Wiadomości w Firestore są append-only
-       i nie ma funkcji, która by je sprzątała, więc tabela `chat_hidden` w Room
-       (migracja v6→v7) chowa rozmowę u mnie; rozmówca zachowuje wątek. Karta daje
-       „Przywróć rozmowę".
+### 2. Rozmowa lokalna (Conversation)
 
-4. **Kontakty i Znajomi (Contacts)**:
-   - Wyszukiwanie użytkowników po nicku/e-mailu.
-   - Przyjmowanie i odrzucanie zaproszeń.
-   - **Znajomi z książki telefonicznej:** odczyt kontaktów przez
-     `ContactsContract` (`PhoneContactsImporter`) — imiona i numery, deduplikacja,
-     odczyt na `Dispatchers.IO`. Dane **zostają na urządzeniu**.
-   - **Prominent disclosure:** `ContactsPermissionScreen` wyjaśnia, co i po co
-     czytamy, zanim system zapyta o `READ_CONTACTS` (wymóg Google Play). Ma link
-     do polityki prywatności i adres `privacy@verbigem.com`.
-   - **Zapraszanie:** systemowy share sheet z linkiem
-     `https://mini.verbigem.com/app?inv=<uid>` (działa z SMS, WhatsApp,
-     Telegramem, e-mailem — bez żadnej integracji i bez `SEND_SMS`).
+- Dwie osoby dzielą jeden telefon (Strona A / Strona B), automatyczne przełączanie aktywnej strony.
+- **⚠️ Kolejność modyfikatorów w `ConversationScreen` jest nieprzypadkowa:** `imePadding()` **PRZED** `verticalScroll()`.
+  ```kotlin
+  Modifier.fillMaxSize().imePadding().padding(16.dp).verticalScroll(scrollState)
+  ```
+  Użyte PO (`==` wewnątrz) `verticalScroll()` dokłada tylko pusty margines na końcu treści, a viewport zostaje pełnej wysokości — wtedy `bringIntoViewRequester` „przewija pole do widoku" = **na sam dół ekranu, czyli pod klawiaturę**. Odwrócona kolejność zwęża viewport o wysokość IME, więc „do widoku" znaczy „nad klawiaturą".
+  Druga połowa naprawy: klawiatura wjeżdża **~250 ms po** focusie, więc sam `onFocusEvent` nie wystarcza — `LaunchedEffect(WindowInsets.isImeVisible)` z `delay(250)` odpala `bringIntoView()` ponownie. Wymagane: `android:windowSoftInputMode="adjustResize"` w manifeście + `enableEdgeToEdge()` w `MainActivity` (bez tego `imePadding()` jest zerem).
+- Natywne STT z podglądem na żywo → tłumaczenie Hy-MT2-1.8B → automatyczny odczyt TTS dla rozmówcy.
 
-5. **OCR ze zdjęcia/aparatu (Camera OCR)**:
-   - Zdjęcie z aparatu lub wybór z galerii.
-   - **Aparat = PEŁNA ROZDZIELCZOŚĆ (TakePicture + FileProvider):** kamera używa
-     `ActivityResultContracts.TakePicture()` zapisującego pełnowymiarowe JPEG do tymczasowego
-     pliku w `cacheDir/ocr_camera/` przez `FileProvider` (`${packageName}.fileprovider`, ścieżka
-     `cache-path path="."` w `res/xml/file_paths.xml`), a potem dekodowanego przez ten sam
-     `processImageUri` co galeria — więc OCR ma identyczną jakość co zdjęcie z galerii.
-     **NIE używamy `TakePicturePreview()`** — zwraca on zdownskalowany thumbnail (~160px),
-     co psuło czytelność OCR (tekst rozmyty). Cancel aparatu = `ocr_camera_cancelled`.
-   - `loadBitmap(uri)` w `OcrViewModel` czyta teraz **EXIF orientation** i obraca bitmapę do
-     pionu (aparat zapisuje zdjęcia obrócone; galeria systemowa auto-obraca, `BitmapFactory`
-     nie) — inaczej crop i OCR byłyby przekręcone dla zdjęć z aparatu.
-   - Błyskawiczne offline OCR przez **Google ML Kit Text Recognition** + natywne tłumaczenie tekstu silnikiem Hy-MT2.
-   - **Wybór obszaru do OCR (crop):** przed odczytem użytkownik zaznacza prostokątny obszar
-     na zdjęciu — OCR czyta tylko to, co jest wewnątrz ramki.
-     - Ramka to **ręcznie napisany overlay** (`com.verbigem.app.ui.screens.ocr.CropOverlay.kt`),
-       NIE zewnętrzna biblioteka. Gotowe biblioteki do przycinania (np. vendored `ImageCropView`)
-       nie działały poprawnie w tym układzie (ramka się nie ustawiała, a strona się nie scrollowała)
-       — `cropview/` zostało usunięte.
-     - Implementacja: **pojedynczy `Canvas`** wypełniający obszar zdjęcia + **jeden**
-       `pointerInput(Unit)` (stały klucz, więc handler nie jest rekreowany w trakcie dragu).
-     - Rozciąganie **4 rogów** (hit-radius 34dp): łapiesz róg, a **przeciwny róg pozostaje
-       nieruchomy** przez cały drag (`fixedLeft/fixedTop` zablokowane od `onDragStart`).
-     - **Scroll strony:** `detectDragGestures` przejmuje każdy gest i blokuje `verticalScroll`
-       rodzica — dlatego użyto `awaitEachGesture`: jeśli dotyk NIE trafił uchwytu, gest jest
-       **niekonsumowany** i idzie do kolumny (`verticalScroll`), więc strona się przewija
-       (kluczowe, gdy zdjęcie jest wyższe niż ekran i dolny uchwyt jest pod zagięciem).
-     - Współrzędne ramki są **znormalizowane 0f..1f** (względem zdjęcia) i trzymane w
-       `OcrViewModel.cropRectFlow` — przycinanie bitmapy (`cropBitmap`) jest niezależne
-       od skali podglądu. Przycisk „Odczytaj zaznaczony obszar" wywołuje `runOcrFromCrop()`
-       (przycina oryginał do zaznaczonego obszaru i puszcza ML Kit).
-     - Ramka domyślna: 0.1–0.9 (prawie całe zdjęcie); użytkownik zacieśnia do tekstu.
-   - **UWAGA:** zachowanie gestów (łapanie rogów + scroll) weryfikuje się TYLKO na telefonie
-     po zainstalowaniu APK — build to nie to samo co działający UX.
-   - **OCR Pro (💎):** obok przycisków Aparat/Galeria widoczny jest przycisk **OCR Pro** (ikona
-     aparatu). Dla free-userów jest wyszarzony i po kliknięciu pokazuje tooltip
-     "OCR Pro wkrótce" (`ocr_pro_coming_soon`, 6 języków) — strona Pro powstaje później.
-     Komponent: `ProFeatureButton` (współdzielony z głośnikiem Pro).
-   - **Streaming tłumaczenia OCR:** tłumaczenie OCR działa **strumieniowo wyrazami**
-     (tak samo jak w Translatorze) — `OcrViewModel.translateText()` woła
-     `hyMt2Engine.translateSegmented(..., onPartial = { ... })` i wypisuje `_translatedText`
-     przyrostowo. Zob. niżej "Tłumaczenie segmentami" — to samo dotyczy Translatora i OCR.
-   - **Historia OCR (osobna, zsynchronizowana):** OCR ma **własną, niezależną historię**,
-     siedzi w osobnej tabeli Room `ocr_history` (encja `OcrHistoryEntity`, DAO `OcrHistoryDao`,
-     repo `OcrHistoryRepository`) i synchronizuje się z **własną kolekcją Firestore `ocr_history`**
-     (subkolekcja `users/{uid}/ocr_history/{syncId}`) — tożsame zasady last-write-wins + tombstone
-     co w Translatorze, ale listy się nigdy nie mieszają (osobna kolekcja, osobna tabela).
-     `SyncManager.syncCollection(...)` jest sparametryzowany kolekcją i wywoływany dla
-     `"history"` (Translator) i `"ocr_history"` (OCR). Usunięcie z historii OCR to fizyczny
-     lokalny delete + tombstone (`PendingDeleteEntity` z `collection = "ocr_history"`) pchany do
-     Firestore przy najbliższym syncu. Reguły Firestore mają `match /users/{uid}/ocr_history/{syncId}`.
-   - **Karty historii OCR z głośnikiem Pro:** karty `OcrHistoryItem` mają pełen zestaw akcji
-     jak w Translatorze — kopiuj, udostępnij, **czytaj (offline)**, **czytaj Pro (💎)**, skasuj.
-     Przycisk „czytaj Pro" działa dla Pro (`speakPro` → OpenRouter TTS), a dla free-userów jest
-     szary + tooltip (`pro_speaker_tooltip`), tak samo jak w `HistoryCard`.
-   - **OCR NIE ma pozycji w BottomNav** (celowo): pasek ma 5 kompletnych ikon i nie ma
-     slotu na OCR. Poprzednio `Screen.Ocr.route` figurował w `showBottomNav`, przez co na
-     ekranie OCR pokazywał się pasek, który nie potrafił ani zaznaczyć OCR, ani do niego
-     wrócić. OCR wchodzi się z Translatora (przycisk „From photo (OCR)"), wychodzi systemowym
-     backiem. Jeśli kiedyś OCR ma trafić do nawigacji, to jako 6. pozycja w `BottomNav.items`,
-     nie przez sam `showBottomNav`.
+### 3. Czat zdalny 1:1 (Chat)
 
-6. **Profil i Design System**:
-   - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**.
-   - Tryby: **Dzień (Day ☀️)** / **Noc (Night 🌙)**.
-   - Wybór języka interfejsu i domyślnej pary językowej.
-   - Wektorowe flagi SVG dla wszystkich języków.
-   - **Polityka prywatności** — karta otwierająca `mini.verbigem.com/privacy/`
-     w przeglądarce, w języku interfejsu (szczegóły w sekcji 🔒 niżej).
+- **Skrzynka (`ChatListScreen`)** — avatar, nick, podgląd ostatniej wiadomości, godzina, kropka nieprzeczytanych. **Sortowanie po `lastMessageAt` dzieje się w aplikacji**, nie w Firestore (`whereArrayContains` + `orderBy` na innym polu wymagałoby indeksu złożonego).
+- **Wątek (`ChatThreadScreen`)** — trasa `chat/{uid}`, bańki, dzielniki dni, ✓ (wysłane) / ✓✓ (przeczytane), „pisze…", menu po długim naciśnięciu (kopiuj / czytaj / czytaj Pro / pokaż oryginał / cytuj / usuń u mnie).
+- **⚠️ Tłumaczenie dzieje się u ODBIORCY (decyzja D1):** nadawca wysyła **oryginał** w `sourceLang` + własne tłumaczenie jako podpowiedź (`senderTranslation` — fallback dla odbiorców bez pobranego modelu). Odbiorca tłumaczy lokalnie Hy-MT2 na swój `speakLangSource` i **zapisuje wynik w Room** (`chat_translations`), żeby nie mielić modelu przy każdej rekompozycji. Przełącznik „pokaż oryginał" na każdej bańce + „Przetłumacz" po zmianie języka.
+- **Kolejka offline (`chat_outbox`):** wysyłka jest natychmiastowa — wiersz ląduje w Room (bańka „wysyłanie"), a `ConnectivityObserver` wyzwala wysyłkę. **Id dokumentu w Firestore = `clientMsgId`** (UUID sprzed wywołania sieci), więc ponowienie **nie tworzy duplikatu** (`set()` na tym samym id jest no-op).
+- **Potwierdzenia odczytu i „pisze…" żyją w subkolekcjach** `chats/{chatId}/readReceipts/{uid}` i `chats/{chatId}/typing/{uid}` — jeden dokument na uczestnika, reguła „możesz pisać tylko swój dokument". Dzięki temu `messages` pozostają **append-only**. Kropka nieprzeczytanych liczy się z lokalnej tabeli `chat_reads` (zero odczytów z chmury).
+- Paginacja: live listener na 50 najnowszych, starsze strony doczytywane `startAfter`.
+- **Wyszukiwanie ludzi idzie przez `usersPublic/{uid}`** — `users/{uid}` jest czytelne tylko dla właściciela, więc odpytywanie go z cudzego konta kończy się `PERMISSION_DENIED`. `AuthRepository` utrzymuje wizytówkę (nick, e-mail, avatar, języki + zlowercasowane `searchNick`/`searchEmail`), a `ensureProfile()` odnawia ją przy logowaniu.
+- **Znajomości są symetryczne:** `friendships` ma `members: [uidA, uidB]`, zapytanie `whereArrayContains("members", uid)`; jeden listener zasila `watchAccepted` / `watchIncoming` / `watchOutgoing`.
+- **Język docelowy tłumaczenia** = `ChatThreadViewModel.translationLang` = `langOverride` z karty kontaktu albo `speakLangSource` z profilu. Zmiana czyści mapę tłumaczeń w pamięci, ale **nie rusza cache w Room** (kluczowany językiem).
+- **⚠️ `chats/{chatId}` musi istnieć i mieć `members` ZANIM poleci wiadomość** — reguły dla `messages` robią `get(/chats/$(chatId)).data.members`. Dlatego `sendMessage()` najpierw upsertuje dokument czatu.
+- **Karta kontaktu (`contact/{uid}`)** — alias (tylko u mnie), język tłumaczenia, przypięcie, wyciszenie, blokada, notatka. Dane w **`users/{uid}/contacts/{otherUid}`** (pod MOIM dokumentem — nadany alias nie może pojawić się na cudzym telefonie), **Firestore, nie Room** (Firestore ma własny cache offline + ustawienia idą za kontem).
+  - `langOverride` = język, NA KTÓRY tłumaczone są **przychodzące** wiadomości. Celowo nie zmienia `sourceLang` wychodzących — to pole musi opisywać to, co faktycznie napisałem.
+  - **„Zablokuj" i „wycisz" są dziś lokalne** (brak Cloud Functions do egzekucji). **„Usuń rozmowę" = ukrycie lokalne** (`chat_hidden` w Room, migracja v6→v7) — wiadomości w Firestore są append-only.
+- **Media:** załączniki w Firebase Storage pod `chat_attachments/{chatId}/{msgId}` (reguły: tylko członkowie czatu, tylko nowe obiekty, `image/*` + `audio/*` do 25 MB). Zdjęcie → upload + opcjonalny OCR u nadawcy (`ocrText` w dokumencie), miniatura przez Coil, podgląd pełnoekranowy. **Głosówka = transkrypcja na żywo** przez `SpeechRecognizer` (`ChatMessage.transcript`), nie plik `.m4a` — `SpeechRecognizer` nie przyjmuje nagranego pliku i nie dzieli mikrofonu z `MediaRecorder`.
+- **Wyszukiwanie w wiadomościach:** Firestore nie ma full-text search — tylko zakres po prefiksie (`>= q`, `< q + "\uF8FF"`), więc „kot" nie znajdzie „Ala ma kota" (ograniczenie napisane wprost w UI). `searchText` zapisuje **wyłącznie Cloud Function** (reguły zabraniają klientowi) — inaczej klient mógłby zaindeksować coś innego niż wysłał. **Normalizacja musi być identyczna po obu stronach** (`functions/src/searchIndex.ts` ↔ `data/MessageSearch.kt`): NFD → zdjęcie `\p{M}` → lowercase → trim → 2000 znaków. Rozjazd objawia się **ciszą**: zero wyników, nic w logach. Zapytanie idzie **per czat**, nie jako collection group (group query przemiatałoby całą bazę, a reguły nie potrafią go ograniczyć).
+
+### 4. Kontakty i Znajomi (Contacts)
+
+- **Cztery zakładki:** Znajomi / Zaproszenia / Z telefonu / Zewnętrzne. Gdy pole wyszukiwania jest niepuste, zakładki znikają i pokazuje się `CombinedSearch` (znajomi + książka + zewnętrzni naraz).
+- **Znajomi z książki telefonicznej:** `PhoneContactsImporter` (`ContactsContract`) — imiona i numery, deduplikacja, odczyt na `Dispatchers.IO`. **Dane zostają na urządzeniu.**
+- **Prominent disclosure:** `ContactsPermissionScreen` wyjaśnia, co i po co czytamy, **zanim** system zapyta o `READ_CONTACTS` (wymóg Google Play); link do polityki + `privacy@verbigem.com`.
+- **Kanały wychodzące (`data/OutboundChannel.kt`)** — Verbigem tłumaczy, potem **przekazuje**; niczego nie wysyłamy sami, bo nie wiedzielibyśmy, czy dotarło.
+  | Kanał | Mechanizm | Ograniczenie |
+  |---|---|---|
+  | WhatsApp | `ACTION_VIEW` → `wa.me/<numer>?text=…`, paczka `com.whatsapp` → `w4b` → bez paczki | Nie wiemy, czy numer jest na WA |
+  | SMS | `ACTION_SENDTO` → `smsto:` + `sms_body` | **Celowo nie `SmsManager`** — `SEND_SMS` to wniosek do Play i ryzyko odrzucenia |
+  | E-mail | `ACTION_SENDTO` → `mailto:` | Wymaga adresu |
+  | Telegram | `t.me/share/url?url=…&text=…` | Otwiera wybór rozmowy, nie konkretną osobę |
+  | Inne | systemowy `ACTION_SEND` | Signal, Messenger itd. |
+- ☠️ **Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi, ale `t.me/share/url` **tak** — i to z jednoczesnym linkiem.
+- **`inviteContact` wołane po `channel.handOff`**, tylko gdy zwróci `true` i kanał nie jest `SystemShareChannel` — anulowanie arkusza udostępniania nie oznacza kontaktu fałszywie jako zaproszonego.
+- **Wątek jednokierunkowy (`ExternalThreadScreen`)** — dla kogoś bez konta. Room `version = 8`: `external_contacts` (klucz `phone`), `external_outbox`. **Decyzje, których nie wolno zmienić niechcący:**
+  - **Nazwa kanału w historii to `id`, nie tekst** (`whatsapp`/`sms`/`email`/`telegram`/`system`) — etykietę rozwiązuje `OutboundChannels.labelResFor(id)` przy wyświetlaniu, więc zmiana języka nie psuje starych wierszy.
+  - **`status` to zawsze `handed_off`** — wiersz zapisujemy **po** udanym hand-off, nigdy przed. To roszczenie, że coś wyszło z telefonu.
+  - **Język docelowy wybiera się ręcznie** — zewnętrzny kontakt nie ma profilu; ekran blokuje tłumaczenie, póki `lang` puste (`external_pick_lang_first`). Cicho przetłumaczone w złym języku i wysłane to błąd, którego nie da się cofnąć.
+  - **Wejście zapisuje kontakt w Room przed nawigacją** (`ContactsViewModel.rememberExternal` jest `suspend`), inaczej wątek zastałby pusty ekran.
+  - **Telefon w trasie jest kodowany** (`Uri.encode`/`Uri.decode`) — `+` w surowym segmencie ścieżki zachowuje się różnie między wersjami Androida.
+  - Historia przycinana do 90 dni (`pruneHistory`).
+- **Import `.vcf` (`data/VcfImporter.kt`)** — własny parser, zero zależności. Wyciąga `FN`/`N`, `TEL`, `EMAIL`; obsługuje wiele kart, `VERSION:2.1`/`3.0`, zwijanie linii. Celowo ignoruje `PHOTO`, grupy, adresy, wiele numerów. Nie rzuca na uszkodzonych kartach. Czytany przez `contentResolver` (`OpenDocument`, `text/vcard`), więc nie potrzebuje `READ_CONTACTS`.
+- **Zapraszanie:** systemowy share sheet z `https://mini.verbigem.com/app?inv=<uid>`.
+- **Możesz znać (3.9):** sekcja na szczycie zakładki Znajomi, kandydatów liczy Cloud Function `suggestFriends` (`functions/src/peopleMayKnow.ts`). Musi być po stronie serwera — klient czyta tylko własne `friendships` (reguły oparte na `members`), więc nie widzi znajomych swoich znajomych. Algorytm: przejście grafu ograniczone do `MAX_FRIENDS_WALKED = 100`, `mutualCount` malejąco, `MAX_SUGGESTIONS = 20`, brak nowego indeksu złożonego. Klient: `PeopleMayKnowRepository` — powierzchnia niekrytyczna, każdy błąd (offline, rate-limit, funkcja nie wdrożona) daje pustą listę i UI chowa sekcję.
+
+### 5. OCR ze zdjęcia/aparatu (Camera OCR)
+
+- **Aparat = PEŁNA ROZDZIELCZOŚĆ** — `ActivityResultContracts.TakePicture()` + `FileProvider` (`${packageName}.fileprovider`, `cache-path path="."`, katalog `cacheDir/ocr_camera/`), potem ten sam `processImageUri` co galeria. **NIE używamy `TakePicturePreview()`** — zwraca thumbnail ~160px, który psuje czytelność OCR.
+- `loadBitmap(uri)` czyta **EXIF orientation** i obraca bitmapę do pionu (aparat zapisuje obrócone; galeria auto-obraca, `BitmapFactory` nie).
+- OCR: **Google ML Kit Text Recognition** + tłumaczenie Hy-MT2.
+- **Crop przed odczytem:** ramka to **ręcznie napisany overlay** (`ui/screens/ocr/CropOverlay.kt`), NIE biblioteka (`cropview/` usunięte — gotowe biblioteki nie działały w tym układzie). Pojedynczy `Canvas` + **jeden** `pointerInput(Unit)`; rozciąganie 4 rogów (hit-radius 34dp) z nieruchomym rogiem przeciwnym; `awaitEachGesture` nie konsumuje gestu, który nie trafił uchwytu, więc strona się przewija. Współrzędne znormalizowane 0f..1f w `OcrViewModel.cropRectFlow`, domyślnie 0.1–0.9.
+- ⚠️ **Zachowanie gestów weryfikuje się TYLKO na telefonie po zainstalowaniu APK** — build to nie to samo co działający UX.
+- **OCR Pro (💎)** — przycisk obok Aparat/Galeria, dla free wyszarzony z tooltipem `ocr_pro_coming_soon`. Komponent `ProFeatureButton` (współdzielony z głośnikiem Pro).
+- **Streaming:** `OcrViewModel.translateText()` woła `translateSegmented(..., onPartial = { ... })` — wypisuje wynik przyrostowo, tak jak Translator.
+- **Własna historia OCR** — osobna tabela `ocr_history` i osobna kolekcja Firestore `users/{uid}/ocr_history/{syncId}`; te same zasady last-write-wins + tombstone, ale listy nigdy się nie mieszają. `SyncManager.syncCollection(...)` wołany dla `"history"` i `"ocr_history"`. Karty mają pełen zestaw akcji jak w Translatorze.
+- **OCR NIE ma pozycji w BottomNav (celowo).** Pasek ma 5 kompletnych ikon. OCR wchodzi się z Translatora, wychodzi systemowym backiem. Jeśli kiedyś ma trafić do nawigacji — jako 6. pozycja w `BottomNav.items`, **nie** przez sam `showBottomNav`.
+
+### 6. Kody QR
+
+Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` jest publiczne, więc podpisany token byłby nadmiarowy). Jeden parser `ProfileLinks.uidFromUrl` obsługuje skaner i App Links — zmiana schematu nie rozjeżdża się między kodem generującym a czytającym.
+
+- **Mój kod QR** — `MyQrScreen` + ZXing `core` 3.5.3 (`data/QRBitmap.kt`), trasa `Screen.MyQr`.
+- **Skaner** — `ScanScreen` na GMS Code Scanner (`play-services-code-scanner` 18.3.0). Obcy link → komunikat „to nie kod Verbigem", nie otwieramy obcych stron. Trasa `Screen.Scan`.
+- **App Links** — `intent-filter` VIEW z `autoVerify="true"`; `assetlinks.json` (SHA256 debug) leży w `mini/dist/.well-known/`. Obsługa w `MainActivity.handleDeepLink` + `AppNavigation.openProfileUid`.
+  > **Uwaga:** App Links z `autoVerify=true` działają dopiero, gdy w konsoli Firebase są wpisane odciski SHA certyfikatu podpisującego APK. Skanowanie działa niezależnie.
+
+### 7. Profil i Design System
+
+- Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**. Tryby: **Dzień ☀️** / **Noc 🌙**.
+- Wybór języka interfejsu i domyślnej pary językowej. Wektorowe flagi SVG.
+- Karta **Polityka prywatności** otwierająca `mini.verbigem.com/privacy/` w przeglądarce, w języku interfejsu.
 
 ---
 
-## 📋 Plan budowy: Czat i Kontakty
+## 📋 Czat i Kontakty — dokument towarzyszący
 
-Rozbudowa kart **Czat** i **Kontakty** jest rozpisana w osobnym, żywym dokumencie:
-**`chat_kontakty.md`** (katalog główny repo). Zawiera diagnozę obecnego stanu,
-macierz możliwości technicznych (co da się zrobić z importem kontaktów z WhatsApp
-/ Telegrama, a co nie), architekturę docelową, plan w fazach 0–5 oraz listę
-ryzyk. **Prace nad czatem i kontaktami zaczynamy od lektury tamtego pliku**, a
-każdą sesję kończymy aktualizacją jego tabeli „Postęp".
+Rozbudowa Czatu i Kontaktów jest rozpisana w **`chat_kontakty.md`** (katalog główny repo): diagnoza stanu, macierz możliwości technicznych, architektura docelowa, ryzyka. **Prace nad czatem i kontaktami zaczynamy od lektury tamtego pliku.**
 
-Najważniejsze ustalenia (szczegóły w `chat_kontakty.md`):
+Ustalenia, które wprost wynikają z tamtego planu i są już w kodzie:
 
-- **Tłumaczenie wiadomości dzieje się u ODBIORCY** — nadawca wysyła oryginał +
-  `sourceLang` + własne tłumaczenie jako podpowiedź (fallback dla odbiorców bez
-  pobranego modelu). **Zrealizowane w fazie 1** (cache w `chat_translations`).
-- **Faza 1 (skrzynka + wątek) jest w kodzie gotowa** — bez backendu, bez Cloud
-  Functions. **Wydana jako v26** (na produkcji; test na telefonie u Milosza).
-  Szczegóły w `chat_kontakty.md`.
-- **Karta kontaktu (1.13) jest w kodzie gotowa** — alias, język tłumaczenia per
-  kontakt, przypnij / wycisz / zablokuj, notatka, usuń rozmowę. Czeka na wydanie.
-  **Blokada i wyciszenie są na razie lokalne** (brak Cloud Functions), a
-  „usuń rozmowę" to ukrycie lokalne (wiadomości w Firestore są append-only).
-- **Nie da się zaimportować listy kontaktów z WhatsApp ani Telegrama** (brak API).
-  Źródłem listy jest **książka telefoniczna + opcjonalnie plik `.vcf`**, a WhatsApp
-  / SMS / e-mail są **kanałami dostarczenia** na wyjściu.
-- **Weryfikacja numeru telefonu jest leniwa** — przy pierwszym wejściu w Czat lub
-  Kontakty, nie przy rejestracji. Umożliwia matching kontaktów po zahaszowanym numerze.
-- Cloud Functions (matching + FCM) wchodzą w fazie 2 i **wymagają planu Blaze**.
+- Tłumaczenie u odbiorcy (decyzja D1) + cache w `chat_translations`.
+- **Nie da się zaimportować listy kontaktów z WhatsApp ani Telegrama** (brak API). Źródłem listy jest książka telefoniczna + opcjonalnie `.vcf`, a WhatsApp / SMS / e-mail są kanałami dostarczenia.
+- **Weryfikacja numeru jest leniwa** — przy pierwszym wejściu w Czat lub Kontakty, nie przy rejestracji.
+- Cloud Functions (matching + FCM) wymagają planu **Blaze** (wykupiony, decyzja D6).
 
 ---
 
 ## 🔒 Polityka prywatności (opublikowana)
 
-**URL do zgłoszenia w Google Play:** `https://mini.verbigem.com/privacy/`
-Wersje językowe: `/privacy/pl/`, `/en/`, `/de/`, `/es/`, `/zh/`, `/tr/`.
-Adres kontaktowy do spraw prywatności: **privacy@verbigem.com**.
+**URL do zgłoszenia w Google Play:** `https://mini.verbigem.com/privacy/` · wersje: `/privacy/pl/`, `/en/`, `/de/`, `/es/`, `/zh/`, `/tr/` · kontakt: **privacy@verbigem.com**.
 
-**Źródło treści:** `verbigem/mini/scripts/build_privacy.py` — jeden plik z całą
-treścią w 6 językach i arkuszem stylów. To jedyne źródło prawdy; skrypt
-generuje statyczne HTML do `public/privacy/` **i** `dist/privacy/`.
+**Źródło treści:** `verbigem/mini/scripts/build_privacy.py` — jedyne źródło prawdy, generuje statyczne HTML do `public/privacy/` **i** `dist/privacy/`.
 
 ```bash
 cd verbigem/mini && python scripts/build_privacy.py
 cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem
 ```
 
-**Dlaczego `public/` i `dist/` naraz?** `firebase deploy --only hosting`
-zastępuje hosting zawartością `dist/`. W `dist/` pliki muszą być, bo to ono
-leci na serwer. W `public/` muszą być, żeby przetrwały przyszły
-`npm run build` Vite (Vite kopiuje `public/` → `dist/`, ale najpierw `dist/`
-czyści — patrz sekcja o APK niżej).
-
-**Struktura URL-i:** katalogi (`/privacy/pl/index.html`), **nie** płaskie pliki
-`/privacy/pl.html`. `firebase.json` ma catch-all rewrite `** → /index.html`
-(webapp SPA), więc gdyby pliku nie było, `/privacy/pl` dostałoby stronę
-webappy. Ze slashem serwowany jest prawdziwy plik statyczny, a `/privacy/pl`
-dostaje 301 → `/privacy/pl/`.
-
-**`/privacy/index.html`** = pełna treść po angielsku (crawler Google Play i
-przeglądarki bez JS zawsze widzą politykę) + przełącznik języków + mały skrypt
-przekierowujący wg `navigator.languages` (raz na sesję, `sessionStorage`).
-
-**⚠️ Cache:** `firebase.json` daje `/privacy/**` nagłówek
-`public, max-age=3600, must-revalidate`. **Nigdy nie dawaj tam `immutable`** —
-Cloudflare zamroziłby politykę na rok (ta sama pułapka co przy `/android/**`).
-Styl jest **inlinowany** do każdego pliku właśnie dlatego, że reguła
-`**/*.css` ma `immutable`.
-
-### Gdzie polityka jest w aplikacji
+- **Dlaczego `public/` i `dist/` naraz:** `firebase deploy --only hosting` zastępuje hosting zawartością `dist/`; `public/` musi być, żeby treść przetrwała przyszły `npm run build` (Vite kopiuje `public/` → `dist/`, ale najpierw czyści `dist/`).
+- **Struktura URL-i:** katalogi (`/privacy/pl/index.html`), **nie** płaskie pliki — `firebase.json` ma catch-all rewrite `** → /index.html`, więc brak pliku = strona webappy. `/privacy/pl` dostaje 301 → `/privacy/pl/`.
+- **⚠️ Cache:** `/privacy/**` ma `public, max-age=3600, must-revalidate`. **Nigdy nie dawaj tam `immutable`** — Cloudflare zamroziłby politykę na rok (ta sama pułapka co przy `/android/**`). Styl jest **inlinowany** właśnie dlatego, że reguła `**/*.css` ma `immutable`.
 
 | Miejsce | Plik | Co robi |
 |---|---|---|
 | Profil → karta „Polityka prywatności" | `ProfileScreen.kt` | otwiera `/privacy/<uiLang>/` w przeglądarce |
 | Kontakty → prominent disclosure | `ContactsPermissionScreen.kt` | ekran wyjaśnienia **przed** systemowym dialogiem `READ_CONTACTS` (wymóg Play) |
 
-URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy):
-`privacyPolicy(uiLang)` w profilu (preferencja użytkownika),
-`privacyPolicyFor(context)` tam, gdzie preferencji nie mamy (czyta faktyczny
-język zasobów). Oba otwierają **przeglądarkę**, nie WebView — użytkownik widzi
-pasek adresu i naszą domenę.
+URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy): `privacyPolicy(uiLang)` i `privacyPolicyFor(context)`. Oba otwierają **przeglądarkę, nie WebView**.
 
-**Zasada spójności:** treść ekranu disclosure (stringi `contacts_perm_*` × 6
-języków) musi zgadzać się z opublikowaną polityką. Zmiana polityki na stronie
-**nie wymaga** nowego wydania APK; zmiana stringów w aplikacji — tak.
+**Zasada spójności:** treść disclosure (stringi `contacts_perm_*` × 6) musi zgadzać się z opublikowaną polityką. Zmiana polityki na stronie **nie wymaga** nowego APK; zmiana stringów — tak.
 
-**`READ_CONTACTS`** jest w manifeście, ale aplikacja prosi o nie wyłącznie po
-ekranie wyjaśnienia. Numery nie opuszczają urządzenia — do chmury (faza 2/3,
-Cloud Function `matchContacts`) mają iść wyłącznie skróty SHA-256 + HMAC.
+**`READ_CONTACTS`** jest w manifeście, ale aplikacja prosi o nie wyłącznie po ekranie wyjaśnienia. Numery nie opuszczają urządzenia — do chmury (Cloud Function `matchContacts`) idą wyłącznie skróty SHA-256 + HMAC.
 
 ---
 
 ## 🎨 Branding — ikona launchera i logo webapp
 
-Zasoby graficzne (docelowo logo **Firefly**, przezroczyste PNG):
+- **Ikona apki:** `app/src/main/res/drawable/ic_launcher_firefly.png` (RGBA, przezroczyste tło) + `ic_launcher_foreground.xml` (`<inset android:drawable="@drawable/ic_launcher_firefly" android:inset="20%" />`). minSDK 26 → nie trzeba rasterowych mipmap.
+  ⚠️ **Nie podmieniaj na nieprzezroczyste PNG** — `logov.png` (RGB, białe tło wypieczone) zostało celowo odrzucone; używaj **tylko** RGBA.
+- **Logo webapp (mini):** `verbigem/mini/public/logo-firefly.png` → `/logo-firefly.png`, wyświetlane przed `<h1>Mini Verbigem</h1>`. Vite kopiuje `public/` → `dist/` przy `npm run build`, więc zmiana pliku wymaga przebudowy webappy (zob. *Flow wydania*, krok 5).
 
-- **Ikona apki (Android):** `app/src/main/res/drawable/ic_launcher_firefly.png`
-  (RGBA, przezroczyste tło) + `app/src/main/res/drawable/ic_launcher_foreground.xml`,
-  który opakowuje je w `<inset android:drawable="@drawable/ic_launcher_firefly"
-  android:inset="20%" />` (wpisuje PNG w safe-zone 66dp/108dp). minSDK 26 →
-  nie trzeba rasterowych mipmap (legacy).
-  ⚠️ Nie podmieniaj na nieprzezroczyste PNG — `logov.png` (RGB, białe tło wypieczone)
-  zostało celowo odrzucone; używaj **tylko** przezroczystych (RGBA).
-- **Logo webapp (mini):** `verbigem/mini/public/logo-firefly.png`, serwowane pod
-  `/logo-firefly.png`. Wyświetlane przed `<h1>Mini Verbigem</h1>` na `TranslatorPage.tsx`
-  i `LoginPage.tsx`. Vite kopiuje `public/` → `dist/` przy `npm run build`, więc
-  zmiana pliku w `public/` wymaga przebudowania webappy (zob. *Flow wydania*, krok 5).
+---
 
 ## 🛠️ Architektura techniczna
 
 ```
 app/src/main/
 │   ├── cpp/
-│   │   ├── CMakeLists.txt              # Kompilacja biblioteki współdzielonej libverbigem_llama.so
+│   │   ├── CMakeLists.txt              # libverbigem_llama.so
 │   │   ├── llama_jni.cpp               # Mostek JNI C++ do wnioskowania GGUF
-│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), branch STQ_0 (PR #22836 STQ1_0 kernel)
+│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), branch STQ_0 (PR #22836)
 │   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
 ├── java/com/verbigem/app/
-│   ├── MainActivity.kt             # Punkt wejścia i Edge-to-Edge Compose + dialog auto-update
-│   ├── VerbigemApplication.kt      # Inicjalizacja Firebase + startowa synchronizacja (SyncManager) + reaktywny sync (ConnectivityObserver)
+│   ├── MainActivity.kt             # Entry point, Edge-to-Edge Compose, dialog auto-update, deep linki
+│   ├── VerbigemApplication.kt      # Firebase + SyncManager + ConnectivityObserver + App Check + FCM
 │   ├── data/
-│   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline (trigger sync na włączenie netu)
-│   │   ├── local/                  # Room v7: HistoryEntity/Dao, OcrHistoryEntity/Dao, TtsConfigEntity/Dao, PendingDeleteEntity/Dao, ChatRoomEntities (chat_translations, chat_outbox, chat_reads, chat_deleted_messages, chat_hidden), ChatRoomDaos + DataStore Preferences
-│   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage (+SenderTranslation), ChatSummary, Friendship, EngineChoice, TranslationHistory, TtsConfig
-│   │   ├── AppLinks.kt             # Polityka prywatności (URL wg języka), InviteLinks, openUrl(), shareText()
-│   │   ├── PhoneContactsImporter.kt # Odczyt książki telefonicznej (ContactsContract) — dane zostają na urządzeniu
-│   │   └── repository/             # AuthRepository, ChatRepository, HistoryRepository, ProTtsRepository, SyncManager, TtsConfigSync
+│   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline
+│   │   ├── local/                  # Room v8: History, OcrHistory, TtsConfig, PendingDelete,
+│   │   │                           #   ChatRoomEntities (chat_translations, chat_outbox, chat_reads,
+│   │   │                           #   chat_deleted_messages, chat_hidden), external_* + DataStore
+│   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage, ChatSummary,
+│   │   │                           #   Friendship, EngineChoice, TranslationHistory, TtsConfig
+│   │   ├── AppLinks.kt             # Polityka prywatności, ProfileLinks, InviteLinks, openUrl(), shareText()
+│   │   ├── PhoneContactsImporter.kt, PhoneNumbers.kt, VcfImporter.kt, OutboundChannel.kt,
+│   │   ├── MessageSearch.kt, QRBitmap.kt
+│   │   └── repository/             # Auth, Chat, History, OcrHistory, ProTts, PeopleMayKnow,
+│   │                               #   ExternalThread, Storage + SyncManager, TtsConfigSync
 │   ├── engine/
-│   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2 z promptem  i czyszczeniem
+│   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2: prompt, translateSegmented, sanityzacja
 │   │   ├── ModelDownloader.kt      # Pobieranie i cache modeli GGUF z Hugging Face
-│   │   ├── SpeechManager.kt        # Natywne Android STT (SpeechRecognizer) + TTS
+│   │   ├── SpeechManager.kt        # Android STT (SpeechRecognizer) + TTS
 │   │   ├── OcrManager.kt           # Google ML Kit Text Recognition
-│   │   ├── OnlineApiEngine.kt      # Chmurowy proxy DeepSeek
+│   │   ├── OnlineApiEngine.kt      # Chmurowe proxy DeepSeek
 │   │   ├── ProTtsEngine.kt         # Płatne TTS przez OpenRouter (/audio/speech)
-│   │   └── UpdateManager.kt        # Auto-update: Firebase Hosting (mini.verbigem.com) → OkHttp pobranie APK → instalacja
-│   ├── jni/
-│   │   └── LlamaNativeBridge.kt    # JNI deklaracje external fun
+│   │   └── UpdateManager.kt        # Auto-update: Hosting → OkHttp → instalacja APK
+│   ├── jni/LlamaNativeBridge.kt    # JNI external fun
 │   └── ui/
-│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog, AdBannerView, ProFeatureButton (Pro+grayscale+tooltip)
+│       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog,
+│       │                           #   AdBannerView, ProFeatureButton (Pro + grayscale + tooltip)
 │       ├── navigation/             # AppNavigation, Screen
-│       ├── screens/                # TranslatorScreen (+HistoryCard, ResultCard), ConversationScreen, ChatListScreen, ChatThreadScreen, ContactCardScreen, ContactsScreen (+ContactsPermissionScreen), OcrScreen (+CropOverlay), ProfileScreen, LoginScreen
+│       ├── screens/                # Translator, Conversation, ChatList, ChatThread, ContactCard,
+│       │                           #   Contacts (+ContactsPermission), Ocr (+CropOverlay), ExternalThread,
+│       │                           #   Profile, MyQr, Scan, Login
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
+
+**Migracje Room (skrót):** v2→v3 `pending_deletes` (kolejka tombstone'ów) · v3→v4 `ocr_history` (+ kolumna `collection` w `PendingDeleteEntity`) · v5→v6 cztery tabele czatu · v6→v7 `chat_hidden` · v7→v8 `external_contacts` + `external_outbox`.
 
 ---
 
 ## 🔤 Jak działa tłumaczenie
 
-Tłumaczenie jest **w 100% lokalne** (offline, bez serwera) — tekst trafia do modelu
-**Hy-MT2-1.8B** uruchomionego natywnie przez vendored **llama.cpp** (kernel `STQ1_0`,
-PR #22836) przez mostek **C++/JNI**. Pipeline krok po kroku:
+Tłumaczenie jest **w 100% lokalne** (offline, bez serwera) — tekst trafia do modelu **Hy-MT2-1.8B** uruchomionego natywnie przez vendored **llama.cpp** (kernel `STQ1_0`, PR #22836) przez mostek **C++/JNI**.
 
 ```
-EditText (Compose)
-   │  onInputChanged
-   ▼
-TranslatorViewModel.translate()
-   │  uruchamia korutynę (Dispatchers.Default)
-   ▼
-HyMt2NativeEngine.translate(text, from, to, isAccurate, onPartial)
-   │  1. ensureModelLoaded()  — ładuje .gguf z filesDir/models/ (mmap)
-   │  2. buildPrompt()        — "Translate the following segment into <TARGET>,
-   │                             without additional explanation：<TEXT>"
-   │  3. generateNativeStreaming()  — wywołanie JNI (C++)
-   ▼
-llama_jni.cpp (C++)
-   │  • llama_chat_apply_template("hunyuan-dense")  — wymagany szablon czatu
-   │  │   (tokeny <｜hy_User｜>, <｜hy_Assistant｜> itd.)
-   │  • llama_tokenize → llama_decode (pętla autoregresyjna)
-   │  • po każdym tokienie: llama_token_to_piece → bufor wyrazów
-   │  • gdy nowy token zaczyna się od spacji → flush poprzedniego wyrazu
-   │  │   przez callback onToken(piece)  ← STREAMING WYRAZAMI
-   ▼
-TokenStreamCallback.onToken(piece)  (Kotlin)
-   │  accumulated.append(piece); onPartial(accumulated.toString())
-   ▼
-TranslatorViewModel  →  _primaryResult / _secondaryResult (StateFlow)
-   ▼
-TranslatorScreen  —  Text() z nowym wyrazem (recompose, bez migotania)
+EditText (Compose) → TranslatorViewModel.translate()   [Dispatchers.Default]
+   → HyMt2NativeEngine.translate(text, from, to, isAccurate, onPartial)
+        1. ensureModelLoaded()  — ładuje .gguf z filesDir/models/ (mmap)
+        2. buildPrompt()        — "Translate the following segment into <TARGET>,
+                                  without additional explanation：<TEXT>"
+        3. generateNativeStreaming()  — JNI (C++)
+   → llama_jni.cpp: llama_chat_apply_template("hunyuan-dense") → llama_tokenize
+        → llama_decode (pętla autoregresyjna)
+        → po każdym tokenie llama_token_to_piece → bufor wyrazów
+        → gdy nowy token zaczyna się od spacji → flush wyrazu przez onToken(piece)
+   → TokenStreamCallback.onToken → accumulated.append; onPartial(acc)
+   → TranslatorViewModel → _primaryResult / _secondaryResult (StateFlow)
+   → TranslatorScreen — Text() z nowym wyrazem (recompose, bez migotania)
 ```
 
 **Kluczowe fakty:**
 
-- **Model:** `Hy-MT2-1.8B-1.25Bit.gguf` (silnik Szybki, ~440 MB) lub
-  `Hy-MT2-1.8B-Q4_K_M.gguf` (silnik Dokładny, ~1.1 GB). Pobierany z Hugging Face
-  przez `ModelDownloader` przy pierwszym uruchomieniu.
-- **STQ1_0 to kernel CPU-only** — `gpuLayers = 0` (wymuszone, bo kwant 1.25-bit
-  nie ma ścieżki GPU). Akceleracja: ARM NEON + (opcjonalnie) KleidiAI.
-- **Szablon czatu `hunyuan-dense` jest obowiązkowy.** Surowy prompt bez niego daje
-  bełkot — model oczekuje tokenów `<|hy_User|>` / `<|hy_Assistant|>`.
-- **Streaming wyrazami:** natywna pętla wysyła do UI **ukończone wyrazy**, a nie
-  surowe subwordy (np. `trans`+`lat`+`ion` zostają w buforze do granicy słowa).
-  Dzięki temu UI nie migocze literami, a użytkownik widzi tekst przyrostowo.
-
-- **Tłumaczenie segmentami (cała strona tekstu):** Hy-MT2 to model **segmentowy** —
-  dostaje cały akapit i tłumaczy tylko PIERWSZE zdanie, po czym daje EOS (stąd w historii
-  OCR widać było urwany wynik: "Ten produkt tytoniowy zawiera substancje toksyczne:" i koniec).
-  Żeby przetłumaczyć CAŁY tekst, `HyMt2NativeEngine.translateSegmented()` dzieli wejście na
-  segmenty (~400 znaków) na granicach zdań (`.!?\n` — `splitIntoSegments`), a nadmiarowo
-  długie zdanie łamie dalej po słowach, i tłumaczy każdy segment osobnym wywołaniem
-  `translate()`, a potem składa wynik (segmenty łączone `\n\n`). Dla pojedynczego krótkiego
-  zdania zachowuje się dokładnie jak `translate()` (jeden call, streaming 1:1).
-  **Sanityzacja NIE ucina już do pierwszej linii** (`sanitizeTranslation` zwraca całość —
-  poprzednio `split("\n")` brało tylko pierwszy wiersz, co dodatkowo obcinało wynik).
-  `TranslatorViewModel` i `OcrViewModel` wołają `translateSegmented` dla silników lokalnych
-  (Fast/Accurate/Both); online (DeepSeek) idzie bez zmian. UI nadal streamuje przyrostowo
-  (na poziomie segmentów) przez `onPartial`.
-  Szczegóły + gotowa implementacja Kotlin: skill `hy-mt2-offline-translation`
-  (`references/segmented-translation.md`) — przeczytaj przed modyfikacją silnika tłumaczenia.
-- **Sanityzacja:** `sanitizeTranslation()` na końcu usuwa ew. znaczniki `<think>`,
-  wiodące cudzysłowy i etykiety typu "Tłumaczenie:". **NIE** ucina już do pierwszego
-  akapitu (poprzednia wersja brała tylko pierwszą linię — to obcinało wielozdaniowe
-  tłumaczenia; cała obsługa wielu zdań jest w `translateSegmented`).
-- **Języki:** model wymaga **angielskich nazw** języków w prompcie
-  (`LangCode.englishName`), nie kodów ISO.
-- **Wydajność:** native lib budowany jako **Release** (`-DCMAKE_BUILD_TYPE=Release`)
-  + KleidiAI; przy ~3–4 tok/s na telefonie ze słabszym ARM tekst pojawia się wyraz
-  po wyrazie w akceptowalnym tempie.
+- **Modele:** `Hy-MT2-1.8B-1.25Bit.gguf` (Szybki, ~440 MB) / `Hy-MT2-1.8B-Q4_K_M.gguf` (Dokładny, ~1.1 GB). Pobierane z Hugging Face przez `ModelDownloader` przy pierwszym uruchomieniu.
+- **STQ1_0 to kernel CPU-only** — `gpuLayers = 0` (wymuszone; kwant 1.25-bit nie ma ścieżki GPU). Akceleracja: ARM NEON + (opcjonalnie) KleidiAI.
+- ⚠️ **Szablon czatu `hunyuan-dense` jest obowiązkowy.** Surowy prompt bez niego daje bełkot — model oczekuje tokenów `<|hy_User|>` / `<|hy_Assistant|>`.
+- **Streaming wyrazami:** natywna pętla wysyła do UI **ukończone wyrazy**, nie surowe subwordy (`trans`+`lat`+`ion` zostają w buforze do granicy słowa), więc UI nie migocze literami.
+- ⚠️ **Tłumaczenie segmentami (`translateSegmented`) — Hy-MT2 to model segmentowy:** dostaje cały akapit i tłumaczy tylko PIERWSZE zdanie, po czym daje EOS. Żeby przetłumaczyć CAŁY tekst, wejście jest dzielone na segmenty (~400 znaków) na granicach zdań (`.!?\n`), nadmiarowo długie zdanie łamane dalej po słowach, każdy segment tłumaczony osobnym wywołaniem, wynik składany `\n\n`. Dla krótkiego zdania zachowuje się jak `translate()`. `TranslatorViewModel` i `OcrViewModel` wołają `translateSegmented` dla silników lokalnych (Fast/Accurate/Both); online (DeepSeek) idzie bez zmian. Szczegóły: skill `hy-mt2-offline-translation` → `references/segmented-translation.md` (**przeczytaj przed modyfikacją silnika tłumaczenia**).
+- **Sanityzacja:** `sanitizeTranslation()` usuwa znaczniki `<think>`, wiodące cudzysłowy, etykiety „Tłumaczenie:". **NIE** ucina do pierwszego akapitu — cała obsługa wielu zdań jest w `translateSegmented`.
+- **Języki:** model wymaga **angielskich nazw** w prompcie (`LangCode.englishName`), nie kodów ISO.
+- **Wydajność:** native lib budowany jako Release (`-DCMAKE_BUILD_TYPE=Release`) + KleidiAI; ~3–4 tok/s na słabszym ARM.
 
 ---
 
 ## 💎 Czytaj Pro (płatne TTS przez OpenRouter)
 
-Funkcja dostępna tylko dla użytkowników Pro (`UserProfile.isPro`). Zamiast darmowego
-`TextToSpeech` (offline) używa chmurowego API OpenRouter (`/v1/audio/speech`).
+Dostępne tylko dla użytkowników Pro (`UserProfile.isPro`). Zamiast darmowego `TextToSpeech` (offline) używa `https://openrouter.ai/api/v1/audio/speech`.
 
-**Widoczność dla free:** ikona głośnika Pro (💎) jest **zawsze wyświetlana** — użytkownicy free widzą
-ją wyszarzoną (kolor `muted`) i po kliknięciu dostają **tooltip** ("Dostępne w wersji Pro",
-string `pro_feature_tooltip` we wszystkich 6 językach) zamiast odtwarzania. To uświadamia free-userom
-istnienie funkcji. Dla Pro ikona jest aktywna (kolor `accent`) i odpala `ProTtsEngine`.
-Komponent współdzielony: `ui/components/ProFeatureButton.kt` (`TooltipBox` + `PlainTooltip`,
-`ExperimentalMaterial3Api`) — używany też przez OCR Pro.
+**Widoczność dla free:** ikona głośnika Pro (💎) jest **zawsze wyświetlana** — wyszarzona (kolor `muted`), po kliknięciu daje **tooltip** (`pro_feature_tooltip`, 6 języków) zamiast odtwarzania. Dla Pro jest aktywna (kolor `accent`) i odpala `ProTtsEngine`. Komponent: `ui/components/ProFeatureButton.kt` (`TooltipBox` + `PlainTooltip`, `ExperimentalMaterial3Api`) — współdzielony z OCR Pro.
 
-**Komponenty:**
-- `ProTtsEngine.speak(text, lang, config)` — wysyła POST do `https://openrouter.ai/api/v1/audio/speech`
-  z `model`, `input`, `voice`, `response_format=mp3`; odtwarza zwrócony mp3 przez `MediaPlayer`.
-- `TtsConfig` (model domenowy) — `apiKey`, `defaultModelId`, `chineseModelId`, `defaultVoice`,
-  `chineseVoice`, `updatedAt`. Metody `modelIdFor(lang)` / `voiceFor(lang)` wybierają
-  osobny model dla `LangCode.ZH`.
-- `ProTtsRepository` + `TtsConfigDao`/`TtsConfigEntity` — cache w Room (`tts_config`, 1 wiersz, id=1).
-- `TtsConfigSync` — przy starcie pobiera `app_config/tts` z Firestore i nadpisuje lokalne
-  (jeśli `remote.updatedAt >= local.updatedAt`).
-
-**Wybrane modele (sierpień 2026, stosunek cena/jakość):**
-- Domyślny (PL/EN/ES/DE/TR): `google/gemini-3.1-flash-tts-preview` (~$1/M in + $20/M out tokens, 70+ języków).
-- Chiński (osobny): `fish-audio/s2.1-pro` (chiński-native, wysoka jakość ZH; jest też darmowy `fish-audio/s2.1-pro-free`).
-- Odrzucone: `hexgrad/kokoro-82m` (tani, ale brak PL/TR).
-
-**Konfiguracja:** `apiKey` wpisuje się ręcznie do Firestore (`app_config/tts`) do czasu
-powstania webappu admina. App nie ma UI do wpisywania klucza (zgodnie ze specyfikacją:
-"ręcznie do bazy teraz, webapp później").
+- `ProTtsEngine.speak(text, lang, config)` — POST `model`, `input`, `voice`, `response_format=mp3`; odtwarza mp3 przez `MediaPlayer`.
+- `TtsConfig` — `apiKey`, `defaultModelId`, `chineseModelId`, `defaultVoice`, `chineseVoice`, `updatedAt`; `modelIdFor(lang)` / `voiceFor(lang)` wybierają osobny model dla `LangCode.ZH`.
+- `ProTtsRepository` + `TtsConfigDao`/`TtsConfigEntity` — cache w Room (`tts_config`, 1 wiersz, id=1). `TtsConfigSync` przy starcie pobiera `app_config/tts` i nadpisuje lokalne, gdy `remote.updatedAt >= local.updatedAt`.
+- **Modele:** domyślny `google/gemini-3.1-flash-tts-preview` (70+ języków), chiński `fish-audio/s2.1-pro`. Odrzucone: `hexgrad/kokoro-82m` (brak PL/TR).
+- **Konfiguracja:** `apiKey` wpisuje się ręcznie do Firestore (`app_config/tts`) do czasu powstania webappu admina. App nie ma UI do wpisywania klucza.
 
 ---
 
 ## 🔄 Synchronizacja danych (startup sync, last-write-wins)
 
-`SyncManager.syncNow()` uruchamiany w `VerbigemApplication.onCreate()` (korutyna IO,
-`SupervisorJob`). Wykonuje się raz przy starcie (po zalogowaniu Firebase).
+`SyncManager.syncNow()` uruchamiany w `VerbigemApplication.onCreate()` (korutyna IO, `SupervisorJob`), raz przy starcie po zalogowaniu Firebase.
 
-**Zakres (per użytkownik, `uid = FirebaseAuth.currentUser.uid`):**
-1. **Profil** (`users/{uid}`) — odczyt (plan/wallet determinują `isPro`; real-time sync
-   i tak idzie przez `ProfileViewModel.watchProfile`).
-2. **Historia** (`users/{uid}/history/{syncId}`) — każdy wiersz ma stabilny `syncId` (UUID),
-   używany jako document id. Merge:
-   - Lokalne → remote: jeśli `remote` nie istnieje LUB `local.updatedAt >= remote.updatedAt`,
-     `set(merge)` lokalnego wiersza.
-   - Remote → local: jeśli `remote.updatedAt > local.updatedAt`, `upsertFromRemote`.
-3. **TTS Pro** (`app_config/tts`) — przez `TtsConfigSync`.
+**Zakres (per `uid`):** profil (`users/{uid}`) · historia (`users/{uid}/history/{syncId}`) · TTS Pro (`app_config/tts`).
 
-**Usuwanie (tombstone, kluczowe):** lokalnie kasujemy wiersz **fizycznie** (żeby baza nie puchła),
-ale zapisujemy jego `syncId` do lekkiej tabeli `pending_deletes` (tylko `syncId` + `updatedAt`).
-Przy następnym syncu wysyłamy do Firestore **tombstone** = `{syncId, deleted:true, updatedAt}`
-(zamiast pełnego wiersza). Inne urządzenie widzi `deleted:true` i usuwa wiersz u siebie.
-Dzięki temu:
-- usunięcia **propagują się** między telefonem a tabletem (nie "odżywają" przy syncu),
-- działa nawet przy usunięciu **offline** — `pending_deletes` przetrwa brak netu i zostanie
-  wysłane przy najbliższym syncu (zwykły sync iteruje po istniejących wierszach, więc bez
-  tej kolejki offline-delete nigdy by nie wysłał tombstone'a),
-- lokalna baza nie puchnie (trzymamy tylko `syncId`, nie pełny usunięty wiersz).
+**Merge (last-write-wins po `updatedAt`):** lokalne → remote, gdy `remote` nie istnieje lub `local.updatedAt >= remote.updatedAt` (`set(merge)`); remote → local, gdy `remote.updatedAt > local.updatedAt` (`upsertFromRemote`).
 
-**Delta-sync na timestampach (kluczowe dla wydajności):** sync NIE czyta całej historii ani nie wysyła
-wszystkiego za każdym razem. Każda kolekcja (`history`, `ocr_history`) ma w DataStore watermark
-`lastSyncHistory` / `lastSyncOcr` (timestamp ostatniego udanego sync'u).
-- **Push (lokalne→chmura):** do Firestore wysyłane są TYLKO wiersze z `updatedAt > lastSyncX`
-  (repo. `getLocalSince(since)` → `WHERE updatedAt > :since`). Reszta jest pomijana — przy tysiącach
-  wpisów nie wysyłamy megabajtów tekstu przy każdym syncu.
-- **Pull (chmura→lokal):** Firestore zapytanie `WHERE updatedAt > lastSyncX ORDER BY updatedAt` —
-  serwer zwraca TYLKO nowsze dokumenty (w tym tombstone'y, które niosą własne `updatedAt`). Nie
-  pobieramy nigdy pełnej listy id.
-- **Tombstone:** lokalny delete zapisuje `PendingDeleteEntity(syncId, collection, updatedAt=now)`;
-  tombstone jest pchany do chmury tylko gdy `updatedAt > lastSyncX`.
-- Po syncu: `lastSyncX = max(dotychczasowe, największe updatedAt z lokalnych pushed + remote pulled)`.
-  Dzięki temu kolejny sync przesuwa się tylko do przodu (brak redundantnych transferów).
+**Usuwanie (tombstone, kluczowe):** lokalnie kasujemy wiersz **fizycznie**, ale zapisujemy `syncId` do tabeli `pending_deletes`. Przy następnym syncu wysyłamy tombstone `{syncId, deleted:true, updatedAt}`. Dzięki temu usunięcia **propagują się** między urządzeniami (nie „odżywają"), działają po usunięciu **offline**, a lokalna baza nie puchnie.
 
-**Cap historii: max 200 wpisów (obie listy).** Po każdym `addHistory` (i po każdym syncu Firestore)
-repo woła `pruneToLimit()` — DAO `DELETE … WHERE id NOT IN (SELECT id … ORDER BY timestamp DESC LIMIT 200)`.
-Najstarsze wpisy są kasowane, gdy dochodzą nowe. Dotyczy zarówno `translation_history` (Translator)
-jak i `ocr_history` (OCR). Stała limitu = 200 (na sztywno w SQL, brak preferencji).
+**Delta-sync na timestampach:** każda kolekcja (`history`, `ocr_history`) ma w DataStore watermark `lastSyncHistory` / `lastSyncOcr`.
+- **Push:** tylko wiersze z `updatedAt > lastSyncX` (`getLocalSince(since)`).
+- **Pull:** Firestore `WHERE updatedAt > lastSyncX ORDER BY updatedAt` — serwer zwraca tylko nowsze dokumenty (w tym tombstone'y).
+- Po syncu: `lastSyncX = max(dotychczasowe, największe updatedAt z pushed + pulled)` — kolejny sync przesuwa się tylko do przodu.
 
-**Infinity-scroll historii (offset paging, bez Paging 3):** listy historii w UI (Translator i OCR) NIE
-ładują całej tabeli do pamięci. Repository eksponuje `getPage(offset, limit)` (DAO
-`HistoryDao.getPage` / `OcrHistoryDao.getPage`: `SELECT … ORDER BY timestamp DESC LIMIT :limit OFFSET :offset`),
-a ViewModel trzyma `historyItems: StateFlow<List<TranslationHistory>>` + `loadMoreHistory()`
-(append kolejnej strony, pageSize 20) + `resetHistory()` (po dodaniu/usunięciu). W Composable
-`val historyItems by viewModel.historyItems.collectAsState()`, `LazyColumn(state = historyListState)`
-i `LaunchedEffect(historyListState) { snapshotFlow { layoutInfo → ostatni widoczny = totalItemsCount-1 }
-.collect { if (atEnd) viewModel.loadMoreHistory() } }` — ładuje kolejne strony przy scrollowaniu do końca.
-`allHistory` (pełna lista Flow) zostaje TYLKO dla startup sync'u (delta `getLocalSince`).
-UWAGA: Paging 3 (`androidx.paging`) został usunięty — w lokalnym Gradle cache brak JAR-ów
-`paging-runtime`/`paging-compose` (offline build), więc używamy ręcznego offset-pagingu (czysty
-Room + StateFlow, zero zewnętrznych libs). Działa identycznie: nie ładujemy całej historii.
+**Cap historii: max 200 wpisów** (obie listy). Po każdym `addHistory` i po każdym syncu repo woła `pruneToLimit()` (`DELETE … WHERE id NOT IN (SELECT id … ORDER BY timestamp DESC LIMIT 200)`). Stała na sztywno w SQL.
 
-Sync jest też wyzwalany **natychmiast po każdym usunięciu** w `TranslatorViewModel.deleteHistory`
-(gdy online) — tombstone wychodzi bez czekania na restart app.
+**Infinity-scroll (offset paging, bez Paging 3):** repo eksponuje `getPage(offset, limit)` (`ORDER BY timestamp DESC LIMIT :limit OFFSET :offset`), VM trzyma `historyItems` + `loadMoreHistory()` (pageSize 20) + `resetHistory()`. `allHistory` (pełny Flow) zostaje TYLKO dla startup sync'u. UWAGA: Paging 3 został usunięty — w lokalnym Gradle cache brak JAR-ów `paging-runtime`/`paging-compose` (offline build).
 
-**Reaktywny sync (od wersji 1.0.1):** sync nie czeka już na restart app. Dwa dodatkowe triggery:
-- **Po każdej zmianie historii** — `TranslatorViewModel.addHistoryAndSync()` (wrap `historyRepository.addHistory`)
-  oraz `OcrViewModel.addHistory()` odpalają `SyncManager.syncNow()` zaraz po zapisie lokalnym, więc
-  nowe tłumaczenie/OCR trafia do chmury bez czekania na zamknięcie app.
-- **Na włączenie sieci** — `ConnectivityObserver` (`data/ConnectivityObserver.kt`, `callbackFlow` na
-  `NetworkCallback`) nasłuchuje `onAvailable`. `VerbigemApplication` subskrybuje `isOnline` i na
-  przejściu `false→true` wywołuje `SyncManager.syncNow(uid)`. Dzięki temu offline-edits (dodania i
-  tombstone'y z `pending_deletes`) wylatują do Firestore w momencie odzyskania netu — rozwiązuje
-  scenariusz "telefon + tablet pracują offline, po połączeniu tylko jedna historia się wgrała".
-- Startup sync pozostaje (AuthStateListener w `VerbigemApplication` + `LaunchedEffect(uid)` w
-  `AppNavigation`) jako fallback dla zimnego startu.
+**Reaktywny sync — dwa dodatkowe triggery:**
+- **Po każdej zmianie historii** — `TranslatorViewModel.addHistoryAndSync()`, `OcrViewModel.addHistory()` odpalają `SyncManager.syncNow()` zaraz po zapisie lokalnym.
+- **Na włączenie sieci** — `ConnectivityObserver` (`callbackFlow` na `NetworkCallback`) nasłuchuje `onAvailable`; `VerbigemApplication` wywołuje sync na przejściu `false→true`. Rozwiązuje „telefon + tablet offline, po połączeniu tylko jedna historia się wgrała".
+- Startup sync zostaje jako fallback dla zimnego startu. Sync odpalany jest też **natychmiast po każdym usunięciu** (`deleteHistory`, gdy online).
 
-**Głośnik / odczyt historii — animacja tylko na czytanej karcie.** Każdy wiersz historii (i wynik)
-pokazuje `CircularProgressIndicator` zamiast ikony głośnika TYLKO gdy ten konkretny wiersz jest czytany.
-Stan to `speakingSyncId` / `speakingProSyncId` (ViewModel; `null` lub syncId czytanego wiersza),
-a karta porównuje `item.syncId == speakingSyncId`. Poprzednio był jeden współdzielony `isSpeaking: Boolean`,
-przez co animacja włączała się na WSZYSTKICH kartach naraz.
+**Głośnik — animacja tylko na czytanej karcie.** Stan to `speakingSyncId` / `speakingProSyncId` (`null` lub syncId czytanego wiersza); karta porównuje `item.syncId == speakingSyncId`. Poprzednio był jeden współdzielony `isSpeaking: Boolean` i animacja włączała się na wszystkich kartach naraz.
 
-**Odczyt historii w JĘZYKU WŁASNYM wiersza.** `speakHistory(item)` / `speakProHistory(item)` czytają
-tekst w `LangCode.fromCode(item.targetLang)` — języku zapisanym przy tym konkretnym tłumaczeniu, a NIE
-w bieżącym języku UI (który może się różnić od języka sprzed tygodnia). Dotyczy obu ekranów
-(Translator `speakHistory`, OCR `speakHistory`). Wynik/edycja OCR czytają w bieżącym `targetLang`
-(`viewModel.speak(text, targetLang)`).
-- v6→v7 (karta kontaktu): `chat_hidden` (`chatId` PK, `hiddenAt`) — rozmowy usunięte
-  ze skrzynki („usuń rozmowę"). Ustawienia per kontakt idą do Firestore, nie do Room
-  — patrz wyżej.
-- v5→v6 (faza 1 czatu): cztery tabele —
-  - `chat_translations` (`msgId` + `targetLang` = PK, `chatId`, `translatedText`,
-    `updatedAt`) — cache tłumaczeń wykonanych na TYM urządzeniu (decyzja D1),
-  - `chat_outbox` (`clientMsgId` PK, `chatId`, `text`, `sourceLang`, `createdAt`,
-    `status`, `attempts`) — kolejka wysyłek; id = klucz dokumentu w Firestore
-    (idempotencja ponowień),
-  - `chat_reads` (`chatId` PK, `lastReadAt`) — lokalny znacznik przeczytania
-    (kropka „nieprzeczytane" w skrzynce, zero odczytów z chmury),
-  - `chat_deleted_messages` (`msgId` PK, `deletedAt`) — lokalne tombstone'y
-    „usuń u mnie" (wiadomości w Firestore są append-only).
-- v2→v3: nowa tabela `pending_deletes` (`syncId TEXT PK`, `updatedAt INTEGER`) — kolejka tombstone'ów.
-- v3→v4: nowa tabela `ocr_history` (`id PK`, `syncId`, `sourceText`, `translatedText`,
-  `sourceLang`, `targetLang`, `timestamp`, `updatedAt`) — **lokalna historia OCR, synced do
-  własnej kolekcji Firestore `ocr_history`** (nie do `history` Translatora; SyncManager woła
-  `syncCollection(uid, "ocr_history", ocrHistoryRepository)`). `PendingDeleteEntity` zyskało
-  kolumnę `collection` („history" / „ocr_history"), by tombstone trafił do właściwej kolekcji.
-- `translation_history`: kolumny `syncId TEXT`, `updatedAt INTEGER` (z v2). **To jest historia Translatora**,
-  synchronizowana z `users/{uid}/history/{syncId}` przez `SyncManager`.
-- `tts_config` (id, apiKey, defaultModelId, chineseModelId, defaultVoice, chineseVoice, updatedAt).
-- `HistoryDao`: `insert`, `update`, `getBySyncId`, `upsertBySyncId`, `deleteById`, `deleteBySyncId`, `clearAll`,
-  `getAllHistory` (Flow, LIMIT 50 — dla sync delta), `getSince(since)` (delta push), `getPage(offset, limit)` (UI).
-- `OcrHistoryDao`: `getAll` (Flow, LIMIT 50), `getPage(offset, limit)` (UI), `getSince(since)` (delta push),
-  `insert`, `deleteById`, `clearAll`.
-- `PendingDeleteDao`: `insert`, `getAll`, `deleteBySyncId`, `clearAll`.
-- `TranslationHistory.create()` generuje `syncId` (UUID) + `updatedAt` (teraz).
+**Odczyt w języku WŁASNEGO wiersza.** `speakHistory(item)` / `speakProHistory(item)` czytają w `LangCode.fromCode(item.targetLang)` — języku zapisanym przy tym tłumaczeniu, nie w bieżącym języku UI. Wynik/edycja OCR czytają w bieżącym `targetLang`.
 
 **Filter logcat:** `SyncManager`.
 
@@ -601,9 +289,7 @@ w bieżącym języku UI (który może się różnić od języka sprzed tygodnia)
 
 ## 📦 Auto-aktualizacja APK
 
-`UpdateManager` + dialog w `MainActivity` (`StartupGate` / `UpdateDownloadDialog`). Po starcie (raz,
-`LaunchedEffect`) odczytuje **`/updates/version.json`** z **Firebase Hosting** pod domeną
-`mini.verbigem.com` — `UpdateManager.updateJsonUrl`:
+`UpdateManager` + dialog w `MainActivity` (`StartupGate` / `UpdateDownloadDialog`). Po starcie (raz, `LaunchedEffect`) odczytuje **`/updates/version.json`** z Firebase Hosting (`UpdateManager.updateJsonUrl`):
 ```
 https://mini.verbigem.com/updates/version.json
 ```
@@ -618,679 +304,120 @@ https://mini.verbigem.com/updates/version.json
   "updatedAt": "2026-09-03"
 }
 ```
-gdy `info.versionCode > currentVersionCode()` → `AlertDialog` (stringi: `update_available_title`,
-`update_available_body`, `update_action`, `update_later`). W trakcie pobierania pokazuje się drugi
-dialog — `UpdateDownloadDialog`: pasek + **procenty + licznik megabajtów**
-(`update_downloading_title` / `update_downloading_body` / `update_download_percent` /
-`update_download_bytes`). Błąd pobierania jest **widoczny** (`update_failed_title`, `update_failed`)
-i daje przycisk `update_retry` — wcześniej szedł tylko do logcatu, a dialog wisiał na 0% bez wyjścia.
+Gdy `info.versionCode > currentVersionCode()` → `AlertDialog` (`update_available_title/body/action/later`). W trakcie pobierania `UpdateDownloadDialog`: pasek + procenty + licznik MB (`update_downloading_title/body/percent/bytes`). Błąd pobierania jest **widoczny** (`update_failed_title`, `update_failed`) i daje `update_retry` — wcześniej szedł tylko do logcatu, a dialog wisiał na 0% bez wyjścia.
 
 ### Jak działa postęp pobierania (tu były dwa błędy — nie powielaj ich)
 
-- `UpdateManager.downloadAndInstall` emituje `MutableStateFlow<DownloadProgress>`
-  (`bytesRead`, `totalBytes`; `totalBytes == 0` = serwer nie podał `Content-Length`, wtedy
-  `fraction == -1f` i UI pokazuje pasek nieoznaczony + sam licznik MB).
-  **Każdy tick to nowa instancja** — `MutableStateFlow` deduplikuje po `equals()`, więc stary
-  model (`MutableStateFlow<Float?>`, w którym `-1f` powtarzał się w kółko przy braku
-  Content-Length) był po cichu gubiony i nie generował rekompozycji.
-- Tick leci co **64 KB albo 250 ms** (`EMIT_EVERY_BYTES` / `EMIT_EVERY_MS`) — na wolnym łączu
-  pasek i licznik MB ruszają się, zamiast czekać na pierwsze 256 KB (stary próg).
-- Flow żyje w **`MainActivity`, nie w `remember {}`** (`MainActivity.downloadProgress`), a
-  `StartupGate` czyta go `collectAsState()` **w swoim własnym scopie** i przekazuje wartość jako
-  **parametr** do `UpdateDownloadDialog`.
-  Dlaczego tak: `AlertDialog` renderuje się do osobnego okna = **subkompozycja**. Gdy stan jest
-  czytany **wyłącznie** wewnątrz treści dialogu, rodzic się nie rekomponuje i dialog dalej
-  pokazuje wartość z pierwszej kompozycji (objaw: „pasek zamarznięty na 0%"). Odczyt w scopie
-  rodzica + przekazanie parametrem omija całą tę klasę problemu.
-- **Diagnoza na telefonie:** logcat `UpdateManager` wypisuje co ~1 MB
-  `Download progress: X KB / Y KB`, a po końcu `Download finished, bytes=… (content-length=…)`.
-  Jeśli pasek stanie, te linie mówią wprost, czy winna jest sieć, czy Compose.
+- `UpdateManager.downloadAndInstall` emituje `MutableStateFlow<DownloadProgress>` (`bytesRead`, `totalBytes`; `totalBytes == 0` = brak `Content-Length` → `fraction == -1f`, pasek nieoznaczony + sam licznik MB). **Każdy tick to nowa instancja** — `MutableStateFlow` deduplikuje po `equals()`, więc stary model (`MutableStateFlow<Float?>`, w którym `-1f` powtarzał się w kółko) był po cichu gubiony i nie generował rekompozycji.
+- Tick leci co **64 KB albo 250 ms** (`EMIT_EVERY_BYTES` / `EMIT_EVERY_MS`).
+- ⚠️ **Flow żyje w `MainActivity`, nie w `remember {}`** (`MainActivity.downloadProgress`), a `StartupGate` czyta go `collectAsState()` **w swoim własnym scopie** i przekazuje wartość jako **parametr** do `UpdateDownloadDialog`. `AlertDialog` renderuje się do osobnego okna = **subkompozycja**: gdy stan czytany jest wyłącznie wewnątrz treści dialogu, rodzic się nie rekomponuje i dialog pokazuje wartość z pierwszej kompozycji (objaw: „pasek zamarznięty na 0%").
+- **Diagnoza:** logcat `UpdateManager` wypisuje co ~1 MB `Download progress: X KB / Y KB`, po końcu `Download finished, bytes=… (content-length=…)`.
 
-**Źródło pliku update — DWA pliki, nie pomyl:** katalog `dist/` w projekcie webapp
-(`verbigem/mini`), deployowany przez `firebase deploy --only hosting --project mini-verbigem`
-(ten sam projekt Firebase `mini-verbigem` co webappa i Firestore).
-- **`dist/updates/version.json` — TEN, KTÓRY CZYTA APPKA.** Trzymany ręcznie. Jako jedyny ma w
-  `apkUrl` **cache-buster `?v=N`** (`...app-debug-v25.apk?v=25`): query omija pułapkę
-  `Cache-Control: immutable` na `/android/**` (CDN cache'uje URL z query jako osobny obiekt),
-  więc nowy `versionCode` → nowy `?v=` → świeże bajty bez purgowania Cloudflara.
-- `dist/android/version.json` — generowany przez plugin `injectBuildId` w `vite.config.ts`
-  przy każdym `npm run build`. Appka go NIE czyta, ale trzymaj go zgodnego z `/updates/`,
-  bo inaczej pierwszy `npm run build` cofnie `versionCode` do wartości z `vite.config.ts`.
-APK wrzucamy jako `dist/android/app-debug-vN.apk`.
+### ⚠️ Źródło pliku update — DWA pliki, nie pomyl
 
-**Ścieżki:**
-- `onPlayStore == false` (AKTYWNA): `downloadAndInstall()` pobiera APK przez **OkHttp 4.12**
-  (własna instancja `okhttp3.OkHttpClient`, NIE systemowy `com.android.okhttp`) asynchronicznie na
-  `Dispatchers.IO`.
-  - Własny `okhttp3.Dns` (lookup przez `InetAddress.getAllByName`) — omija zepsuty resolver
-    platformy na niektórych ROM (Xiaomi MIUI + Private DNS rzuca `Unable to resolve host` dla
-    `*.web.app`; domena `mini.verbigem.com` resolwi się poprawnie, więc **używamy `.com`, nie `.web.app`**).
-  - Po pobraniu (weryfikacja: `length >= 1 MB`, by odrzucić przypadkowy HTML) → instalacja
-    przez `Intent.ACTION_INSTALL_PACKAGE` + `FileProvider` (`${packageName}.fileprovider`).
-    Wymaga uprawnienia `REQUEST_INSTALL_PACKAGES`.
-- `onPlayStore == true` (po rejestracji w Google Play): `openPlayStore()` → otwiera sklep.
+Katalog `dist/` w `verbigem/mini`, deployowany przez `firebase deploy --only hosting --project mini-verbigem` (ten sam projekt Firebase `mini-verbigem` co webappa i Firestore).
 
-**NIE używamy już:** GitHub repo / raw / API do update'ów (porzucone — `app_config_update.json` na git
-usunięte z obiegu). Firestore `app_config/update` to tylko fallback w `fetchUpdateInfo()`
-(gdy Hosting niedostępny), ale w praktyce update idzie z Hostingu.
+- **`dist/updates/version.json` — TEN, KTÓRY CZYTA APPKA.** Trzymany ręcznie. Jako jedyny ma w `apkUrl` **cache-buster `?v=N`** (`...app-debug-v25.apk?v=25`): query omija pułapkę `Cache-Control: immutable` na `/android/**` (CDN cache'uje URL z query jako osobny obiekt), więc nowy `versionCode` → nowy `?v=` → świeże bajty bez purgowania Cloudflara.
+- `dist/android/version.json` — generowany przez plugin `injectBuildId` w `vite.config.ts` przy każdym `npm run build`. Appka go **NIE czyta**, ale trzymaj go zgodnego z `/updates/` — inaczej pierwszy `npm run build` cofnie `versionCode` do wartości z `vite.config.ts`.
 
-**Jak wypuścić nową wersję (BEZ KABLA, BEZ GIT PUSH):**
-1. W `app/build.gradle.kts` podnieś `versionCode` (+1) i `versionName`.
-2. Zbuduj APK (NDK ~7 min). Preferowana komenda — **bezpośrednio przez wrapper Javy**:
-   ```bash
-   JAVA_HOME="C:/Users/milo/.jdks/jbr-21.0.11" ANDROID_HOME="C:/Users/milo/AppData/Local/Android/Sdk" \
-     "C:/Users/milo/.jdks/jbr-21.0.11/bin/java.exe" \
-     -classpath "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain \
-     assembleDebug --console=plain
-   ```
-   (`gradlew.bat` / `cmd.exe /c` działają z terminala Windows, ale w niektórych środowiskach
-   `cmd.exe` jest blokowany — wtedy wrapper Javy jest jedyną drogą.)
-   Wynik: `app/build/outputs/apk/debug/app-debug.apk`.
-3. Skopiuj `app/build/outputs/apk/debug/app-debug.apk` → `verbigem/mini/dist/android/app-debug-vN.apk`
-   (N = nowy versionCode).
-4. Wyedytuj **`verbigem/mini/vite.config.ts`** (sekcja `android/version.json` w pluginie `injectBuildId`):
-   ustaw `versionCode` = N, `versionName` = nowa nazwa,
-   `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk?v=N` (**z `?v=N`**), `updatedAt`.
-5. Wyedytuj **`verbigem/mini/dist/updates/version.json`** — TE SAME wartości (to ten plik
-   czyta `UpdateManager`).
-   - ⚠️ **Nie uruchamiaj `npm run build`.** Vite czyści `dist/` przed buildem (znikną wszystkie
-     `dist/android/*.apk`) i zmienia hashe assetów webappy, czyli cicho podmienia działającą
-     stronę na `mini.verbigem.com`. Ręczna edycja `dist/updates/version.json` jest poprawna
-     **pod warunkiem** że krok 4 zrobiłeś identycznie — inaczej pierwszy `npm run build`
-     wygeneruje `version.json` ze starym `versionCode` i rozjedzie się z wgranym APK
-     (serwer poda starszą wersję niż zainstalowana → brak promptu o update).
-   - Jeśli jednak MUSISZ przebudować webapp: kopia zapasowa `dist/android/` + `dist/updates/`,
-     `npm run build`, przywrócenie APK-ów, przepisanie `dist/updates/version.json`.
-6. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
-7. Gotowe — appka na telefonie sama wykryje nową wersję przy starcie i zaproponuje update.
-8. Po deployu **zweryfikuj**: `https://mini.verbigem.com/updates/version.json` (nie
-   `/android/`!) musi zwracać nowy `versionCode`. W razie wątpliwości
-   `curl -s ".../android/app-debug-vN.apk?v=N" | sha256sum` i porównaj z lokalnym plikiem.
+**Ścieżki:** `onPlayStore == false` (AKTYWNA) → `downloadAndInstall()` pobiera APK przez **OkHttp 4.12** (własna instancja `okhttp3.OkHttpClient`, NIE systemowy `com.android.okhttp`) na `Dispatchers.IO`. Własny `okhttp3.Dns` (lookup przez `InetAddress.getAllByName`) omija zepsuty resolver na niektórych ROM (Xiaomi MIUI + Private DNS rzuca `Unable to resolve host` dla `*.web.app`) — **używamy `.com`, nie `.web.app`**. Weryfikacja po pobraniu: `length >= 1 MB` (odrzuca przypadkowy HTML) → instalacja `Intent.ACTION_INSTALL_PACKAGE` + `FileProvider`. `onPlayStore == true` → `openPlayStore()`.
+
+**NIE używamy już GitHub (repo / raw / API) do update'ów.** Firestore `app_config/update` to tylko fallback w `fetchUpdateInfo()` (gdy Hosting niedostępny).
+
+**Wymagane w manifeście:** `REQUEST_INSTALL_PACKAGES`, `<provider>` FileProvider z `android:authorities="${applicationId}.fileprovider"`.
+
+**Filter logcat:** `UpdateManager` (`Starting APK download`, `Download started/finished`, `Download error`, `Install launch failed`).
 
 ### ⚠️ Pułapka: `immutable` cache na `/android/**` — NIGDY nie nadpisuj istniejącej nazwy APK
 
-`firebase.json` ustawia dla `/android/**` nagłówek `Cache-Control: public, max-age=31536000,
-immutable`. W praktyce: **każdy plik pod `/android/` jest zamrażany w CDN (Cloudflare) na rok**.
+`firebase.json` ustawia dla `/android/**` nagłówek `Cache-Control: public, max-age=31536000, immutable`. W praktyce: **każdy plik pod `/android/` jest zamrażany w CDN (Cloudflare) na rok**.
 
-- Nowa, **nieużywana wcześniej** nazwa pliku (`app-debug-v24.apk`) → nie ma jej w cache →
-  CDN pobiera świeżą treść. Działa od razu. ✅
-- **Nadpisanie istniejącej nazwy** (`app-debug-v23.apk` wrzucony drugi raz z inną treścią) →
-  Firebase przyjmie nowe bajty, ale CDN nadal serwuje starą kopię. Użytkownik pobierze
-  POPRZEDNIĄ wersję spod tej samej nazwy. ❌
+- Nowa, **nieużywana wcześniej** nazwa (`app-debug-v24.apk`) → nie ma jej w cache → świeża treść. ✅
+- **Nadpisanie istniejącej nazwy** (`app-debug-v23.apk` wrzucony drugi raz z inną treścią) → Firebase przyjmie nowe bajty, ale CDN nadal serwuje starą kopię; użytkownik pobierze POPRZEDNIĄ wersję. ❌
 
-Jak to rozpoznać (diagnoza z 2026-09-03):
+Diagnoza:
 ```
-curl -s https://mini.verbigem.com/android/app-debug-v23.apk | sha256sum   # stary hash
+curl -s https://mini.verbigem.com/android/app-debug-v23.apk | sha256sum          # stary hash
 curl -s "https://mini.verbigem.com/android/app-debug-v23.apk?cb=$RANDOM" | sha256sum  # nowy hash
 curl -sI https://mini.verbigem.com/android/app-debug-v23.apk | grep -iE 'last-modified|age'
 ```
-Jeśli `?cb=` daje inny hash niż czysty URL ⇒ to cache CDN, nie Firebase. Firebase **ma** nowy
-plik (potwierdza to też domena `*.web.app`, która cache'uje osobno).
+Jeśli `?cb=` daje inny hash niż czysty URL ⇒ to cache CDN, nie Firebase (Firebase **ma** nowy plik; potwierdza to domena `*.web.app`, która cache'uje osobno).
 
-Wniosek praktyczny: **zawsze wypuszczaj nowy `versionCode` = nowa nazwa pliku.** Nadpisywanie
-tej samej nazwy wymagałoby purgu cache w Cloudflare (brak tokena w repo) i i tak jest
-niezgodne z konwencją wersjonowania.
-
-Jeśli mimo to trzeba zweryfikować, co naprawdę serwuje serwer:
-`aapt2 dump badging <plik.apk> | head -1` — pokazuje `versionCode` / `versionName`
-wbudowane w pobrany APK (`C:/Users/milo/AppData/Local/Android/Sdk/build-tools/36.0.0/aapt2.exe`).
+**Wniosek: zawsze wypuszczaj nowy `versionCode` = nowa nazwa pliku.** Nadpisanie tej samej nazwy wymagałoby purgu w Cloudflare (brak tokena w repo). Co serwuje serwer, sprawdzisz: `aapt2 dump badging <plik.apk> | head -1` (`C:/Users/milo/AppData/Local/Android/Sdk/build-tools/36.0.0/aapt2.exe`).
 
 ### ⚠️ `mini.verbigem.com` to TA SAMA webapp — deploy APK nie może jej przebudować
 
-`verbigem/mini` serwuje na `mini.verbigem.com` aplikację **Mini Verbigem — Translator**
-(własny `index.html` + bundle z `mini/src`). `firebase deploy --only hosting` **zastępuje
-całą zawartość hostingu** zawartością `dist/` — plików, których w `dist/` nie ma, zostaną
-USUNIĘTE z serwera.
+`verbigem/mini` serwuje na `mini.verbigem.com` aplikację **Mini Verbigem — Translator**. `firebase deploy --only hosting` **zastępuje całą zawartość hostingu** zawartością `dist/` — plików, których w `dist/` nie ma, zostaną **USUNIĘTE z serwera**.
 
-Dlatego przy wypuszczaniu APK **nie wolno przebudowywać webappu przy okazji**:
-
-- `npm run build` w `mini` zmienia hashe assetów (`assets/index-*.js`, `index-*.css`), bo
-  wynik zależy od wersji zależności w `node_modules`, a nie tylko od `src/`.
-  Przebudowa = cicha podmiana działającej strony.
-- **Bezpieczna procedura** (użyta 2026-09-03): `dist/` odtworzony **co do bajtu** ze stanu
-  na serwerze + zmienione TYLKO `android/version.json` i nowy APK.
+- `npm run build` w `mini` zmienia hashe assetów (`assets/index-*.js`), bo wynik zależy od wersji zależności w `node_modules`, nie tylko od `src/`. **Przebudowa = cicha podmiana działającej strony.**
+- **Bezpieczna procedura:** `dist/` odtworzony **co do bajtu** ze stanu na serwerze + zmienione TYLKO `android/version.json` i nowy APK.
   1. kopia `dist/android/` (Vite czyści `dist/`),
-  2. pobranie wdrożonych plików: lista + ścieżki są w `mini/.firebase/hosting.ZGlzdA.cache`
-     (`ZGlzdA` = base64 „dist"), każdy `curl -o dist/$p https://mini.verbigem.com/$p`,
-  3. sprawdzenie `find dist -type f` vs lista z cache — **żadnego nowego i żadnego brakującego
-     pliku** (inaczej deploy coś doda/usunie),
+  2. pobranie wdrożonych plików — lista + ścieżki w `mini/.firebase/hosting.ZGlzdA.cache` (`ZGlzdA` = base64 „dist"), każdy `curl -o dist/$p https://mini.verbigem.com/$p`,
+  3. sprawdzenie `find dist -type f` vs lista z cache — **żadnego nowego i żadnego brakującego pliku**,
   4. podmiana `android/version.json` + wrzucenie APK.
-  Wtedy `firebase deploy` zgłasza `uploading new files [0/1]` — czyli webapp nietknięta
-  (potwierdzenie: `/version.json` z `BUILD_ID` nie zmienia wartości).
+  Wtedy `firebase deploy` zgłasza `uploading new files [0/1]` — webapp nietknięta (potwierdzenie: `/version.json` z `BUILD_ID` nie zmienia wartości).
 
-**Osobne projekty — nie pomyl:** `mini` → projekt Firebase `mini-verbigem` (mini.verbigem.com).
-`webapp` → projekt `verbigem-app-7k2` (verbigem.com, językowa apka do nauki). Deploy z `mini`
-**nie ma fizycznie jak** nadpisać `webapp`.
+**Osobne projekty — nie pomyl:** `mini` → projekt `mini-verbigem` (mini.verbigem.com). `webapp` → projekt `verbigem-app-7k2` (verbigem.com). Deploy z `mini` **nie ma fizycznie jak** nadpisać `webapp`.
 
 ### 🐛 Uśpiony błąd: `npm run build` w mini sypie błędem (tesseract.js)
 
-`src/ocr/OcrPage.tsx` (linia 64) robi `await import('tesseract.js')`, ale pakietu nie było
-w `package.json` ani w `package-lock.json` — był zainstalowany tylko w `node_modules`, które
-potem zostało wyczyszczone. Skutek: `tsc -b` → `TS2307: Cannot find module 'tesseract.js'`,
-a `vite build` → `Rollup failed to resolve import "tesseract.js"`.
+`src/ocr/OcrPage.tsx` robi `await import('tesseract.js')`, ale pakietu nie było w `package.json` ani w `package-lock.json` — był tylko w `node_modules`, które potem wyczyszczono. Skutek: `tsc -b` → `TS2307`, `vite build` → `Rollup failed to resolve import`. Naprawione przez `npm install tesseract.js --save`.
 
-Naprawione 2026-09-03 przez `npm install tesseract.js --save` (dopisany do `package.json`).
-UWAGA: wersja `tesseract.js` wchodzi w skład bundle'a, więc jej zmiana **zmienia hashe
-assetów** — po reinstalacji nie zakładaj, że build odtworzy wdrożoną stronę co do bajtu.
-
-**Wymagane w manifeście:** `REQUEST_INSTALL_PACKAGES`, `<provider>` FileProvider z
-`android:authorities="${applicationId}.fileprovider"`.
-
-**Filter logcat:** `UpdateManager` (logi: `Starting APK download`, `Download started/finished`,
-`Download error`, `Install launch failed`).
+⚠️ Wersja `tesseract.js` wchodzi w skład bundle'a, więc jej zmiana **zmienia hashe assetów** — po reinstalacji nie zakładaj, że build odtworzy wdrożoną stronę co do bajtu.
 
 ---
 
-
-
 ## 🌍 Wielojęzyczność — ZAKAZ hardkodowania tekstów UI
 
-Aplikacja jest **wielojęzyczna** (PL, EN, DE, ES, ZH, TR). **Pod karą nie wolno** hardkodować
-żadnych tekstów interfejsu (etykiet, komunikatów, tooltipów, opisów) bezpośrednio w kodzie
-Kotlin/Compose (ani po polsku, ani po angielsku).
-
-**Zasady:**
+Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie wolno** hardkodować żadnych tekstów interfejsu (etykiet, komunikatów, tooltipów, opisów) w kodzie Kotlin/Compose — ani po polsku, ani po angielsku.
 
 1. Każdy widoczny tekst UI musi pochodzić z `stringResource(R.string.xxx)`.
-2. Zasoby znajdują się w:
-   - `app/src/main/res/values/strings.xml` — **domyślny (angielski)**,
-   - `values-pl/`, `values-de/`, `values-es/`, `values-zh/`, `values-tr/` — tłumaczenia.
-3. Etykiety silników (`EngineChoice`) i opisy tooltipów używają `descriptionResId` /
-   `labelResId` mapowanych na `R.string.*` (nie `labelKey` z hardkodowanym tekstem).
-4. Komunikaty błędów z warstwy `engine`/* (np. `HyMt2NativeEngine`) pobieramy przez
-   `context.getString(R.string.xxx)` — **nie** dosłowny string w kodzie.
-5. Po dodaniu nowego `string` do `values/strings.xml` **należy** dodać go do wszystkich
-   pozostałych `values-xx/strings.xml` (nawet jeśli to tymczasowy angielski fallback).
-6. Klucze akcji historii/result: `action_copy`, `action_share`, `action_read`, `action_read_pro`,
-   `action_delete`. Dialog update: `update_available_title/body/action/later`. Reklama: `ad_banner_label/text`.
+2. Zasoby: `app/src/main/res/values/strings.xml` (**domyślny = angielski**) oraz `values-pl/`, `values-de/`, `values-es/`, `values-zh/`, `values-tr/`.
+3. Etykiety silników (`EngineChoice`) i tooltipy używają `descriptionResId` / `labelResId` mapowanych na `R.string.*` (nie `labelKey` z hardkodowanym tekstem).
+4. Komunikaty błędów z warstwy `engine/*` bierzemy przez `context.getString(R.string.xxx)`.
+5. **Po dodaniu `string` do `values/strings.xml` należy dodać go do wszystkich pozostałych `values-xx/strings.xml`** (nawet jako tymczasowy angielski fallback).
+6. Klucze akcji historii/result: `action_copy`, `action_share`, `action_read`, `action_read_pro`, `action_delete`. Dialog update: `update_available_title/body/action/later`. Reklama: `ad_banner_label/text`.
+
+⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 
 ---
 
 ## 🔥 Firebase — konfiguracja projektu
 
-- **Projekt Firebase:** `mini-verbigem` (project_number `1064156518963`, zgodne z
-  `app/google-services.json` → `mobilesdk_app_id` `1:1064156518963:...`).
-- **Package:** `com.verbigem.app`.
+- **Projekt:** `mini-verbigem` (project_number `1064156518963`). **Package:** `com.verbigem.app`.
 - **Kolekcje Firestore:**
-  - `users/{uid}` — profil (`UserProfile`: plan, walletCreditsCents, uiLang, speakLang*, ...).
-    **Czytelny wyłącznie przez właściciela.**
-  - `usersPublic/{uid}` — publiczna wizytówka do wyszukiwania (`PublicProfile`): uid,
-    nickname, photoURL, uiLang, speakLangSource/Target, `searchNick`, `searchEmail`
-    (zlowercasowane, bo Firestore nie ma case-insensitive `whereGreaterThanOrEqualTo`).
-    Read dla zalogowanych, **create/update tylko właściciel**. Utrzymywana przez
-    `AuthRepository`; backfill starych kont: `node backfill_faza0.js --apply`.
-  - `users/{uid}/history/{syncId}` — historia tłumaczeń (sync, last-write-wins).
-  - `friendships/{id}` (kolekcja główna) — `members: [uidA, uidB]` + uidA/uidB, status,
-    requestedBy, nicki. Zapytania **po `members`**.
-  - `chats/{chatId}` (+ `chats/{chatId}/messages`) — czat/kontakty. Dokument czatu
-    **musi** mieć `members`, inaczej reguły odrzucą każdą wiadomość. Zawiera też
-    `lastMessage`, `lastMessageAuthorId`, `lastMessageAt` (ms) — zasilają skrzynkę.
-    Wiadomość: `authorId`, `sourceLang`, `text` (ORYGINAŁ), `senderTranslation`
-    (`{lang, text}` — podpowiedź nadawcy), `type`, `clientMsgId`. Id dokumentu =
-    `clientMsgId`, więc ponowienie wysyłki jest idempotentne.
-  - `chats/{chatId}/readReceipts/{uid}` — `{uid, lastReadAt}` — potwierdzenia
-    odczytu (jeden dokument na uczestnika; reguła: tylko własny dokument).
-  - `chats/{chatId}/typing/{uid}` — `{uid, expiresAt}` — wskaźnik „pisze…"
-    (wygaśnięcie po 8 s, więc padnięta aplikacja nie udaje że pisze).
-  - `users/{uid}/contacts/{otherUid}` — ustawienia per kontakt (`ContactSettings`):
-    `alias`, `langOverride`, `muted`, `pinned`, `blocked`, `note`, `updatedAt`.
-    Odczyt i zapis **tylko właściciela** + whitelist pól (bez niej klient mógłby
-    dopisać flagi, które serwer zacznie rozumieć w fazie 2). Pod `users/{uid}`,
-    nie w `friendships` — to moje zdanie o kimś, nie wspólna umowa.
-  - `users/{uid}/fcmTokens/{token}` — tokeny FCM do powiadomień push. **ID dokumentu
-    to token**, żeby Cloud Function mogła skasować martwy token po samym ID (bez
-    odczytu). Jeden dokument = jedno urządzenie, więc push idzie na telefon i tablet.
-    Odczyt/zapis tylko właściciel + whitelist pól.
-  - `app_config/tts` — konfiguracja TTS Pro (modele OpenRouter + apiKey).
-  - `app_config/update` — metadane auto-update (versionCode, apkUrl, onPlayStore).
-- **CLI:** `firebase.cmd` (npm global, `C:/Users/milo/AppData/Roaming/npm`). Zapis dokumentów:
-  `firebase firestore:set` NIE istnieje w tym CLI — użyto Firestore REST API (Node.js) z
-  tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
-  - ⚠️ **Token wygasa po ~1 h** (pole `expires_at` w configstore, ms). Starsze skrypty w
-    repo (`write_firestore.js`, `update_firestore_update.js`) odświeżają go samodzielnie
-    przez `oauth2.googleapis.com` z wpisanymi na sztywno `client_id`/`client_secret` —
-    **to już nie działa**, Google zwraca `invalid_client` (w repo krążą dwa różne,
-    oba błędne, client_id).
-  - **Działające odświeżanie:** odpalić dowolne polecenie CLI (np. `firebase projects:list`
-    — czysty odczyt, zero skutków ubocznych). CLI ma poprawne poświadczenia wbudowane
-    i zapisuje świeży `access_token` z powrotem do configstore. Tak robi
-    `backfill_faza0.js` (`refreshViaCli()`).
-  - ⚠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi
-    zapisać cudzy dokument, którego aplikacja nie ruszy. Pożądane przy migracjach,
-    niebezpieczne przy pomyłce w skrypcie — dlatego `backfill_faza0.js` domyślnie
-    robi dry-run i wymaga `--apply`.
-- **Reguły dostępu (`firestore.rules` w repo):** deploy przez
-  `firebase deploy --only firestore:rules --project mini-verbigem`. Wymagane reguły dla
-  auto-update i TTS: `match /app_config/{doc} { allow read: if true; allow write: if false; }`
-  (app czyta `app_config/update` i `app_config/tts` PRZED loginem). Bez tego dokumenty są
-  blokowane (`PERMISSION_DENIED`) i app nie wykrywa update'u ani nie pobiera konfiguracji TTS.
-- **Pliki konfiguracyjne w repo:** `firebase.json` (wskazuje `firestore.rules`, blok
-  `functions` i reguły), `.firebaserc` (projekt `mini-verbigem`).
+  - `users/{uid}` — profil (`UserProfile`: plan, walletCreditsCents, uiLang, speakLang*). **Czytelny wyłącznie przez właściciela.**
+  - `usersPublic/{uid}` — wizytówka do wyszukiwania (`PublicProfile`): uid, nickname, photoURL, uiLang, speakLangSource/Target + zlowercasowane `searchNick`/`searchEmail` (Firestore nie ma case-insensitive `whereGreaterThanOrEqualTo`). Read dla zalogowanych, create/update tylko właściciel. Backfill starych kont: `node backfill_faza0.js --apply`.
+  - `users/{uid}/history/{syncId}`, `users/{uid}/ocr_history/{syncId}` — historie (sync, last-write-wins).
+  - `friendships/{id}` — `members: [uidA, uidB]`, status, requestedBy, nicki. Zapytania **po `members`**.
+  - `chats/{chatId}` (+ `messages`) — dokument czatu **musi** mieć `members`, inaczej reguły odrzucą każdą wiadomość. Zawiera `lastMessage`, `lastMessageAuthorId`, `lastMessageAt`. Wiadomość: `authorId`, `sourceLang`, `text` (ORYGINAŁ), `senderTranslation` (`{lang, text}`), `type`, `clientMsgId` (= id dokumentu → idempotencja ponowień).
+  - `chats/{chatId}/readReceipts/{uid}` — `{uid, lastReadAt}`, tylko własny dokument.
+  - `chats/{chatId}/typing/{uid}` — `{uid, expiresAt}` (wygaśnięcie po 8 s, więc padnięta aplikacja nie udaje, że pisze).
+  - `users/{uid}/contacts/{otherUid}` — `ContactSettings`: `alias`, `langOverride`, `muted`, `pinned`, `blocked`, `note`, `updatedAt`. Odczyt/zapis **tylko właściciela** + whitelist pól (bez niej klient mógłby dopisać flagi, które serwer zacznie rozumieć).
+  - `users/{uid}/fcmTokens/{token}` — **ID dokumentu to token**, żeby Cloud Function mogła skasować martwy token po samym ID (bez odczytu). Jeden dokument = jedno urządzenie.
+  - `app_config/tts`, `app_config/update`, `app_config/notifications`.
+- **Reguły (`firestore.rules`) deploy:** `firebase deploy --only firestore:rules --project mini-verbigem`. Wymagane: `match /app_config/{doc} { allow read: if true; allow write: if false; }` — app czyta `app_config/update` i `app_config/tts` **PRZED loginem**; bez tego `PERMISSION_DENIED` i brak wykrycia update'u / konfiguracji TTS.
+- **Pliki w repo:** `firebase.json` (rules + blok `functions` + storage), `.firebaserc`, `firestore.rules`, `storage.rules`.
+- **CLI:** `firebase.cmd` (npm global). ⚠️ `firebase firestore:set` **NIE istnieje** w tym CLI — do zapisu używamy Firestore REST API (Node.js) z tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
+  - ⚠️ **Token wygasa po ~1 h** (`expires_at`, ms). Starsze skrypty (`write_firestore.js`, `update_firestore_update.js`) odświeżają go samodzielnie przez `oauth2.googleapis.com` z wpisanymi na sztywno `client_id`/`client_secret` — **to już nie działa** (Google: `invalid_client`).
+  - **Działające odświeżanie:** odpalić dowolne polecenie CLI (np. `firebase projects:list` — czysty odczyt). CLI ma poprawne poświadczenia i zapisuje świeży `access_token` z powrotem do configstore (tak robi `backfill_faza0.js` → `refreshViaCli()`).
+  - ☠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi zapisać cudzy dokument, którego aplikacja nie ruszy. Dlatego `backfill_faza0.js` i `backfill_searchtext.js` domyślnie robią dry-run i wymagają `--apply`.
 
 ---
 
-## ☁️ Cloud Functions (`functions/`) — Node 20 + TypeScript
+## ☁️ Cloud Functions (`functions/`)
 
-Backend czatu. **Wymaga planu Blaze** (decyzja D6 — wykupiony). Kod w `functions/src/`,
-kompilacja do `functions/lib/` (`lib/` jest w `.gitignore`).
+Backend czatu. **Wymaga planu Blaze** (wykupiony). Kod w `functions/src/`, kompilacja do `functions/lib/` (gitignored). **Runtime: `nodejs22`** (`firebase.json` → `runtime`, `engines.node` w `functions/package.json`).
 
 | Funkcja | Typ | Co robi |
 |---|---|---|
-| `onMessageCreated` | trigger Firestore `chats/{chatId}/messages/{msgId}` | push FCM do pozostałych członków czatu |
-| `matchContacts` | callable (HTTPS) | dopasowanie kontaktów po HMAC numeru telefonu (2.3) |
-| `inviteByPhone` | callable (HTTPS) | zapraszanie numerów, które nie mają jeszcze konta (2.4) |
-| `verifyPhone` | callable (HTTPS) | zapis faktu „to konto ma zweryfikowany numer" (2.6) |
-| `onPhoneVerified` | trigger Firestore `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia (2.4) |
-| `onMessageSearchIndex` | trigger Firestore `chats/{chatId}/messages/{msgId}` | zapisuje znormalizowane `searchText` do wyszukiwania (1.12) |
-
-### Kanały wychodzące (3.5) — jak zapraszamy ludzi bez Verbigema
-
-`data/OutboundChannel.kt`: jeden interfejs, pięć implementacji. **Verbigem
-tłumaczy, potem przekazuje** — niczego nie wysyłamy sami, bo nie wiedzielibyśmy,
-czy dotarło, i udawalibyśmy, że wiemy.
-
-| Kanał | Mechanizm | Ograniczenie |
-|---|---|---|
-| WhatsApp | `ACTION_VIEW` → `wa.me/<numer>?text=…`, paczka `com.whatsapp` → `w4b` → bez paczki | Nie wiemy, czy numer jest na WA — bez zewnętrznego API się nie dowiemy |
-| SMS | `ACTION_SENDTO` → `smsto:<numer>` + `sms_body` | **Celowo nie `SmsManager`** — `SEND_SMS` to wniosek do Google Play i ryzyko odrzucenia |
-| E-mail | `ACTION_SENDTO` → `mailto:` + `EXTRA_EMAIL` | Wymaga adresu; importer czyta je osobnym zapytaniem po `CONTACT_ID` |
-| Telegram | `t.me/share/url?url=…&text=…` | Otwiera **wybór rozmowy**, nie konkretną osobę |
-| Inne | systemowy `ACTION_SEND` | Pokrywa Signal, Messenger i wszystko, czego nie przewidzieliśmy |
-
-**Poprawki UI/logiki (v35+):**
-- Dialog wyboru kanału renderuje każdą opcję jako `Button` (z tłem + obramowaniem)
-  zamiast płaskiego `Row` + `clickable` — tekst „Inne aplikacje" jest teraz wewnątrz
-  widocznego przycisku.
-- `inviteContact` jest wołane **po** `channel.handOff` i tylko gdy `handOff` zwróci
-  `true` **oraz** kanał nie jest `SystemShareChannel`. Dzięki temu anulowanie
-  systemowego arkusza udostępniania nie oznacza kontaktu fałszywie jako zaproszony.
-- Tekst zaproszenia zaktualizowany we wszystkich językach (PL: *„Cześć! Sprawdź
-  Verbingem - tłumaczy z AI czaty i rozmowy offline"*).
-
-☠️ **Plan §5.4 mylił się co do Telegrama.** Zakładał `t.me/<username>` i pójście
-na schowek, bo „URL Telegrama nie potrafi wkleić tekstu". Zwykły nie potrafi,
-ale `t.me/share/url` **tak**, i to z jednoczesnym podaniem linku — czyli
-dokładnie tym, czego potrzebuje zaproszenie. Odpada snackbar „skopiowaliśmy".
-
-`OutboundTarget` to lekki nośnik na czas lotu. W 3.6 dostał dwa źródła:
-`OutboundTarget.from(PhoneContact)` (przy zapraszaniu) i
-`ExternalThreadRepository.targetFor(ExternalContactEntity)` (przy wątku
-jednokierunkowym). Sam nie jest encją Room — ale obie encje, z których powstaje,
-już są.
-
-Dostępność liczy się per odbiorca: „SMS" znika, gdy wpis nie ma numeru,
-„E-mail", gdy nie ma adresu albo nikt na telefonie nie ma klienta poczty.
-
-### Wątek jednokierunkowy (3.6) — pisanie do kogoś bez Verbigema
-
-Ktoś z książki, kto nie ma konta, dostaje własny ekran przypominający czat
-(`ExternalThreadScreen`). Przypomina, ale **nim nie jest**: nie ma strony
-przychodzącej, a transparent na górze mówi to wprost — Verbigem tłumaczy i
-przekazuje, nic nie wraca.
-
-Wszystko trzymane jest lokalnie w Room (`version = 8`, migracja `7_8`):
-
-| Tabela | Klucz | Co trzyma |
-|---|---|---|
-| `external_contacts` | `phone` (luźna forma z książki) | nazwa, e164, e-mail, `lang`, `lastUsedAt` |
-| `external_outbox` | auto-id | `phone`, `channel`, `originalText`, `translatedText`, `lang`, `createdAt` |
-
-Decyzje, których nie wolno zmienić niechcący:
-
-- **Nazwa kanału w historii to `id`, nie tekst.** `whatsapp` / `sms` / `email` /
-  `telegram` / `system` — etykieta jest tłumaczona, więc po zmianie języka stare
-  wiersze by się nie czytały. `OutboundChannels.labelResFor(id)` rozwiązuje id na
-  dzisiejszy język dopiero przy wyświetlaniu.
-- **`status` w outbox to zawsze `handed_off`.** Zapisujemy wiersz **po** sukcesie
-  `channel.handOff`, nigdy przed — wiersz to roszczenie, że coś wyszło z telefonu.
-  Nieudany hand-off zostaje poza historią, bo to jedyna rzecz, do której ta tabela
-  ma być uczciwa.
-- **Język docelowy wybiera się ręcznie.** Zewnętrzny kontakt nie ma profilu, więc
-  nie ma skąd go wyczytać. `LangCode.fromCode` wraca do PL przy pustym kodzie, więc
-  ekran jawnie blokuje tłumaczenie, póki `lang` jest puste (`external_pick_lang_first`)
-  — cicho przetłumaczone w złym języku i wysłane to jedyny błąd, którego nie da się
-  cofnąć (SMS-u nie odwołasz).
-- **Wejście do wątku zapisuje kontakt w Room.** `ContactsViewModel.rememberExternal`
-  to `suspend` wywoływane przed nawigacją — wątek czyta kontakt po kluczu telefonu
-  i zastałby pusty ekran, gdybyśmy otworzyli ekran, zanim wpis powstanie.
-- **Telefon w trasie jest kodowany** (`Uri.encode` przy tworzeniu, `Uri.decode`
-  przy odczycie). `+` w surowym segmencie ścieżki zachowuje się różnie między
-  wersjami Androida; dekodowanie idempotyczne na już zdekodowanym ciągu jest
-  bezpieczne w obie strony.
-- **Historia jest przycinana** do 90 dni (`pruneHistory`), bo to log rzeczy już
-  wysłanych — nic do archiwizacji.
-
-### Import wizytówek `.vcf` (3.7) — kontakt spoza książki
-
-`data/VcfImporter.kt`: własny parser, **zero zależności** (żadnego `ez-vcard` /
-`vcard`). vCard potrafi być nieskończenie skomplikowany; my wyciągamy tylko to, co
-trzeba, by otworzyć wątek (3.6) albo zaprosić (3.5): nazwę (`FN`, fallback `N`),
-numer (`TEL`) i e-mail (`EMAIL`).
-
-- Obsługuje `BEGIN/END:VCARD`, wiele kart w pliku, `VERSION:2.1` i `3.0`, zwijanie
-  długich linii (kontynuacja spacją/tabem).
-- Ignoruje celowo: `PHOTO`, grupy, adresy pocztowe, wiele numerów na kartę. Import to
-  gest „dodaj tę osobę z wizytówki", a nie migracja książki — nadmiar by tylko
-  zaśmiecił listę.
-- Nie rzuca na uszkodzonych kartach: linie, których nie rozumie, są pomijane, a
-  brak `FN`/`TEL` po prostu pomija kartę.
-- Plik czytany przez `contentResolver` (`ActivityResultContracts.OpenDocument`,
-  mime `text/vcard`), więc nie potrzebuje `READ_CONTACTS`.
-- Wynik łączony z książką w jedną listę; numery już obecne (książka lub wcześniejszy
-  import) są pomijane, żeby podwójny   import nie dodał drugiego wiersza.
-
-### Zakładki w Kontaktach (3.8) — Znajomi / Zaproszenia / Z telefonu / Zewnętrzne
-
-Ekran `ContactsScreen` ma teraz **cztery zakładki** (`TabRow` + `Tab`) zamiast
-jednej przewijanej listy. Wybór zakładki to lokalny `selectedTab`, a każda ma
-własny composable:
-
-| Zakładka | Co pokazuje | Źródło |
-|---|---|---|
-| `tab_friends` (Znajomi) | pole szukania ludzi (nowi znajomi) + lista obecnych znajomych (`Friendship`) | `friends` z VM |
-| `tab_invites` (Zaproszenia) | nadchodzące zaproszenia z akcjami Przyjmij/Odrzuć (`Friendship`, `requestedBy`) | `incoming` z VM |
-| `tab_phone` (Z telefonu) | kontakty z książki + import `.vcf` (3.7) + Znajdź znajomych + Zaproś | `phoneContacts + importedContacts` |
-| `tab_external` (Zewnętrzne) | kontakty jednokierunkowe z Room (`external_contacts`, 3.6) — otwarcie wątku 3.6 | `externalContacts` z VM |
-
-Wspólny wiersz to `ContactListRow(title, subtitle, onClick, trailing)` — jeden
-komponent dla wszystkich zakładek i wyszukiwania.
-
-**Wyszukiwanie po wszystkich naraz:** gdy pole wyszukiwania na górze ekranu jest
-niepuste, układ zakładek znika i pokazuje się `CombinedSearch` — jedna lista
-trafień z trzech źródeł (znajomi po nicku, książka po imieniu/numerze,
-zewnętrzni po imieniu/numerze), z nagłówkami sekcji. Puste pole wraca do zakładek.
-To rozwiązuje „szukam w zakładce X, a osoba jest w Y".
-
-Rozbicie na zakładki nie zmienia logiki: kliknięcie dopasowanego kontaktu z telefonu
-otwiera czat (gdy `matchFor(phone) != null`), w przeciwnym razie wątek
-jednokierunkowy (3.6); kliknięcie wiersza zewnętrznego otwiera wątek 3.6; wiersz
-bez dopasowania otwiera dialog kanału zaproszenia (3.5).
-
-### Możesz znać (3.9) — znajomi moich znajomych
-
-Sekcja **„Możesz znać"** na szczycie zakładki Znajomi pokazuje kandydatów
-wyliczonych przez nową Cloud Function `suggestFriends` (`functions/src/peopleMayKnow.ts`).
-
-**Dlaczego po stronie serwera:** klient czyta tylko własne `friendships`
-(reguły Firestore oparte na `members`), więc nie widzi znajomych swoich
-znajomych. Przejście grafu musi zrobić serwer przez Admin SDK. Żadnego nowego
-indeksu złożonego — każde zapytanie to pojedyncze
-`whereArrayContains("members", <jeden uid>)`, które obsługuje istniejąca tablica.
-
-**Algorytm (`suggestFriends`):**
-1. Czyta moje `friendships`; dzieli na zaakceptowanych znajomych i oczekujące
-   (w obu kierunkach — oczekujące to „już obsłużone", więc pomijamy).
-2. Dla każdego zaakceptowanego znajomego czyta JEgo zaakceptowane `friendships`
-   i liczy, ilu moich znajomych jest też znajomych danego kandydata
-   (`mutualCount`). Przejście ograniczone do `MAX_FRIENDS_WALKED = 100`.
-3. Odrzuca kandydatów = ja, już znajomi lub oczekujący ze mną.
-4. Sortuje po `mutualCount` malejąco, ucina do `MAX_SUGGESTIONS = 20`,
-   dokleja nickname/photoURL z `usersPublic` i zwraca
-   `{ uid, nickname, photoURL, mutualCount }`.
-
-**Klient (`PeopleMayKnowRepository` + `ContactsViewModel`):**
-- `PeopleMayKnowRepository.suggest()` woła callable `suggestFriends` i mapuje
-  wynik na `List<FriendSuggestion>`. To powierzchnia niekrytyczna: każdy błąd
-  (offline, rate-limit, funkcja nie wdrożona) daje pustą listę i UI chowa sekcję.
-- VM ładuje sugestie w `init` (`loadSuggestions`), dodatkowo odsiewa osoby,
-  którym właśnie wysłałem zaproszenie (`sentRequests`), i wystawia
-  `dismissSuggestion(uid)` (tylko po stronie klienta, bez zapisu) oraz usuwa
-  kandydata z listy po wysłaniu zaproszenia (`sendRequest`).
-- Sekcja w `FriendsTab` pokazuje nickname, „N wspólnych znajomych" i przyciski
-  **+ Dodaj** (→ `sendRequest`) oraz **X** (→ `dismissSuggestion`).
-- Dwa nowe klucze w `strings.xml` ×6: `people_you_may_know`,
-  `people_you_may_know_mutual` (+ `dismiss` dla contentDescription).
-
-Wdrożenie: `FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only functions:suggestFriends --project mini-verbigem` (po nazwie, bezpiecznie — nie rusza
-pozostałych 5 funkcji produkcyjnych).
-
-### Kody QR (Faza 4) — mój kod, skaner i App Links
-
-Trzy podzadania, jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>`.
-`usersPublic` jest publiczne, więc uid w linku wystarcza — podpisany token byłby
-nadmiarowy. Jeden parser `ProfileLinks.uidFromUrl` (`data/AppLinks.kt`) obsługuje
-skaner i App Links, więc zmiana schematu linku nie rozjeżdża się między kodem
-generującym a czytającym.
-
-**4.1 Mój kod QR.** `MyQrScreen` + `MyQrViewModel` (`ui/screens/profile/`)
-generują bitmapę przez ZXing `core` 3.5.3 (`data/QRBitmap.kt`) z linkiem do
-własnego profilu i pokazują ją z nickiem + przyciskiem „Kopiuj link". Wejście:
-przycisk w karcie Profil. Trasa `Screen.MyQr`.
-
-**4.2 Skaner.** `ScanScreen` (`ui/screens/contacts/`) na GMS Code Scanner
-(`play-services-code-scanner` 18.3.0) — gotowy interfejs z Play Services, sam
-prosi o kamerę, zwraca `Barcode`. `ProfileLinks.uidFromUrl` wyciąga uid i otwiera
-kartę kontaktu (`ContactCard`) z przyciskiem „Dodaj do znajomych". Obcy link
-(poza `mini.verbigem.com/u/<uid>`) → komunikat „to nie kod Verbigem", nie
-otwieramy obcych stron. Stany: skanowanie / brak kamery / błąd / nie-Verbigem
-(z przyciskiem „Skanuj ponownie"). Wejście: ikona skanera w nagłówku Kontaktów.
-Trasa `Screen.Scan`.
-
-**4.3 App Links.** `intent-filter` VIEW z `android:autoVerify="true"` na
-`mini.verbigem.com/u/<uid>` w `AndroidManifest.xml` kieruje link z przeglądarki
-/ wiadomości prosto do `ContactCard`. Weryfikacja (`assetlinks.json`, SHA256
-debug) leży w `mini/dist/.well-known/` i jest wdrażana wraz z hostingiem:
-`firebase deploy --only hosting` (same statyczne pliki wygrywają z SPA-rewrite
-`** → /index.html`, bo Firebase serwuje istniejący plik przed regułami). Obsługa
-deep linku w `MainActivity.handleDeepLink` (ACTION_VIEW → `deepLinkUid`) +
-`AppNavigation.openProfileUid` (pomija własny uid i niezalogowanego).
-
-> **Uwaga (1.18):** App Links z `autoVerify=true` działają dopiero, gdy w konsoli
-> Firebase są wpisane odciski SHA certyfikatu podpisującego APK. Do czasu testu
-> 1.18 samo skanowanie (4.2) otwiera kartę kontaktu niezależnie od App Links.
-
-### Media (Faza 5) — zdjęcia, OCR, głosówki
-
-Załączniki czatu lądują w Firebase Storage, pod ścieżką
-`chat_attachments/{chatId}/{msgId}`. Reguły Storage (`storage.rules`) pozwalają
-czytać i pisać tylko członkom czatu — członkostwo sprawdzane przez `firestore.get`
-z `chats/{chatId}.members` (ten sam wektor zaufania co `firestore.rules`). Zapis
-jest ograniczony do **nowych** obiektów (brak nadpisywania cudzych plików) oraz
-typów `image/*` i `audio/*` do 25 MB.
-
-- **5.1 (fundament, zrobiony + wdrożony):** zależność `firebase-storage` (z BOM 33.2.0,
-  bez `version.ref`), plik `storage.rules` i sekcja `"storage"` w `firebase.json`.
-  **Reguły wdrożone 2026-09-04** (`firebase deploy --only storage` → Deploy complete),
-  po włączeniu Firebase Storage w konsoli (bucket `gs://mini-verbigem.firebasestorage.app`).
-  Upload załączników (5.2 zdjęcia, 5.3 głosówki) działa w locie.
-- **5.2 (zrobiony):** zdjęcie → upload do Storage (`StorageRepository.uploadAttachment`,
-  `putFile` strumieniowo z content URI) → opcjonalny OCR na nadawcy przez istniejący
-  `OcrManager.recognizeText` → `ocrText` w dokumencie wiadomości. Odbiorca renderuje
-  miniaturę przez Coil (`AsyncImage`, `coil-compose` 2.7.0) i tłumaczy `ocrText`
-  swoim językiem przez **istniejącą** ścieżkę translacji (w `recompute()` `text`
-  zdjęcia to `ocrText`, więc `enqueueTranslations`/`translateInto` biorą go jak
-  zwykły tekst). Inbox pokazuje zlokalizowany placeholder (`R.string.photo`) zamiast
-  pustego podglądu. Błędy uploadu/OCR tylko logowane (retry w 5.4).
-  ⚠️ Działa w pełni dopiero po wdrożeniu `storage.rules` (5.1).
-- **5.3 (zrobione — transkrypcja na żywo):** głosówka to rozpoznawanie mowy NA ŻYWO
-  przez `SpeechManager.startListening` (systemowy `SpeechRecognizer`). Wynik
-  (`transcript`) idzie do `ChatMessage.transcript` i jest tłumaczony u odbiorcy jak
-  zwykły tekst (`recompute()` kładzie `transcript` w `text` dla `type="audio"`).
-  Przycisk mikrofonu w pasku wprowadzania + czerwona kropka + bieżący tekst podczas
-  nagrywania; uprawnienie `RECORD_AUDIO` proszone w locie. ⚠️ **Odchylenie od planu:**
-  `SpeechRecognizer` nie przyjmuje nagranego pliku `.m4a` i nie dzieli mikrofonu z
-  `MediaRecorder`em, więc „nagraj plik → potem przetransponuj" NIE jest możliwe na
-  urządzeniu. Odtwarzanie oryginalnego audio (m4a) to osobny temat (serwerowe STT) —
-  patrz 5.4. Ikona mikrofonu przy bubble'ach audio w wątku.
-- **5.4 (zrobione):** podgląd zdjęcia na pełnym ekranie (`Dialog` +
-  `SubcomposeAsyncImage`, `ContentScale.Fit`, zamknięcie kliknięciem/przyciskiem)
-  oraz wskaźnik postępu pobierania (slot `loading` z `CircularProgressIndicator`)
-  i ikona błędu w miniaturach (`SubcomposeAsyncImage` zamiast `AsyncImage`).
-  **Cache offline:** Coil domyślnie cache'uje obrazy na dysku, więc odtworzenie
-  działa offline bez dodatkowego kodu. Odtwarzanie `m4a` dla głosówek **celowo
-  pominięte** — 5.3 daje transkrypcję na żywo (on-device), co wystarcza; serwerowe
-  STT nie jest potrzebne. Retry błędów uploadu to TODO (w `sendImage`/`sendVoice`).
-
-### Wyszukiwanie w wiadomościach (1.12) — jak to działa
-
-Firestore **nie ma wyszukiwania pełnotekstowego**. Jedyna tania sztuczka to zakres
-po prefiksie: `where >= q` i `where < q + "\uF8FF"` (`\uF8FF` to ostatnia dozwolona
-wartość z prywatnego obszaru UTF-8). Dlatego „kot" znajdzie „kot ma Alego", ale
-**nie** „Ala ma kota" — ograniczenie jest napisane wprost w UI, zamiast żeby
-użytkownik miał się go domyślić.
-
-`searchText` to dane pochodne, więc zapisuje je wyłącznie Cloud Function — reguły
-zabraniają klientowi dotknąć tego pola. Gdyby klient mógł je ustawić, mógłby
-zaindeksować coś innego niż wysłał i wypychać własne wiadomości na każde cudze
-zapytanie.
-
-**Transformacja musi być identyczna po obu stronach** (`functions/src/searchIndex.ts`
-↔ `app/.../data/MessageSearch.kt`): NFD → zdjęcie znaków łącznych (`\p{M}`) →
-lowercase → trim → 2000 znaków. Bez NFD polski użytkownik piszący „jestes" nigdy
-nie znalazłby własnego „jesteś". Rozjazd obu implementacji objawia się **ciszą**:
-każde zapytanie zwraca zero wyników i nic w logach o tym nie mówi.
-
-**Zapytanie idzie per czat, nie jako collection group.** Zapytanie grupowe
-przemiatałoby każdą rozmowę w bazie, a reguły nie potrafią go ograniczyć — dostęp
-decyduje `get()` na nadrzędnym czacie, czego group query nie wyrazi. Przejście po
-własnej liście rozmów trzyma odczyt wewnątrz dokumentów, których użytkownik i tak
-jest członkiem.
-
-**Backfill:** trigger indeksuje tylko nowe wiadomości. Dla historii sprzed wdrożenia
-jest `backfill_searchtext.js` (dry run domyślnie, `--apply` zapisuje). Wymaga
-`cd functions && npm run build` — skrypt importuje normalizację ze zbudowanego
-`lib/`, żeby nie trzymać drugiej kopii.
-
-### Weryfikacja numeru (2.6) — jak to działa
-
-**Aplikacja NIGDY nie wysyła numeru do naszego backendu.** Kolejność:
-
-1. Firebase Phone Auth wysyła SMS i dowiązuje numer do konta
-   (`linkWithCredential` — nie `signInWithCredential`, bo konto już istnieje).
-2. Firebase wkłada zweryfikowany numer E.164 do tokena ID.
-3. `getIdToken(true)` odświeża token — bez tego funkcja widziałaby token sprzed
-   dodania numeru.
-4. `verifyPhone` czyta `request.auth.token.phone_number` i zapisuje na `users/{uid}`
-   tylko `phoneVerified` + `phoneHash` + `phoneVerifiedAt`. **Nie ma parametru
-   do sfałszowania**, bo klient nie jest pytany o numer.
-5. `onPhoneVerified` (trigger) dopisuje `phoneDirectory/{hmac}` i rozwiązuje
-   zaproszenia oczekujące pod tym numerem.
-
-☠️ **`requireSmsValidation(true)` w `PhoneAuthOptions` NIE WOLNO używać** przy zwykłej
-weryfikacji numeru. Ta flaga istnieje **TYLKO** dla uwierzytelniania wieloskładnikowego
-(MFA) i rzuca `IllegalArgumentException: You cannot require sms validation without
-setting a multi-factor session`, gdy nie ustawiono `setMultiFactorSession`. W v37
-doprowadziła do **crashu przy każdym kliknięciu „wyślij SMS"** (naprawione w v38).
-Instant verification obsługujemy przez `onVerificationCompleted` →
-`PhoneCodeRequest.AutoVerified`, który dowiązuje numer przez `linkWithCredential`
-(nie loguje użytkownika na nowe konto).
-
-☠️ **SMS nie wyjdzie, dopóki nie odblokujesz regionu (v39, status 17006).** W nowym
-projekcie Firebase domyślna polityka to `allowlistOnly` z **pustą listą regionów** —
-czyli SMS nie wychodzi **nigdzie**, choć dostawca „Phone" jest włączony, a odciski
-SHA się zgadzają. Objaw to `FirebaseAuthException` o kodzie
-`ERROR_OPERATION_NOT_ALLOWED` (status 17006) z dopiskiem
-`[ SMS unable to be sent until this region enabled by the app developer. ]`.
-
-To pułapka dlatego, że **ten sam kod** dostajesz przy wyłączonym dostawcy logowania —
-przez to wyglądał na problem z odciskiem SHA i kosztował cały wieczór. Dlatego
-`PhoneVerificationViewModel.messageFor` rozróżnia te dwa przypadki po słowie
-„region" w komunikacie Firebase.
-
-Sprawdzenie i naprawa z linii komend (token bierze się z `firebase login`):
-
-```bash
-node check_sms_region.js          # drukuje smsRegionConfig
-node set_sms_region.js PY,PL      # allowlistOnly.allowedRegions = [PY, PL]
-```
-
-Ręcznie: Firebase Console → **Authentication → Settings → SMS region policy**.
-Każdy dopisany region to realny koszt SMS-a i realne ryzyko SMS-pumpingu, więc
-lista powinna zostać krótka — na dziś: `PY`.
-
-☠️ **Przed pierwszym testem trzeba wpisać odciski SHA certyfikatu** w Firebase
-Console → Project settings → Your apps → aplikacja Android → **Add fingerprint**,
-potem pobrać nowy `google-services.json`. Bez tego Phone Auth nie przejdzie.
-Dopisz **oba**: SHA-1 *i* SHA-256 — Phone Auth weryfikuje aplikację przez
-Play Integrity i potrafi odrzucić build, dla którego widzi tylko jeden z nich.
-Debugowy keystore (`C:\Users\milo\.android\debug.keystore`, hasło `android`):
-
-```
-SHA1:   EC:9D:EB:58:CD:F2:48:3A:7E:FE:2B:73:C2:C7:90:1B:9D:6D:3C:CC
-SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:90:98:8D:CA:AD:EC:CA:94
-```
-
-**Poprawki defensywne (v35+):**
-- `PhoneVerificationViewModel.sendCode` — jeśli `context.findActivity()` zwróci `null`,
-  ustawia `_error` zamiast kończyć się cicho (`?: return` był głównym podejrzanym
-  o „nic się nie dzieje" po kliknięciu).
-- **PRAWDZIWA PRZYCZYNA „Nie udało się tego zrobić. no activity" (v37):**
-  `MainActivity.LocalizationWrapper` podmieniał `LocalContext` na
-  `context.createConfigurationContext(config)`. Ten kontekst to goły `ContextImpl`,
-  **nie** `ContextWrapper` — łańcuch `baseContext` urywał się w tym miejscu, więc
-  `findActivity()` (i każdy `findOwner<ActivityResultRegistryOwner>`) znajdował `null`.
-  Naprawione przez klasę `LocalizedContext(base, locale) : ContextWrapper(base)`,
-  która nadpisuje tylko `getResources()`/`getAssets()` — język działa tak samo, a
-  Activity pozostaje w łańcuchu. **Reguła na przyszłość: każdy kontekst, który
-  podmieniamy w `LocalContext`, MUSI dziedziczyć po `ContextWrapper` i mieć
-  Activity u podstawy.** Ten sam błąd wcześniej objawił się crashem
-  `rememberLauncherForActivityResult` w `OcrScreen`.
-- Dodatkowy fallback: `VerbigemApplication.foregroundActivity()` (słaba referencja
-  odświeżana w `MainActivity.onResume`) — `sendCode` bierze Activity stamtąd, gdyby
-  kiedyś znów nie dało się go wyciągnąć z kontekstu.
-- `resolveE164` — fallback `raw.trim()` usuwa teraz białe znaki (`replace("\\s+"`)),
-  bo spacje w numerze powodowały `IllegalArgumentException` w `verifyPhoneNumber`.
-- `PhoneVerificationRepository` — `verifyPhoneNumber` jest owinięte w `try-catch`,
-  żeby wyjątek synchroniczny nie wychodził poza callback i nie zabijał UI.
-- **Poprawka v38 — crash po „wyślij SMS":** usunięto `.requireSmsValidation(true)`
-  z `PhoneAuthOptions`. Flaga działa **TYLKO** z MFA (`setMultiFactorSession`) i
-  rzucała `IllegalArgumentException` przy każdym wysłaniu kodu. Instant verification
-  łapiemy teraz w `onVerificationCompleted` → `PhoneCodeRequest.AutoVerified` i
-  dowiązujemy numer przez `linkWithCredential`. ⚠️ Źródłem błędu była błędna
-  adnotacja w tym README z poprzedniej wersji (☠️ wyżej, przy 2.6) — poprawiona.
-- **Poprawka v39 — błędy Phone Auth mówią, co zrobić.** `PhoneCodeRequest.Failed`
-  i `PhoneLinkResult.Failed` niosą teraz maszynowy `errorCode`
-  (`FirebaseAuthException.errorCode`), a `PhoneVerificationViewModel.messageFor`
-  zamienia go na konkret: nieodblokowany region, wyłączony dostawca, niezarejestrowany
-  build (SHA), limit SMS-ów, zły numer, brak sieci, zły kod. Surowy tekst Firebase
-  zostaje tylko jako ostateczność. Logi dostają linię
-  `Phone verification failed [code=...]` — to ona zdradziła status 17006.
-
-### Normalizacja numerów (E.164)
-
-Matching porównuje **skróty**, nie łańcuchy: `0981 123 456` i `+595981123456` haszują
-się zupełnie inaczej. Dlatego każdy numer musi być pełnym E.164 **przed** haszowaniem.
-
-`app/src/main/java/com/verbigem/app/data/PhoneNumbers.kt` robi to przez
-`android.telephony.PhoneNumberUtils.formatNumberToE164` — libphonenumber jest w
-systemie, więc nie dokładamy zależności. Bez numeru kierunkowego kraj się zgaduje
-(karta SIM, potem locale urządzenia), więc `e164Candidates` zwraca **listę** możliwych
-postaci i aplikacja haszuje każdą.
-
-Zmiana normalizacji po weryfikacji pierwszych numerów oznaczałaby **przeliczenie
-całego `phoneDirectory`** — rób ją tylko wtedy, gdy katalog jest pusty.
-Pozostała luka: ekspat z zagraniczną kartą SIM. Zakryje ją libphonenumber (faza 3.x).
-
-### App Check
-
-Zainicjowany w `VerbigemApplication`, ale **dostawca zależy od wariantu**
-(`src/debug` → `DebugAppCheckProviderFactory`, `src/release` → Play Integrity).
-`firebase-appcheck-debug` jest wyłącznie w `debugImplementation`, więc build
-release'owy fizycznie nie potrafi sam siebie poświadczyć.
-
-⚠️ **`matchContacts` ma `enforceAppCheck: false` i to nie jest przeoczenie.**
-APK, który dystrybuujemy przez auto-update, to build **debugowy**, a Play Integrity
-nie poświadcza aplikacji, których nie zainstalował Play Store. Włączenie tego dziś
-odrzucałoby każdego użytkownika, nie tylko nadużywających. Włączyć razem z pierwszym
-wydaniem na Play — TODO w `functions/src/contacts.ts` mówi gdzie.
-
-Debugowy token do wpisania ręcznie (Firebase Console → App Check → **Debug tokens**)
-pojawia się w logcat po tagiem `FirebaseAppCheck`. Jest per instalacja, więc trzeba
-go wpisać ponownie po reinstalacji.
-
-📌 **TODO: włączyć wymuszanie (enforcement) App Check PO dodaniu appki do Google Play.**
-Dziś `enforce` jest wyłączony, bo debug-sideload nie przejdzie Play Integrity (odrzuciłby
-każdego usera). Gdy opublikujesz pierwszy **Play-signed release** i przełączysz dystrybucję
-na sklep (`onPlayStore: true` w `version.json` + `apkUrl` przestaje być używane), zrób:
-1. Firebase Console → **App Check** → zarejestruj appkę Android, provider **Play Integrity**,
-   dodaj **SHA-256 certyfikatu podpisującego Play** (z Play Console → Setup → App integrity).
-2. App Check → **APIs** → włącz `enforce` na **Firebase Auth**, **Firestore** i **Storage**
-   (App Check wymusza się usługa po usłudze — osobno).
-3. W `functions/src/contacts.ts` przestaw `matchContacts` na `enforceAppCheck: true`
-   (TODO w kodzie mówi gdzie).
-4. Wycofaj debug-tokeny (debug provider służy tylko do lokalnego testowania).
-⚠️ Bez kroku 1 (Play-signed build + SHA z Play) wymuszanie odrzuci wszystkich użytkowników —
-   nie włączaj `enforce` na debugowej dystrybucji auto-update.
+| `onMessageCreated` | trigger `chats/{chatId}/messages/{msgId}` | push FCM do pozostałych członków czatu |
+| `matchContacts` | callable | dopasowanie kontaktów po HMAC numeru telefonu |
+| `inviteByPhone` | callable | zapraszanie numerów bez konta |
+| `verifyPhone` | callable | zapis faktu „to konto ma zweryfikowany numer" |
+| `onPhoneVerified` | trigger `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia |
+| `onMessageSearchIndex` | trigger `chats/{chatId}/messages/{msgId}` | zapisuje znormalizowane `searchText` |
+| `suggestFriends` | callable | „Możesz znać" — znajomi moich znajomych (3.9) |
 
 ### Jak deployować
 
@@ -1300,34 +427,21 @@ npm install         # raz, po klonie
 npm run build       # tsc -> lib/  (deploy i tak to robi przez predeploy w firebase.json)
 
 # z katalogu głównego projektu:
-firebase deploy --only functions --project mini-verbigem
 firebase deploy --only firestore:rules --project mini-verbigem   # po zmianie reguł
 firebase functions:log --project mini-verbigem                   # logi
 ```
 
-`firebase.json` ma `predeploy: ["npm --prefix \"$RESOURCE_DIR\" run build"]`, więc
-deploy sam kompiluje — `npm run build` ręcznie jest tylko po to, żeby złapać błąd typów
-bez czekania na upload.
+`firebase.json` ma `predeploy: ["npm --prefix \"$RESOURCE_DIR\" run build"]`, więc deploy sam kompiluje — `npm run build` ręcznie słuzy tylko złapaniu błędu typów bez czekania na upload.
 
-⚠️ **Deploy katalogu `functions/`:** Firebase CLI uruchamia lokalny serwer discovery,
-który ładuje `lib/index.js` i ma **domyślnie 10 s** na odpowiedź. Na tej maszynie
-zimny start Node + `firebase-admin` to za mało i deploy kończy się
-`User code failed to load. Cannot determine backend specification. Timeout after 10000`.
-Rozwiązanie (wartość w sekundach):
+⚠️ **Deploy katalogu `functions/`: lokalny serwer discovery ładuje `lib/index.js` i ma domyślnie 10 s.** Na tej maszynie zimny start Node + `firebase-admin` to za mało → `User code failed to load. Cannot determine backend specification. Timeout after 10000`.
 
 ```bash
 export FUNCTIONS_DISCOVERY_TIMEOUT=60
-firebase deploy --only functions --project mini-verbigem
 ```
-
-⚠️ **Node 20 jest przestarzały** — Google wyłączy go 2026-10-30. Przed tą datą trzeba
-podnieść runtime (`firebase.json` → `runtime`) i `engines.node` w `functions/package.json`
-na nodejs22, inaczej deploy przestanie działać.
 
 ### ☠️ NIGDY nie deployuj funkcji bez wylistowania nazw
 
-Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, który ma
-własny katalog `functions/` i pięć działających funkcji produkcyjnych:
+Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, który ma własny katalog `functions/` i pięć działających funkcji produkcyjnych:
 
 | Funkcja | Region | Po co |
 |---|---|---|
@@ -1337,11 +451,7 @@ własny katalog `functions/` i pięć działających funkcji produkcyjnych:
 | `visionProxy` | europe-west1 | OCR online |
 | `walletTopUp` | europe-west1 | doładowanie portfela |
 
-Oba projekty mają `codebase: default`, więc Firebase widzi **jeden** zbiór funkcji.
-`firebase deploy --only functions` uruchomiony stąd uznaje tamte pięć za osierocone
-i chce je **usunąć**. W trybie nieinteraktywnym na szczęście się wykłada
-(`Aborting because deletion cannot proceed in non-interactive mode`) — z `--force`
-po prostu by je skasowało: płatności, OCR i portfel przestałyby działać.
+Oba projekty mają `codebase: default`, więc Firebase widzi **jeden** zbiór funkcji. `firebase deploy --only functions` uruchomiony stąd uznaje tamte pięć za osierocone i chce je **usunąć**. W trybie nieinteraktywnym na szczęście się wykłada (`Aborting because deletion cannot proceed in non-interactive mode`) — z `--force` po prostu by je skasowało: **płatności, OCR i portfel przestałyby działać.**
 
 Zawsze podawaj nazwy:
 
@@ -1352,17 +462,11 @@ functions:onMessageSearchIndex \
   --project mini-verbigem
 ```
 
-Dopiero nadanie obu projektom różnych `codebase` w `firebase.json` (np. `android`
-i `mini`) trwale rozwiązałoby problem — wymagałoby jednak przewalczenia już
-wdrożonych funkcji, więc na razie zostawiamy jak jest i uważamy.
+Dopiero nadanie obu projektom różnych `codebase` w `firebase.json` (np. `android` i `mini`) trwale rozwiązałoby problem — wymagałoby przewalczenia już wdrożonych funkcji, więc na razie zostawiamy jak jest i uważamy.
 
-⚠️ **Pierwszy deploy funkcji 2. gen na projekcie ZAWSZE sypie błędem Eventarc:**
-`Permission denied while using the Eventarc Service Agent`. Uprawnienia Service Agent
-propagują się z opóźnieniem — po prostu powtórzyć deploy po kilku minutach (drugi
-przeszedł od razu). Nie szukać błędu w kodzie.
+⚠️ **Pierwszy deploy funkcji 2. gen na projekcie ZAWSZE sypie błędem Eventarc:** `Permission denied while using the Eventarc Service Agent`. Uprawnienia Service Agent propagują się z opóźnieniem — **powtórzyć deploy po kilku minutach**, nie szukać błędu w kodzie.
 
-⚠️ **Po udanym deployu CLI żąda polityki czyszczenia obrazów:** kontenery w Artifact
-Registry rosną z każdym deployem i kosztują. Ustawione jednorazowo:
+⚠️ **Po udanym deployu CLI żąda polityki czyszczenia obrazów** (kontenery w Artifact Registry rosną i kosztują):
 
 ```bash
 firebase functions:artifacts:setpolicy --location us-central1 --days 7 --force \
@@ -1378,93 +482,104 @@ printf '%s' "$(openssl rand -hex 32)" | \
   firebase functions:secrets:set PHONE_HASH_PEPPER --project mini-verbigem
 ```
 
-⚠️ **Rotacja pieprzu unieważnia wszystkie dopasowania** — stare hashe w `phoneDirectory`
-przestaną się zgadzać. Zmiana wymaga przeliczenia katalogu, nie tylko podmiany sekretu.
-Funkcja nie wdroży się bez ustawionego sekretu (deploy pyta o to automatycznie).
+⚠️ **Rotacja pieprzu unieważnia wszystkie dopasowania** — stare hashe w `phoneDirectory` przestaną się zgadzać; zmiana wymaga przeliczenia katalogu, nie tylko podmiany sekretu. Funkcja nie wdroży się bez ustawionego sekretu (deploy pyta o to automatycznie).
+
+### Weryfikacja numeru telefonu (E.164, Phone Auth)
+
+**Aplikacja NIGDY nie wysyła numeru do naszego backendu.** Kolejność:
+
+1. Firebase Phone Auth wysyła SMS i dowiązuje numer do konta (**`linkWithCredential`**, nie `signInWithCredential` — konto już istnieje).
+2. Firebase wkłada zweryfikowany numer E.164 do tokena ID.
+3. `getIdToken(true)` odświeża token — bez tego funkcja widziałaby token sprzed dodania numeru.
+4. `verifyPhone` czyta `request.auth.token.phone_number` i zapisuje na `users/{uid}` tylko `phoneVerified` + `phoneHash` + `phoneVerifiedAt`. **Nie ma parametru do sfałszowania** — klient nie jest pytany o numer.
+5. `onPhoneVerified` (trigger) dopisuje `phoneDirectory/{hmac}` i rozwiązuje zaproszenia oczekujące.
+
+☠️ **`requireSmsValidation(true)` w `PhoneAuthOptions` NIE WOLNO używać** przy zwykłej weryfikacji numeru. Ta flaga istnieje **TYLKO** dla MFA i rzuca `IllegalArgumentException: You cannot require sms validation without setting a multi-factor session` (w v37 → crash przy każdym kliknięciu „wyślij SMS"; naprawione w v38). Instant verification: `onVerificationCompleted` → `PhoneCodeRequest.AutoVerified` → `linkWithCredential`.
+
+☠️ **SMS nie wyjdzie, dopóki nie odblokujesz regionu (status 17006).** W nowym projekcie Firebase domyślna polityka to `allowlistOnly` z **pustą listą regionów** — SMS nie wychodzi **nigdzie**, choć dostawca „Phone" jest włączony, a odciski SHA się zgadzają. Objaw: `FirebaseAuthException` `ERROR_OPERATION_NOT_ALLOWED` (17006) z dopiskiem `[ SMS unable to be sent until this region enabled by the app developer. ]`. **Pułapka: ten sam kod dostajesz przy wyłączonym dostawcy logowania** — przez to wyglądał na problem z odciskiem SHA i kosztował cały wieczór. `PhoneVerificationViewModel.messageFor` rozróżnia te dwa przypadki po słowie „region".
+
+```bash
+node check_sms_region.js          # drukuje smsRegionConfig
+node set_sms_region.js PY,PL      # allowlistOnly.allowedRegions = [PY, PL]
+```
+
+Ręcznie: Firebase Console → **Authentication → Settings → SMS region policy**. Każdy region to realny koszt SMS-a i ryzyko SMS-pumpingu — lista powinna zostać krótka.
+
+☠️ **Przed pierwszym testem trzeba wpisać odciski SHA certyfikatu** (Firebase Console → Project settings → aplikacja Android → **Add fingerprint**), potem pobrać nowy `google-services.json`. **Dopisz oba: SHA-1 *i* SHA-256** — Phone Auth weryfikuje przez Play Integrity i potrafi odrzucić build, dla którego widzi tylko jeden. Debug keystore (`C:\Users\milo\.android\debug.keystore`, hasło `android`):
+
+```
+SHA1:   EC:9D:EB:58:CD:F2:48:3A:7E:FE:2B:73:C2:C7:90:1B:9D:6D:3C:CC
+SHA256: A4:2A:45:FF:D5:25:B9:02:8C:12:2B:BE:8A:92:FE:D9:F0:3D:A7:5C:9F:D1:CA:4D:90:98:8D:CA:AD:EC:CA:94
+```
+
+**Normalizacja numerów:** matching porównuje **skróty**, nie łańcuchy — `0981 123 456` i `+595981123456` haszują się zupełnie inaczej, więc każdy numer musi być pełnym E.164 **przed** haszowaniem. `data/PhoneNumbers.kt` używa `PhoneNumberUtils.formatNumberToE164` (libphonenumber jest w systemie — nie dokładamy zależności). Bez numeru kierunkowego kraj się zgaduje (SIM, potem locale), więc `e164Candidates` zwraca **listę** i haszujemy każdą. ⚠️ **Zmiana normalizacji po weryfikacji pierwszych numerów oznacza przeliczenie całego `phoneDirectory`** — rób ją tylko, gdy katalog jest pusty.
+
+### App Check
+
+Inicjowany w `VerbigemApplication`; dostawca zależy od wariantu (`src/debug` → `DebugAppCheckProviderFactory`, `src/release` → Play Integrity). `firebase-appcheck-debug` jest wyłącznie w `debugImplementation`, więc build release'owy fizycznie nie potrafi sam siebie poświadczyć.
+
+⚠️ **`matchContacts` ma `enforceAppCheck: false` i to NIE jest przeoczenie.** APK dystrybuowany przez auto-update to build **debugowy**, a Play Integrity nie poświadcza aplikacji, których nie zainstalował Play Store. Włączenie tego dziś odrzucałoby każdego użytkownika, nie tylko nadużywających.
+
+Debugowy token do wpisania ręcznie (Console → App Check → **Debug tokens**) pojawia się w logcat po tagiem `FirebaseAppCheck`; jest per instalacja (ponownie po reinstalacji).
+
+📌 **TODO: włączyć enforcement App Check PO dodaniu appki do Google Play.** Gdy opublikujesz pierwszy **Play-signed release** i przełączysz dystrybucję na sklep (`onPlayStore: true` w `version.json`), zrób:
+1. Console → **App Check** → zarejestruj appkę Android, provider **Play Integrity**, dodaj **SHA-256 certyfikatu podpisującego Play** (Play Console → Setup → App integrity).
+2. App Check → **APIs** → włącz `enforce` na **Firebase Auth**, **Firestore** i **Storage** (osobno, usługa po usłudze).
+3. `functions/src/contacts.ts` → `matchContacts` na `enforceAppCheck: true` (TODO w kodzie mówi gdzie).
+4. Wycofaj debug-tokeny.
+⚠️ Bez kroku 1 (Play-signed build + SHA z Play) wymuszanie odrzuci wszystkich użytkowników — **nie włączaj `enforce` na debugowej dystrybucji auto-update**.
 
 ### Powiadomienia push — decyzje, których nie wolno zmienić niechcący
 
-1. **Wiadomość FCM jest `data-only` (bez pola `notification`).** Z polem `notification`
-   Android sam renderuje powiadomienie, gdy aplikacja jest w tle, i **nie wywołuje
-   `onMessageReceived`** — akcje „Odpowiedz" i „Oznacz jako przeczytane" działałyby
-   tylko dla wiadomości przychodzących przy otwartej aplikacji. Data-only daje pełną
-   kontrolę zawsze; ceną jest podatność na Doze, dlatego `priority: "high"` + TTL 4 tyg.
-2. **Kanał `verbigem_messages`.** Identyfikator jest po obu stronach: `functions/src/
-   messaging.ts` (komentarz) i `VerbigemNotifications.ensureChannel()`. Zmiana w jednym
-   miejscu bez drugiego = ciche zniknięcie powiadomień na Androidzie 8+.
-3. **Podgląd treści DOMYŚLNIE WYŁĄCZONY.** `buildBody()` zwraca „Nowa wiadomość",
-   chyba że `app_config/notifications` ma `showMessagePreview == true`. Push wychodzi
-   z urządzenia i przechodzi przez serwery Google — to inna historia prywatności niż
-   „tłumaczenie dzieje się na Twoim telefonie". Bezpieczeństwo niejawne: brak dokumentu
-   = podgląd wyłączony. Przełącznik w Firestore, da się włączyć bez nowego APK.
-4. **Treść podglądu z `senderTranslation`, nie z `text`.** Podpowiedź nadawcy powstała
-   *w języku odbiorcy* (decyzja D1), więc to jedyna wersja, którą ten człowiek przeczyta.
-   Surowy `text` jest w języku nadawcy.
-5. **Wyciszenie jest honorowane w chmurze**, nie na urządzeniu (`muted === true` na
-   `users/{odbiorca}/contacts/{nadawca}`) — wyciszony czat nie budzi telefonu.
-6. **Token = ID dokumentu.** FCM zwraca `messaging/registration-token-not-registered`
-   dla martwych tokenów; funkcja kasuje je po ID, bez odczytu.
+1. **Wiadomość FCM jest `data-only` (bez pola `notification`).** Z polem `notification` Android sam renderuje powiadomienie w tle i **nie wywołuje `onMessageReceived`** — akcje „Odpowiedz" / „Oznacz jako przeczytane" działałyby tylko przy otwartej aplikacji. Data-only daje pełną kontrolę; ceną jest podatność na Doze, dlatego `priority: "high"` + TTL 4 tyg.
+2. **Kanał `verbigem_messages`.** Identyfikator jest po obu stronach: `functions/src/messaging.ts` i `VerbigemNotifications.ensureChannel()`. Zmiana w jednym miejscu bez drugiego = ciche zniknięcie powiadomień na Androidzie 8+.
+3. **Podgląd treści DOMYŚLNIE WYŁĄCZONY.** `buildBody()` zwraca „Nowa wiadomość", chyba że `app_config/notifications` ma `showMessagePreview == true`. Push wychodzi z urządzenia i przechodzi przez serwery Google — to inna historia prywatności niż „tłumaczenie dzieje się na Twoim telefonie". Bezpieczeństwo niejawne: brak dokumentu = podgląd wyłączony. Przełącznik w Firestore, da się włączyć bez nowego APK.
+4. **Treść podglądu z `senderTranslation`, nie z `text`.** Podpowiedź nadawcy powstała *w języku odbiorcy* (decyzja D1) — to jedyna wersja, którą ten człowiek przeczyta. Surowy `text` jest w języku nadawcy.
+5. **Wyciszenie honorowane w chmurze**, nie na urządzeniu (`muted === true` na `users/{odbiorca}/contacts/{nadawca}`) — wyciszony czat nie budzi telefonu.
+6. **Token = ID dokumentu.** FCM zwraca `messaging/registration-token-not-registered` dla martwych tokenów; funkcja kasuje je po ID, bez odczytu.
 
-Po stronie aplikacji: `VerbigemMessagingService` (odbiera), `FcmTokenManager`
-(`users/{uid}/fcmTokens/{token}`, rejestracja w `VerbigemApplication` po odtworzeniu
-sesji, usunięcie przy wylogowaniu), `VerbigemNotifications` (kanał, grupa per czat,
-MessagingStyle z historią, akcje), `NotificationActionReceiver` (odpowiedź + przeczytane
-pod `goAsync()`, bo robią zapis do Firestore).
+Po stronie aplikacji: `VerbigemMessagingService` (odbiera), `FcmTokenManager` (`users/{uid}/fcmTokens/{token}`, rejestracja po odtworzeniu sesji, usunięcie przy wylogowaniu), `VerbigemNotifications` (kanał, grupa per czat, MessagingStyle, akcje), `NotificationActionReceiver` (odpowiedź + przeczytane pod `goAsync()`, bo robią zapis do Firestore).
 
-Uprawnienie `POST_NOTIFICATIONS` (Android 13+) jest proszone **raz, przy pierwszym
-otwarciu skrzynki czatu** — nie na starcie aplikacji, bo użytkownik nie ma wtedy
-powodu chcieć powiadomień, a Android przestaje pytać po dwóch odmowach. Flaga
-`asked_notif_perm` w DataStore.
+Uprawnienie `POST_NOTIFICATIONS` (Android 13+) jest proszone **raz, przy pierwszym otwarciu skrzynki czatu** — nie na starcie aplikacji (użytkownik nie ma wtedy powodu chcieć powiadomień, a Android przestaje pytać po dwóch odmowach). Flaga `asked_notif_perm` w DataStore.
 
 ---
 
 ## 🚀 Jak uruchomić projekt
 
-1. Otwórz katalog `c:\Users\milo\verbigem_android` w **Android Studio**.
-2. Poczekaj na automatyczną synchronizację Gradle (`Sync Project with Gradle Files`).
-3. Podłącz urządzenie z Androidem lub uruchom emulator (z obsługą `arm64-v8a` lub `x86_64`).
-4. Kliknij **Run** (Zielony trójkąt / `Shift + F10`) lub zbuduj APK:
+1. Otwórz katalog `c:\Users\milo\verbigem\android` w **Android Studio**.
+2. Poczekaj na synchronizację Gradle (`Sync Project with Gradle Files`).
+3. Podłącz urządzenie z Androidem lub uruchom emulator (`arm64-v8a` lub `x86_64`).
+4. Kliknij **Run** (`Shift + F10`) lub zbuduj APK:
    ```bash
    ./gradlew assembleDebug
    ```
 
-**Build (Windows, bash):** JDK 21 w `C:/Users/milo/.jdks/jbr-21.0.11` (ustaw `JAVA_HOME`).
-Natywny build NDK (~2–3 min) kompiluje `libverbigem_llama.so` (Release + KleidiAI + Vulkan).
+**Build (Windows, bash):** JDK 21 w `C:/Users/milo/.jdks/jbr-21.0.11` (ustaw `JAVA_HOME`). Natywny build NDK (~2–3 min) kompiluje `libverbigem_llama.so` (Release + KleidiAI + Vulkan).
 
 ### Flow wydania (auto-update end-to-end — BEZ KABLA)
 
-Pełna, aktualna procedura jest wyżej, w sekcji **„📦 Auto-aktualizacja APK → Jak wypuścić
-nową wersję"** — to JEDYNE źródło prawdy (poniżej tylko skrót; wcześniejsza wersja tego
-skrótu błędnie kazała edytować `dist/android/version.json` ręcznie, co rozjeżdżało się
-z generowaniem pliku przez Vite).
+Poniższa lista to **JEDYNE źródło prawdy** dla wypuszczania wersji (wcześniejsza wersja skrótu błędnie kazała edytować `dist/android/version.json` ręcznie, co rozjeżdżało się z generowaniem pliku przez Vite). **Zanim wykonasz kroki, przeczytaj pułapki wyżej:** „⚠️ Źródło pliku update — DWA pliki, nie pomyl", „⚠️ Pułapka: `immutable` cache na `/android/**`", „⚠️ `mini.verbigem.com` to TA SAMA webapp".
 
-1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`
-   (konwencja: `versionName` = `1.0.(versionCode - 1)`, np. code 25 → name `1.0.24`).
-2. Build APK (wrapper Javy, patrz wyżej) → `app/build/outputs/apk/debug/app-debug.apk`.
+1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts` (konwencja: `versionName` = `1.0.(versionCode - 1)`, np. code 25 → name `1.0.24`).
+2. Build APK → `app/build/outputs/apk/debug/app-debug.apk`. Preferowana komenda (bezpośrednio przez wrapper Javy — w niektórych środowiskach `cmd.exe` jest blokowany i `gradlew.bat` nie przejdzie):
+   ```bash
+   JAVA_HOME="C:/Users/milo/.jdks/jbr-21.0.11" ANDROID_HOME="C:/Users/milo/AppData/Local/Android/Sdk" \
+     "C:/Users/milo/.jdks/jbr-21.0.11/bin/java.exe" \
+     -classpath "gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain \
+     assembleDebug --console=plain
+   ```
 3. APK → `verbigem/mini/dist/android/app-debug-vN.apk` (N = nowy versionCode).
-4. **`verbigem/mini/vite.config.ts`** (plugin `injectBuildId`) → `versionCode`, `versionName`,
-   `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk?v=N`
-   (**z cache-busterem `?v=N`**), `updatedAt`. To źródło prawdy dla przyszłych buildów Vite.
-5. **`verbigem/mini/dist/updates/version.json`** — wpisz TE SAME wartości (to ten plik czyta
-   appka). ⚠️ **Nie uruchamiaj `npm run build`**, chyba że celowo przebudowujesz webapp:
-   `npm run build` zmienia hashe assetów i podmieni działającą stronę. Ręczna edycja
-   `dist/updates/version.json` jest bezpieczna wtedy i tylko wtedy, gdy krok 4 zrobiłeś
-   tak samo — inaczej pierwszy `npm run build` cofnie `versionCode`.
-6. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`.
-   Deploy zastępuje hosting zawartością `dist/` — przed deployem sprawdź
-   `find dist -type f`, czy nie brakuje plików webappy (patrz wyżej „`mini.verbigem.com`
-   to TA SAME webapp").
-7. Zweryfikuj: `curl -s https://mini.verbigem.com/updates/version.json` musi zwrócić nowy
-   `versionCode` i `apkUrl` z `?v=N`.
-   - Jeśli zmieniono reguły Firestore (np. nowa kolekcja jak `ocr_history`):
-     `cd verbigem/android && firebase deploy --only firestore:rules --project mini-verbigem`.
-     App czyta `app_config/*` PRZED loginem (reguły muszą pozwalać read:true), a zapisuje
-     do `users/{uid}/history` i `users/{uid}/ocr_history` (oba `allow read,write` dla właściciela).
+4. **`verbigem/mini/vite.config.ts`** (plugin `injectBuildId`) → `versionCode`, `versionName`, `apkUrl` = `https://mini.verbigem.com/android/app-debug-vN.apk?v=N` (**z cache-busterem `?v=N`**), `updatedAt`. Źródło prawdy dla przyszłych buildów Vite.
+5. **`verbigem/mini/dist/updates/version.json`** — TE SAME wartości (to ten plik czyta appka). ⚠️ **Nie uruchamiaj `npm run build`**, chyba że celowo przebudowujesz webapp. Ręczna edycja jest bezpieczna wtedy i tylko wtedy, gdy krok 4 zrobiłeś identycznie — inaczej pierwszy `npm run build` cofnie `versionCode`.
+6. `cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem`. Przed deployem sprawdź `find dist -type f`, czy nie brakuje plików webappy.
+7. Zweryfikuj: `curl -s https://mini.verbigem.com/updates/version.json` (**nie `/android/`!**) musi zwrócić nowy `versionCode` i `apkUrl` z `?v=N`. W razie wątpliwości `curl -s ".../android/app-debug-vN.apk?v=N" | sha256sum`.
+   - Jeśli zmieniono reguły Firestore (np. nowa kolekcja): `cd verbigem/android && firebase deploy --only firestore:rules --project mini-verbigem`. App czyta `app_config/*` PRZED loginem (read:true), a zapisuje do `users/{uid}/history` i `users/{uid}/ocr_history` (oba `allow read,write` dla właściciela).
 8. Test: zainstaluj starszy APK (niższy versionCode) → otwórz → dialog update → pobierz nowy.
 
-**Repozytorium git:** `https://github.com/ihletru/verbigem_android` (branch `master`, prywatne).
-`.gitignore` wyklucza: `build/`, `llama_master/`, `*.gguf`, `model_probe/`, `build_log*`,
-`crash_log*`, `local.properties`, `.workbuddy-ai/`.
-Po każdej zmianie większej niż kosmetyczna: **zaktualizuj README, potem commit + `git push`.**
-Projekt `mini` (webapp + hosting) **ma repozytorium git** (`verbigem-mini`, prywatne) —
-deploy hostingu idzie przez `firebase deploy --project mini-verbigem`.
+### Repozytorium i zasady pracy
+
+**Git:** `https://github.com/ihletru/verbigem_android` (branch `master`, prywatne). `.gitignore` wyklucza: `build/`, `llama_master/`, `*.gguf`, `model_probe/`, `build_log*`, `crash_log*`, `local.properties`, `.workbuddy-ai/`.
+
+**Po każdej zmianie większej niż kosmetyczna: zaktualizuj README, potem commit + `git push`.**
+
+Projekt `mini` (webapp + hosting) ma własne repozytorium (`verbigem-mini`, prywatne); deploy hostingu idzie przez `firebase deploy --project mini-verbigem`.
