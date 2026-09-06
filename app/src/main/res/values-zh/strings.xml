@@ -325,4 +325,129 @@
     <string name="voice_stop">停止</string>
     <string name="voice_not_available">此设备不支持语音识别</string>
     <string name="image_close">关闭预览</string>
+
+    <!-- ============================================================
+         上下文帮助（v41）：点击 = 执行操作，长按 = 弹出帮助窗口。
+         ============================================================ -->
+    <string name="help_open">帮助</string>
+    <string name="help_close">明白了</string>
+
+    <string name="help_intro_translator_title">翻译页怎么用</string>
+    <string name="help_intro_translator">如果你不确定或忘记了某个图标的作用，请按住它，直到弹出说明窗口。部分图标在免费版中不可用。应用设置位于「我的」页面。祝你使用愉快！</string>
+    <string name="help_intro_conversation_title">对话页怎么用</string>
+    <string name="help_intro_conversation">两个人，一部手机。A 方用自己的语言说或写，B 方就能听到并看到自己语言的译文。点麦克风说话，或在下方输入后点箭头。这里的内容不会被保存，也绝不会离开这台设备——对话完全私密。</string>
+    <string name="help_intro_ocr_title">拍照识字怎么用</string>
+    <string name="help_intro_ocr">给招牌、菜单或标签拍张照，Verbigem 会离线直接从图片中识别文字并翻译。从相册选一张，或现拍一张，框出要识别的区域，再点翻译。照片本身永远不会离开你的手机。</string>
+    <string name="help_intro_chat_title">聊天页怎么用</string>
+    <string name="help_intro_chat">聊天是你与好友之间已翻译对话的收件箱。打开一个会话即可读写，双方各自看到自己语言的消息。用搜索框可以在消息内容里找词。长按任意图标即可查看它的作用。</string>
+    <string name="help_intro_thread_title">这个会话怎么用</string>
+    <string name="help_intro_thread">你用自己的语言写，好友用他自己的语言读——Verbigem 会双向翻译每一条消息。点回形针发照片，点麦克风语音输入，点箭头发送。长按某条消息可查看更多选项：显示原文、引用、删除等。</string>
+    <string name="help_intro_contacts_title">联系人页怎么用</string>
+    <string name="help_intro_contacts">有四种找到人的方式：好友是已建立联系的人，邀请是等待你回复的请求，手机是在通讯录里查找，外部则通过其他应用给对方发消息。长按任意图标即可查看它的作用。</string>
+    <string name="help_intro_profile_title">我的页怎么用</string>
+    <string name="help_intro_profile">账号和应用外观的一切都在这里：昵称、界面语言、两个对话语言、账号状态与钱包、手机号、主题、你的二维码和隐私政策。长按任意图标即可查看它的作用。</string>
+
+    <string name="help_source_lang_title">源语言</string>
+    <string name="help_source_lang">你说或粘贴所用的语言。点击可从列表中选择。下面输入框里的所有内容都会按这门语言来理解。</string>
+    <string name="help_target_lang_title">目标语言</string>
+    <string name="help_target_lang">你想得到的语言。点击选择。译文以及所有朗读内容都会以这门语言返回。</string>
+    <string name="help_swap_title">交换语言</string>
+    <string name="help_swap">一键互换两门语言。当对话方向反转、需要反过来翻译时很方便。输入框里已有的文字保持不变。</string>
+    <string name="help_input_field_title">待翻译文本</string>
+    <string name="help_input_field">在这里输入，或按住麦克风说话——识别出的词会进入这个框。右侧的 X 用于清空。也可以用相机按钮从照片中提取文字。</string>
+    <string name="help_clear_input">清空输入框，方便你重新写一句。不会影响你的翻译历史。</string>
+    <string name="help_translate_btn_title">翻译按钮</string>
+    <string name="help_translate_btn">按上面选择的引擎运行，并在下方显示结果。输入框为空时按钮不可点。如果缺少模型，应用会提示下载一次。</string>
+    <string name="help_mic_title">麦克风——语音输入</string>
+    <string name="help_mic">点击开始和结束听写。请用所选源语言清晰地说；识别出的词会出现在输入框中，翻译前可以修改。首次点击会请求麦克风权限。</string>
+    <string name="help_camera_title">从照片</string>
+    <string name="help_camera">打开拍照识字：给招牌、菜单或标签拍照，Verbigem 会把印刷文字转成可编辑文本，然后再翻译。离线可用，完全免费。</string>
+    <string name="help_camera_pro_title">从照片——专业版</string>
+    <string name="help_camera_pro">专业版相机对困难图片的识别更锐利：手写、弱光和长文档。免费版中保持锁定——旁边普通的相机按钮是免费的。</string>
+
+    <string name="engine_caption_fast">快速</string>
+    <string name="engine_caption_accurate">精确</string>
+    <string name="engine_caption_both">两者</string>
+    <string name="engine_caption_online">在线</string>
+    <string name="input_caption_voice">语音</string>
+    <string name="input_caption_photo">照片</string>
+    <string name="input_caption_photo_pro">照片专业版</string>
+
+    <string name="help_engine_fast_title">快速引擎</string>
+    <string name="help_engine_fast">最快的那个。约 440 MB 的小模型完全在手机上运行，不需要联网，几乎立刻出结果。最适合日常句子和旅行。它免费，也是默认引擎。想马上得到答案时选它。</string>
+    <string name="help_engine_accurate_title">精确引擎</string>
+    <string name="help_engine_accurate">更仔细的那个。约 1.1 GB 的大模型明显更慢，但处理长句、正式或含糊的句子好得多——合同、说明书，以及任何措辞必须准确的内容。同样离线运行。专业版功能：免费用户会看到锁图标。建议用 Wi-Fi 下载一次。</string>
+    <string name="help_engine_both_title">两个引擎</string>
+    <string name="help_engine_both">让两个本地模型同时处理同一段文本，并把两个结果上下显示，方便你挑更好的措辞。等待时间大约翻倍。专业版功能。翻译马上要发出去、想确保万无一失时非常好用。</string>
+    <string name="help_engine_online_title">在线引擎</string>
+    <string name="help_engine_online">把文本发送到互联网上的翻译服务，取回质量非常高的结果——常常是四种里最好的。需要可用的网络连接，并会从 API 钱包里扣一点。专业版功能。当你联网且最看重准确度时使用。</string>
+
+    <string name="nav_ocr">识字</string>
+    <string name="help_nav_translate">主页面：选择两门语言，输入或说话，然后翻译。</string>
+    <string name="help_nav_conversation">两个人，一部手机——说或写，各自听到自己的语言。</string>
+    <string name="help_nav_chat">你与好友之间已翻译对话的收件箱。</string>
+    <string name="help_nav_contacts">好友、邀请、通讯录里的人和外部会话。</string>
+    <string name="help_nav_profile">你的账号、语言、主题、二维码和隐私设置。</string>
+    <string name="help_nav_ocr">拍照识字——把招牌或菜单上的印刷文字转成可编辑文本并翻译。</string>
+
+    <string name="help_action_copy">把文字放进剪贴板，方便你粘贴到任何地方——消息、备忘录或其他应用。不会上传任何内容，副本只留在你的手机上。</string>
+    <string name="help_action_share">打开系统分享面板，把文字交给你选择的应用——WhatsApp、邮件、短信。只有你确认了目标应用，文字才会离开手机。</string>
+    <string name="help_action_read">用手机内置的语音朗读这段文字。离线可用，使用目标语言。音质取决于系统提供的语音——旁边的专业版按钮听起来更自然。</string>
+    <string name="help_action_read_pro">用高质量的在线语音朗读这段文字，比内置语音更清晰自然。需要联网，并会从 API 钱包里扣一点。免费版中锁定。</string>
+    <string name="help_action_delete">删除这一条。在历史记录中会永久删除本机保存的这条翻译；在结果卡片中只是清除屏幕上的结果，历史记录仍保留。</string>
+    <string name="help_result_card">译文。上方的图标作用于这段文字：复制、分享、朗读、专业版朗读和清除。使用「两者」引擎时会得到两张卡片——先快速结果，下面是带标签的精确结果。</string>
+    <string name="help_history_card">你之前做过的翻译，保存在本机上。点图标即可复制、分享、朗读或删除。长按任意图标可了解它的作用。历史记录只属于你。</string>
+
+    <string name="help_conv_swap_title">交换双方</string>
+    <string name="help_conv_swap">交换哪一方说话、哪一方被翻译，好让对方回答。每当轮到对方时使用。</string>
+    <string name="help_conv_mic_title">麦克风</string>
+    <string name="help_conv_mic">点一下开始听，再点一下结束。你说的话会被识别、翻译、显示在气泡里，并用另一门语言朗读出来。轮到对方时把手机递过去。</string>
+    <string name="help_conv_send_title">发送输入的文字</string>
+    <string name="help_conv_send">把下方输入框里的文字作为当前一方的发言发送：会被翻译、显示在气泡里并朗读出来。在嘈杂、麦克风不好用的地方用它。</string>
+
+    <string name="help_ocr_camera">用相机拍一张新照片。拿稳手机，让要识别的文字填满取景框。照片只留在本机。</string>
+    <string name="help_ocr_gallery">从相册里选一张已有的图片——适合截图、已拍的照片和文档。</string>
+    <string name="help_ocr_text_field">从图片识别出的文字会出现在这里，翻译前可以手动修改。一旦你手动改过，就不会再重新识别。</string>
+    <string name="help_ocr_translate">用翻译页选择的引擎翻译识别出的文字，并在下方显示结果，可直接复制或朗读。</string>
+
+    <string name="help_contacts_qr_title">扫描二维码</string>
+    <string name="help_contacts_qr">把相机对准好友的 Verbigem 二维码，即可打开他的名片并立即添加。你自己的二维码在「我的」页面。</string>
+    <string name="help_contacts_search">输入昵称或邮箱查找某人。两个字符即可开始。确认之前不会在联网搜索。</string>
+    <string name="help_tab_friends">已经建立联系的人。点一下打开聊天；长按可打开联系人名片，设置语言、置顶、免打扰和屏蔽。</string>
+    <string name="help_tab_invites">等待你回复的请求——想加你好友的人，以及你邀请过的人。在这里接受或拒绝。</string>
+    <string name="help_tab_phone">在本机通讯录中查找并显示已经在用 Verbigem 的人。匹配时只发送号码的单向加密摘要，绝不发送号码本身。</string>
+    <string name="help_tab_external">给没有安装 Verbigem 的人发消息——通过短信、邮件、WhatsApp 等。Verbigem 翻译好你的消息后交出去，不会有任何内容回到应用里。</string>
+
+    <string name="help_chat_contacts_btn">跳转到联系人页，在那里选择要发消息的人。</string>
+    <string name="help_chat_search">在你的消息内容中搜索。至少需要三个字符，并且匹配消息的开头。</string>
+    <string name="help_chat_row">一个会话。点击打开、阅读和回复。长按该行可打开联系人名片，设置语言、置顶、免打扰、屏蔽和删除。</string>
+
+    <string name="help_thread_mic">用语音输入代替打字。点一下开始，再点一下结束；识别出的词会进入输入框，发送前可以修改。</string>
+    <string name="help_thread_image">从相册附加一张图片。它会随会话一起发送，好友可以全屏打开。</string>
+    <string name="help_thread_input">在这里用你自己的语言写消息，好友会用他的语言阅读。右侧的箭头用于发送。</string>
+    <string name="help_thread_send">发送消息。发出时会为好友翻译，收到的回复也会为你翻译。</string>
+    <string name="help_thread_bubble">会话中的一条消息。你总是用自己的语言阅读。长按可查看更多：显示原文、引用、朗读、立即翻译或删除。</string>
+
+    <string name="help_profile_nickname">好友看到的名字。可以随便填，不必是真名。修改后点保存。</string>
+    <string name="help_profile_ui_lang">更改整个界面的语言。立即生效，不影响你翻译所用的语言。</string>
+    <string name="help_profile_conv_langs">你在「对话」和聊天翻译中使用的两种默认语言。设置你会说的和你想听到的语言。</string>
+    <string name="help_profile_account">显示你使用的是免费版还是专业版，以及 API 钱包里还剩多少额度。在线引擎和专业版语音由钱包付费。</string>
+    <string name="help_profile_phone">你的手机号，仅用于让已存有该号码的好友找到你。验证会发送一条短信验证码，号码本身留在你的手机里。</string>
+    <string name="help_profile_theme">更改应用的配色和风格：宁静、锐利或活泼，每种都有日间和夜间版本。</string>
+    <string name="help_profile_qr">你的专属二维码。让好友扫描它，或分享链接，对方的应用就会打开你的名片并显示「添加好友」按钮。</string>
+    <string name="help_profile_logout">在这台设备上退出登录。你的翻译和聊天记录会留在手机上；重新登录即可同步。</string>
+    <string name="help_profile_privacy">在浏览器中打开我们公开的隐私政策。我们从不读取你的消息——它们只在你的设备上翻译并保留在那里。</string>
+
+    <!-- 会话：返回 -->
+    <string name="help_thread_back">关闭此对话并返回聊天列表。</string>
+
+    <!-- 我的二维码 -->
+    <string name="help_myqr_back">返回你的个人资料。</string>
+    <string name="help_myqr_qr">你的个人二维码。其他 Verbigem 用户扫描后即可打开你的联系人卡片，上面有“添加好友”按钮——无需输入或搜索。</string>
+    <string name="help_myqr_copy">将你的个人资料链接复制到剪贴板，方便通过任意应用分享。</string>
+
+    <!-- 手机验证 -->
+    <string name="help_phone_intro">添加你的手机号，使已经存有该号码的好友能找到你。确认时会发送一条短信验证码；号码本身只留在你的手机上，绝不上传。</string>
+    <string name="help_phone_skip">跳过验证。聊天仍可正常使用，但通讯录里有你号码的人将无法找到你。稍后可在“个人资料”中再验证。</string>
+    <string name="chat_search">搜索消息</string>
 </resources>

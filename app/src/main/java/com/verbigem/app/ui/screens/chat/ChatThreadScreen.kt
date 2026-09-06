@@ -80,7 +80,11 @@ import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.FlagIcon
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.ProFeatureButton
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.text.SimpleDateFormat
@@ -122,6 +126,9 @@ fun ChatThreadScreen(
     var menuFor by remember { mutableStateOf<String?>(null) }
     // Faza 5.4: URL zdjęcia otwartego w podglądzie na pełnym ekranie (null = zamknięte).
     var previewImageUrl by remember { mutableStateOf<String?>(null) }
+
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
 
     // Faza 5.3: głosówki — stan nagrywania + uprawnienie mikrofonu.
     val isListening by viewModel.isListening.collectAsState()
@@ -182,7 +189,13 @@ fun ChatThreadScreen(
                 .padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
+            HelpIconButton(
+                onClick = onBack,
+                helpState = help,
+                helpTitle = stringResource(R.string.action_back),
+                helpText = stringResource(R.string.help_thread_back),
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back),
@@ -367,7 +380,7 @@ fun ChatThreadScreen(
                 }
             } else {
                 // Faza 5.3: mikrofon — nagrywanie głosówki (transkrypcja na żywo).
-                IconButton(
+                HelpIconButton(
                     onClick = {
                         if (ContextCompat.checkSelfPermission(
                                 context,
@@ -376,6 +389,9 @@ fun ChatThreadScreen(
                         ) viewModel.startVoice()
                         else recordPermission.launch(Manifest.permission.RECORD_AUDIO)
                     },
+                    helpState = help,
+                    helpTitle = stringResource(R.string.record_voice),
+                    helpText = stringResource(R.string.help_thread_mic),
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
@@ -384,8 +400,11 @@ fun ChatThreadScreen(
                         tint = VerbigemTheme.colors.muted
                     )
                 }
-                IconButton(
+                HelpIconButton(
                     onClick = { imagePicker.launch("image/*") },
+                    helpState = help,
+                    helpTitle = stringResource(R.string.attach_image),
+                    helpText = stringResource(R.string.help_thread_image),
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
@@ -407,13 +426,19 @@ fun ChatThreadScreen(
                     )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(
+                HelpIconButton(
                     onClick = { viewModel.sendMessage() },
                     enabled = inputText.isNotBlank(),
+                    helpState = help,
+                    helpTitle = stringResource(R.string.send),
+                    helpText = stringResource(R.string.help_thread_send),
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(VerbigemTheme.colors.accent)
+                        .background(
+                            if (inputText.isNotBlank()) VerbigemTheme.colors.accent
+                            else VerbigemTheme.colors.accent.copy(alpha = 0.4f)
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,

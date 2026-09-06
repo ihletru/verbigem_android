@@ -2,8 +2,33 @@
 
 
 > ⚠️ Tags `v1.0.1`–`v1.0.3` are **early historical builds** (versionCode 2–3).
-> The current version is **v1.0.39** (versionCode 40).
+> The current version is **v1.0.40** (versionCode 41).
 > The version lives in `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.40 (2026-09-06) — versionCode 41
+
+**Global UI rule: tap an icon = do its job, long-press it = help pop-up.**
+
+- **Every icon in the app** now explains itself: what it is, what it does, how to use it.
+  New shared infrastructure in `ui/components/HelpDialog.kt` (`HelpWindow`, `helpClickable`,
+  `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
+- **Every screen header**: firefly logo (transparent) + title + a **"?"** button on the right
+  that opens an explanation of the whole page.
+- **Translator**: help for both language pickers and the swap icon; four engines with short
+  captions (fast / accurate / both / online) and full pop-ups — the old descriptions under the
+  engines are **gone**; mic / camera / camera Pro now have **frames** and the captions
+  "from voice" / "from photo" / "from photo pro"; help for the Translate button, the five icons
+  on history and result cards, and the bottom bar.
+- **Conversation**: logo + "?" (including the note that the conversation is never saved and
+  never leaves the device), help for the language fields, swap, mic and send button.
+- **OCR now has a bottom-bar entry** — the bar has six tabs (it used to be the only screen
+  without navigation).
+- **Contacts**: Friends / Invites / From phone / External as an **icon above 11.sp text**
+  (like the bottom bar) plus help pop-ups.
+- **Chat, Profile, my QR code, phone verification** — "?" headers and help on the icons.
+- **~50 new help texts in 6 languages** (394 keys, nothing missing in any language).
 
 ---
 

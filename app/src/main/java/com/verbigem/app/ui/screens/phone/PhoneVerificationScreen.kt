@@ -3,6 +3,7 @@ package com.verbigem.app.ui.screens.phone
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +40,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 import androidx.compose.foundation.text.KeyboardOptions
 
@@ -66,6 +70,14 @@ fun PhoneVerificationScreen(
     val error by viewModel.error.collectAsState()
     val sentTo by viewModel.sentTo.collectAsState()
     val context = LocalContext.current
+
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
+
+    val introHelpTitle = stringResource(R.string.phone_verify_intro)
+    val introHelpText = stringResource(R.string.help_phone_intro)
+    val skipHelpTitle = stringResource(R.string.phone_verify_skip)
+    val skipHelpText = stringResource(R.string.help_phone_skip)
 
     Column(
         modifier = Modifier
@@ -95,7 +107,11 @@ fun PhoneVerificationScreen(
                 Text(
                     text = stringResource(R.string.phone_verify_intro),
                     fontSize = 14.sp,
-                    color = VerbigemTheme.colors.muted
+                    color = VerbigemTheme.colors.muted,
+                    modifier = Modifier.helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(introHelpTitle, introHelpText) }
+                    )
                 )
                 if (viewModel.detectedCountry.isNotBlank()) {
                     Text(
@@ -124,11 +140,18 @@ fun PhoneVerificationScreen(
                     isBusy = isBusy,
                     onClick = { viewModel.sendCode(context) }
                 )
-                TextButton(onClick = {
-                    viewModel.skip()
-                    onSkip()
-                }) {
-                    Text(stringResource(R.string.phone_verify_skip), color = VerbigemTheme.colors.muted)
+                Box(
+                    modifier = Modifier.helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(skipHelpTitle, skipHelpText) }
+                    )
+                ) {
+                    TextButton(onClick = {
+                        viewModel.skip()
+                        onSkip()
+                    }) {
+                        Text(stringResource(R.string.phone_verify_skip), color = VerbigemTheme.colors.muted)
+                    }
                 }
             }
 

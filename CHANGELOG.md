@@ -2,8 +2,33 @@
 
 
 > ⚠️ Tagi `v1.0.1`–`v1.0.3` to **wczesne buildy historyczne** (versionCode 2–3).
-> Bieżąca wersja to **v1.0.39** (versionCode 40).
+> Bieżąca wersja to **v1.0.40** (versionCode 41).
 > Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.40 (2026-09-06) — versionCode 41
+
+**Globalna reguła UI: kliknięcie ikony = akcja, długie kliknięcie = okno pomocy.**
+
+- **Każda ikona w aplikacji** ma teraz okno z wyjaśnieniem: czym jest, co robi, jak używać.
+  Nowa infrastruktura w `ui/components/HelpDialog.kt` (`HelpWindow`, `helpClickable`,
+  `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
+- **Nagłówek każdego ekranu**: logo świetlika (przezroczyste) + tytuł + przycisk **„?"**
+  po prawej stronie, otwierający opis całej strony.
+- **Tłumacz**: pomoc dla pól wyboru języka i ikony zamiany, 4 silniki z krótkimi
+  podpisami (szybki / dokładny / oba / online) i obszernymi oknami — **dotychczasowe
+  opisy pod silnikami usunięte**; mikrofon / aparat / aparat Pro dostały **ramki**
+  i podpisy „z głosu" / „ze zdjęcia" / „ze zdjęcia pro"; pomoc dla przycisku „Tłumacz",
+  5 ikon w kartach historii i wyniku, oraz menu dolnego.
+- **Rozmowa**: logo + „?" (z klauzulą, że rozmowa nie jest zapisywana i nie opuszcza
+  urządzenia), pomoc dla pól języka, zamiany, mikrofonu i przycisku wysyłki.
+- **OCR dostało pozycję w menu dolnym** — pasek ma teraz 6 ikon (był jedynym ekranem
+  bez nawigacji).
+- **Kontakty**: zakładki Znajomi / Zaproszenia / Z telefonu / Zewnętrzne jako
+  **ikona nad tekstem 11.sp** (jak w menu dolnym) + okna pomocy.
+- **Czat, Profil, mój kod QR, weryfikacja numeru** — nagłówki „?" i pomoc na ikonach.
+- **~50 nowych tekstów pomocy × 6 języków** (394 klucze, zero braków w żadnym języku).
 
 ---
 

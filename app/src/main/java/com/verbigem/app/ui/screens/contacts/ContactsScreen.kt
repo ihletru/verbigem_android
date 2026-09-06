@@ -24,8 +24,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -70,6 +74,11 @@ import com.verbigem.app.data.OutboundTarget
 import com.verbigem.app.data.SystemShareChannel
 import com.verbigem.app.data.PhoneContact
 import com.verbigem.app.data.openUrl
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.ScreenHeader
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 import kotlinx.coroutines.launch
 
@@ -104,6 +113,8 @@ fun ContactsScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
 
     // Tylko dla wejścia do wątku jednokierunkowego: zapis w Room musi zdążyć
     // przed nawigacją, a to jedno `suspend`, nie stan ekranu.
@@ -139,10 +150,10 @@ fun ContactsScreen(
     }
 
     val tabs = listOf(
-        R.string.tab_friends,
-        R.string.tab_invites,
-        R.string.tab_phone,
-        R.string.tab_external
+        Triple(Icons.Default.Group, R.string.tab_friends, R.string.help_tab_friends),
+        Triple(Icons.Default.Mail, R.string.tab_invites, R.string.help_tab_invites),
+        Triple(Icons.Default.Phone, R.string.tab_phone, R.string.help_tab_phone),
+        Triple(Icons.Default.OpenInNew, R.string.tab_external, R.string.help_tab_external)
     )
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -159,25 +170,28 @@ fun ContactsScreen(
             .background(VerbigemTheme.colors.bg)
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.contacts_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = onOpenScan) {
-                Icon(
-                    Icons.Default.QrCode,
-                    contentDescription = stringResource(R.string.qr_scan),
-                    tint = VerbigemTheme.colors.ink
-                )
+        ScreenHeader(
+            title = stringResource(R.string.contacts_title),
+            helpState = help,
+            helpTitle = stringResource(R.string.help_intro_contacts_title),
+            helpText = stringResource(R.string.help_intro_contacts),
+            trailing = {
+                HelpIconButton(
+                    onClick = onOpenScan,
+                    helpState = help,
+                    helpTitle = stringResource(R.string.help_contacts_qr_title),
+                    helpText = stringResource(R.string.help_contacts_qr),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        Icons.Default.QrCode,
+                        contentDescription = stringResource(R.string.qr_scan),
+                        tint = VerbigemTheme.colors.ink,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
-        }
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -209,17 +223,48 @@ fun ContactsScreen(
                 onOpenExternalThread = onOpenExternalThread
             )
         } else {
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = VerbigemTheme.colors.bg,
-                contentColor = VerbigemTheme.colors.accent
+            // Zakładki jako mały tekst (11.sp, jak w menu dolnym) z ikoną nad napisem.
+            // Kliknięcie przełącza zakładkę, długie kliknięcie otwiera jej wyjaśnienie.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(14.dp))
+                    .padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                tabs.forEachIndexed { index, res ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(stringResource(res), fontSize = 13.sp) }
-                    )
+                tabs.forEachIndexed { index, tab ->
+                    val selected = selectedTab == index
+                    val tint = if (selected) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
+                    val title = stringResource(tab.second)
+                    val tabHelp = stringResource(tab.third)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f)
+                            .helpClickable(
+                                onClick = { selectedTab = index },
+                                onLongClick = { help.show(title, tabHelp) }
+                            )
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = tab.first,
+                            contentDescription = title,
+                            tint = tint,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = title,
+                            color = tint,
+                            fontSize = 11.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
 

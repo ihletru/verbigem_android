@@ -45,8 +45,12 @@ import androidx.compose.ui.unit.sp
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.LangSelect
+import com.verbigem.app.ui.components.ScreenHeader
 import com.verbigem.app.ui.components.UiLangSelect
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -64,6 +68,29 @@ fun ProfileScreen(
     val currentUiLang by viewModel.currentUiLang.collectAsState(initial = "pl")
     val context = LocalContext.current
 
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
+
+    val helpNicknameTitle = stringResource(R.string.nick_label)
+    val helpNicknameText = stringResource(R.string.help_profile_nickname)
+    val helpUiLangTitle = stringResource(R.string.ui_lang_label)
+    val helpUiLangText = stringResource(R.string.help_profile_ui_lang)
+    val helpConvLangTitle = stringResource(R.string.speak_langs_label)
+    val helpConvLangText = stringResource(R.string.help_profile_conv_langs)
+    val helpAccountTitle = stringResource(R.string.account_status)
+    val helpAccountText = stringResource(R.string.help_profile_account)
+    val helpPhoneTitle = stringResource(R.string.profile_phone_title)
+    val helpPhoneText = stringResource(R.string.help_profile_phone)
+    val helpThemeTitle = stringResource(R.string.theme_label)
+    val helpThemeText = stringResource(R.string.help_profile_theme)
+    val helpQrTitle = stringResource(R.string.qr_my_code)
+    val helpQrText = stringResource(R.string.help_profile_qr)
+    val helpPrivacyTitle = stringResource(R.string.privacy_label)
+    val helpPrivacyText = stringResource(R.string.help_profile_privacy)
+    val helpLogoutTitle = stringResource(R.string.logout)
+    val helpLogoutText = stringResource(R.string.help_profile_logout)
+
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -72,11 +99,11 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text(
-                text = stringResource(R.string.profile_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink
+            ScreenHeader(
+                title = stringResource(R.string.profile_title),
+                helpState = help,
+                helpTitle = stringResource(R.string.help_intro_profile_title),
+                helpText = stringResource(R.string.help_intro_profile)
             )
         }
 
@@ -88,7 +115,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpNicknameTitle, helpNicknameText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.nick_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(6.dp))
@@ -123,7 +154,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpUiLangTitle, helpUiLangText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.ui_lang_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -153,14 +188,20 @@ fun ProfileScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         LangSelect(
                             selectedLang = LangCode.fromCode(profile?.speakLangSource ?: "pl"),
-                            onLangSelected = { viewModel.setSpeakLangs(it, LangCode.fromCode(profile?.speakLangTarget ?: "en")) }
+                            onLangSelected = { viewModel.setSpeakLangs(it, LangCode.fromCode(profile?.speakLangTarget ?: "en")) },
+                            helpState = help,
+                            helpTitle = stringResource(R.string.speak_langs_label),
+                            helpText = stringResource(R.string.help_profile_conv_langs)
                         )
                     }
                     Text(" ⇄ ", color = VerbigemTheme.colors.muted, modifier = Modifier.padding(horizontal = 8.dp))
                     Box(modifier = Modifier.weight(1f)) {
                         LangSelect(
                             selectedLang = LangCode.fromCode(profile?.speakLangTarget ?: "en"),
-                            onLangSelected = { viewModel.setSpeakLangs(LangCode.fromCode(profile?.speakLangSource ?: "pl"), it) }
+                            onLangSelected = { viewModel.setSpeakLangs(LangCode.fromCode(profile?.speakLangSource ?: "pl"), it) },
+                            helpState = help,
+                            helpTitle = stringResource(R.string.speak_langs_label),
+                            helpText = stringResource(R.string.help_profile_conv_langs)
                         )
                     }
                 }
@@ -174,8 +215,12 @@ fun ProfileScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpAccountTitle, helpAccountText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.account_status), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -206,7 +251,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpPhoneTitle, helpPhoneText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.profile_phone_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -239,7 +288,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpThemeTitle, helpThemeText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.theme_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -304,7 +357,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpQrTitle, helpQrText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(stringResource(R.string.qr_my_code), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -337,7 +394,11 @@ fun ProfileScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(VerbigemTheme.colors.surface)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
-                    .padding(16.dp)
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpPrivacyTitle, helpPrivacyText) }
+                )
+                .padding(16.dp)
             ) {
                 Text(
                     stringResource(R.string.privacy_label),
@@ -386,20 +447,28 @@ fun ProfileScreen(
 
         // Wylogowanie
         item {
-            Button(
-                onClick = {
-                    viewModel.signOut()
-                    onLogout()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.danger),
-                shape = RoundedCornerShape(14.dp),
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(helpLogoutTitle, helpLogoutText) }
+                    )
             ) {
-                Icon(Icons.Default.ExitToApp, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.logout), fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = {
+                        viewModel.signOut()
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.danger),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Icon(Icons.Default.ExitToApp, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.logout), fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

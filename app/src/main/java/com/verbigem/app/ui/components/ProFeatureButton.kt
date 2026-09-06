@@ -3,16 +3,16 @@ package com.verbigem.app.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
@@ -25,6 +25,10 @@ import kotlinx.coroutines.launch
  * - When [isPro] is true the button is fully active and [onProClick] fires.
  * - When [isPro] is false the button is shown (greyed out) but tapping it only reveals a tooltip
  *   explaining the feature is Pro-only, so free users discover the capability exists.
+ *
+ * Long-press (when [helpState] is passed) opens the standard help dialog. There is
+ * deliberately only ONE clickable in the subtree — `IconButton` already installs its
+ * own, and a second one on top would swallow the long-press.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +38,10 @@ fun ProFeatureButton(
     isPro: Boolean,
     onProClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tooltipText: String = stringResource(R.string.pro_feature_tooltip)
+    tooltipText: String = stringResource(R.string.pro_feature_tooltip),
+    helpState: HelpWindowState? = null,
+    helpTitle: String = "",
+    helpText: String = ""
 ) {
     val tooltipState = rememberTooltipState()
     val scope = rememberCoroutineScope()
@@ -44,15 +51,20 @@ fun ProFeatureButton(
         tooltip = { PlainTooltip { Text(tooltipText) } },
         state = tooltipState
     ) {
-        IconButton(
-            onClick = {
-                if (isPro) {
-                    onProClick()
-                } else {
-                    scope.launch { tooltipState.show() }
-                }
-            },
-            modifier = modifier
+        Box(
+            modifier = modifier.helpClickable(
+                onClick = {
+                    if (isPro) {
+                        onProClick()
+                    } else {
+                        scope.launch { tooltipState.show() }
+                    }
+                },
+                onLongClick = if (helpState != null) {
+                    { helpState.show(helpTitle, helpText) }
+                } else null
+            ),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,

@@ -44,6 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
 import com.verbigem.app.data.QRBitmap
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 /**
@@ -63,6 +67,14 @@ fun MyQrScreen(
     val context = LocalContext.current
     val qr = remember(viewModel.url) { QRBitmap.encode(viewModel.url, 512) }
 
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
+
+    val qrHelpTitle = stringResource(R.string.qr_my_code)
+    val qrHelpText = stringResource(R.string.help_myqr_qr)
+    val copyHelpTitle = stringResource(R.string.qr_copy_link)
+    val copyHelpText = stringResource(R.string.help_myqr_copy)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +84,13 @@ fun MyQrScreen(
     ) {
         // ------------------------------------------------------------- header
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            HelpIconButton(
+                onClick = onBack,
+                helpState = help,
+                helpTitle = stringResource(R.string.help_myqr_back),
+                helpText = stringResource(R.string.help_myqr_back),
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back),
@@ -127,6 +145,10 @@ fun MyQrScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(16.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(qrHelpTitle, qrHelpText) }
+                    )
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -151,17 +173,27 @@ fun MyQrScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // ----------------------------------------------------- copy link
-        Button(
-            onClick = {
-                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                cm.setPrimaryClip(ClipData.newPlainText("Verbigem profile", viewModel.url))
-                Toast.makeText(context, context.getString(R.string.copied_clipboard), Toast.LENGTH_SHORT).show()
-            },
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-            modifier = Modifier.fillMaxWidth(0.7f).height(44.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .height(44.dp)
+                .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(copyHelpTitle, copyHelpText) }
+                )
         ) {
-            Text(stringResource(R.string.qr_copy_link), color = Color.White, fontSize = 14.sp)
+            Button(
+                onClick = {
+                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("Verbigem profile", viewModel.url))
+                    Toast.makeText(context, context.getString(R.string.copied_clipboard), Toast.LENGTH_SHORT).show()
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(stringResource(R.string.qr_copy_link), color = Color.White, fontSize = 14.sp)
+            }
         }
     }
 }

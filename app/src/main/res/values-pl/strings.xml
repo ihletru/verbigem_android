@@ -332,4 +332,141 @@
     <string name="voice_stop">Stop</string>
     <string name="voice_not_available">Rozpoznawanie mowy niedostępne na tym urządzeniu</string>
     <string name="image_close">Zamknij podgląd</string>
+
+    <!-- ============================================================
+         Pomoc kontekstowa (v41): tap = akcja, długi tap = okno pomocy.
+         ============================================================ -->
+    <string name="help_open">Pomoc</string>
+    <string name="help_close">Rozumiem</string>
+
+    <!-- Okna „?" na ekranach -->
+    <string name="help_intro_translator_title">Jak działa Tłumacz</string>
+    <string name="help_intro_translator">Gdy nie jesteś pewien lub zapomniałeś co robi którakolwiek ikona, naciśnij ją i przytrzymaj aż pojawi się okno z wyjaśnieniem. Niektóre ikony nie sa aktywne w wersji darmowej. Ustawienia aplikacji znajdziesz na stronie Profil. Życzymy przyjemnego korzystania z aplikacji.</string>
+    <string name="help_intro_conversation_title">Jak działa Rozmowa</string>
+    <string name="help_intro_conversation">Dwie osoby, jeden telefon. Strona A mówi lub pisze w swoim języku, strona B słyszy i czyta tłumaczenie w swoim. Naciśnij mikrofon, żeby mówić, albo wpisz tekst na dole i naciśnij strzałkę. Nic tutaj nie jest zapisywane i nic nigdy nie opuszcza tego urządzenia — rozmowa jest całkowicie prywatna.</string>
+    <string name="help_intro_ocr_title">Jak działa aparat OCR</string>
+    <string name="help_intro_ocr">Zrób zdjęcie szyldu, menu albo etykiety — Verbigem odczyta tekst prosto ze zdjęcia, offline, i przetłumaczy go. Wybierz zdjęcie z galerii lub zrób nowe, zaznacz obszar do odczytania, potem tłumacz. Samo zdjęcie nigdy nie opuszcza telefonu.</string>
+    <string name="help_intro_chat_title">Jak działa Czat</string>
+    <string name="help_intro_chat">Czat to twoja skrzynka odbiorcza tłumaczonych rozmów ze znajomymi. Otwórz wątek, żeby czytać i pisać — każde z was widzi wiadomości w swoim języku. Użyj pola wyszukiwania, żeby znaleźć słowa w wiadomościach. Naciśnij i przytrzymaj dowolną ikonę, żeby przeczytać, co robi.</string>
+    <string name="help_intro_thread_title">Jak działa ta rozmowa</string>
+    <string name="help_intro_thread">Ty piszesz w swoim języku, twój znajomy czyta w swoim — Verbigem tłumaczy każdą wiadomość w obie strony. Naciśnij spinacz, żeby dodać zdjęcie, mikrofon, żeby podyktować, strzałkę, żeby wysłać. Naciśnij i przytrzymaj wiadomość, żeby zobaczyć więcej: pokaż oryginał, zacytuj, usuń.</string>
+    <string name="help_intro_contacts_title">Jak działają Kontakty</string>
+    <string name="help_intro_contacts">Cztery drogi do ludzi: Znajomi to osoby, z którymi już jesteś połączony, Zaproszenia to prośby czekające na twoją odpowiedź, Z telefonu szuka ich w twoim książce adresowej, a Zewnętrzne pozwala napisać do kogoś przez inną aplikację. Naciśnij i przytrzymaj dowolną ikonę, żeby przeczytać, co robi.</string>
+    <string name="help_intro_profile_title">Jak działa Profil</string>
+    <string name="help_intro_profile">Tu jest wszystko o twoim koncie i o wyglądzie aplikacji: twój nick, język interfejsu, dwa języki rozmowy, status konta i portfel, numer telefonu, motyw, twój kod QR i polityka prywatności. Naciśnij i przytrzymaj dowolną ikonę, żeby przeczytać, co robi.</string>
+
+    <!-- Tłumacz -->
+    <string name="help_source_lang_title">Język wejściowy</string>
+    <string name="help_source_lang">Język, w którym mówisz albo wklejasz tekst. Naciśnij, żeby wybrać go z listy. Wszystko, co wpiszesz lub wypowiesz w polu poniżej, zostanie zrozumiane jako ten język.</string>
+    <string name="help_target_lang_title">Język wyjściowy</string>
+    <string name="help_target_lang">Język, w którym chcesz dostać tłumaczenie. Naciśnij, żeby go wybrać. Tłumaczenie i wszystko, co czytane jest na głos, wraca w tym języku.</string>
+    <string name="help_swap_title">Zamiana języków</string>
+    <string name="help_swap">Zamienia oba języki miejscami jednym naciśnięciem. Przydatne, gdy rozmowa się odwraca i zaczynasz tłumaczyć w drugą stronę. Tekst, który jest już w polu, zostaje na miejscu.</string>
+    <string name="help_input_field_title">Tekst do tłumaczenia</string>
+    <string name="help_input_field">Pisz tutaj albo naciśnij i przytrzymaj mikrofon i mów — słowa trafią do tego pola. X po prawej czyści pole. Możesz też wprowadzić tekst ze zdjęcia przyciskami aparatu.</string>
+    <string name="help_clear_input">Czyści pole, żebyś mógł zacząć nowe zdanie. Nie rusza twojej historii tłumaczeń.</string>
+    <string name="help_translate_btn_title">Przycisk Tłumacz</string>
+    <string name="help_translate_btn">Uruchamia silnik wybrany powyżej i pokazuje wynik pod spodem. Przycisk jest nieaktywny, dopóki w polu nie ma tekstu. Jeśli brakuje modelu, aplikacja zaproponuje jednorazowe pobranie.</string>
+    <string name="help_mic_title">Mikrofon — z głosu</string>
+    <string name="help_mic">Naciśnij, żeby zacząć i skończyć dyktowanie. Mów wyraźnie, w wybranym języku wejściowym; rozpoznane słowa pojawią się w polu i możesz je poprawić przed tłumaczeniem. Przy pierwszym naciśnięciu aplikacja zapyta o zgodę na mikrofon.</string>
+    <string name="help_camera_title">Ze zdjęcia</string>
+    <string name="help_camera">Otwiera aparat OCR: zrób zdjęcie szyldu, menu albo etykiety, a Verbigem zamieni drukowany tekst na tekst do edycji, a potem go przetłumaczy. Działa offline i jest darmowe.</string>
+    <string name="help_camera_pro_title">Ze zdjęcia pro</string>
+    <string name="help_camera_pro">Aparat Pro dodaje ostrzejsze rozpoznawanie trudnych obrazów: pisma ręcznego, słabego światła i długich dokumentów. W wersji darmowej pozostaje zablokowany — zwykły aparat obok jest darmowy.</string>
+
+    <!-- Podpisy pod ikonami (11.sp — tak jak w menu dolnym) -->
+    <string name="engine_caption_fast">szybki</string>
+    <string name="engine_caption_accurate">dokładny</string>
+    <string name="engine_caption_both">oba</string>
+    <string name="engine_caption_online">online</string>
+    <string name="input_caption_voice">z głosu</string>
+    <string name="input_caption_photo">ze zdjęcia</string>
+    <string name="input_caption_photo_pro">ze zdjęcia pro</string>
+
+    <!-- Silniki tłumaczenia -->
+    <string name="help_engine_fast_title">Silnik szybki</string>
+    <string name="help_engine_fast">Ten najszybszy. Mały model (około 440 MB) działa w całości w twoim telefonie, więc nie potrzebuje internetu i odpowiada niemal od razu. Najlepszy do codziennych zdań i w podróży. Jest darmowy i jest domyślny. Wybieraj go, gdy chcesz odpowiedź natychmiast.</string>
+    <string name="help_engine_accurate_title">Silnik dokładny</string>
+    <string name="help_engine_accurate">Ten dokładny. Znacznie większy model (około 1,1 GB) liczy wyraźnie dłużej, ale dużo lepiej radzi sobie z długimi, formalnymi lub niejednoznacznymi zdaniami — umowy, instrukcje, wszystko, gdzie liczy się dokładne słowo. Też działa offline. Funkcja Pro: darmowi użytkownicy widzą kłódkę. Pobiera się raz, najlepiej przez Wi-Fi.</string>
+    <string name="help_engine_both_title">Oba silniki</string>
+    <string name="help_engine_both">Uruchamia oba lokalne modele na tym samym tekście i pokazuje dwa wyniki jeden pod drugim, żebyś mógł wybrać lepsze brzmienie. Czas oczekiwania mniej więcej się podwaja. Funkcja Pro. Świetne, gdy tłumaczysz coś, co zaraz wyślesz, i chcesz mieć pewność.</string>
+    <string name="help_engine_online_title">Silnik online</string>
+    <string name="help_engine_online">Wysyła tekst do serwisu tłumaczeniowego w internecie i odbiera wynik bardzo wysokiej jakości — często najlepszy z czterech. Wymaga działającego połączenia i bierze trochę z twojego portfela API. Funkcja Pro. Używaj go, gdy dokładność jest najważniejsza, a jesteś online.</string>
+
+    <!-- Menu dolne -->
+    <string name="nav_ocr">Zdjęcie</string>
+    <string name="help_nav_translate">Główny ekran: wybierz dwa języki, wpisz lub powiedz, przetłumacz.</string>
+    <string name="help_nav_conversation">Dwie osoby, jeden telefon — mów lub pisz, a każda strona słyszy swój język.</string>
+    <string name="help_nav_chat">Twoja skrzynka odbiorcza tłumaczonych rozmów ze znajomymi.</string>
+    <string name="help_nav_contacts">Znajomi, zaproszenia, osoby z książki adresowej i wątki zewnętrzne.</string>
+    <string name="help_nav_profile">Twoje konto, języki, motyw, kod QR i ustawienia prywatności.</string>
+    <string name="help_nav_ocr">Aparat OCR — zamień drukowany tekst z szyldu albo menu na tekst do edycji i przetłumacz go.</string>
+
+    <!-- Ikony akcji (wspólne dla wyniku, historii i OCR) -->
+    <string name="help_action_copy">Kopiuje tekst do schowka, żebyś mógł wkleić go gdziekolwiek — do wiadomości, notatki, innej aplikacji. Nic nie jest wysyłane; kopia zostaje tylko w twoim telefonie.</string>
+    <string name="help_action_share">Otwiera okno udostępniania Androida i przekazuje tekst do wybranej aplikacji — WhatsApp, e-mail, SMS. Tekst opuszcza telefon dopiero gdy potwierdzisz aplikację docelową.</string>
+    <string name="help_action_read">Czyta tekst na głos głosem wbudowanym w telefon. Działa offline, w języku wyjściowym. Jakość jest taka, jaką daje Android — przycisk Pro obok brzmi naturalniej.</string>
+    <string name="help_action_read_pro">Czyta tekst na głos głosem wysokiej jakości z sieci — wyraźniej i naturalniej niż wbudowany. Wymaga połączenia i bierze trochę z twojego portfela API. W wersji darmowej zablokowane.</string>
+    <string name="help_action_delete">Usuwa ten wpis. W historii kasuje zapisane tłumaczenie z tego telefonu na dobre; w karcie wyniku czyści tylko wynik z ekranu — wpis w historii zostaje.</string>
+    <string name="help_result_card">Tłumaczenie. Ikony na górze działają na ten tekst: kopiuj, udostępnij, czytaj, czytaj Pro i wyczyść. Przy silniku „oba" dostaniesz dwie karty — najpierw wynik szybki, pod nim dokładny, opisany.</string>
+    <string name="help_history_card">Tłumaczenie, które zrobiłeś wcześniej, zapisane w tym telefonie. Naciśnij ikony, żeby skopiować, udostępnić, przeczytać na głos albo skasować. Naciśnij i przytrzymaj dowolną ikonę, żeby dowiedzieć się, co robi. Historia jest tylko twoja.</string>
+
+    <!-- Rozmowa -->
+    <string name="help_conv_swap_title">Zamiana stron</string>
+    <string name="help_conv_swap">Zamienia, który język jest mówiony, a który tłumaczony, żeby druga osoba mogła odpowiedzieć. Używaj go za każdym razem, gdy kolej przechodzi na drugą stronę.</string>
+    <string name="help_conv_mic_title">Mikrofon</string>
+    <string name="help_conv_mic">Naciśnij raz, żeby zacząć słuchać, i raz, żeby skończyć. To, co powiedziałeś, zostanie rozpoznane, przetłumaczone, pokazane w dymku i przeczytane na głos w drugim języku. Podaj telefon drugiej osobie, gdy jej kolej.</string>
+    <string name="help_conv_send_title">Wyślij wpisany tekst</string>
+    <string name="help_conv_send">Wysyła tekst z pola poniżej jako wypowiedź aktualnej strony — zostanie przetłumaczony, pokazany w dymku i wypowiedziany na głos. Używaj go w hałasie, gdzie mikrofon sobie nie radzi.</string>
+
+    <!-- OCR -->
+    <string name="help_ocr_camera">Robi nowe zdjęcie aparatem. Trzymaj telefon nieruchomo i wypełnij kadr tekstem, który chcesz odczytać. Zdjęcie zostaje na twoim urządzeniu.</string>
+    <string name="help_ocr_gallery">Wybiera istniejące zdjęcie z galerii — wygodne przy zrzutach ekranu, zdjęciach, które już masz, i dokumentach.</string>
+    <string name="help_ocr_text_field">Tu pojawia się tekst rozpoznany ze zdjęcia i możesz go poprawić ręcznie przed tłumaczeniem. Gdy poprawisz go sam, nie jest już rozpoznawany ponownie.</string>
+    <string name="help_ocr_translate">Tłumaczy rozpoznany tekst silnikiem wybranym na ekranie Tłumacza i pokazuje wynik poniżej, gotowy do skopiowania lub odczytania na głos.</string>
+
+    <!-- Kontakty -->
+    <string name="help_contacts_qr_title">Skanuj kod QR</string>
+    <string name="help_contacts_qr">Skieruj aparat na kod QR znajomego w Verbigem, żeby otworzyć jego kartę i od razu go dodać. Twój własny kod jest na stronie Profil.</string>
+    <string name="help_contacts_search">Wpisz nick albo adres e-mail, żeby znaleźć osobę. Wystarczą dwa znaki, żeby zacząć. Nic nie jest szukane w sieci, dopóki nie potwierdzisz.</string>
+    <string name="help_tab_friends">Osoby, z którymi już się połączyłeś. Naciśnij, żeby otworzyć czat; naciśnij i przytrzymaj, żeby otworzyć kartę kontaktu z językiem, przypięciem, wyciszeniem i blokadą.</string>
+    <string name="help_tab_invites">Prośby czekające na twoją odpowiedź — od osób, które chcą być twoimi znajomymi, i od tych, których zaprosiłeś. Tu je przyjmujesz albo odrzucasz.</string>
+    <string name="help_tab_phone">Przegląda książkę adresową w twoim telefonie i pokazuje, kto już używa Verbigem. Do porównania wysyłane są tylko zahaszowane, jednokierunkowe kody numerów, nigdy same numery.</string>
+    <string name="help_tab_external">Napisz do kogoś, kto nie ma Verbigem — przez SMS, e-mail, WhatsApp i tak dalej. Verbigem tłumaczy twoją wiadomość i przekazuje ją dalej; nic nie wraca do aplikacji.</string>
+
+    <!-- Czat: lista -->
+    <string name="help_chat_contacts_btn">Przechodzi do Kontaktów, gdzie wybierasz osobę, do której chcesz napisać.</string>
+    <string name="help_chat_search">Szuka w treści twoich wiadomości. Potrzebne są co najmniej trzy znaki, a wyszukiwanie pasuje do początku wiadomości.</string>
+    <string name="help_chat_row">Jedna rozmowa. Naciśnij, żeby ją otworzyć, czytać i pisać. Naciśnij i przytrzymaj, żeby otworzyć kartę kontaktu z językiem, przypięciem, wyciszeniem, blokadą i usunięciem.</string>
+
+    <!-- Czat: wątek -->
+    <string name="help_thread_mic">Podyktuj wiadomość zamiast pisać. Naciśnij raz, żeby zacząć, raz, żeby skończyć; rozpoznane słowa trafiają do pola, więc możesz je poprawić przed wysłaniem.</string>
+    <string name="help_thread_image">Załącza zdjęcie z galerii. Podróżuje razem z rozmową, a twój znajomy może otworzyć je na pełnym ekranie.</string>
+    <string name="help_thread_input">Napisz wiadomość tutaj, w swoim języku — twój znajomy przeczyta ją w swoim. Strzałka po prawej ją wysyła.</string>
+    <string name="help_thread_send">Wysyła wiadomość. Po drodze zostaje przetłumaczona dla twojego znajomego, a jego odpowiedzi są tłumaczone dla ciebie.</string>
+    <string name="help_thread_bubble">Wiadomość w wątku. Zawsze czytasz ją w swoim języku. Naciśnij i przytrzymaj, żeby zobaczyć więcej: pokaż oryginalne brzmienie, zacytuj, przeczytaj na głos, przetłumacz teraz albo usuń.</string>
+
+    <!-- Profil -->
+    <string name="help_profile_nickname">Imię, które widzą twoi znajomi. Może być dowolne — nie musi to być twoje prawdziwe imię. Po zmianie naciśnij Zapisz.</string>
+    <string name="help_profile_ui_lang">Zmienia język całego interfejsu. Działa od razu; języki twoich tłumaczeń pozostają bez zmian.</string>
+    <string name="help_profile_conv_langs">Twoje dwa domyślne języki do Rozmowy i do tłumaczenia czatów. Ustaw ten, w którym mówisz, i ten, który chcesz słyszeć.</string>
+    <string name="help_profile_account">Pokazuje, czy masz plan darmowy czy Pro, i ile zostało w twoim portfelu API. Z portfela płaci się za silnik online i za głos Pro.</string>
+    <string name="help_profile_phone">Twój numer telefonu, używany tylko po to, żeby znajomi, którzy go już mają, mogli cię znaleźć. Potwierdzenie wysyła jeden SMS z kodem; sam numer zostaje w twoim telefonie.</string>
+    <string name="help_profile_theme">Zmienia kolory i nastrój aplikacji: Spokojny, Ostry lub Figlarny, każdy w wersji dziennej i nocnej.</string>
+    <string name="help_profile_qr">Twój osobisty kod. Niech znajomy go zeskanuje — albo wyślij link — a jego aplikacja otworzy twoją kartę z przyciskiem Dodaj znajomego.</string>
+    <string name="help_profile_logout">Wylogowuje cię z tego urządzenia. Twoje tłumaczenia i historia czatów zostają w telefonie; zaloguj się znowu, żeby je zsynchronizować.</string>
+    <string name="help_profile_privacy">Otwiera naszą opublikowaną politykę prywatności w przeglądarce. Nigdy nie czytamy twoich wiadomości — są tłumaczone na twoim urządzeniu i zostają na nim.</string>
+
+    <!-- Wątek: powrót -->
+    <string name="help_thread_back">Zamyka tę rozmowę i wraca do listy czatów.</string>
+
+    <!-- Mój kod QR -->
+    <string name="help_myqr_back">Wraca do twojego profilu.</string>
+    <string name="help_myqr_qr">Twój osobisty kod. Inny użytkownik Verbigem skanuje go, żeby otworzyć twoją kartę kontaktu z przyciskiem Dodaj znajomego — bez pisania i szukania.</string>
+    <string name="help_myqr_copy">Kopiuje link do twojego profilu do schowka, żebyś mógł go udostępnić przez dowolną aplikację.</string>
+
+    <!-- Weryfikacja telefonu -->
+    <string name="help_phone_intro">Dodaje twój numer telefonu, żeby znajomi, którzy już go mają, mogli cię znaleźć. Potwierdzenie wysyła jeden SMS z kodem; sam numer zostaje w twoim telefonie i nigdy nie jest wysyłany.</string>
+    <string name="help_phone_skip">Pomija weryfikację. Czat dalej działa, ale nikt, kto ma twój numer w kontaktach, nie będzie mógł cię znaleźć. Możesz zweryfikować później ze strony Profil.</string>
+    <string name="chat_search">Szukaj wiadomości</string>
 </resources>

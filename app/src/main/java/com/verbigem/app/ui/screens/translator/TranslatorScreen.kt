@@ -30,11 +30,8 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -74,9 +71,16 @@ import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.ui.components.AdBannerView
 import com.verbigem.app.ui.components.EnginePicker
 import com.verbigem.app.ui.components.FlagIcon
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.HelpWindowState
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.components.ModelDownloadDialog
 import com.verbigem.app.ui.components.ProFeatureButton
+import com.verbigem.app.ui.components.ScreenHeader
+import com.verbigem.app.ui.components.HelpFramedIconButton
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -87,6 +91,10 @@ fun TranslatorScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+    val help = rememberHelpWindowState()
+
+    val translateHelpTitle = stringResource(R.string.help_translate_btn_title)
+    val translateHelpText = stringResource(R.string.help_translate_btn)
     val sourceLang by viewModel.sourceLang.collectAsState()
     // Runtime permission żądany tylko raz (gdy trzymamy mikrofon przy braku uprawnienia).
     val micPermissionLauncher = rememberLauncherForActivityResult(
@@ -135,11 +143,11 @@ fun TranslatorScreen(
         }
 
         item {
-            Text(
-                text = stringResource(R.string.app_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink
+            ScreenHeader(
+                title = stringResource(R.string.app_title),
+                helpState = help,
+                helpTitle = stringResource(R.string.help_intro_translator_title),
+                helpText = stringResource(R.string.help_intro_translator)
             )
         }
 
@@ -162,11 +170,20 @@ fun TranslatorScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         LangSelect(
                             selectedLang = sourceLang,
-                            onLangSelected = { viewModel.setSourceLang(it) }
+                            onLangSelected = { viewModel.setSourceLang(it) },
+                            helpState = help,
+                            helpTitle = stringResource(R.string.help_source_lang_title),
+                            helpText = stringResource(R.string.help_source_lang)
                         )
                     }
 
-                    IconButton(onClick = { viewModel.swapLanguages() }) {
+                    HelpIconButton(
+                        onClick = { viewModel.swapLanguages() },
+                        helpState = help,
+                        helpTitle = stringResource(R.string.help_swap_title),
+                        helpText = stringResource(R.string.help_swap),
+                        modifier = Modifier.size(40.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
                             contentDescription = stringResource(R.string.swap_direction),
@@ -177,7 +194,10 @@ fun TranslatorScreen(
                     Box(modifier = Modifier.weight(1f)) {
                         LangSelect(
                             selectedLang = targetLang,
-                            onLangSelected = { viewModel.setTargetLang(it) }
+                            onLangSelected = { viewModel.setTargetLang(it) },
+                            helpState = help,
+                            helpTitle = stringResource(R.string.help_target_lang_title),
+                            helpText = stringResource(R.string.help_target_lang)
                         )
                     }
                 }
@@ -188,17 +208,29 @@ fun TranslatorScreen(
                 EnginePicker(
                     selectedEngine = engineChoice,
                     onEngineSelected = { viewModel.setEngine(it) },
-                    isPro = isPro
+                    isPro = isPro,
+                    helpState = help
                 )
 
-                // Przyciski skrótów: mikrofon (push-to-talk) po lewej, OCR + Pro po prawej
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Trzy wejścia tekstu: z głosu / ze zdjęcia / ze zdjęcia pro.
+                // Każde to ramka z ikoną i podpisem (11.sp — jak w menu dolnym);
+                // kliknięcie działa, długie kliknięcie otwiera okno pomocy.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     // Mikrofon — push-to-talk. Trzymaj przycisk → nagrywa, puszcz → STT → append do tekstu.
-                    IconButton(
+                    HelpFramedIconButton(
+                        icon = Icons.Default.Mic,
+                        caption = stringResource(R.string.input_caption_voice),
+                        helpTitle = stringResource(R.string.help_mic_title),
+                        helpText = stringResource(R.string.help_mic),
+                        helpState = help,
+                        isActive = isListening,
+                        tint = if (isListening) VerbigemTheme.colors.danger else VerbigemTheme.colors.accent,
                         onClick = {
                             val hasPermission = ContextCompat.checkSelfPermission(
                                 context, Manifest.permission.RECORD_AUDIO
@@ -208,50 +240,40 @@ fun TranslatorScreen(
                             } else {
                                 micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                             }
-                        },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = if (isListening) stringResource(R.string.tap_to_stop) else stringResource(R.string.tap_to_speak, sourceLang.displayName),
-                            tint = if (isListening) VerbigemTheme.colors.danger else VerbigemTheme.colors.accent,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Button(
-                            onClick = onNavigateToOcr,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                            contentPadding = ButtonDefaults.TextButtonContentPadding
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = null,
-                                tint = VerbigemTheme.colors.accent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = stringResource(R.string.ocr_shortcut),
-                                color = VerbigemTheme.colors.accent,
-                                fontSize = 13.sp
-                            )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        ProFeatureButton(
-                            icon = Icons.Default.CameraAlt,
-                            contentDescription = stringResource(R.string.ocr_pro),
-                            isPro = isPro,
-                            onProClick = { /* Pro OCR page coming later */ },
-                            modifier = Modifier.size(32.dp),
-                            tooltipText = stringResource(R.string.ocr_pro_coming_soon)
-                        )
-                    }
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    HelpFramedIconButton(
+                        icon = Icons.Default.CameraAlt,
+                        caption = stringResource(R.string.input_caption_photo),
+                        helpTitle = stringResource(R.string.help_camera_title),
+                        helpText = stringResource(R.string.help_camera),
+                        helpState = help,
+                        onClick = onNavigateToOcr
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    HelpFramedIconButton(
+                        icon = Icons.Default.CameraAlt,
+                        caption = stringResource(R.string.input_caption_photo_pro),
+                        helpTitle = stringResource(R.string.help_camera_pro_title),
+                        helpText = stringResource(R.string.help_camera_pro),
+                        helpState = help,
+                        tint = if (isPro) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted,
+                        onClick = {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.ocr_pro_coming_soon),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    )
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Pole wprowadzania tekstu
                 OutlinedTextField(
@@ -266,10 +288,16 @@ fun TranslatorScreen(
                     },
                     trailingIcon = {
                         if (inputText.isNotBlank()) {
-                            IconButton(onClick = {
-                                viewModel.onInputChanged("")
-                                focusRequester.requestFocus()
-                            }) {
+                            HelpIconButton(
+                                onClick = {
+                                    viewModel.onInputChanged("")
+                                    focusRequester.requestFocus()
+                                },
+                                helpState = help,
+                                helpTitle = stringResource(R.string.action_delete),
+                                helpText = stringResource(R.string.help_clear_input),
+                                modifier = Modifier.size(40.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = stringResource(R.string.action_delete),
@@ -293,23 +321,36 @@ fun TranslatorScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Przycisk Tłumacz
-                Button(
-                    onClick = {
-                        focusManager.clearFocus()
-                        viewModel.translate()
-                    },
-                    enabled = inputText.isNotBlank() && !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-                    shape = RoundedCornerShape(12.dp),
+                // Przycisk Tłumacz — kliknięcie tłumaczy, długie kliknięcie wyjaśnia.
+                val translateEnabled = inputText.isNotBlank() && !isLoading
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (translateEnabled) VerbigemTheme.colors.accent
+                            else VerbigemTheme.colors.accent.copy(alpha = 0.4f)
+                        )
+                        .helpClickable(
+                            enabled = translateEnabled,
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.translate()
+                            },
+                            onLongClick = { help.show(translateHelpTitle, translateHelpText) }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
                     } else {
-                        Text(stringResource(R.string.translate_button), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(
+                            stringResource(R.string.translate_button),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
                     }
                 }
 
@@ -317,6 +358,7 @@ fun TranslatorScreen(
                 if (primaryResult.isNotBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     ResultCard(
+                        helpState = help,
                         text = primaryResult,
                         isSpeaking = resultSpeaking,
                         isSpeakingPro = resultSpeakingPro,
@@ -346,6 +388,7 @@ fun TranslatorScreen(
                 if (secondaryResult.isNotBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ResultCard(
+                        helpState = help,
                         text = secondaryResult,
                         label = stringResource(R.string.accurate_label),
                         isSpeaking = resultSpeaking,
@@ -410,6 +453,7 @@ fun TranslatorScreen(
 
         items(historyItems) { item ->
             HistoryCard(
+                helpState = help,
                 item = item,
                 isPro = isPro,
                 isSpeaking = item.syncId == speakingSyncId,
@@ -444,6 +488,8 @@ fun TranslatorScreen(
             onDismiss = { viewModel.setShowDownloadDialog(false) }
         )
     }
+
+    HelpWindow(help)
 }
 
 @Composable
@@ -452,6 +498,7 @@ fun HistoryCard(
     isPro: Boolean,
     isSpeaking: Boolean,
     isSpeakingPro: Boolean,
+    helpState: HelpWindowState,
     onCopy: () -> Unit,
     onShare: () -> Unit,
     onRead: () -> Unit,
@@ -477,15 +524,33 @@ fun HistoryCard(
             FlagIcon(lang = LangCode.fromCode(item.targetLang), size = 18.dp)
             Spacer(modifier = Modifier.weight(1f))
             // Kopiuj
-            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onCopy,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_copy),
+                helpText = stringResource(R.string.help_action_copy),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.action_copy), tint = VerbigemTheme.colors.accent)
             }
             // Udostępnij
-            IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onShare,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_share),
+                helpText = stringResource(R.string.help_action_share),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share), tint = VerbigemTheme.colors.accent)
             }
             // Czytaj (darmowy TTS lokalny)
-            IconButton(onClick = onRead, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onRead,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_read),
+                helpText = stringResource(R.string.help_action_read),
+                modifier = Modifier.size(32.dp)
+            ) {
                 if (isSpeaking) {
                     CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
@@ -494,7 +559,13 @@ fun HistoryCard(
             }
             // Czytaj Pro (płatne API — dla Pro aktywne, dla free szare + tooltip)
             if (isPro) {
-                IconButton(onClick = onReadPro, modifier = Modifier.size(32.dp)) {
+                HelpIconButton(
+                    onClick = onReadPro,
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro),
+                    modifier = Modifier.size(32.dp)
+                ) {
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
@@ -508,11 +579,20 @@ fun HistoryCard(
                     isPro = false,
                     onProClick = {},
                     modifier = Modifier.size(32.dp),
-                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip),
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro)
                 )
             }
             // Skasuj z historii
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onDelete,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_delete),
+                helpText = stringResource(R.string.help_action_delete),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }
         }
@@ -529,6 +609,7 @@ fun HistoryCard(
 @Composable
 fun ResultCard(
     text: String,
+    helpState: HelpWindowState,
     label: String? = null,
     isSpeaking: Boolean = false,
     isSpeakingPro: Boolean = false,
@@ -558,13 +639,31 @@ fun ResultCard(
             } else {
                 Spacer(modifier = Modifier.weight(1f))
             }
-            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onCopy,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_copy),
+                helpText = stringResource(R.string.help_action_copy),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.action_copy), tint = VerbigemTheme.colors.accent)
             }
-            IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onShare,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_share),
+                helpText = stringResource(R.string.help_action_share),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.action_share), tint = VerbigemTheme.colors.accent)
             }
-            IconButton(onClick = onSpeak, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onSpeak,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_read),
+                helpText = stringResource(R.string.help_action_read),
+                modifier = Modifier.size(32.dp)
+            ) {
                 if (isSpeaking) {
                     CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
@@ -572,7 +671,13 @@ fun ResultCard(
                 }
             }
             if (isPro) {
-                IconButton(onClick = onSpeakPro, modifier = Modifier.size(32.dp)) {
+                HelpIconButton(
+                    onClick = onSpeakPro,
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro),
+                    modifier = Modifier.size(32.dp)
+                ) {
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
@@ -586,11 +691,20 @@ fun ResultCard(
                     isPro = false,
                     onProClick = {},
                     modifier = Modifier.size(32.dp),
-                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip),
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro)
                 )
             }
             // Skasuj z wyników
-            IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onClear,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_delete),
+                helpText = stringResource(R.string.help_action_delete),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }
         }

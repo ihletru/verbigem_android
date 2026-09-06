@@ -2,8 +2,33 @@
 
 
 > ⚠️ Las etiquetas `v1.0.1`–`v1.0.3` son **compilaciones históricas tempranas** (versionCode 2–3).
-> La versión actual es **v1.0.39** (versionCode 40).
+> La versión actual es **v1.0.40** (versionCode 41).
 > La versión está en `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.40 (2026-09-06) — versionCode 41
+
+**Regla global de interfaz: tocar un icono = hace su trabajo, mantenerlo pulsado = ventana de ayuda.**
+
+- **Cada icono de la aplicación** se explica ahora: qué es, qué hace y cómo se usa. Nueva
+  infraestructura común en `ui/components/HelpDialog.kt` (`HelpWindow`, `helpClickable`,
+  `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
+- **Cada encabezado de pantalla**: logo de luciérnaga (transparente) + título + un botón **„?"**
+  a la derecha que abre la explicación de toda la página.
+- **Traductor**: ayuda en ambos selectores de idioma y en el icono de intercambio; cuatro motores
+  con subtítulos cortos (rápido / preciso / ambos / en línea) y ventanas completas — las antiguas
+  descripciones bajo los motores han **desaparecido**; micrófono / cámara / cámara Pro ahora tienen
+  **marco** y los subtítulos „de la voz" / „de la foto" / „de la foto pro"; ayuda para el botón
+  Traducir, los cinco iconos de las tarjetas de historial y resultado, y la barra inferior.
+- **Conversación**: logo + „?" (incluida la nota de que la conversación nunca se guarda y nunca
+  sale del dispositivo), ayuda en los campos de idioma, intercambio, micrófono y botón de envío.
+- **OCR ya tiene entrada en la barra inferior** — la barra tiene seis pestañas (era la única
+  pantalla sin navegación).
+- **Contactos**: Amigos / Invitaciones / Del teléfono / Externos como **icono sobre texto de
+  11.sp** (como en la barra inferior) más ventanas de ayuda.
+- **Chat, Perfil, mi código QR, verificación de teléfono** — encabezados „?" y ayuda en los iconos.
+- **~50 textos de ayuda nuevos en 6 idiomas** (394 claves, no falta nada en ningún idioma).
 
 ---
 

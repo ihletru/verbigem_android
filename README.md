@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.39`** (versionCode 40) —
+> 📦 **Aktualna wersja: `v1.0.40`** (versionCode 41) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -94,7 +94,7 @@ Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_A
 - **OCR Pro (💎)** — przycisk obok Aparat/Galeria, dla free wyszarzony z tooltipem `ocr_pro_coming_soon`. Komponent `ProFeatureButton` (współdzielony z głośnikiem Pro).
 - **Streaming:** `OcrViewModel.translateText()` woła `translateSegmented(..., onPartial = { ... })` — wypisuje wynik przyrostowo, tak jak Translator.
 - **Własna historia OCR** — osobna tabela `ocr_history` i osobna kolekcja Firestore `users/{uid}/ocr_history/{syncId}`; te same zasady last-write-wins + tombstone, ale listy nigdy się nie mieszają. `SyncManager.syncCollection(...)` wołany dla `"history"` i `"ocr_history"`. Karty mają pełen zestaw akcji jak w Translatorze.
-- **OCR NIE ma pozycji w BottomNav (celowo).** Pasek ma 5 kompletnych ikon. OCR wchodzi się z Translatora, wychodzi systemowym backiem. Jeśli kiedyś ma trafić do nawigacji — jako 6. pozycja w `BottomNav.items`, **nie** przez sam `showBottomNav`.
+- **OCR MA pozycję w BottomNav** (od v41, ikona aparatu `Icons.Default.PhotoCamera`, etykieta `nav_ocr`). Pasek ma **6** pozycji. Wcześniej celowo nie miał — był jedynym ekranem w aplikacji bez nawigacji, co przy długiej sesji OCR zmuszało do systemowego backu aż do Tłumacza.
 - ⚠️ **Znany brak, wciąż otwarty (§5.4):** błąd wysyłki zdjęcia / głosówki **nie jest obsługiwany**. `ChatThreadViewModel.sendImage()` i `ChatThreadViewModel.sendVoice()` mają `// TODO 5.4: obsługa błędu (retry) — na razie tylko log.` (ok. linii 391 i 469). Nie ma ani ponawiania, ani komunikatu dla użytkownika — nieudana wysyłka znika bez śladu w logcat. Do domknięcia przed premierą.
 
 ### 6. Kody QR
@@ -121,6 +121,59 @@ Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` 
 - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**. Tryby: **Dzień ☀️** / **Noc 🌙**.
 - Wybór języka interfejsu i domyślnej pary językowej. Wektorowe flagi SVG.
 - Karta **Polityka prywatności** otwierająca `mini.verbigem.com/privacy/` w przeglądarce, w języku interfejsu.
+
+---
+
+## ❓ Ikony: kliknięcie = akcja, długie kliknięcie = pomoc (od v41)
+
+**Globalna reguła UI.** Każda ikona w aplikacji:
+
+- **kliknięcie** → wykonuje zadanie, do którego ikona została stworzona,
+- **długie kliknięcie** → otwiera okno z opisem: czym jest, co robi, jak używać.
+
+Dodatkowo każdy ekran ma w nagłówku **logo świetlika + tytuł + przycisk „?"** po prawej
+stronie — „?" otwiera od razu okno z opisem całej strony.
+
+### Infrastruktura — `ui/components/HelpDialog.kt`
+
+Jeden plik, z którego korzystają wszystkie ekrany. Nie wolno implementować pomocy
+drugi raz obok — każda nowa ikona bierze stąd komponent.
+
+| Element | Do czego |
+|---|---|
+| `HelpWindowState` + `rememberHelpWindowState()` | stan okna; **jedna instancja na ekran**, nie na ikonę |
+| `HelpWindow(state)` | `Dialog` + `Surface`; wołaj **na końcu ekranu** (raz, obok stanu) |
+| `Modifier.helpClickable(onClick, onLongClick)` | wrapper na `combinedClickable` (`@OptIn(ExperimentalFoundationApi)`) |
+| `HelpIconButton(...)` | ikona-akcja: tap = akcja, długi tap = pomoc |
+| `HelpFramedIconButton(icon, caption, ...)` | ikona **w ramce** + podpis 11.sp (mikrofon / aparat / aparat Pro) |
+| `QuestionMarkButton(onClick)` | przycisk „?" |
+| `ScreenHeader(title, helpState, helpTitle, helpText)` | logo + tytuł + opcjonalny `subtitle` + `trailing` + „?" |
+
+### ⚠️ Pułapki, na których ta reguła się wykłada
+
+1. **Nie dokładaj `helpClickable` do elementu, który już ma własny `clickable`.**
+   `IconButton` / `Button` mają wewnętrzny `clickable` — wygrywa on i **long-press ginie
+   po cichu** (zero błędu w logach). Dlatego `HelpIconButton` to `Box` + `helpClickable`,
+   a nie `IconButton`.
+2. **`stringResource` rozwiązuj u wywołującego.** `HelpWindowState.show(title, text)`
+   bierz gotowe `String`, bo stan żyje poza composable scope ekranu — wołanie
+   `stringResource` wewnątrz lambdy długiego kliknięcia jest możliwe, ale wtedy każdy
+   ekran musi trzymać `Context`, czego chcemy uniknąć.
+3. **Teksty pomocy to `R.string.help_*` — obowiązkowo we wszystkich 6 językach.**
+   Reguła z sekcji *Wielojęzyczność* dotyczy ich tak samo jak etykiet. Klucz `help_close`
+   (przycisk zamknięcia) i `help_open` (contentDescription „?") są współdzielone.
+4. **Opisy silników pod ikonami zostały USUNIĘTE** — zastąpiły je okna pomocy
+   (`EngineChoice.helpTitleResId` / `helpTextResId`). `descriptionResId` zostało w enumie,
+   ale już się nie wyświetla; nie przywracaj go do UI.
+5. **Menu dolne też ma okna pomocy** (`NavItem.helpResId`) i własny `rememberHelpWindowState()`
+   wewnątrz `BottomNav` — pasek jest współdzielony z `AppNavigation`, więc nie może
+   korzystać ze stanu ekranu.
+
+### Konwencja podpisów
+
+Podpisy ikon są zawsze **11.sp** — ta sama wielkość co w menu dolnym. Tam, gdzie
+Milosz nie podał treści okna, treść jest wygenerowana i trzyma się schematu:
+*czym jest → co robi → jak używać → co się dzieje z danymi*.
 
 ---
 
@@ -208,7 +261,9 @@ app/src/main/
 │   ├── jni/LlamaNativeBridge.kt    # JNI external fun
 │   └── ui/
 │       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog,
-│       │                           #   AdBannerView, ProFeatureButton (Pro + grayscale + tooltip)
+│       │                           #   AdBannerView, ProFeatureButton (Pro + grayscale + tooltip),
+│       │                           #   HelpDialog (HelpWindow/helpClickable/HelpIconButton/
+│       │                           #   HelpFramedIconButton/QuestionMarkButton/ScreenHeader)
 │       ├── navigation/             # AppNavigation, Screen
 │       ├── screens/                # Translator, Conversation, ChatList, ChatThread, ContactCard,
 │       │                           #   Contacts (+ContactsPermission), Ocr (+CropOverlay), ExternalThread,
@@ -389,6 +444,10 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
 4. Komunikaty błędów z warstwy `engine/*` bierzemy przez `context.getString(R.string.xxx)`.
 5. **Po dodaniu `string` do `values/strings.xml` należy dodać go do wszystkich pozostałych `values-xx/strings.xml`** (nawet jako tymczasowy angielski fallback).
 6. Klucze akcji historii/result: `action_copy`, `action_share`, `action_read`, `action_read_pro`, `action_delete`. Dialog update: `update_available_title/body/action/later`. Reklama: `ad_banner_label/text`.
+7. Teksty okien pomocy: `help_*` (≈50 kluczy × 6 języków). Współdzielone: `help_close`, `help_open`. Per ekran: `help_intro_<ekran>` (+ wariant `_title`). Podpisy ikon: `input_caption_*`, `engine_caption_*`. **Najpierw `values/strings.xml`, potem reszta** — skryptem `python` można sprawdzić, czy żaden klucz nie został pominięty:
+   ```bash
+   python -c "import re,os;base={m for m in re.findall(r'<string name=\"([^\"]+)\"',open('app/src/main/res/values/strings.xml',encoding='utf-8').read())};[print(d,sorted(base-set(re.findall(r'<string name=\"([^\"]+)\"',open(f'app/src/main/res/{d}/strings.xml',encoding=\"utf-8\").read())))) for d in ['values-pl','values-de','values-es','values-zh','values-tr']]"
+   ```
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 

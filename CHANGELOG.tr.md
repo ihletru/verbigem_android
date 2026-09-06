@@ -2,8 +2,33 @@
 
 
 > ⚠️ `v1.0.1`–`v1.0.3` etiketleri **erken tarihli derlemelerdir** (versionCode 2–3).
-> Güncel sürüm **v1.0.39** (versionCode 40).
+> Güncel sürüm **v1.0.40** (versionCode 41).
 > Sürüm `app/build.gradle.kts` içinde tutulur (`versionCode` / `versionName`).
+
+---
+
+## v1.0.40 (2026-09-06) — versionCode 41
+
+**Genel arayüz kuralı: simgeye dokun = işini yap, basılı tut = yardım penceresi.**
+
+- **Uygulamadaki her simge** artık kendini açıklıyor: ne olduğunu, ne yaptığını ve nasıl
+  kullanıldığını. `ui/components/HelpDialog.kt` içinde yeni ortak altyapı (`HelpWindow`,
+  `helpClickable`, `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
+- **Her ekran başlığı**: ateşböceği logosu (saydam) + başlık + sağda tüm sayfayı açıklayan
+  bir **„?"** düğmesi.
+- **Çevirmen**: iki dil seçici ve değiştirme simgesi için yardım; kısa başlıklı dört motor
+  (hızlı / doğru / her ikisi / çevrimiçi) ve kapsamlı pencereler — motorların altındaki eski
+  açıklamalar **kaldırıldı**; mikrofon / kamera / kamera Pro artık **çerçeveli** ve
+  „sesten" / „fotoğraftan" / „fotoğraftan pro" başlıklı; Çevir düğmesi, geçmiş ve sonuç
+  kartlarındaki beş simge ve alt çubuk için yardım.
+- **Sohbet (Konuşma)**: logo + „?" (konuşmanın hiç kaydedilmediği ve cihazdan hiç çıkmadığı
+  notu dahil), dil alanları, değiştirme, mikrofon ve gönder düğmesi için yardım.
+- **OCR artık alt çubukta bir girişe sahip** — çubukta altı sekme var (gezinmesi olmayan tek
+  ekrandı).
+- **Kişiler**: Arkadaşlar / Davetler / Telefondan / Harici, **11.sp metnin üzerinde simge**
+  olarak (alt çubuktaki gibi) ve yardım pencereleriyle.
+- **Sohbet, Profil, QR kodum, telefon doğrulama** — „?" başlıkları ve simgelerde yardım.
+- **6 dilde ~50 yeni yardım metni** (394 anahtar, hiçbir dilde eksik yok).
 
 ---
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,7 +48,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.FlagIcon
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.HelpWindowState
 import com.verbigem.app.ui.components.ProFeatureButton
+import com.verbigem.app.ui.components.ScreenHeader
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -86,6 +93,7 @@ fun OcrScreen(
     isPro: Boolean
 ) {
     val context = LocalContext.current
+    val help = rememberHelpWindowState()
     val recognizedText by viewModel.recognizedText.collectAsState()
     val translatedText by viewModel.translatedText.collectAsState()
     val isProcessing by viewModel.isProcessing.collectAsState()
@@ -167,26 +175,24 @@ fun OcrScreen(
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.ocr_title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = VerbigemTheme.colors.ink
-        )
-        Text(
-            text = stringResource(R.string.ocr_subtitle),
-            fontSize = 13.sp,
-            color = VerbigemTheme.colors.muted
+        ScreenHeader(
+            title = stringResource(R.string.ocr_title),
+            subtitle = stringResource(R.string.ocr_subtitle),
+            helpState = help,
+            helpTitle = stringResource(R.string.help_intro_ocr_title),
+            helpText = stringResource(R.string.help_intro_ocr)
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
+            HelpActionBox(
                 onClick = { launchCameraWithPermissionCheck() },
-                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-                shape = RoundedCornerShape(12.dp),
+                helpState = help,
+                helpTitle = stringResource(R.string.camera),
+                helpText = stringResource(R.string.help_ocr_camera),
+                container = VerbigemTheme.colors.accent,
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -194,13 +200,15 @@ fun OcrScreen(
                 Text(stringResource(R.string.camera), fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
 
-            Button(
+            HelpActionBox(
                 onClick = { galleryLauncher.launch("image/*") },
-                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.surface),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+                helpState = help,
+                helpTitle = stringResource(R.string.gallery),
+                helpText = stringResource(R.string.help_ocr_gallery),
+                container = VerbigemTheme.colors.surface,
+                contentColor = VerbigemTheme.colors.ink,
+                borderColor = VerbigemTheme.colors.border,
+                modifier = Modifier.weight(1f)
             ) {
                 Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = VerbigemTheme.colors.ink, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
@@ -236,9 +244,14 @@ fun OcrScreen(
                     )
                 }
 
-                IconButton(
+                HelpIconButton(
                     onClick = { viewModel.clearCrop() },
-                    modifier = Modifier.align(Alignment.TopEnd)
+                    helpState = help,
+                    helpTitle = stringResource(R.string.action_delete),
+                    helpText = stringResource(R.string.help_action_delete),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(48.dp)
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
                 }
@@ -261,14 +274,16 @@ fun OcrScreen(
                 color = VerbigemTheme.colors.muted
             )
 
-            Button(
+            HelpActionBox(
                 onClick = { viewModel.runOcrFromCrop() },
                 enabled = !isProcessing,
-                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.surface),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
+                helpState = help,
+                helpTitle = stringResource(R.string.ocr_read_selected),
+                helpText = stringResource(R.string.help_ocr_text_field),
+                container = VerbigemTheme.colors.surface,
+                contentColor = VerbigemTheme.colors.ink,
+                borderColor = VerbigemTheme.colors.border,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.CropFree, contentDescription = null, tint = VerbigemTheme.colors.ink, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
@@ -299,11 +314,13 @@ fun OcrScreen(
             keyboardActions = KeyboardActions(onDone = { viewModel.translateText() })
         )
 
-        Button(
+        HelpActionBox(
             onClick = { viewModel.translateText() },
             enabled = !isProcessing && recognizedText.isNotBlank(),
-            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-            shape = RoundedCornerShape(12.dp),
+            helpState = help,
+            helpTitle = stringResource(R.string.ocr_translate_button),
+            helpText = stringResource(R.string.help_ocr_translate),
+            container = VerbigemTheme.colors.accent,
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -339,14 +356,26 @@ fun OcrScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    IconButton(onClick = {
-                        val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clip.setPrimaryClip(ClipData.newPlainText("ocr_translation", translatedText))
-                        Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
-                    }) {
+                    HelpIconButton(
+                        onClick = {
+                            val clip = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clip.setPrimaryClip(ClipData.newPlainText("ocr_translation", translatedText))
+                            Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
+                        },
+                        helpState = help,
+                        helpTitle = stringResource(R.string.action_copy),
+                        helpText = stringResource(R.string.help_action_copy),
+                        modifier = Modifier.size(48.dp)
+                    ) {
                         Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.copied), tint = VerbigemTheme.colors.accent)
                     }
-                    IconButton(onClick = { viewModel.speak(translatedText ?: "", targetLang) }) {
+                    HelpIconButton(
+                        onClick = { viewModel.speak(translatedText ?: "", targetLang) },
+                        helpState = help,
+                        helpTitle = stringResource(R.string.action_read),
+                        helpText = stringResource(R.string.help_action_read),
+                        modifier = Modifier.size(48.dp)
+                    ) {
                         if (isSpeaking) {
                             androidx.compose.material3.CircularProgressIndicator(
                                 color = VerbigemTheme.colors.accent,
@@ -388,6 +417,7 @@ fun OcrScreen(
                 items(historyItems) { item ->
                     OcrHistoryItem(
                         item = item,
+                        helpState = help,
                         isPro = isPro,
                         isSpeaking = item.syncId == speakingSyncId,
                         isSpeakingPro = item.syncId == speakingProSyncId,
@@ -415,12 +445,59 @@ fun OcrScreen(
             }
         }
     }
+
+    HelpWindow(help)
+}
+
+/**
+ * Szeroki przycisk akcji: kliknięcie wykonuje zadanie, długie kliknięcie
+ * otwiera okno pomocy. Jeden `clickable` na cały komponent — `Button` ma
+ * własny, więc dokładanie drugiego zdławiłoby długie kliknięcie.
+ */
+@Composable
+private fun HelpActionBox(
+    onClick: () -> Unit,
+    helpState: HelpWindowState,
+    helpTitle: String,
+    helpText: String,
+    container: Color,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    contentColor: Color = Color.White,
+    borderColor: Color? = null,
+    content: @Composable RowScope.() -> Unit
+) {
+    val alpha = if (enabled) 1f else 0.45f
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(container.copy(alpha = alpha))
+            .then(
+                if (borderColor != null) {
+                    Modifier.border(1.dp, borderColor.copy(alpha = alpha), RoundedCornerShape(12.dp))
+                } else Modifier
+            )
+            .helpClickable(
+                enabled = enabled,
+                onClick = onClick,
+                onLongClick = { helpState.show(helpTitle, helpText) }
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            content = content
+        )
+    }
 }
 
 @Composable
 fun OcrHistoryItem(
     item: TranslationHistory,
     isPro: Boolean,
+    helpState: HelpWindowState,
     isSpeaking: Boolean,
     isSpeakingPro: Boolean,
     onCopy: () -> Unit,
@@ -448,15 +525,33 @@ fun OcrHistoryItem(
             FlagIcon(lang = LangCode.fromCode(item.targetLang), size = 18.dp)
             Spacer(modifier = Modifier.weight(1f))
             // Kopiuj
-            IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onCopy,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_copy),
+                helpText = stringResource(R.string.help_action_copy),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.action_copy), tint = VerbigemTheme.colors.accent)
             }
             // Udostępnij
-            IconButton(onClick = onShare, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onShare,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_share),
+                helpText = stringResource(R.string.help_action_share),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.Share, contentDescription = stringResource(R.string.action_share), tint = VerbigemTheme.colors.accent)
             }
             // Czytaj (darmowy TTS lokalny)
-            IconButton(onClick = onRead, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onRead,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_read),
+                helpText = stringResource(R.string.help_action_read),
+                modifier = Modifier.size(32.dp)
+            ) {
                 if (isSpeaking) {
                     CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 } else {
@@ -465,7 +560,13 @@ fun OcrHistoryItem(
             }
             // Czytaj Pro (płatne API — dla Pro aktywne, dla free szare + tooltip)
             if (isPro) {
-                IconButton(onClick = onReadPro, modifier = Modifier.size(32.dp)) {
+                HelpIconButton(
+                    onClick = onReadPro,
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro),
+                    modifier = Modifier.size(32.dp)
+                ) {
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
@@ -479,11 +580,20 @@ fun OcrHistoryItem(
                     isPro = false,
                     onProClick = {},
                     modifier = Modifier.size(32.dp),
-                    tooltipText = stringResource(R.string.pro_speaker_tooltip)
+                    tooltipText = stringResource(R.string.pro_speaker_tooltip),
+                    helpState = helpState,
+                    helpTitle = stringResource(R.string.action_read_pro),
+                    helpText = stringResource(R.string.help_action_read_pro)
                 )
             }
             // Skasuj z historii
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            HelpIconButton(
+                onClick = onDelete,
+                helpState = helpState,
+                helpTitle = stringResource(R.string.action_delete),
+                helpText = stringResource(R.string.help_action_delete),
+                modifier = Modifier.size(32.dp)
+            ) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_delete), tint = VerbigemTheme.colors.danger)
             }
         }

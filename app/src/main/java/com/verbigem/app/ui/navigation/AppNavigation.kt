@@ -80,15 +80,14 @@ fun AppNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
 
-    // OCR deliberately absent: BottomNav has five full-width items and no OCR slot,
-    // so showing the bar on the OCR screen gave a nav row that couldn't highlight or
-    // return to the current screen. OCR is reached from the Translator and left via
-    // system back — see Screen.Ocr usage below.
+    // OCR has its own tab since v41 (the bar used to hide here, which left the
+    // screen as the only one in the app without navigation).
     val showBottomNav = currentRoute in listOf(
         Screen.Translator.route,
         Screen.Conversation.route,
         Screen.Chat.route,
         Screen.Contacts.route,
+        Screen.Ocr.route,
         Screen.Profile.route
     )
 

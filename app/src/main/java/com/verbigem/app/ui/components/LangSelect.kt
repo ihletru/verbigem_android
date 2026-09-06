@@ -2,7 +2,6 @@ package com.verbigem.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,7 +34,11 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 fun LangSelect(
     selectedLang: LangCode,
     onLangSelected: (LangCode) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Gdy podane — długie naciśnięcie otwiera okno pomocy. */
+    helpState: HelpWindowState? = null,
+    helpTitle: String = "",
+    helpText: String = ""
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -47,7 +50,13 @@ fun LangSelect(
                 .clip(RoundedCornerShape(12.dp))
                 .background(VerbigemTheme.colors.surface)
                 .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(12.dp))
-                .clickable { expanded = true }
+                // Tap = otwórz listę języków, długi tap = okno pomocy.
+                .helpClickable(
+                    onClick = { expanded = true },
+                    onLongClick = if (helpState != null) {
+                        { helpState.show(helpTitle, helpText) }
+                    } else null
+                )
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

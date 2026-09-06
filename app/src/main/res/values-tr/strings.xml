@@ -325,4 +325,129 @@
     <string name="voice_stop">Durdur</string>
     <string name="voice_not_available">Sesli tanıma bu cihazda kullanılamıyor</string>
     <string name="image_close">Önizlemeyi kapat</string>
+
+    <!-- ============================================================
+         Bağlamsal yardım (v41): dokun = işlem, basılı tut = yardım penceresi.
+         ============================================================ -->
+    <string name="help_open">Yardım</string>
+    <string name="help_close">Anladım</string>
+
+    <string name="help_intro_translator_title">Çevirmen nasıl çalışır</string>
+    <string name="help_intro_translator">Bir simgenin ne yaptığından emin değilsen ya da unuttuysan, açıklama penceresi çıkana kadar ona basılı tut. Bazı simgeler ücretsiz sürümde etkin değildir. Uygulama ayarlarını Profil sayfasında bulabilirsin. Verbigem\'i kullanırken iyi eğlenceler!</string>
+    <string name="help_intro_conversation_title">Sohbet nasıl çalışır</string>
+    <string name="help_intro_conversation">İki kişi, bir telefon. A tarafı kendi dilinde konuşur ya da yazar, B tarafı çeviriyi kendi dilinde duyar ve okur. Konuşmak için mikrofona dokun ya da aşağıya yazıp oka bas. Burada hiçbir şey kaydedilmez ve hiçbir şey bu cihazdan çıkmaz — sohbet tamamen özeldir.</string>
+    <string name="help_intro_ocr_title">Kamera OCR nasıl çalışır</string>
+    <string name="help_intro_ocr">Bir tabela, menü ya da etiketin fotoğrafını çek: Verbigem metni doğrudan görselden, çevrimdışı olarak okur ve çevirir. Galeriden bir fotoğraf seç ya da yeni bir tane çek, okunmasını istediğin alanı işaretle, sonra çevir. Fotoğrafın kendisi telefonundan asla çıkmaz.</string>
+    <string name="help_intro_chat_title">Sohbet nasıl çalışır</string>
+    <string name="help_intro_chat">Sohbet, arkadaşlarınla çevrilmiş konuşmaların geldiği kutundur. Okuyup yazmak için bir başlığı aç; her ikiniz de mesajları kendi dilinizde görürsünüz. Mesajlarının içinde kelime bulmak için arama alanını kullan. Ne işe yaradığını okumak için herhangi bir simgeye basılı tut.</string>
+    <string name="help_intro_thread_title">Bu konuşma nasıl çalışır</string>
+    <string name="help_intro_thread">Sen kendi dilinde yazarsın, arkadaşın kendi dilinde okur: Verbigem her mesajı iki yönde çevirir. Fotoğraf için ataşa, dikte etmek için mikrofona, göndermek için oka dokun. Daha fazla seçenek için bir mesaja basılı tut: orijinali göster, alıntıla, sil.</string>
+    <string name="help_intro_contacts_title">Kişiler nasıl çalışır</string>
+    <string name="help_intro_contacts">İnsanlara ulaşmanın dört yolu: Arkadaşlar hâlihazırda bağlı olduğun kişilerdir, Davetler cevabını bekleyen isteklerdir, Telefon onları rehberinde arar, Harici ise başka bir uygulama üzerinden yazmanı sağlar. Ne işe yaradığını okumak için herhangi bir simgeye basılı tut.</string>
+    <string name="help_intro_profile_title">Profil nasıl çalışır</string>
+    <string name="help_intro_profile">Hesabın ve uygulamanın görünümüyle ilgili her şey burada: takma adın, arayüz dili, iki konuşma dilin, hesap durumu ve cüzdanın, telefon numaran, tema, QR kodun ve gizlilik politikası. Ne işe yaradığını okumak için herhangi bir simgeye basılı tut.</string>
+
+    <string name="help_source_lang_title">Kaynak dil</string>
+    <string name="help_source_lang">Konuştuğun ya da metni yapıştırdığın dil. Listeden seçmek için dokun. Aşağıdaki alana yazdığın ya da söylediğin her şey bu dil olarak anlaşılır.</string>
+    <string name="help_target_lang_title">Hedef dil</string>
+    <string name="help_target_lang">Elde etmek istediğin dil. Seçmek için dokun. Çeviri ve sesli okunan her şey bu dilde döner.</string>
+    <string name="help_swap_title">Dilleri değiştir</string>
+    <string name="help_swap">İki dili tek dokunuşla yer değiştirir. Sohbet yön değiştirdiğinde ve ters yönde çevirmeye başladığında kullanışlıdır. Alandaki metin olduğu yerde kalır.</string>
+    <string name="help_input_field_title">Çevrilecek metin</string>
+    <string name="help_input_field">Buraya yaz ya da mikrofona basılı tut ve konuş; kelimeler bu alana gelir. Sağdaki X alanı temizler. Kamera düğmeleriyle metni fotoğraftan da getirebilirsin.</string>
+    <string name="help_clear_input">Yeni bir cümleye başlayabilmen için alanı temizler. Çeviri geçmişine dokunmaz.</string>
+    <string name="help_translate_btn_title">Çevir düğmesi</string>
+    <string name="help_translate_btn">Yukarıda seçtiğin motoru çalıştırır ve sonucu aşağıda gösterir. Alanda bir şey olana kadar soluk kalır. Model eksikse uygulama bir kez indirmeyi önerir.</string>
+    <string name="help_mic_title">Mikrofon — konuş</string>
+    <string name="help_mic">Dikteyi başlatmak ve bitirmek için dokun. Seçtiğin kaynak dilde net konuş; tanınan kelimeler alanda görünür ve çevirmeden önce düzeltebilirsin. İlk dokunuşta uygulama mikrofon izni ister.</string>
+    <string name="help_camera_title">Fotoğraftan</string>
+    <string name="help_camera">Kamera OCR\'yi açar: bir tabela, menü ya da etiketin fotoğrafını çek, Verbigem basılı metni düzenlenebilir metne çevirir ve sonra çevirir. Çevrimdışı çalışır ve ücretsizdir.</string>
+    <string name="help_camera_pro_title">Fotoğraftan — Pro</string>
+    <string name="help_camera_pro">Pro kamera zor görselleri daha keskin tanır: el yazısı, az ışık ve uzun belgeler. Ücretsiz sürümde kilitli kalır; yanındaki normal kamera ücretsizdir.</string>
+
+    <string name="engine_caption_fast">hızlı</string>
+    <string name="engine_caption_accurate">doğru</string>
+    <string name="engine_caption_both">ikisi</string>
+    <string name="engine_caption_online">çevrimiçi</string>
+    <string name="input_caption_voice">sesten</string>
+    <string name="input_caption_photo">fotoğraftan</string>
+    <string name="input_caption_photo_pro">fotoğraftan pro</string>
+
+    <string name="help_engine_fast_title">Hızlı motor</string>
+    <string name="help_engine_fast">En hızlısı. Küçük bir model (yaklaşık 440 MB) tamamen telefonunda çalışır, bu yüzden internet gerekmez ve neredeyse anında cevap verir. Günlük cümleler ve seyahat için en iyisi. Ücretsizdir ve varsayılandır. Cevabı hemen istediğinde bunu seç.</string>
+    <string name="help_engine_accurate_title">Doğru motor</string>
+    <string name="help_engine_accurate">Titiz olan. Çok daha büyük bir model (yaklaşık 1,1 GB) gözle görülür biçimde uzun sürer ama uzun, resmî ya da belirsiz cümleleri çok daha iyi işler: sözleşmeler, talimatlar, tam kelimenin önemli olduğu her şey. O da çevrimdışı çalışır. Pro özelliği: ücretsiz kullanıcılar kilit görür. Bir kez Wi-Fi ile indir.</string>
+    <string name="help_engine_both_title">İki motor</string>
+    <string name="help_engine_both">İki yerel modeli aynı metin üzerinde çalıştırır ve daha iyi ifadeyi seçebilmen için iki sonucu alt alta gösterir. Bekleme süresi yaklaşık iki katıdır. Pro özelliği. Göndermek üzere olduğun ve emin olmak istediğin bir şeyi çevirirken harika.</string>
+    <string name="help_engine_online_title">Çevrimiçi motor</string>
+    <string name="help_engine_online">Metni internetteki bir çeviri servisine gönderir ve çok yüksek kaliteli bir sonuç alır; genelde dördünün en iyisi. Çalışan bir bağlantı gerekir ve API cüzdanından biraz harcar. Pro özelliği. Doğruluğun en önemli olduğu ve çevrimiçi olduğun zaman kullan.</string>
+
+    <string name="nav_ocr">Fotoğraf</string>
+    <string name="help_nav_translate">Ana ekran: iki dil seç, yaz ya da konuş, çevir.</string>
+    <string name="help_nav_conversation">İki kişi, bir telefon — konuş ya da yaz, her taraf kendi dilini duyar.</string>
+    <string name="help_nav_chat">Arkadaşlarınla çevrilmiş konuşmalarının geldiği kutu.</string>
+    <string name="help_nav_contacts">Arkadaşlar, davetler, rehberindeki kişiler ve harici başlıklar.</string>
+    <string name="help_nav_profile">Hesabın, diller, tema, QR kodun ve gizlilik ayarların.</string>
+    <string name="help_nav_ocr">Kamera OCR — tabeladaki ya da menüdeki basılı metni düzenlenebilir metne çevir ve çevir.</string>
+
+    <string name="help_action_copy">Metni panoya koyar, böylece bir mesaja, nota ya da başka bir uygulamaya yapıştırabilirsin. Hiçbir şey yüklenmez; kopya sadece telefonunda kalır.</string>
+    <string name="help_action_share">Android paylaşım menüsünü açar ve metni seçtiğin uygulamaya verir: WhatsApp, e-posta, SMS. Metin ancak hedef uygulamayı onayladığında telefonundan çıkar.</string>
+    <string name="help_action_read">Metni telefonuna yerleşik sesle okur. Çevrimdışı, hedef dilde çalışır. Kalite Android\'in sunduğu kadardır; yanındaki Pro düğmesi daha doğal gelir.</string>
+    <string name="help_action_read_pro">Metni yüksek kaliteli çevrimiçi bir sesle okur; yerleşik olandan daha net ve doğal. Bağlantı gerekir ve API cüzdanından biraz harcar. Ücretsiz sürümde kilitlidir.</string>
+    <string name="help_action_delete">Bu kaydı siler. Geçmişte çeviriyi bu telefondan kalıcı olarak siler; sonuç kartında yalnızca ekrandaki sonucu temizler, geçmişteki kayıt kalır.</string>
+    <string name="help_result_card">Çeviri. Üstteki simgeler bu metin üzerinde işlem yapar: kopyala, paylaş, sesli oku, Pro sesli oku ve temizle. «İkisi» motorunda iki kart alırsın: önce hızlı sonuç, altında etiketli doğru sonuç.</string>
+    <string name="help_history_card">Daha önce yaptığın ve bu telefonda saklanan bir çeviri. Kopyalamak, paylaşmak, sesli okumak ya da silmek için simgelere dokun. Ne işe yaradığını öğrenmek için herhangi bir simgeye basılı tut. Geçmiş yalnızca senindir.</string>
+
+    <string name="help_conv_swap_title">Tarafları değiştir</string>
+    <string name="help_conv_swap">Hangi dilin konuşulup hangisinin çevrildiğini ters çevirir, böylece karşı taraf cevap verebilir. Sıra karşı tarafa geçtiğinde kullan.</string>
+    <string name="help_conv_mic_title">Mikrofon</string>
+    <string name="help_conv_mic">Dinlemeye başlamak için bir kez, bitirmek için bir kez daha dokun. Söylediğin tanınır, çevrilir, balonda gösterilir ve diğer dilde sesli okunur. Sıra ona geldiğinde telefonu diğer kişiye ver.</string>
+    <string name="help_conv_send_title">Yazılan metni gönder</string>
+    <string name="help_conv_send">Aşağıdaki alandaki metni o anki tarafın sırası olarak gönderir: çevrilir, balonda gösterilir ve sesli söylenir. Mikrofonun zorlandığı gürültülü yerlerde kullan.</string>
+
+    <string name="help_ocr_camera">Kamerayla yeni bir fotoğraf çeker. Telefonu sabit tut ve çerçeveyi okumak istediğin metinle doldur. Fotoğraf cihazında kalır.</string>
+    <string name="help_ocr_gallery">Galerideki mevcut bir görseli seçer; ekran görüntüleri, hâlihazırda çektiğin fotoğraflar ve belgeler için kullanışlıdır.</string>
+    <string name="help_ocr_text_field">Görselden tanınan metin burada görünür ve çevirmeden önce elle düzeltebilirsin. Kendin düzenlediğinde yeniden tanınmaz.</string>
+    <string name="help_ocr_translate">Tanınan metni Çevirmen ekranında seçilen motorla çevirir ve sonucu aşağıda, kopyalamaya ya da sesli okumaya hazır gösterir.</string>
+
+    <string name="help_contacts_qr_title">QR kodu tara</string>
+    <string name="help_contacts_qr">Kamerayı bir arkadaşının Verbigem QR koduna doğrult; kartı açılır ve hemen ekleyebilirsin. Kendi kodun Profil sayfasında.</string>
+    <string name="help_contacts_search">Birini bulmak için takma ad ya da e-posta adresi yaz. Başlamak için iki karakter yeterlidir. Onaylayana kadar çevrimiçi arama yapılmaz.</string>
+    <string name="help_tab_friends">Hâlihazırda bağlı olduğun kişiler. Sohbeti açmak için birine dokun; dil, sabitleme, sessize alma ve engelleme içeren kişi kartı için basılı tut.</string>
+    <string name="help_tab_invites">Cevabını bekleyen istekler: seninle arkadaş olmak isteyenler ve davet ettiklerin. Burada kabul ya da reddedersin.</string>
+    <string name="help_tab_phone">Telefonundaki rehberi tarar ve Verbigem kullananları gösterir. Eşleştirme için yalnızca numaraların tek yönlü şifrelenmiş kodları gönderilir, numaraların kendisi asla.</string>
+    <string name="help_tab_external">Verbigem\'i olmayan birine SMS, e-posta, WhatsApp ve benzeri üzerinden yaz. Verbigem mesajını çevirir ve teslim eder; uygulamaya geri bir şey gelmez.</string>
+
+    <string name="help_chat_contacts_btn">Yazmak istediğin kişiyi seçtiğin Kişiler sayfasına geçer.</string>
+    <string name="help_chat_search">Mesajlarının metninde arar. En az üç karakter gerekir ve mesajın başıyla eşleşir.</string>
+    <string name="help_chat_row">Bir konuşma. Açıp okumak ve yazmak için dokun. Dil, sabitleme, sessize alma, engelleme ve silme içeren kişi kartı için satıra basılı tut.</string>
+
+    <string name="help_thread_mic">Yazmak yerine mesajını dikte et. Başlamak için bir kez, bitirmek için bir kez dokun; tanınan kelimeler alana gelir, göndermeden önce düzeltebilirsin.</string>
+    <string name="help_thread_image">Galeriden bir fotoğraf ekler. Konuşmayla birlikte gider ve arkadaşın tam ekran açabilir.</string>
+    <string name="help_thread_input">Mesajını buraya, kendi dilinde yaz; arkadaşın onu kendi dilinde okur. Sağdaki ok gönderir.</string>
+    <string name="help_thread_send">Mesajı gönderir. Çıkarken arkadaşın için çevrilir, onun cevapları da sana çevrilerek gelir.</string>
+    <string name="help_thread_bubble">Başlıktaki bir mesaj. Onu her zaman kendi dilinde okursun. Daha fazlası için basılı tut: orijinal metni göster, alıntıla, sesli oku, şimdi çevir ya da sil.</string>
+
+    <string name="help_profile_nickname">Arkadaşlarının gördüğü isim. Herhangi bir şey olabilir; gerçek adın olmak zorunda değil. Değiştirdikten sonra Kaydet\'e bas.</string>
+    <string name="help_profile_ui_lang">Tüm arayüzün dilini değiştirir. Hemen uygulanır; çevirilerinin dilleri etkilenmez.</string>
+    <string name="help_profile_conv_langs">Sohbet ve çevrilmiş sohbetler için iki varsayılan dilin. Konuştuğun ve duymak istediğin dili ayarla.</string>
+    <string name="help_profile_account">Ücretsiz planda mı yoksa Pro\'da mı olduğunu ve API cüzdanında ne kadar kredi kaldığını gösterir. Çevrimiçi motor ve Pro ses cüzdandan ödenir.</string>
+    <string name="help_profile_phone">Telefon numaran; yalnızca ona sahip arkadaşların seni bulabilmesi için kullanılır. Onaylamak bir SMS kodu gönderir; numaranın kendisi telefonunda kalır.</string>
+    <string name="help_profile_theme">Uygulamanın renklerini ve havasını değiştirir: Sakin, Keskin ya da Neşeli; her birinin gündüz ve gece sürümü vardır.</string>
+    <string name="help_profile_qr">Kişisel kodun. Bir arkadaşın tarasın ya da bağlantıyı paylaş; uygulaması Arkadaş ekle düğmesiyle kartını açar.</string>
+    <string name="help_profile_logout">Bu cihazda oturumunu kapatır. Çevirilerin ve sohbet geçmişin telefonda kalır; senkronize etmek için yeniden giriş yap.</string>
+    <string name="help_profile_privacy">Yayınladığımız gizlilik politikasını tarayıcıda açar. Mesajlarını asla okumayız — cihazında çevrilir ve orada kalır.</string>
+
+    <!-- Sohbet: geri -->
+    <string name="help_thread_back">Bu sohbeti kapatır ve sohbet listene döner.</string>
+
+    <!-- Benim QR kodum -->
+    <string name="help_myqr_back">Profiline döner.</string>
+    <string name="help_myqr_qr">Kişisel kodun. Başka bir Verbigem kullanıcısı onu tarayınca, yazmaya veya aramaya gerek kalmadan Arkadaş ekle düğmeli kartını açar.</string>
+    <string name="help_myqr_copy">Profil bağlantını panoya kopyalar, böylece herhangi bir uygulamayla paylaşabilirsin.</string>
+
+    <!-- Telefon doğrulama -->
+    <string name="help_phone_intro">Numaranı ekler, böylece zaten olan arkadaşların seni bulabilir. Onay bir SMS kodu gönderir; numaranın kendisi telefonunda kalır ve hiçbir zaman yüklenmez.</string>
+    <string name="help_phone_skip">Doğrulamayı atlar. Sohbet yine çalışır, ama rehberinde numaran olan kimse seni bulamaz. Daha sonra Profil\'den doğrulayabilirsin.</string>
+    <string name="chat_search">Mesajları ara</string>
 </resources>

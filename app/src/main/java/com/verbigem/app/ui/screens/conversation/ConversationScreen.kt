@@ -59,7 +59,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.ui.components.FlagIcon
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.LangSelect
+import com.verbigem.app.ui.components.ScreenHeader
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
@@ -80,6 +85,8 @@ fun ConversationScreen(
     val textInput by viewModel.textInput.collectAsState()
 
     val currentLang = if (currentSide == ConvSide.SIDE_A) langA else langB
+
+    val help = rememberHelpWindowState()
 
     // Scroll the focused text field into view when the IME covers it.
     val scrollState = rememberScrollState()
@@ -111,16 +118,12 @@ fun ConversationScreen(
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = stringResource(R.string.conv_title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = VerbigemTheme.colors.ink
-        )
-        Text(
-        text = stringResource(R.string.conv_subtitle),
-        fontSize = 13.sp,
-        color = VerbigemTheme.colors.muted
+        ScreenHeader(
+            title = stringResource(R.string.conv_title),
+            subtitle = stringResource(R.string.conv_subtitle),
+            helpState = help,
+            helpTitle = stringResource(R.string.help_intro_conversation_title),
+            helpText = stringResource(R.string.help_intro_conversation)
         )
 
         // Wybór stron i języków
@@ -137,13 +140,22 @@ fun ConversationScreen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.side_a_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
-                LangSelect(selectedLang = langA, onLangSelected = { viewModel.setLangA(it) })
+                LangSelect(
+                    selectedLang = langA,
+                    onLangSelected = { viewModel.setLangA(it) },
+                    helpState = help,
+                    helpTitle = stringResource(R.string.help_source_lang_title),
+                    helpText = stringResource(R.string.help_source_lang)
+                )
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            IconButton(
+            HelpIconButton(
                 onClick = { viewModel.setSide(if (currentSide == ConvSide.SIDE_A) ConvSide.SIDE_B else ConvSide.SIDE_A) },
+                helpState = help,
+                helpTitle = stringResource(R.string.help_conv_swap_title),
+                helpText = stringResource(R.string.help_conv_swap),
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(VerbigemTheme.colors.accent)
@@ -162,7 +174,13 @@ fun ConversationScreen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.side_b_label), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
-                LangSelect(selectedLang = langB, onLangSelected = { viewModel.setLangB(it) })
+                LangSelect(
+                    selectedLang = langB,
+                    onLangSelected = { viewModel.setLangB(it) },
+                    helpState = help,
+                    helpTitle = stringResource(R.string.help_target_lang_title),
+                    helpText = stringResource(R.string.help_target_lang)
+                )
             }
         }
 
@@ -222,7 +240,13 @@ fun ConversationScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        IconButton(onClick = { viewModel.speakAgain() }) {
+                        HelpIconButton(
+                            onClick = { viewModel.speakAgain() },
+                            helpState = help,
+                            helpTitle = stringResource(R.string.speak_again),
+                            helpText = stringResource(R.string.help_action_read),
+                            modifier = Modifier.size(48.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.VolumeUp,
                                 contentDescription = stringResource(R.string.speak_again),
@@ -245,12 +269,18 @@ fun ConversationScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val micHelpTitle = stringResource(R.string.help_conv_mic_title)
+            val micHelpText = stringResource(R.string.help_conv_mic)
             Box(
                 modifier = Modifier
                     .size(76.dp)
                     .clip(CircleShape)
                     .background(if (isListening) VerbigemTheme.colors.danger else VerbigemTheme.colors.accent)
-                    .clickable { viewModel.toggleSpeechRecognition() },
+                    // Tap = mów / przestań, długi tap = wyjaśnienie.
+                    .helpClickable(
+                        onClick = { viewModel.toggleSpeechRecognition() },
+                        onLongClick = { help.show(micHelpTitle, micHelpText) }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -312,13 +342,19 @@ fun ConversationScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                IconButton(
+                HelpIconButton(
                     onClick = { viewModel.sendTextMessage() },
                     enabled = textInput.isNotBlank() && !isTranslating,
+                    helpState = help,
+                    helpTitle = stringResource(R.string.help_conv_send_title),
+                    helpText = stringResource(R.string.help_conv_send),
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(VerbigemTheme.colors.accent)
+                        .background(
+                            if (textInput.isNotBlank() && !isTranslating) VerbigemTheme.colors.accent
+                            else VerbigemTheme.colors.accent.copy(alpha = 0.4f)
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
@@ -338,4 +374,6 @@ fun ConversationScreen(
             }
         }
     }
+
+    HelpWindow(help)
 }

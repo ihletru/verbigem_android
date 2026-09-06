@@ -55,6 +55,12 @@ import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.notifications.VerbigemNotifications
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.ScreenHeader
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.HelpWindowState
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -80,6 +86,9 @@ fun ChatListScreen(
     val searchHits by viewModel.searchHits.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val searchDone by viewModel.searchDone.collectAsState()
+
+    val help = rememberHelpWindowState()
+    HelpWindow(help)
 
     // Notification permission, asked here rather than at startup.
     //
@@ -108,33 +117,27 @@ fun ChatListScreen(
             .fillMaxSize()
             .background(VerbigemTheme.colors.bg)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.chat_title),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink,
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = onOpenContacts,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
-            ) {
-                Icon(
-                    Icons.Default.Group,
-                    contentDescription = stringResource(R.string.chat_open_contacts),
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.chat_open_contacts), fontSize = 12.sp)
+        ScreenHeader(
+            title = stringResource(R.string.chat_title),
+            helpState = help,
+            helpTitle = stringResource(R.string.help_intro_chat_title),
+            helpText = stringResource(R.string.help_intro_chat),
+            trailing = {
+                HelpIconButton(
+                    onClick = onOpenContacts,
+                    helpState = help,
+                    helpTitle = stringResource(R.string.chat_open_contacts),
+                    helpText = stringResource(R.string.help_chat_contacts_btn),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Group,
+                        contentDescription = stringResource(R.string.chat_open_contacts),
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
-        }
+        )
 
         // Szukanie ma sens dopiero gdy jest w czym — puste konto nie ma wiadomości,
         // a pole obiecywałoby coś, czego nie da się spełnić.
@@ -143,7 +146,8 @@ fun ChatListScreen(
                 query = searchQuery,
                 onQueryChanged = viewModel::onSearchQueryChanged,
                 onSearch = viewModel::search,
-                onClear = viewModel::clearSearch
+                onClear = viewModel::clearSearch,
+                help = help
             )
         }
 
@@ -213,7 +217,8 @@ private fun MessageSearchField(
     query: String,
     onQueryChanged: (String) -> Unit,
     onSearch: () -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    help: HelpWindowState
 ) {
     OutlinedTextField(
         value = query,
@@ -231,12 +236,20 @@ private fun MessageSearchField(
             )
         },
         leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = null,
-                tint = VerbigemTheme.colors.muted,
-                modifier = Modifier.size(18.dp)
-            )
+            HelpIconButton(
+                onClick = {},
+                helpState = help,
+                helpTitle = stringResource(R.string.chat_search),
+                helpText = stringResource(R.string.help_chat_search),
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    tint = VerbigemTheme.colors.muted,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
