@@ -94,6 +94,7 @@ Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_A
 - **Streaming:** `OcrViewModel.translateText()` woła `translateSegmented(..., onPartial = { ... })` — wypisuje wynik przyrostowo, tak jak Translator.
 - **Własna historia OCR** — osobna tabela `ocr_history` i osobna kolekcja Firestore `users/{uid}/ocr_history/{syncId}`; te same zasady last-write-wins + tombstone, ale listy nigdy się nie mieszają. `SyncManager.syncCollection(...)` wołany dla `"history"` i `"ocr_history"`. Karty mają pełen zestaw akcji jak w Translatorze.
 - **OCR NIE ma pozycji w BottomNav (celowo).** Pasek ma 5 kompletnych ikon. OCR wchodzi się z Translatora, wychodzi systemowym backiem. Jeśli kiedyś ma trafić do nawigacji — jako 6. pozycja w `BottomNav.items`, **nie** przez sam `showBottomNav`.
+- ⚠️ **Znany brak, wciąż otwarty (§5.4):** błąd wysyłki zdjęcia / głosówki **nie jest obsługiwany**. `ChatThreadViewModel.sendImage()` i `ChatThreadViewModel.sendVoice()` mają `// TODO 5.4: obsługa błędu (retry) — na razie tylko log.` (ok. linii 391 i 469). Nie ma ani ponawiania, ani komunikatu dla użytkownika — nieudana wysyłka znika bez śladu w logcat. Do domknięcia przed premierą.
 
 ### 6. Kody QR
 
@@ -101,8 +102,18 @@ Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` 
 
 - **Mój kod QR** — `MyQrScreen` + ZXing `core` 3.5.3 (`data/QRBitmap.kt`), trasa `Screen.MyQr`.
 - **Skaner** — `ScanScreen` na GMS Code Scanner (`play-services-code-scanner` 18.3.0). Obcy link → komunikat „to nie kod Verbigem", nie otwieramy obcych stron. Trasa `Screen.Scan`.
-- **App Links** — `intent-filter` VIEW z `autoVerify="true"`; `assetlinks.json` (SHA256 debug) leży w `mini/dist/.well-known/`. Obsługa w `MainActivity.handleDeepLink` + `AppNavigation.openProfileUid`.
-  > **Uwaga:** App Links z `autoVerify=true` działają dopiero, gdy w konsoli Firebase są wpisane odciski SHA certyfikatu podpisującego APK. Skanowanie działa niezależnie.
+- **App Links** — `intent-filter` VIEW z `autoVerify="true"`. Obsługa w `MainActivity.handleDeepLink` + `AppNavigation.openProfileUid`.
+  > ⚠️ **App Links są dziś NIESKONFIGURUROWANE (stan na v1.0.39).** Pliku `assetlinks.json`
+  > **nie ma** w repo — brak `mini/public/.well-known/`, brak `mini/dist/.well-known/`,
+  > brak śladu w historii gita. Przez to `https://mini.verbigem.com/.well-known/assetlinks.json`
+  > zwraca 404, weryfikacja `autoVerify` się nie udaje i link profilowy otwiera się
+  > w przeglądarce zamiast w apce. **Skaner QR działa niezależnie** — dlatego objaw łatwo przeoczyć.
+  >
+  > Naprawa: utworzyć `mini/public/.well-known/assetlinks.json` z odciskami SHA256 i zdeployować
+  > hosting miniego. Debug: `keytool -list -v -keystore ~/.android/debug.keystore -alias
+  > androiddebugkey` (hasło `android`). **Release: SHA z Google Play Console → App signing**,
+  > nie z lokalnego keystore'a (Play podpisuje APK własnym kluczem). Odciski muszą być też
+  > wpisane w Firebase: Project settings → Your apps → SHA certificate fingerprints.
 
 ### 7. Profil i Design System
 
