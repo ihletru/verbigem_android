@@ -1,5 +1,12 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
+> 📦 **Aktualna wersja: `v1.0.39`** (versionCode 40) —
+> [Releases](https://github.com/ihletru/verbigem_android/releases) ·
+> [Historia zmian (CHANGELOG.md)](CHANGELOG.md)
+
+> ℹ️ Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
+> Tagi `v1.0.1`–`v1.0.3` to wczesne buildy historyczne (versionCode 2–3).
+
 Natywna aplikacja na system Android stworzona w **100% w języku Kotlin** z wykorzystaniem **Jetpack Compose** oraz dedykowanego, natywnego silnika wnioskowania **Hy-MT2-1.8B** (Tencent Hunyuan) w formacie **GGUF** przez mostek **C++/JNI (llama.cpp NDK)** z akceleracją sprzętową ARM NEON oraz Vulkan GPU.
 
 Wzorowana na architekturze i funkcjach `mini.verbigem.com` (`verbigem/mini`).
