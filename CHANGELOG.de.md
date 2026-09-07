@@ -2,8 +2,23 @@
 
 
 > ⚠️ Die Tags `v1.0.1`–`v1.0.3` sind **frühe historische Builds** (versionCode 2–3).
-> Die aktuelle Version ist **v1.0.40** (versionCode 41).
+> Die aktuelle Version ist **v1.0.41** (versionCode 42).
 > Die Version steht in `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.41 (2026-09-06) — versionCode 42
+
+**UI-Korrekturen nach der globalen Hilfefenster-Regel (v40).**
+
+- **"Ich verstehe"** im Hilfefenster folgt jetzt der UI-Sprache (vorher blieb es auf Polnisch). `HelpWindow` sichert `LocalContext` vor `Dialog{}` und stellt ihn über `CompositionLocalProvider` wieder her.
+- **Untere Leiste zurück auf 5 Positionen** (Übersetzer, Gespräch, Chat, Kontakte, Profil). Die sechste OCR-Position hat die Leiste überfüllt.
+- **Übersetzer**: die Schaltfläche "Übersetzen" scrollt automatisch über die Tastatur (`bringIntoViewRequester` + `LaunchedEffect(WindowInsets.isImeVisible)` mit `delay(250)`).
+- **Engine-Symbole (genau, beide, online)** zeigen Hilfe bei langem Druck auch im deaktivierten Zustand.
+- **Gespräch und OCR**: überflüssige Untertitel entfernt — der "?"-Button erklärt die Seite bereits.
+- **Kontakte → Aus dem Telefon**: die Schaltflächen "Freunde in Kontakten finden" und ".vcf importieren" haben jetzt Hilfe (langer Druck).
+- **Profil**: UI-Sprachwahl hat einen sichtbaren Rahmen; unter der Datenschutz-Karte erscheint die Karte **Über die App** mit Version und Link **Was ist neu**.
+- **Launcher-Symbol**: Hintergrund des adaptiven Symbols von Grün (#2C6B85) auf Creme (`CalmDayBg` #F7F5F1) geändert. PNGs in fünf Dichten 108/162/216/324/432 px (Lanczos).
 
 ---
 

@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Icon
@@ -47,12 +46,15 @@ fun BottomNav(
 ) {
     val help = rememberHelpWindowState()
 
+    // UWAGA: pasek ma zawsze MAX 5 ikon (reguła UI). Ekran OCR (zdjęcie) nie ma tu
+    // swojej ikony — jest osiągalny z przycisku aparatu w Tłumaczu i sam też wyświetla
+    // dolny pasek nawigacji (AppNavigation.showBottomNav), ale jego ikona nie jest
+    // pozycją w samym pasku.
     val items = listOf(
         NavItem(Screen.Translator.route, Icons.Default.Translate, R.string.nav_translate, R.string.help_nav_translate),
         NavItem(Screen.Conversation.route, Icons.Default.RecordVoiceOver, R.string.nav_conversation, R.string.help_nav_conversation),
         NavItem(Screen.Chat.route, Icons.Default.Chat, R.string.nav_chat, R.string.help_nav_chat),
         NavItem(Screen.Contacts.route, Icons.Default.Group, R.string.nav_contacts, R.string.help_nav_contacts),
-        NavItem(Screen.Ocr.route, Icons.Default.PhotoCamera, R.string.nav_ocr, R.string.help_nav_ocr),
         NavItem(Screen.Profile.route, Icons.Default.Person, R.string.nav_profile, R.string.help_nav_profile)
     )
 

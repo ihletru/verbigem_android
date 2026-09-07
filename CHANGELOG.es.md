@@ -2,8 +2,23 @@
 
 
 > ⚠️ Las etiquetas `v1.0.1`–`v1.0.3` son **compilaciones históricas tempranas** (versionCode 2–3).
-> La versión actual es **v1.0.40** (versionCode 41).
+> La versión actual es **v1.0.41** (versionCode 42).
 > La versión está en `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.41 (2026-09-06) — versionCode 42
+
+**Correcciones de UI tras la regla global de ventanas de ayuda (v40).**
+
+- **"Entiendo"** en la ventana de ayuda ahora sigue el idioma de la interfaz (antes quedaba en polaco). `HelpWindow` captura `LocalContext` antes de `Dialog{}` y lo restaura con `CompositionLocalProvider`.
+- **Barra inferior vuelve a 5 iconos** (Traductor, Conversación, Chat, Contactos, Perfil). La sexta posición OCR saturaba la barra.
+- **Traductor**: el botón "Traducir" se desplaza sobre el teclado (`bringIntoViewRequester` + `LaunchedEffect(WindowInsets.isImeVisible)` con `delay(250)`).
+- **Iconos de motor (preciso, ambos, en línea)** muestran ayuda con pulsación larga incluso desactivados.
+- **Conversación y OCR**: subtítulos redundantes eliminados — el botón "?" ya explica la página.
+- **Contactos → Del teléfono**: los botones "Buscar amigos en contactos" e "Importar .vcf" ahora tienen ayuda (pulsación larga).
+- **Perfil**: el selector de idioma tiene marco visible; debajo de la tarjeta de privacidad aparece la tarjeta **Acerca de** con versión y enlace **Novedades**.
+- **Icono de la app**: fondo del icono adaptable de verde (#2C6B85) a crema (`CalmDayBg` #F7F5F1). PNGs en cinco densidades 108/162/216/324/432 px (Lanczos).
 
 ---
 

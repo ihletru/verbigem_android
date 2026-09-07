@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -78,6 +79,7 @@ import com.verbigem.app.ui.components.HelpIconButton
 import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.ScreenHeader
 import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.HelpWindowState
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 import kotlinx.coroutines.launch
@@ -293,6 +295,7 @@ fun ContactsScreen(
                     onDecline = viewModel::declineFriend
                 )
                 2 -> PhoneTab(
+                    help = help,
                     phoneContacts = allPhoneContacts,
                     permissionDenied = permissionDenied,
                     isMatching = isMatching,
@@ -616,6 +619,7 @@ private fun InvitesTab(
 
 @Composable
 private fun PhoneTab(
+    help: HelpWindowState,
     phoneContacts: List<PhoneContact>,
     permissionDenied: Boolean,
     isMatching: Boolean,
@@ -654,25 +658,51 @@ private fun PhoneTab(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Button(
-                    onClick = onFindFromPhone,
-                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                // Kliknięcie wykonuje akcję, długie kliknięcie otwiera okno pomocy.
+                // Celowo Box + helpClickable zamiast Button — Button ma własny
+                // clickable, który połyka long-press i pomoc nigdy by nie wyskoczyła.
+                // `stringResource` rozwiązujemy w composable scope (poniżej) —
+                // lambdy onLongClick nie są @Composable.
+                val findPhoneTitle = stringResource(R.string.help_contacts_find_phone_title)
+                val findPhoneText = stringResource(R.string.help_contacts_find_phone)
+                val importVcfTitle = stringResource(R.string.help_contacts_import_vcf_title)
+                val importVcfText = stringResource(R.string.help_contacts_import_vcf)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(VerbigemTheme.colors.accent)
+                        .helpClickable(
+                            onClick = onFindFromPhone,
+                            onLongClick = { help.show(findPhoneTitle, findPhoneText) }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.contacts_find_phone))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.contacts_find_phone), color = Color.White)
+                    }
                 }
-                Button(
-                    onClick = onImportVcf,
-                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(VerbigemTheme.colors.accent)
+                        .helpClickable(
+                            onClick = onImportVcf,
+                            onLongClick = { help.show(importVcfTitle, importVcfText) }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.contacts_import_vcf))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.contacts_import_vcf), color = Color.White)
+                    }
                 }
                 // Komunikat o wyniku importu — inline, nie modal, żeby nie zasłaniał
                 // listy, którą właśnie powiększyliśmy. `vcfCount` to `by`-delegat,

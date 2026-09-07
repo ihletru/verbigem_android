@@ -2,8 +2,23 @@
 
 
 > ⚠️ Tags `v1.0.1`–`v1.0.3` are **early historical builds** (versionCode 2–3).
-> The current version is **v1.0.40** (versionCode 41).
+> The current version is **v1.0.41** (versionCode 42).
 > The version lives in `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.41 (2026-09-06) — versionCode 42
+
+**UI fixes after the global help-window rule (v40).**
+
+- **"I understand"** in the help window now follows the UI language (it used to stay in Polish). `HelpWindow` captures `LocalContext` before `Dialog{}` and replays it via `CompositionLocalProvider` — `Dialog` resets the locale to the base activity.
+- **Bottom bar back to 5 icons** (Translator, Conversation, Chat, Contacts, Profile). The sixth OCR slot crowded the bar and did not shorten the path — OCR is one tap from Translator (camera icon in `HelpFramedIconButton`). The OCR screen still shows `BottomNav` but its icon is not in the bar.
+- **Translator**: the "Translate" button auto-scrolls above the keyboard (`bringIntoViewRequester` + `LaunchedEffect(WindowInsets.isImeVisible)` with `delay(250)` — the keyboard slides in 250 ms after focus).
+- **Engine icons (accurate, both, online)** show help on long-press even when disabled for free users (`EnginePicker.helpClickable` without `enabled` — only `onClick` checks `isEnabled`).
+- **Conversation and OCR**: redundant subtitles under the title removed — the header "?" button already explains the page.
+- **Contacts → From phone**: "Find friends in my contacts" and "Import .vcf" now have help (long-press). Rewritten from `Button` to `Box` + `helpClickable` because `Button` swallowed the long-press.
+- **Profile**: the UI language picker now has a visible frame; under the privacy card a new **About** card shows `Version <versionName> · build <versionCode>` (from `BuildConfig`) and a **What is new** link (`AppLinks.whatsNew(uiLang)` → `mini.verbigem.com/android/changelog[-<lang>].html`).
+- **Launcher icon**: adaptive icon background changed from green (#2C6B85) to cream (`CalmDayBg` #F7F5F1) to match the app pages. PNGs live in `drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/` at 108/162/216/324/432 px (Lanczos from `mini/public/logo-firefly.png`).
 
 ---
 

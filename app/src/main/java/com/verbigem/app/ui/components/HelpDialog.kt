@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,10 +90,17 @@ fun rememberHelpWindowState(): HelpWindowState = remember { HelpWindowState() }
  */
 @Composable
 fun HelpWindow(state: HelpWindowState) {
+    // Capture the screen's localized context. Inside a Compose Dialog, LocalContext
+    // reverts to the base Activity (device locale), so any stringResource() resolved
+    // here would ignore the in-app UI language — the close button would always read
+    // "Rozumiem" on a Polish phone regardless of the chosen interface language.
+    // Re-provide the screen's context so the whole dialog is translated correctly.
+    val localizedContext = LocalContext.current
     val title = state.title ?: return
     val text = state.text.orEmpty()
 
     Dialog(onDismissRequest = { state.dismiss() }) {
+        CompositionLocalProvider(LocalContext provides localizedContext) {
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = VerbigemTheme.colors.surface,
@@ -160,6 +169,7 @@ fun HelpWindow(state: HelpWindowState) {
                     )
                 }
             }
+        }
         }
     }
 }

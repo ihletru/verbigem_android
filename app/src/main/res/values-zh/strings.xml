@@ -50,6 +50,11 @@
     <string name="privacy_label">隐私</string>
     <string name="privacy_policy">隐私政策</string>
     <string name="privacy_policy_desc">Verbigem 如何处理您的数据</string>
+    <string name="about_label">关于</string>
+    <string name="app_version">版本 %1$s · 构建 %2$d</string>
+    <string name="whats_new_label">更新日志</string>
+    <string name="whats_new_desc">查看此版本中的更改</string>
+    <string name="help_about">应用版本与每个版本的改动列表。点按“更新日志”可阅读完整变更记录。</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <string name="conv_title">对话</string>
@@ -416,6 +421,10 @@
     <string name="help_tab_friends">已经建立联系的人。点一下打开聊天；长按可打开联系人名片，设置语言、置顶、免打扰和屏蔽。</string>
     <string name="help_tab_invites">等待你回复的请求——想加你好友的人，以及你邀请过的人。在这里接受或拒绝。</string>
     <string name="help_tab_phone">在本机通讯录中查找并显示已经在用 Verbigem 的人。匹配时只发送号码的单向加密摘要，绝不发送号码本身。</string>
+    <string name="help_contacts_find_phone_title">在联系人中查找好友</string>
+    <string name="help_contacts_find_phone">读取你的通讯录，显示哪些好友已在使用 Verbigem。用于匹配的只是号码的单向混淆码，绝不发送号码本身。</string>
+    <string name="help_contacts_import_vcf_title">导入 .vcf</string>
+    <string name="help_contacts_import_vcf">从你的设备打开 .vcf 文件，将其中联系人添加为可直接联系的 Verbigem 好友。文件在本地读取，绝不上传。</string>
     <string name="help_tab_external">给没有安装 Verbigem 的人发消息——通过短信、邮件、WhatsApp 等。Verbigem 翻译好你的消息后交出去，不会有任何内容回到应用里。</string>
 
     <string name="help_chat_contacts_btn">跳转到联系人页，在那里选择要发消息的人。</string>
@@ -450,4 +459,11 @@
     <string name="help_phone_intro">添加你的手机号，使已经存有该号码的好友能找到你。确认时会发送一条短信验证码；号码本身只留在你的手机上，绝不上传。</string>
     <string name="help_phone_skip">跳过验证。聊天仍可正常使用，但通讯录里有你号码的人将无法找到你。稍后可在“个人资料”中再验证。</string>
     <string name="chat_search">搜索消息</string>
+    <string name="help_intro_contact_card_title">联系人卡片的作用</string>
+        <string name="help_intro_contact_card">仅在本设备上为这一个好友生效的设置：私人别名（其他人看不到）、对方发来的消息翻译成的语言、置顶以让会话保持在顶部、静音通知、屏蔽以丢弃对方的消息。</string>
+        <string name="help_action_back">返回上一个屏幕。</string>
+        <string name="help_contact_pin">把这个会话置顶到收件箱顶部，方便随时找到。</string>
+        <string name="help_contact_mute">静音此联系人的通知。消息仍会到达，但手机不会响铃。</string>
+        <string name="help_contact_block">丢弃此联系人的所有来信——你不会看到，对方也不会知道。</string>
+        <string name="help_contact_delete">在收件箱中隐藏整段对话。对方仍保留。之后可在此界面重新显示。</string>
 </resources>

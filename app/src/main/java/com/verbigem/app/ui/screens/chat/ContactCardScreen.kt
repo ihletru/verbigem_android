@@ -55,6 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.HelpWindow
+import com.verbigem.app.ui.components.HelpWindowState
+import com.verbigem.app.ui.components.QuestionMarkButton
+import com.verbigem.app.ui.components.helpClickable
+import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 /**
@@ -79,6 +85,7 @@ fun ContactCardScreen(
     val isHidden by viewModel.isHidden.collectAsState()
 
     var confirmDelete by remember { mutableStateOf(false) }
+    val help = rememberHelpWindowState()
 
     LaunchedEffect(otherUid) { viewModel.open(otherUid) }
 
@@ -92,8 +99,18 @@ fun ContactCardScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ------------------------------------------------------------- header
+        // stringResource() jest @Composable — NIE wolno go wołać wewnątrz lambdy
+        // onClick/onLongClick (lambda nie jest kompozycyjna). Wyciągamy do val.
+        val introTitle = stringResource(R.string.help_intro_contact_card_title)
+        val introText = stringResource(R.string.help_intro_contact_card)
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            HelpIconButton(
+                onClick = onBack,
+                helpState = help,
+                helpTitle = stringResource(R.string.action_back),
+                helpText = stringResource(R.string.help_action_back),
+                modifier = Modifier.size(48.dp)
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back),
@@ -104,8 +121,10 @@ fun ContactCardScreen(
                 text = stringResource(R.string.contact_card_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = VerbigemTheme.colors.ink
+                color = VerbigemTheme.colors.ink,
+                modifier = Modifier.weight(1f)
             )
+            QuestionMarkButton(onClick = { help.show(introTitle, introText) })
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -201,21 +220,30 @@ fun ContactCardScreen(
                 icon = { Icon(Icons.Default.PushPin, null, tint = VerbigemTheme.colors.accent, modifier = it) },
                 title = stringResource(R.string.contact_card_pin),
                 checked = settings.pinned,
-                onCheckedChange = viewModel::setPinned
+                onCheckedChange = viewModel::setPinned,
+                helpState = help,
+                helpTitle = stringResource(R.string.contact_card_pin),
+                helpText = stringResource(R.string.help_contact_pin)
             )
             ToggleRow(
                 icon = { Icon(Icons.AutoMirrored.Filled.VolumeOff, null, tint = VerbigemTheme.colors.accent, modifier = it) },
                 title = stringResource(R.string.contact_card_mute),
                 subtitle = stringResource(R.string.contact_card_mute_note),
                 checked = settings.muted,
-                onCheckedChange = viewModel::setMuted
+                onCheckedChange = viewModel::setMuted,
+                helpState = help,
+                helpTitle = stringResource(R.string.contact_card_mute),
+                helpText = stringResource(R.string.help_contact_mute)
             )
             ToggleRow(
                 icon = { Icon(Icons.Default.Block, null, tint = VerbigemTheme.colors.accent, modifier = it) },
                 title = stringResource(R.string.contact_card_block),
                 subtitle = stringResource(R.string.contact_card_block_note),
                 checked = settings.blocked,
-                onCheckedChange = viewModel::setBlocked
+                onCheckedChange = viewModel::setBlocked,
+                helpState = help,
+                helpTitle = stringResource(R.string.contact_card_block),
+                helpText = stringResource(R.string.help_contact_block)
             )
         }
 
@@ -262,24 +290,40 @@ fun ContactCardScreen(
                 )
             }
         } else {
-            OutlinedButton(
-                onClick = { confirmDelete = true },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = VerbigemTheme.colors.danger)
+            // Zwykły Box zamiast OutlinedButton: wewnętrzny `clickable` przycisku
+            // wygrywa z long-pressem, więc okno pomocy nigdy by się nie otworzyło.
+            // Tytuły okna rozwiązujemy tuaj (composable scope) — `stringResource`
+            // wewnątrz onLongClick nie skompiluje się (lambda nie jest @Composable).
+            val deleteHelpTitle = stringResource(R.string.contact_card_delete)
+            val deleteHelpText = stringResource(R.string.help_contact_delete)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, VerbigemTheme.colors.danger, RoundedCornerShape(14.dp))
+                    .helpClickable(
+                        onClick = { confirmDelete = true },
+                        onLongClick = {
+                            help.show(deleteHelpTitle, deleteHelpText)
+                        }
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = VerbigemTheme.colors.danger
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.contact_card_delete),
-                    color = VerbigemTheme.colors.danger,
-                    fontSize = 15.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = VerbigemTheme.colors.danger
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.contact_card_delete),
+                        color = VerbigemTheme.colors.danger,
+                        fontSize = 15.sp
+                    )
+                }
             }
         }
 
@@ -316,6 +360,8 @@ fun ContactCardScreen(
             }
         )
     }
+
+    HelpWindow(help)
 }
 
 @Composable
@@ -379,11 +425,19 @@ private fun ToggleRow(
     title: String,
     subtitle: String? = null,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    helpState: HelpWindowState,
+    helpTitle: String,
+    helpText: String
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Tap = przełącz, długi tap = wyjaśnienie (globalna reguła od v41).
+            .helpClickable(
+                onClick = { onCheckedChange(!checked) },
+                onLongClick = { helpState.show(helpTitle, helpText) }
+            )
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -2,8 +2,23 @@
 
 
 > ⚠️ `v1.0.1`–`v1.0.3` etiketleri **erken tarihli derlemelerdir** (versionCode 2–3).
-> Güncel sürüm **v1.0.40** (versionCode 41).
+> Güncel sürüm **v1.0.41** (versionCode 42).
 > Sürüm `app/build.gradle.kts` içinde tutulur (`versionCode` / `versionName`).
+
+---
+
+## v1.0.41 (2026-09-06) — versionCode 42
+
+**Genel yardım penceresi kuralından (v40) sonra UI düzeltmeleri.**
+
+- **"Anladım"** yardım penceresinde artık arayüz dilini izliyor (önce Lehçe kalıyordu). `HelpWindow`, `Dialog{}` öncesinde `LocalContext` öğesini yakalayıp `CompositionLocalProvider` ile geri veriyor.
+- **Alt çubuk 5 simgeye döndü** (Çevirmen, Konuşma, Sohbet, Kişiler, Profil). Altıncı OCR konumu çubuğu dolduruyordu.
+- **Çevirmen**: "Çevir" düğmesi klavyenin üstüne kayar (`bringIntoViewRequester` + `LaunchedEffect(WindowInsets.isImeVisible)` ile `delay(250)`).
+- **Motor simgeleri (hassas, ikisi, çevrimiçi)** devre dışı olsalar bile uzun basışta yardım gösterir.
+- **Konuşma ve OCR**: gereksiz altyazılar kaldırıldı — "?" düğmesi sayfayı zaten açıklıyor.
+- **Kişiler → Telefondan**: "Kişilerimde arkadaş bul" ve ".vcf içe aktar" artık yardıma sahip (uzun basış).
+- **Profil**: arayüz dili seçici çerçeveli; gizlilik kartının altında sürüm + **Yenilikler** bağlantısı olan **Hakkında** kartı.
+- **Uygulama simgesi**: adaptif simge arka planı yeşilden (#2C6B85) krem rengine (`CalmDayBg` #F7F5F1). PNGler beş yoğunlukta 108/162/216/324/432 px (Lanczos).
 
 ---
 

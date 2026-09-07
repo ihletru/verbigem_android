@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -54,9 +58,12 @@ import com.verbigem.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.widget.Toast
 import android.content.ClipData
@@ -83,6 +90,7 @@ import com.verbigem.app.ui.components.helpClickable
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun TranslatorScreen(
     viewModel: TranslatorViewModel,
@@ -92,6 +100,7 @@ fun TranslatorScreen(
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val help = rememberHelpWindowState()
+    val translateBringIntoView = remember { BringIntoViewRequester() }
 
     val translateHelpTitle = stringResource(R.string.help_translate_btn_title)
     val translateHelpText = stringResource(R.string.help_translate_btn)
@@ -126,6 +135,18 @@ fun TranslatorScreen(
                 (info.visibleItemsInfo.lastOrNull()?.index ?: -1) >= info.totalItemsCount - 1
         }.collect { atEnd -> if (atEnd) viewModel.loadMoreHistory() }
     }
+
+    // Gdy wjeżdża klawiatura (focus na polu tekstowym), przewiń tak, by przycisk
+    // „Tłumacz" był widoczny nad klawiaturą — nie każdy devinenie, że można
+    // tłumaczyć enterem. Klawiatura pojawia się ~250 ms po focusie.
+    val isImeVisible = WindowInsets.isImeVisible
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible) {
+            delay(250)
+            translateBringIntoView.bringIntoView()
+        }
+    }
+
     val showDownloadDialog by viewModel.showDownloadDialog.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
 
@@ -327,6 +348,7 @@ fun TranslatorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
+                        .bringIntoViewRequester(translateBringIntoView)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
                             if (translateEnabled) VerbigemTheme.colors.accent

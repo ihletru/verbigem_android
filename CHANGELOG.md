@@ -2,8 +2,42 @@
 
 
 > ⚠️ Tagi `v1.0.1`–`v1.0.3` to **wczesne buildy historyczne** (versionCode 2–3).
-> Bieżąca wersja to **v1.0.40** (versionCode 41).
+> Bieżąca wersja to **v1.0.41** (versionCode 42).
 > Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
+
+---
+
+## v1.0.41 (2026-09-06) — versionCode 42
+
+**Poprawki UI po globalnej regule okien pomocy (v40).**
+
+- **„Rozumiem" w oknie pomocy** zawsze w języku interfejsu (wcześniej zostawał po polsku).
+  `HelpWindow` przechwytuje `LocalContext` przed `Dialog{}` i odtwarza go przez
+  `CompositionLocalProvider` — bo wewnątrz `Dialog` kontekst wraca do bazowej
+  Aktywności i `stringResource` ignoruje preferencję użytkownika.
+- **Pasek dolny wraca do 5 ikon** (Tłumacz, Rozmowa, Czat, Kontakty, Profil).
+  Szósta pozycja OCR zapychała pasek i nie skracała drogi do OCR — wejście i tak
+  jest jednym tapem z Tłumacza (ikona aparatu w `HelpFramedIconButton`). Ekran
+  OCR dalej pokazuje `BottomNav`, ale jego ikona nie jest pozycją w pasku.
+- **Tłumacz**: przycisk „Tłumacz" sam przewija się nad klawiaturę (`bringIntoViewRequester`
+  + `LaunchedEffect(WindowInsets.isImeVisible)` z `delay(250)` — bo klawiatura
+  wjeżdża 250 ms po focusie).
+- **Ikony silników (dokładny, oba, online)** mają pomoc nawet gdy są nieaktywne
+  dla free (`EnginePicker.helpClickable` bez `enabled`, tylko `onClick` sprawdza
+  `isEnabled`).
+- **Rozmowa i OCR**: zbędne podtytuły pod tytułem usunięte — w nagłówku jest
+  przycisk „?" z opisem strony, drugi opis obok był redundantny.
+- **Kontakty → Z telefonu**: przyciski „Znajdź znajomych w kontaktach" i
+  „Importuj .vcf" mają pomoc (długie przytrzymanie). To już nie `Button` —
+  przepisane na `Box` + `helpClickable`, bo `Button` połykałł long-press.
+- **Profil**: język interfejsu dostał ramkę — widać, że to przycisk.
+  Pod polityką prywatności pojawiła się karta **O aplikacji** z wersją
+  (`Wersja <versionName> · build <versionCode>` z `BuildConfig`) i linkiem
+  **Co nowego** (`AppLinks.whatsNew(uiLang)` → `mini.verbigem.com/android/changelog[-<lang>].html`).
+- **Ikona aplikacji**: tło adaptive icon z zielonego (#2C6B85) na krem
+  (`CalmDayBg` #F7F5F1) — zgadza się z tłem stron w motywie domyślnym.
+  PNGi w w `drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/` w rozmiarach
+  108/162/216/324/432 px (Lanczos z `mini/public/logo-firefly.png`).
 
 ---
 

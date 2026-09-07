@@ -50,6 +50,11 @@
     <string name="privacy_label">DATENSCHUTZ</string>
     <string name="privacy_policy">Datenschutzerklärung</string>
     <string name="privacy_policy_desc">Wie Verbigem Ihre Daten verarbeitet</string>
+    <string name="about_label">Über</string>
+    <string name="app_version">Version %1$s · Build %2$d</string>
+    <string name="whats_new_label">Neuigkeiten</string>
+    <string name="whats_new_desc">Sieh dir an, was sich geändert hat</string>
+    <string name="help_about">App-Version und die Liste der Änderungen in jeder Ausgabe. Tippe auf „Neuigkeiten\", um das vollständige Änderungsprotokoll zu lesen.</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <string name="conv_title">Gespräch</string>
@@ -416,6 +421,10 @@
     <string name="help_tab_friends">Menschen, mit denen du schon verbunden bist. Tippe für einen Chat; halte gedrückt für die Kontaktkarte mit Sprache, Anpinnen, Stummschalten und Blockieren.</string>
     <string name="help_tab_invites">Anfragen, die auf deine Antwort warten — von Leuten, die dein Freund sein wollen, und von denen, die du eingeladen hast. Hier nimmst du an oder lehnst ab.</string>
     <string name="help_tab_phone">Durchsucht das Adressbuch deines Telefons und zeigt, wer Verbigem schon nutzt. Zum Abgleich werden nur verschlüsselte Einweg-Codes der Nummern gesendet, niemals die Nummern selbst.</string>
+    <string name="help_contacts_find_phone_title">Freunde in Kontakten finden</string>
+    <string name="help_contacts_find_phone">Durchsucht dein Adressbuch und zeigt, welche deiner Freunde Verbigem bereits nutzen. Zum Abgleich werden nur verschlüsselte Einweg-Codes der Nummern gesendet — niemals die Nummern selbst.</string>
+    <string name="help_contacts_import_vcf_title">Import .vcf</string>
+    <string name="help_contacts_import_vcf">Öffnet eine .vcf-Datei von deinem Gerät und fügt die darin enthaltenen Personen als Verbigem-Kontakte hinzu, die du sofort anschreiben kannst. Die Datei wird lokal gelesen und nie hochgeladen.</string>
     <string name="help_tab_external">Schreibe jemandem ohne Verbigem — per SMS, E-Mail, WhatsApp und so weiter. Verbigem übersetzt deine Nachricht und gibt sie weiter; nichts kommt in die App zurück.</string>
 
     <string name="help_chat_contacts_btn">Springt zu den Kontakten, wo du die Person wählst, der du schreiben willst.</string>
@@ -450,4 +459,11 @@
     <string name="help_phone_intro">Fügt deine Telefonnummer hinzu, damit Freunde, die sie bereits haben, dich finden können. Die Bestätigung sendet einen SMS-Code; die Nummer selbst bleibt auf deinem Telefon und wird nie hochgeladen.</string>
     <string name="help_phone_skip">Überspringt die Verifizierung. Der Chat funktioniert trotzdem, aber niemand mit deiner Nummer im Adressbuch kann dich finden. Du kannst später über das Profil verifizieren.</string>
     <string name="chat_search">Nachrichten suchen</string>
+    <string name="help_intro_contact_card_title">Wie die Kontaktkarte funktioniert</string>
+        <string name="help_intro_contact_card">Einstellungen, die nur auf deinem Gerät für diesen einen Freund gelten: ein privater Alias (niemand sonst sieht ihn), die Sprache, in die eingehende Nachrichten übersetzt werden, Anpinnen, um den Chat oben zu halten, Stummschalten der Benachrichtigungen und Blockieren aller Nachrichten.</string>
+        <string name="help_action_back">Zurück zum vorherigen Bildschirm.</string>
+        <string name="help_contact_pin">Diesen Chat oben im Posteingang anheften, damit er immer leicht zu finden ist.</string>
+        <string name="help_contact_mute">Benachrichtigungen dieses Kontakts stummschalten. Nachrichten kommen weiter an, aber das Telefon klingelt nicht.</string>
+        <string name="help_contact_block">Alle eingehenden Nachrichten dieses Kontakts verwerfen — du siehst sie nicht und er erfährt nichts davon.</string>
+        <string name="help_contact_delete">Die ganze Unterhaltung aus deinem Posteingang ausblenden. Auf dem anderen Gerät bleibt sie erhalten.</string>
 </resources>

@@ -50,6 +50,11 @@
     <string name="privacy_label">GİZLİLİK</string>
     <string name="privacy_policy">Gizlilik politikası</string>
     <string name="privacy_policy_desc">Verbigem verilerinizi nasıl işler</string>
+    <string name="about_label">Hakkında</string>
+    <string name="app_version">Sürüm %1$s · derleme %2$d</string>
+    <string name="whats_new_label">Yenilikler</string>
+    <string name="whats_new_desc">Bu sürümde nelerin değiştiğini gör</string>
+    <string name="help_about">Uygulama sürümü ve her yayındaki değişikliklerin listesi. Tam değişiklik günlüğünü okumak için „Yenilikler\"e dokun.</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <string name="conv_title">Konuşma</string>
@@ -416,6 +421,10 @@
     <string name="help_tab_friends">Hâlihazırda bağlı olduğun kişiler. Sohbeti açmak için birine dokun; dil, sabitleme, sessize alma ve engelleme içeren kişi kartı için basılı tut.</string>
     <string name="help_tab_invites">Cevabını bekleyen istekler: seninle arkadaş olmak isteyenler ve davet ettiklerin. Burada kabul ya da reddedersin.</string>
     <string name="help_tab_phone">Telefonundaki rehberi tarar ve Verbigem kullananları gösterir. Eşleştirme için yalnızca numaraların tek yönlü şifrelenmiş kodları gönderilir, numaraların kendisi asla.</string>
+    <string name="help_contacts_find_phone_title">Kişilerimdeki arkadaşları bul</string>
+    <string name="help_contacts_find_phone">Rehberinizi tarar ve hangi arkadaşlarınızın zaten Verbigem kullandığını gösterir. Eşleştirme için yalnızca numaraların karartılmış tek yönlü kodları gönderilir — numaraların kendisi asla gönderilmez.</string>
+    <string name="help_contacts_import_vcf_title">İçe aktar .vcf</string>
+    <string name="help_contacts_import_vcf">Cihazınızdaki bir .vcf dosyasını açar ve içindeki kişileri, hemen mesaj yazabileceğiniz Verbigem kişileri olarak ekler. Dosya yalnızca yerelde okunur, hiçbir yere yüklenmez.</string>
     <string name="help_tab_external">Verbigem\'i olmayan birine SMS, e-posta, WhatsApp ve benzeri üzerinden yaz. Verbigem mesajını çevirir ve teslim eder; uygulamaya geri bir şey gelmez.</string>
 
     <string name="help_chat_contacts_btn">Yazmak istediğin kişiyi seçtiğin Kişiler sayfasına geçer.</string>
@@ -450,4 +459,11 @@
     <string name="help_phone_intro">Numaranı ekler, böylece zaten olan arkadaşların seni bulabilir. Onay bir SMS kodu gönderir; numaranın kendisi telefonunda kalır ve hiçbir zaman yüklenmez.</string>
     <string name="help_phone_skip">Doğrulamayı atlar. Sohbet yine çalışır, ama rehberinde numaran olan kimse seni bulamaz. Daha sonra Profil\'den doğrulayabilirsin.</string>
     <string name="chat_search">Mesajları ara</string>
+    <string name="help_intro_contact_card_title">Kişi kartı nasıl çalışır</string>
+        <string name="help_intro_contact_card">Yalnızca bu arkadaş için cihazınızda yaşayan ayarlar: özel takma ad (kimse göremez), gelen mesajların çevrileceği dil, konuşmayı yukarıda tutmak için sabitleme, bildirimleri sessize alma ve mesajlarını düşürmek için engelleme.</string>
+        <string name="help_action_back">Önceki ekrana dön.</string>
+        <string name="help_contact_pin">Bu sohbeti gelen kutusunun üstüne sabitle, böylece her zaman kolayca bulunur.</string>
+        <string name="help_contact_mute">Bu kişinin bildirimlerini sessize al. Mesajlar yine gelir, ama telefon çalmaz.</string>
+        <string name="help_contact_block">Bu kişiden gelen tüm mesajları düşür — onları görmezsin ve o bunu bilmez.</string>
+        <string name="help_contact_delete">Tüm konuşmayı gelen kutundan gizle. Diğer taraf saklıyor. Sonra bu ekrandan geri getirebilirsin.</string>
 </resources>

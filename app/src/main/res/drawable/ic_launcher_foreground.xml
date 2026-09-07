@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Foreground warstwy adaptive icon. Wskazuje na Firefly (1).png przez <inset>,
-  żeby logo trafiło do centralnych ~60% (safe zone 66dp/108dp). Tło (teal
-  #2C6B85) widać w przezroczystych miejscach PNG i w 20% marginesie.
+  Foreground warstwy adaptive icon. Wskazuje na ic_launcher_firefly.png przez
+  <inset>, żeby logo trafiło do centralnych ~60% (safe zone 66dp/108dp). Tło
+  (CalmDayBg #F7F5F1 z ic_launcher_background.xml) widać w przezroczystych
+  miejscach PNG i w 20% marginesie.
 -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/ic_launcher_firefly"

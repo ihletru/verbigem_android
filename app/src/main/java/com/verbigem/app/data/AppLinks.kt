@@ -52,6 +52,25 @@ object AppLinks {
         }
         return privacyPolicy(locale?.language)
     }
+
+    private const val WHATSNEW_BASE = "https://mini.verbigem.com/android/changelog"
+    private const val WHATSNEW_SUFFIX = ".html"
+
+    /**
+     * URL strony „co nowego" (changelog) w języku interfejsu. Strona jest
+     * hostowana statycznie na Firebase Hostingu (projekt `mini`) i generowana
+     * ze skryptu `mini/scripts/genChangelogHtml.mjs` — treść NIE jest w aplikacji,
+     * więc zmiana listy zmian nie wymaga nowego wydania APK.
+     *
+     * Pliki: `changelog.html` (en, domyślny), `changelog-{pl,de,es,zh,tr}.html`.
+     * Brak wariantu `/whatsnew/` — Firebase catch-all rewrite serwowałby
+     * stronę webappy zamiast treści.
+     */
+    fun whatsNew(uiLang: String?): String {
+        val code = uiLang?.lowercase()?.substringBefore("-")
+        return if (code == null || code == "en") "$WHATSNEW_BASE$WHATSNEW_SUFFIX"
+        else "$WHATSNEW_BASE-$code$WHATSNEW_SUFFIX"
+    }
 }
 
 /** Zaproszenie do Verbigem — zwykły link + systemowy share sheet (§4.2 planu). */

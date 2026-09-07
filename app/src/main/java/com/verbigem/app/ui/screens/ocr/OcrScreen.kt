@@ -177,7 +177,6 @@ fun OcrScreen(
     ) {
         ScreenHeader(
             title = stringResource(R.string.ocr_title),
-            subtitle = stringResource(R.string.ocr_subtitle),
             helpState = help,
             helpTitle = stringResource(R.string.help_intro_ocr_title),
             helpText = stringResource(R.string.help_intro_ocr)

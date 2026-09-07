@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.40`** (versionCode 41) —
+> 📦 **Aktualna wersja: `v1.0.41`** (versionCode 42) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -94,7 +94,7 @@ Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_A
 - **OCR Pro (💎)** — przycisk obok Aparat/Galeria, dla free wyszarzony z tooltipem `ocr_pro_coming_soon`. Komponent `ProFeatureButton` (współdzielony z głośnikiem Pro).
 - **Streaming:** `OcrViewModel.translateText()` woła `translateSegmented(..., onPartial = { ... })` — wypisuje wynik przyrostowo, tak jak Translator.
 - **Własna historia OCR** — osobna tabela `ocr_history` i osobna kolekcja Firestore `users/{uid}/ocr_history/{syncId}`; te same zasady last-write-wins + tombstone, ale listy nigdy się nie mieszają. `SyncManager.syncCollection(...)` wołany dla `"history"` i `"ocr_history"`. Karty mają pełen zestaw akcji jak w Translatorze.
-- **OCR MA pozycję w BottomNav** (od v41, ikona aparatu `Icons.Default.PhotoCamera`, etykieta `nav_ocr`). Pasek ma **6** pozycji. Wcześniej celowo nie miał — był jedynym ekranem w aplikacji bez nawigacji, co przy długiej sesji OCR zmuszało do systemowego backu aż do Tłumacza.
+- **Ekran OCR nadal pokazuje BottomNav** (jest w `AppNavigation.showBottomNav`), ale **ikona OCR NIE jest w pasku** — dolny pasek ma **zawsze MAX 5 ikon** (Translator, Rozmowa, Czat, Kontakty, Profil). Wcześniej (v41) OCR dostał szóstą pozycję, ale to zapychało pasek i nie skracało drogi do OCR — wejście do niego i tak jest jednym tapem z Tłumacza (ikona aparatu w `HelpFramedIconButton`). Patrz sekcja *„Dolny pasek — zasady"*.
 - ⚠️ **Znany brak, wciąż otwarty (§5.4):** błąd wysyłki zdjęcia / głosówki **nie jest obsługiwany**. `ChatThreadViewModel.sendImage()` i `ChatThreadViewModel.sendVoice()` mają `// TODO 5.4: obsługa błędu (retry) — na razie tylko log.` (ok. linii 391 i 469). Nie ma ani ponawiania, ani komunikatu dla użytkownika — nieudana wysyłka znika bez śladu w logcat. Do domknięcia przed premierą.
 
 ### 6. Kody QR
@@ -121,6 +121,7 @@ Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` 
 - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**. Tryby: **Dzień ☀️** / **Noc 🌙**.
 - Wybór języka interfejsu i domyślnej pary językowej. Wektorowe flagi SVG.
 - Karta **Polityka prywatności** otwierająca `mini.verbigem.com/privacy/` w przeglądarce, w języku interfejsu.
+- Karta **O aplikacji** (`R.string.about_label`) pod polityką prywatności: `Wersja <versionName> · build <versionCode>` z `BuildConfig` + link **Co nowego** otwierający `AppLinks.whatsNew(uiLang)` — czyli `https://mini.verbigem.com/android/changelog[-<lang>].html` (hostowany statycznie, ten sam skrypt `genChangelogHtml.mjs` co strona www; **NIE** `/whatsnew/` — Firebase catch-all rewrite serwowałby stronę webappy zamiast treści).
 
 ---
 
@@ -155,10 +156,14 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
    `IconButton` / `Button` mają wewnętrzny `clickable` — wygrywa on i **long-press ginie
    po cichu** (zero błędu w logach). Dlatego `HelpIconButton` to `Box` + `helpClickable`,
    a nie `IconButton`.
-2. **`stringResource` rozwiązuj u wywołującego.** `HelpWindowState.show(title, text)`
-   bierz gotowe `String`, bo stan żyje poza composable scope ekranu — wołanie
-   `stringResource` wewnątrz lambdy długiego kliknięcia jest możliwe, ale wtedy każdy
-   ekran musi trzymać `Context`, czego chcemy uniknąć.
+2. **`stringResource` rozwiązuj u wywołującego — i NIGDY wewnątrz lambdy kliknięcia.**
+   `HelpWindowState.show(title, text)` bierze gotowe `String`. `stringResource()` jest
+   **`@Composable`**, a lambda `onClick` / `onLongClick` w `helpClickable` / `Button` /
+   `QuestionMarkButton` **nie jest** kompozycyjna — wywołanie w jej wnętrzu to błąd
+   kompilacji `e: @Composable invocations can only happen from the context of a @Composable
+   function` (tak sypały się `ProfileScreen`, `ContactCardScreen`, `ContactsScreen` w v42).
+   Wzorzec naprawy: wyciągnij `val t = stringResource(R.string.help_x)` w scope
+   composable i dopiero wtedy `onClick = { help.show(t, ...) }`.
 3. **Teksty pomocy to `R.string.help_*` — obowiązkowo we wszystkich 6 językach.**
    Reguła z sekcji *Wielojęzyczność* dotyczy ich tak samo jak etykiet. Klucz `help_close`
    (przycisk zamknięcia) i `help_open` (contentDescription „?") są współdzielone.
@@ -168,12 +173,47 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
 5. **Menu dolne też ma okna pomocy** (`NavItem.helpResId`) i własny `rememberHelpWindowState()`
    wewnątrz `BottomNav` — pasek jest współdzielony z `AppNavigation`, więc nie może
    korzystać ze stanu ekranu.
+6. **Wewnątrz `Dialog` `LocalContext` wraca do bazowej aktywności** (locale systemu, nie wybrany
+   język interfejsu). Dlatego `stringResource(R.string.help_close)` w `HelpWindow` ignorował
+   preferencję użytkownika i przycisk „Rozumiem" zawsze wyświetlał się po polsku — nawet przy
+   angielskim UI. Naprawa: `HelpWindow` przechwytuje `LocalContext.current` PRZED otwarciem
+   `Dialog{}` i odtwarza go przez `CompositionLocalProvider(LocalContext provides localizedContext)`
+   wewnątrz. Nie używaj `stringResource` bezpośrednio w `Dialog` bez tego opakowania — dotyczy
+   też własnych dialogów, nie tylko `HelpWindow`.
+7. **`WindowInsets.isImeVisible` wymaga własnego importu.** To extension property:
+   `import androidx.compose.foundation.layout.isImeVisible` (obok `...layout.WindowInsets`).
+   Bez tego importu kompilator zgłasza `Unresolved reference 'isImeVisible'`, mimo że
+   `WindowInsets` jest zaimportowany — patrz `ConversationScreen` (ma oba importy).
+8. **Dosuwanie widoku nad klawiaturą (`BringIntoViewRequester`) to dwa opt-iny.**
+   `LaunchedEffect(isImeVisible) { delay(250); requester.bringIntoView() }` +
+   `.bringIntoViewRequester(requester)` wymagają
+   `@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)` na composable.
+   Sam `ExperimentalLayoutApi` nie wystarcza — to osobna adnotacja
+   (`androidx.compose.foundation.ExperimentalFoundationApi`, a nie `...layout`).
+   `delay(250)` jest celowy: klawiatura wjeżdża ~250 ms po fokusie, wcześniej
+   `bringIntoView()` policzy zły offset.
+9. **`BuildConfig.VERSION_NAME` / `VERSION_CODE` wymagają `buildFeatures { buildConfig = true }`.**
+   AGP 8+ ma to domyślnie wyłączone; bez flagi każdy ekran odwołujący się do `BuildConfig`
+   (karta „O aplikacji" w Profilu) sypie `Unresolved reference 'BuildConfig'`.
 
 ### Konwencja podpisów
 
 Podpisy ikon są zawsze **11.sp** — ta sama wielkość co w menu dolnym. Tam, gdzie
 Milosz nie podał treści okna, treść jest wygenerowana i trzyma się schematu:
 *czym jest → co robi → jak używać → co się dzieje z danymi*.
+
+### 📱 Dolny pasek — zawsze MAX 5 ikon
+
+`BottomNav` renderuje pasek współdzielony przez `AppNavigation` (`showBottomNav`).
+**Twarda reguła: pasek ma dokładnie 5 pozycji** — Tłumacz, Rozmowa, Czat, Kontakty,
+Profil. Nie dodawaj szóstej ikony „bo ekran X nie ma nawigacji".
+
+- Ekran, który potrzebuje nawigacji, ale nie pasuje do paska, i tak pokazuje `BottomNav`
+  (wystarczy, że jego `Screen.route` jest w `AppNavigation.showBottomNav`) — nawigacja
+  wraca przez ikonę Tłumacza/Profilu, a wejście do ekranu jest jednym tapem z innego
+  ekranu (wzorzec: OCR z Tłumacza przez `HelpFramedIconButton`).
+- v41 dodało OCR jako szóstą pozycję. Cofnięte — pasek wizualnie się rozjeżdżał,
+  a wejście do OCR nie było krótsze niż przez Tłumacza.
 
 ---
 
@@ -220,8 +260,9 @@ URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy): `privacyPolicy(uiL
 
 ## 🎨 Branding — ikona launchera i logo webapp
 
-- **Ikona apki:** `app/src/main/res/drawable/ic_launcher_firefly.png` (RGBA, przezroczyste tło) + `ic_launcher_foreground.xml` (`<inset android:drawable="@drawable/ic_launcher_firefly" android:inset="20%" />`). minSDK 26 → nie trzeba rasterowych mipmap.
+- **Ikona apki (adaptive icon):** `ic_launcher_background.xml` = `CalmDayBg` (#F7F5F1, krem z tła stron w motywie domyślnym — wcześniej #2C6B85 wyglądało jak „paskudne zielone tło"), `ic_launcher_foreground.xml` = `<inset>` 20% na `ic_launcher_firefly.png` (RGBA, przezroczyste tło). minSDK 26 → nie trzeba rasterowych mipmap.
   ⚠️ **Nie podmieniaj na nieprzezroczyste PNG** — `logov.png` (RGB, białe tło wypieczone) zostało celowo odrzucone; używaj **tylko** RGBA.
+- **Gęstości launchera:** te same pliki `ic_launcher_firefly.png` są w `drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/` w rozmiarach **108/162/216/324/432 px** (Android adaptive icon safe zone 108dp). Skalowane z `mini/public/logo-firefly.png` (724×724) filtrem **Lanczos** (`Pillow.Image.LANCZOS`, `optimize=True`). Źródło 724px jest małą gęstością dla drobnego grafu sieci neuronowej w logo — jeśli Milosz podsyła nowy plik źródłowy (np. **2048×2048 RGBA** z oryginalnego wektora), przebudować gęstości jednym skryptem w `app/scripts/genLauncherIcons.py` (do dopisania) i jakość skoczy bez zmian w kodzie.
 - **Logo webapp (mini):** `verbigem/mini/public/logo-firefly.png` → `/logo-firefly.png`, wyświetlane przed `<h1>Mini Verbigem</h1>`. Vite kopiuje `public/` → `dist/` przy `npm run build`, więc zmiana pliku wymaga przebudowy webappy (zob. *Flow wydania*, krok 5).
 
 ---

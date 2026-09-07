@@ -71,12 +71,13 @@ fun EnginePicker(
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .background(bgColor)
-                        // Tap = wybierz silnik, długi tap = wyjaśnienie.
-                        .helpClickable(
-                            enabled = isEnabled,
-                            onClick = { onEngineSelected(engine) },
-                            onLongClick = { helpState.show(engineHelpTitle, engineHelpText) }
-                        )
+                    // Tap = wybierz silnik (tylko gdy włączony; dla free użytkownika
+                    // silniki Pro są nieaktywne na kliknięcie, ale długie kliknięcie
+                    // i tak otwiera okno pomocy — patrz reguła UI v41).
+                    .helpClickable(
+                        onClick = { if (isEnabled) onEngineSelected(engine) },
+                        onLongClick = { helpState.show(engineHelpTitle, engineHelpText) }
+                    )
                         .padding(vertical = 8.dp, horizontal = 2.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

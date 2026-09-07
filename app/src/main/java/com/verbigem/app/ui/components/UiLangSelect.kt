@@ -1,6 +1,7 @@
 package com.verbigem.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -38,6 +39,7 @@ fun UiLangSelect(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
+                .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(8.dp))
                 .clickable { expanded = true }
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically

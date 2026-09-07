@@ -16,8 +16,8 @@ android {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 41
-        versionName = "1.0.40"
+        versionCode = 42
+        versionName = "1.0.41"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -70,6 +70,10 @@ android {
 
     buildFeatures {
         compose = true
+        // Wlaczone dla `BuildConfig.VERSION_NAME / VERSION_CODE` w ProfileScreen
+        // (karta „O aplikacji", `R.string.app_version`). AGP 8+ domyslnie
+        // wylacza generowanie BuildConfig.
+        buildConfig = true
     }
 
     externalNativeBuild {

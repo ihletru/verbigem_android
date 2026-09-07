@@ -53,6 +53,11 @@
     <string name="privacy_label">PRYWATNOŚĆ</string>
     <string name="privacy_policy">Polityka prywatności</string>
     <string name="privacy_policy_desc">Jak Verbigem przetwarza Twoje dane</string>
+    <string name="about_label">O aplikacji</string>
+    <string name="app_version">Wersja %1$s · build %2$d</string>
+    <string name="whats_new_label">Co nowego</string>
+    <string name="whats_new_desc">Zobacz, co zmieniło się w tej wersji</string>
+    <string name="help_about">Wersja aplikacji oraz lista zmian w każdym wydaniu. Kliknij „Co nowego\", by przeczytać pełny dziennik zmian.</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <!-- Conversation -->
@@ -432,6 +437,10 @@
     <string name="help_tab_friends">Osoby, z którymi już się połączyłeś. Naciśnij, żeby otworzyć czat; naciśnij i przytrzymaj, żeby otworzyć kartę kontaktu z językiem, przypięciem, wyciszeniem i blokadą.</string>
     <string name="help_tab_invites">Prośby czekające na twoją odpowiedź — od osób, które chcą być twoimi znajomymi, i od tych, których zaprosiłeś. Tu je przyjmujesz albo odrzucasz.</string>
     <string name="help_tab_phone">Przegląda książkę adresową w twoim telefonie i pokazuje, kto już używa Verbigem. Do porównania wysyłane są tylko zahaszowane, jednokierunkowe kody numerów, nigdy same numery.</string>
+    <string name="help_contacts_find_phone_title">Znajdź znajomych w kontaktach</string>
+    <string name="help_contacts_find_phone">Przegląda twoją książkę adresową i pokazuje, którzy z twoich znajomych już używają Verbigem. Do porównania wysyłane są tylko zahaszowane, jednokierunkowe kody numerów — nigdy same numery.</string>
+    <string name="help_contacts_import_vcf_title">Importuj .vcf</string>
+    <string name="help_contacts_import_vcf">Otwiera plik .vcf z twojego urządzenia i dodaje znajdujące się w nim osoby jako kontakty Verbigem, do których możesz od razu pisać. Plik jest czytany lokalnie i nigdy nie jest wysyłany gdzie indziej.</string>
     <string name="help_tab_external">Napisz do kogoś, kto nie ma Verbigem — przez SMS, e-mail, WhatsApp i tak dalej. Verbigem tłumaczy twoją wiadomość i przekazuje ją dalej; nic nie wraca do aplikacji.</string>
 
     <!-- Czat: lista -->
@@ -469,4 +478,11 @@
     <string name="help_phone_intro">Dodaje twój numer telefonu, żeby znajomi, którzy już go mają, mogli cię znaleźć. Potwierdzenie wysyła jeden SMS z kodem; sam numer zostaje w twoim telefonie i nigdy nie jest wysyłany.</string>
     <string name="help_phone_skip">Pomija weryfikację. Czat dalej działa, ale nikt, kto ma twój numer w kontaktach, nie będzie mógł cię znaleźć. Możesz zweryfikować później ze strony Profil.</string>
     <string name="chat_search">Szukaj wiadomości</string>
+    <string name="help_intro_contact_card_title">Jak działa karta kontaktu</string>
+        <string name="help_intro_contact_card">Ustawienia tylko dla Ciebie i tego znajomego: prywatny alias (nikt inny go nie widzi), język na który tłumaczone są przychodzące wiadomości, przypięcie (trzymaj wątek na górze), wyciszenie (bez powiadomień) i blokada (jego wiadomości znikają). Długie przytrzymanie każdej opcji pokaże szczegóły.</string>
+        <string name="help_action_back">Wróć do poprzedniego ekranu.</string>
+        <string name="help_contact_pin">Przypnij tę rozmowę na górze skrzynki, żeby zawsze była pod ręką.</string>
+        <string name="help_contact_mute">Wycisz powiadomienia od tego kontaktu. Wiadomości nadal przychodzą, ale telefon nie dzwoni.</string>
+        <string name="help_contact_block">Odrzucaj wszystkie wiadomości od tego kontaktu — nie zobaczysz ich, a on się nie dowie.</string>
+        <string name="help_contact_delete">Ukryj całą rozmowę w skrzynce. Druga strona ją zachowuje. Rozmowę możesz przywrócić później z tego ekranu.</string>
 </resources>

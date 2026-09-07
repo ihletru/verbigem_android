@@ -120,7 +120,6 @@ fun ConversationScreen(
     ) {
         ScreenHeader(
             title = stringResource(R.string.conv_title),
-            subtitle = stringResource(R.string.conv_subtitle),
             helpState = help,
             helpTitle = stringResource(R.string.help_intro_conversation_title),
             helpText = stringResource(R.string.help_intro_conversation)

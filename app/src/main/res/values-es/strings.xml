@@ -50,6 +50,11 @@
     <string name="privacy_label">PRIVACIDAD</string>
     <string name="privacy_policy">Política de privacidad</string>
     <string name="privacy_policy_desc">Cómo trata Verbigem tus datos</string>
+    <string name="about_label">Acerca de</string>
+    <string name="app_version">Versión %1$s · compilación %2$d</string>
+    <string name="whats_new_label">Novedades</string>
+    <string name="whats_new_desc">Mira qué ha cambiado en esta versión</string>
+    <string name="help_about">Versión de la app y la lista de cambios de cada versión. Toca „Novedades\" para leer el registro completo.</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <string name="conv_title">Conversación</string>
@@ -416,6 +421,10 @@
     <string name="help_tab_friends">Personas con las que ya estás conectado. Pulsa una para abrir un chat; mantén pulsado para la tarjeta de contacto con idioma, fijar, silenciar y bloquear.</string>
     <string name="help_tab_invites">Peticiones que esperan tu respuesta, tanto de quienes quieren ser tus amigos como de los que invitaste. Aquí aceptas o rechazas.</string>
     <string name="help_tab_phone">Revisa la agenda de tu teléfono y muestra quién ya usa Verbigem. Para comparar solo se envían códigos cifrados de un solo sentido de los números, nunca los números mismos.</string>
+    <string name="help_contacts_find_phone_title">Buscar amigos en contactos</string>
+    <string name="help_contacts_find_phone">Revisa tu agenda y muestra cuáles de tus amigos ya usan Verbigem. Para comparar solo se envían códigos cifrados de un solo sentido de los números, nunca los números en sí.</string>
+    <string name="help_contacts_import_vcf_title">Importar .vcf</string>
+    <string name="help_contacts_import_vcf">Abre un archivo .vcf desde tu dispositivo y añade las personas que contiene como contactos de Verbigem a los que puedes escribir de inmediato. El archivo se lee en local y nunca se sube.</string>
     <string name="help_tab_external">Escribe a alguien que no tiene Verbigem por SMS, correo, WhatsApp y demás. Verbigem traduce tu mensaje y lo entrega; nada vuelve a la aplicación.</string>
 
     <string name="help_chat_contacts_btn">Salta a Contactos, donde eliges a la persona a la que quieres escribir.</string>
@@ -450,4 +459,11 @@
     <string name="help_phone_intro">Añade tu número de teléfono para que los amigos que ya lo tienen puedan encontrarte. La confirmación envía un código por SMS; el número en sí se queda en tu teléfono y nunca se sube.</string>
     <string name="help_phone_skip">Omite la verificación. El chat sigue funcionando, pero nadie con tu número en sus contactos podrá encontrarte. Puedes verificar más tarde desde el Perfil.</string>
     <string name="chat_search">Buscar mensajes</string>
+    <string name="help_intro_contact_card_title">Cómo funciona la ficha de contacto</string>
+        <string name="help_intro_contact_card">Ajustes que viven solo en tu dispositivo para este amigo: un alias privado (nadie más lo ve), el idioma al que se traducen los mensajes entrantes, fijar para mantener la conversación arriba, silenciar las notificaciones y bloquear para descartar sus mensajes.</string>
+        <string name="help_action_back">Volver a la pantalla anterior.</string>
+        <string name="help_contact_pin">Fija esta conversación arriba en tu bandeja para encontrarla siempre fácilmente.</string>
+        <string name="help_contact_mute">Silencia las notificaciones de este contacto. Los mensajes siguen llegando, pero tu teléfono no suena.</string>
+        <string name="help_contact_block">Descarta todos los mensajes entrantes de este contacto — no los verás y él no se enterará.</string>
+        <string name="help_contact_delete">Oculta toda la conversación en tu bandeja. La otra parte la conserva. Puedes restaurarla después desde esta pantalla.</string>
 </resources>

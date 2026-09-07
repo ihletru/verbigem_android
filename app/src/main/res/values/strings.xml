@@ -53,6 +53,11 @@
     <string name="privacy_label">PRIVACY</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="privacy_policy_desc">How Verbigem handles your data</string>
+    <string name="about_label">About</string>
+    <string name="app_version">Version %1$s · build %2$d</string>
+    <string name="whats_new_label">What\'s new</string>
+    <string name="whats_new_desc">See what changed in this version</string>
+    <string name="help_about">App version and the list of changes in each release. Tap \"What\'s new\" to read the full changelog.</string>
     <string name="privacy_contact_email">privacy@verbigem.com</string>
 
     <!-- Conversation -->
@@ -356,6 +361,13 @@
     <string name="help_intro_contacts">Four ways to reach people: Friends are people you already connected with, Invites are requests waiting for your answer, Phone looks them up in your address book, and External lets you write to someone through another app. Long-press any icon to read what it does.</string>
     <string name="help_intro_profile_title">How Profile works</string>
     <string name="help_intro_profile">Everything about your account and the way the app looks lives here: your nickname, the interface language, your two conversation languages, your account status and wallet, your phone number, the theme, your QR code and the privacy policy. Long-press any icon to read what it does.</string>
+    <string name="help_intro_contact_card_title">How the contact card works</string>
+    <string name="help_intro_contact_card">Settings that live only on your device for this one friend: a private alias (nobody else sees it), the language their incoming messages are translated into, pin to keep the thread at the top, mute to silence notifications, and block to drop their messages. Long-press any control for details.</string>
+    <string name="help_action_back">Go back to the previous screen.</string>
+    <string name="help_contact_pin">Keep this chat at the top of your inbox so it is always easy to find.</string>
+    <string name="help_contact_mute">Silence notifications from this contact. Messages still arrive, but your phone will not buzz.</string>
+    <string name="help_contact_block">Drop every incoming message from this contact — you will not see them, and they will not know.</string>
+    <string name="help_contact_delete">Hide the whole conversation from your inbox. The other side keeps it. You can bring it back later from this screen.</string>
 
     <!-- Tłumacz -->
     <string name="help_source_lang_title">Source language</string>
@@ -434,6 +446,10 @@
     <string name="help_tab_friends">People you have already connected with. Tap one to open a chat; long-press for the contact card with language, pin, mute and block.</string>
     <string name="help_tab_invites">Requests waiting for your answer — from people who want to be your friend and from people you invited. Accept or decline here.</string>
     <string name="help_tab_phone">Looks through the address book on your phone and shows who already uses Verbigem. Only scrambled one-way codes of the numbers are sent for matching, never the numbers themselves.</string>
+    <string name="help_contacts_find_phone_title">Find friends in my contacts</string>
+    <string name="help_contacts_find_phone">Reads your address book and shows which of your friends already use Verbigem. Only scrambled one-way codes of the numbers are sent for matching — never the numbers themselves.</string>
+    <string name="help_contacts_import_vcf_title">Import .vcf</string>
+    <string name="help_contacts_import_vcf">Opens a .vcf file from your device and adds the people inside as Verbigem contacts you can message right away. The file is read locally and never uploaded.</string>
     <string name="help_tab_external">Write to somebody who has no Verbigem — through SMS, e-mail, WhatsApp and so on. Verbigem translates your message and hands it over; nothing comes back into the app.</string>
 
     <!-- Czat: lista -->
@@ -470,5 +486,4 @@
     <!-- Phone verification -->
     <string name="help_phone_intro">Adds your phone number so friends who already have it can find you. Confirming sends one SMS code; the number itself stays on your phone and is never uploaded.</string>
     <string name="help_phone_skip">Skips verification. Chat still works, but nobody with your number in their contacts will be able to find you. You can verify later from Profile.</string>
-    <string name="chat_search">Search messages</string>
-</resources>
+    <string name="chat_search">Search messages</string></resources>

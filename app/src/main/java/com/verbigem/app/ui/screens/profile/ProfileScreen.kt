@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.BuildConfig
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
@@ -431,6 +433,77 @@ fun ProfileScreen(
                         )
                         Text(
                             stringResource(R.string.privacy_policy_desc),
+                            fontSize = 12.sp,
+                            color = VerbigemTheme.colors.muted
+                        )
+                    }
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        tint = VerbigemTheme.colors.muted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
+        // O aplikacji — wersja + link do „co nowego".
+        item {
+            // `stringResource` musi być wywołane w composable scope — lambdy
+            // onClick/onLongClick w helpClickable nie są composable, więc
+            // rozwiązujemy tytuły tutaj i przekazujemy gotowe Stringi.
+            val aboutTitle = stringResource(R.string.about_label)
+            val aboutText = stringResource(R.string.help_about)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(aboutTitle, aboutText) }
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(
+                    stringResource(R.string.about_label),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.muted
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.app_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = VerbigemTheme.colors.ink
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { context.openUrl(AppLinks.whatsNew(currentUiLang)) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.NewReleases,
+                        contentDescription = null,
+                        tint = VerbigemTheme.colors.accent,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.whats_new_label),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.ink
+                        )
+                        Text(
+                            stringResource(R.string.whats_new_desc),
                             fontSize = 12.sp,
                             color = VerbigemTheme.colors.muted
                         )
