@@ -496,4 +496,16 @@
     <string name="model_download_size">Download size: %1$s</string>
     <string name="download_metered_warning">This model is %1$s. You are on mobile data and Wi-Fi is recommended.</string>
     <string name="download_anyway">Download anyway</string>
+
+    <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
+    <string name="glossary_title">Glossary</string>
+    <string name="glossary_profile_hint">Force your own translations of chosen words. The model has to use them.</string>
+    <string name="glossary_help">A personal dictionary. Add a word and the translation you want, and the model uses it instead of guessing. Useful for company or industry language, names and abbreviations. Entries apply to one language pair only (English to Polish is a different list than German to Polish), and only when the word really appears in what you are translating.</string>
+    <string name="glossary_pair">Language pair</string>
+    <string name="glossary_source_term">Word</string>
+    <string name="glossary_target_term">Required translation</string>
+    <string name="glossary_case_sensitive">Case sensitive</string>
+    <string name="glossary_add">Add</string>
+    <string name="glossary_empty">No entries yet. Add a word you want translated your way.</string>
+    <string name="glossary_delete">Delete</string>
 </resources>

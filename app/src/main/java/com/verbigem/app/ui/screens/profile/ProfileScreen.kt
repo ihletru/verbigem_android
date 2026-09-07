@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.QrCode
@@ -60,7 +61,8 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     onLogout: () -> Unit,
     onOpenPhoneVerification: () -> Unit,
-    onOpenMyQr: () -> Unit
+    onOpenMyQr: () -> Unit,
+    onOpenGlossary: () -> Unit
 ) {
     val profile by viewModel.userProfile.collectAsState()
     val phoneVerified by viewModel.phoneVerified.collectAsState()
@@ -87,6 +89,8 @@ fun ProfileScreen(
     val helpThemeText = stringResource(R.string.help_profile_theme)
     val helpQrTitle = stringResource(R.string.qr_my_code)
     val helpQrText = stringResource(R.string.help_profile_qr)
+    val helpGlossaryTitle = stringResource(R.string.glossary_title)
+    val helpGlossaryText = stringResource(R.string.glossary_help)
     val helpPrivacyTitle = stringResource(R.string.privacy_label)
     val helpPrivacyText = stringResource(R.string.help_profile_privacy)
     val helpLogoutTitle = stringResource(R.string.logout)
@@ -381,6 +385,43 @@ fun ProfileScreen(
                     Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.qr_my_code), fontSize = 13.sp)
+                }
+            }
+        }
+
+        // Słownik użytkownika (Room v9). Własne tłumaczenia wybranych słów —
+        // jedyna dźwignia jakości, która nie wymaga ani GPU, ani pobierania
+        // większego modelu. Wpis działa tylko na jednej parze języków i tylko
+        // wtedy, gdy słowo faktycznie pada w tłumaczonym tekście.
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                    onClick = {},
+                    onLongClick = { help.show(helpGlossaryTitle, helpGlossaryText) }
+                )
+                .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.glossary_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.glossary_profile_hint),
+                    fontSize = 13.sp,
+                    color = VerbigemTheme.colors.ink
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Button(
+                    onClick = onOpenGlossary,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                ) {
+                    Icon(Icons.Default.List, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.glossary_title), fontSize = 13.sp)
                 }
             }
         }

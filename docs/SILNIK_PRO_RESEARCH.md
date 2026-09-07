@@ -500,16 +500,24 @@ Q4_K_M różnica jest przypadkowa, nie rejestrowa. Nie budujemy tego.
    ręki na obu silnikach i nie wymaga ani GPU, ani pobierania: własny słownik
    użytkownika wstrzykiwany do promptu. Budujemy to jako pierwszą funkcję Pro?
 
-   **Status: warstwa danych + wstrzyknięcie do promptu — ZROBIONE** (Room v8→v9,
-   `glossary` / `GlossaryEntity` / `GlossaryDao` / `GlossaryRepository` /
-   `GlossaryPrompt`, `buildPrompt(text, from, to, glossary)`). Zweryfikowane na
-   urządzeniu: `user_version = 9`, tabela i oba indeksy obecne, aplikacja startuje
-   bez błędu migracji.
+   **Status: ZROBIONE w całości.** Room v8→v9 (`glossary` / `GlossaryEntity` /
+   `GlossaryDao` / `GlossaryRepository` / `GlossaryPrompt`,
+   `buildPrompt(text, from, to, glossary)`) + ekran `GlossaryScreen` z wejściem
+   z Profilu i 10 stringami × 6 języków.
 
-   ⚠️ **UI nie ma** — wpisów nie da się jeszcze dodać z poziomu aplikacji. To
-   nadal pytanie do Milosza, tyle że węższe: czy dopisać ekran (nowa trasa +
-   ~6 stringów × 6 języków + wejście w Profilu), czy glosariusz ma zostać
-   warstwą wewnętrzną do czasu decyzji o Pro.
+   Zweryfikowane na Redmi Note 13: `user_version = 9`, tabela i oba indeksy
+   obecne, aplikacja startuje bez błędu migracji, ekran słownika renderuje się
+   bez crashu (tytuł, para English→Polski, oba pola, checkbox, „Dodaj", stan
+   pusty).
+
+   ⚠️ **Nie przetestowałem obiegu end-to-end** (dodaj termin → zobacz go w
+   tłumaczeniu): `adb shell input tap` jest na tym telefonie zablokowane
+   (`INJECT_EVENTS`), więc nie da się wpisać tekstu. Samo wstrzyknięcie do
+   promptu jest sprawdzone jednostkowo, a działanie bloku terminologicznego na
+   modelu — w §11.
+
+   **Otwarte do decyzji:** czy glosariusz ma zostać funkcją Pro. Dziś NIE jest
+   gated, bo w aplikacji nie ma płatności.
 
    Decyzje wbudowane w kod, do ewentualnego cofnięcia:
    - kluczowanie **parą** języków, nie tylko docelowym (słownik DE→PL ≠ EN→PL);

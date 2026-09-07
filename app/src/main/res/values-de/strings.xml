@@ -476,4 +476,16 @@
     <string name="model_download_size">Downloadgröße: %1$s</string>
     <string name="download_metered_warning">Dieses Modell ist %1$s groß. Du nutzt mobile Daten — WLAN wird empfohlen.</string>
     <string name="download_anyway">Trotzdem herunterladen</string>
+
+    <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
+    <string name="glossary_title">Glossar</string>
+    <string name="glossary_profile_hint">Erzwinge eigene Übersetzungen bestimmter Wörter. Das Modell muss sie verwenden.</string>
+    <string name="glossary_help">Ein persönliches Wörterbuch. Füge ein Wort und die gewünschte Übersetzung hinzu, und das Modell verwendet sie, statt zu raten. Nützlich für Firmen- und Fachsprache, Namen und Abkürzungen. Einträge gelten nur für ein Sprachpaar (Englisch-Deutsch ist eine andere Liste als Polnisch-Deutsch) und nur, wenn das Wort im Text wirklich vorkommt.</string>
+    <string name="glossary_pair">Sprachpaar</string>
+    <string name="glossary_source_term">Wort</string>
+    <string name="glossary_target_term">Gewünschte Übersetzung</string>
+    <string name="glossary_case_sensitive">Groß-/Kleinschreibung beachten</string>
+    <string name="glossary_add">Hinzufügen</string>
+    <string name="glossary_empty">Noch keine Einträge. Füge ein Wort hinzu, das du so übersetzt haben willst.</string>
+    <string name="glossary_delete">Löschen</string>
 </resources>

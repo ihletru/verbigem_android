@@ -55,6 +55,8 @@ import com.verbigem.app.ui.screens.profile.ProfileScreen
 import com.verbigem.app.ui.screens.profile.ProfileViewModel
 import com.verbigem.app.ui.screens.profile.MyQrScreen
 import com.verbigem.app.ui.screens.profile.MyQrViewModel
+import com.verbigem.app.ui.screens.profile.GlossaryScreen
+import com.verbigem.app.ui.screens.profile.GlossaryViewModel
 import com.verbigem.app.ui.screens.translator.TranslatorScreen
 import com.verbigem.app.ui.screens.translator.TranslatorViewModel
 
@@ -350,7 +352,16 @@ fun AppNavigation(
                                 launchSingleTop = true
                             }
                         },
-                        onOpenMyQr = { navController.navigate(Screen.MyQr.route) }
+                        onOpenMyQr = { navController.navigate(Screen.MyQr.route) },
+                        onOpenGlossary = { navController.navigate(Screen.Glossary.route) }
+                    )
+                }
+
+                composable(Screen.Glossary.route) {
+                    val glossaryViewModel: GlossaryViewModel = viewModel()
+                    GlossaryScreen(
+                        viewModel = glossaryViewModel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }

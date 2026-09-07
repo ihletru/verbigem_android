@@ -54,4 +54,11 @@ sealed class Screen(val route: String) {
      * kontaktu. Brak argumentów — wynik skanu trafia bezpośrednio do nawigacji.
      */
     data object Scan : Screen("scan")
+
+    /**
+     * Słownik użytkownika (Room v9, tabela `glossary`). Termin + wymagane
+     * tłumaczenie dla jednej pary języków; wpis trafia do modelu tylko wtedy,
+     * gdy słowo faktycznie występuje w tłumaczonym tekście.
+     */
+    data object Glossary : Screen("glossary")
 }

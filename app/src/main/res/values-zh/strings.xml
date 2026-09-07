@@ -476,4 +476,16 @@
     <string name="model_download_size">下载大小：%1$s</string>
     <string name="download_metered_warning">该模型大小为 %1$s。您正在使用移动数据，建议使用 Wi-Fi。</string>
     <string name="download_anyway">仍然下载</string>
+
+    <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
+    <string name="glossary_title">术语库</string>
+    <string name="glossary_profile_hint">为指定的词强制使用你自己的译法，模型必须遵循。</string>
+    <string name="glossary_help">个人术语库。添加词条和你期望的译法，模型就会使用它而不是自行猜测。适用于公司或行业用语、专有名称和缩写。词条只作用于一个语言对（英-中 与 德-中 是不同的列表），并且只在这些词确实出现在待翻译文本中时才生效。</string>
+    <string name="glossary_pair">语言对</string>
+    <string name="glossary_source_term">词条</string>
+    <string name="glossary_target_term">指定译法</string>
+    <string name="glossary_case_sensitive">区分大小写</string>
+    <string name="glossary_add">添加</string>
+    <string name="glossary_empty">暂无词条。添加你希望按自己方式翻译的词。</string>
+    <string name="glossary_delete">删除</string>
 </resources>

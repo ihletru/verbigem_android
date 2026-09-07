@@ -70,6 +70,12 @@ object GlossaryRepository {
     fun forPair(from: LangCode, to: LangCode): List<GlossaryEntry> =
         byPair[key(from, to)].orEmpty()
 
+    /** Suspend convenience for the UI: load if needed, then read. Never throws. */
+    suspend fun listFor(context: Context, from: LangCode, to: LangCode): List<GlossaryEntry> {
+        ensureLoaded(context)
+        return forPair(from, to)
+    }
+
     // ---------------------------------------------------------------- writes
 
     private suspend fun dao(context: Context) =

@@ -476,4 +476,16 @@
     <string name="model_download_size">Tamaño de descarga: %1$s</string>
     <string name="download_metered_warning">Este modelo pesa %1$s. Estás usando datos móviles — se recomienda Wi-Fi.</string>
     <string name="download_anyway">Descargar de todos modos</string>
+
+    <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
+    <string name="glossary_title">Glosario</string>
+    <string name="glossary_profile_hint">Fuerza tus propias traducciones de determinadas palabras. El modelo debe usarlas.</string>
+    <string name="glossary_help">Un diccionario personal. Añade una palabra y la traducción que quieres, y el modelo la usará en lugar de adivinar. Útil para el lenguaje de empresa o sectorial, nombres y abreviaturas. Las entradas se aplican solo a un par de idiomas (ingles-español es una lista distinta que aleman-español) y solo cuando la palabra aparece de verdad en lo que traduces.</string>
+    <string name="glossary_pair">Par de idiomas</string>
+    <string name="glossary_source_term">Palabra</string>
+    <string name="glossary_target_term">Traducción requerida</string>
+    <string name="glossary_case_sensitive">Distinguir mayúsculas</string>
+    <string name="glossary_add">Añadir</string>
+    <string name="glossary_empty">Aún no hay entradas. Añade una palabra que quieras traducir a tu manera.</string>
+    <string name="glossary_delete">Eliminar</string>
 </resources>

@@ -345,7 +345,7 @@ app/src/main/
 │       ├── navigation/             # AppNavigation, Screen
 │       ├── screens/                # Translator, Conversation, ChatList, ChatThread, ContactCard,
 │       │                           #   Contacts (+ContactsPermission), Ocr (+CropOverlay), ExternalThread,
-│       │                           #   Profile, MyQr, Scan, Login
+│       │                           #   Profile, MyQr, Scan, Login, Glossary (słownik, Room v9)
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
@@ -389,7 +389,10 @@ EditText (Compose) → TranslatorViewModel.translate()   [Dispatchers.Default]
   - **Dopasowanie:** `\bTERMIN\b` dla terminów ASCII (żeby `art` nie odpaliło się na `party`), substring dla tych zaczynających/kończących się znakiem nie-ASCII (`\b`/`\w` są w Javie ASCII-only, więc `sądowa` nie da się obstawić granicami). Flaga `caseSensitive` istnieje dla akronimów — `IT` nie może się odpalić na angielskie „it".
   - **Kapy:** `MAX_TERMS = 12`, `MAX_BLOCK_CHARS = 600` (n_ctx to 1024). Po przekroczeniu nadmiarowe wpisy są **odrzucane**, nie ucinane — urwana linia byłaby gorsza niż jej brak.
   - **Cache jest konieczny:** `translateSegmented` woła `translate()` raz na ~400-znakowy segment; bez cache każdy segment robiłby odczyt z dysku wewnątrz pętli dekodowania.
-  - ⚠️ **UI glosariusza nie ma** — warstwa danych i wstrzyknięcie do promptu są gotowe i zweryfikowane na urządzeniu (`user_version = 9`, tabela + oba indeksy), ale nikt nie może jeszcze dodać wpisu. Ekran czeka na zgodę.
+  - **UI:** `GlossaryScreen` + `GlossaryViewModel`, trasa `Screen.Glossary`, wejście z Profilu (sekcja „Słownik"). Para języków wybierana dwoma `LangSelect`; przycisk „Dodaj" jest nieaktywny, gdy języki są te same albo któreś pole jest puste (`save()` i tak by odrzuciło).
+  - **Nie jest gated na Pro** — w aplikacji nie ma jeszcze płatności, więc ekran Pro-only byłby niewidoczny dla wszystkich. Żeby zmienić: sprawdź `UserProfile.isPro` przy wejściu w Profilu (jeden punkt).
+  - Zweryfikowane na Redmi Note 13: `user_version = 9`, tabela + oba indeksy, ekran renderuje się bez crashu.
+  - ⚠️ **`adb shell input tap` jest na tym telefonie ZABLOKOWANE** (`INJECT_EVENTS`), więc ekranu nie da się przetestować automatycznie. Żeby w ogóle go uruchomić: tymczasowo podstaw `startDestination = Screen.Glossary.route`, zbuduj, `uiautomator dump`, potem **przywróć** — inaczej telefon zostaje na ekranie słownika.
 - 💡 **Zmierzone: glosariusz działa, styl nie.** Instrukcja terminologiczna Tencent (`Reference the following translations: X translates to Y`) jest respektowana **na obu tierach**, też na 1.25-bit — jedyna realna funkcja „Pro" bez GPU i bez pobierania. Instrukcja stylu (`...must strictly conform to [formal]`) **nie działa** (na 1.25-bit formal i informal dały identyczny wynik). `docs/SILNIK_PRO_RESEARCH.md` §11.
 - **GPU: wykrywanie w runtime (`GpuAcceleration`), nie hardcodowanie.** Decyzja = iloczyn dwóch rzeczy: (1) co jest wkompilowane — `BuildConfig.GGML_BACKENDS` w `app/build.gradle.kts` (dziś `"CPU"`), (2) co to urządzenie potrafi. `gpuLayers()` zwraca 99 albo 0. Aplikacja jest publiczna: stary telefon to poprawny przypadek, nie błąd.
 - ⚠️ **OpenCL: `dlopen` to ZA MAŁO — biała lista SoC (`GGML_OPENCL_ALLOWED_SOCS`, domyślnie PUSTA = wyłączone).** Zmierzone na Adreno 610: `libOpenCL.so` ładuje się bezbłędnie, ale (a) ggml zbudowany na OpenCL 3.0 **twardo abortuje proces** na urządzeniach OpenCL 2.0 (platforma raportuje 3.0, device 2.0 → `GGML_ASSERT` w `ggml-opencl.cpp:212`), (b) zbudowany na 2.0 jest **4× wolniejszy od CPU** (decode 1.22 vs 5.17 tok/s przy `-ngl 1`), (c) przy pełnym offloadzie segfault. Szczegóły: `docs/SILNIK_PRO_RESEARCH.md` §7b. **Nie wpisuj SoC na listę bez prawdziwego pomiaru.**

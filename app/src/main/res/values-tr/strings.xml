@@ -476,4 +476,16 @@
     <string name="model_download_size">İndirme boyutu: %1$s</string>
     <string name="download_metered_warning">Bu model %1$s boyutunda. Mobil veri kullanıyorsunuz — Wi-Fi önerilir.</string>
     <string name="download_anyway">Yine de indir</string>
+
+    <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
+    <string name="glossary_title">Sözlük</string>
+    <string name="glossary_profile_hint">Seçtiğin sözcükler için kendi çevirilerini zorunlu kıl. Model bunları kullanmak zorunda.</string>
+    <string name="glossary_help">Kişisel bir sözlük. Bir sözcük ve istediğin çeviriyi ekle; model tahmin etmek yerine onu kullanır. Şirket veya sektör dili, isimler ve kısaltmalar için yararlıdır. Girdiler yalnızca tek bir dil çifti için geçerlidir (İngilizce-Türkçe, Almanca-Türkçeden farklı bir listedir) ve yalnızca sözcük çevirdiğin metinde gerçekten geçtiğinde uygulanır.</string>
+    <string name="glossary_pair">Dil çifti</string>
+    <string name="glossary_source_term">Sözcük</string>
+    <string name="glossary_target_term">İstenen çeviri</string>
+    <string name="glossary_case_sensitive">Büyük/küçük harf duyarlı</string>
+    <string name="glossary_add">Ekle</string>
+    <string name="glossary_empty">Henüz girdi yok. İstediğin gibi çevrilmesini istediğin bir sözcük ekle.</string>
+    <string name="glossary_delete">Sil</string>
 </resources>
