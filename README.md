@@ -447,6 +447,13 @@ Wtedy płatna translacja online kończy się `R.string.online_no_credits`. Model
 (z własnym kluczem) działają **BEZ środków**. Silnik `ONLINE` w `EnginePicker` jest aktywny,
 gdy `isPro || hasOwnKey`.
 
+**Rozliczanie (proxy `deepseekProxy` / `visionProxy` w `mini/functions/index.js`):**
+obie funkcje wołają OpenRouter i pobierają **rzeczywisty koszt z pola `usage.cost`** w
+odpowiedzi, doliczając `MARGIN_PCT` (10%) marży — **bez żadnej tabeli cen** (działa przy
+każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCents > 0`
+(kredyty = „pro" de facto, bez osobnego `plan === 'pro'`). Wymagany sekret:
+`OPENROUTER_API_KEY` (klucz Verbigema, trzymany w Secret Manager).
+
 - `OnlineApiEngine.translate(text, from, to, model, apiKey?)` — `apiKey != null` → OpenRouter
   bezpośrednio (Bearer, własny klucz, `:free`); `apiKey == null` → proxy (kuratorskie).
 - UI: `ProfileScreen` ma 3 nowe karty (Pobrane modele + usuwanie czerwonym koszem,
@@ -651,7 +658,7 @@ Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, kt�
 
 | Funkcja | Region | Po co |
 |---|---|---|
-| `deepseekProxy` | europe-west1 | tłumaczenie online (Pro) |
+| `deepseekProxy` | europe-west1 | tłumaczenie online — OpenRouter, przekazuje wybrany model 1:1 + rozlicza z `usage.cost` |
 | `paddleWebhook` | europe-west1 | płatności — webhook Paddle |
 | `portalSession` | europe-west1 | portal klienta Paddle |
 | `visionProxy` | europe-west1 | OCR online |
