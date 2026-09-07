@@ -206,6 +206,9 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
 ### ➕ Jak dodać nowy silnik (checklista, sprawdzona na Pro 7B)
 
 1. `ModelTier` — nowa pozycja z `fileName`, `approxBytes`, `minRamBytes`.
+   **`requiresGpu = true`**, jeśli model bez GPU nie ma sensu (jak `PRO_7B`) —
+   wtedy na urządzeniach bez backendu `blockReason()` zwraca `NO_GPU` i silnik znika
+   z listy, zamiast kusić 2.9 GB pobierania, po którym użytkownik dostanie 1.6 tok/s.
 2. `ModelDownloader.URL_*` + wpis w `urlFor()`.
 3. `EngineChoice` — nowa pozycja: `id`, ikona (emoji), `captionResId`,
    `helpTitleResId`, `helpTextResId`, `isProOnly`, **`modelTier`**.
@@ -217,6 +220,8 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
    obsługę nowej pozycji. Silniki jedno-modelowe idą jedną gałęzią przez `engine.modelTier`.
 6. Gating: `computeAvailableEngines()` filtruje po `ModelDownloader.blockReason()` —
    nowy silnik z dużym `minRamBytes` **sam zniknie** na słabszych urządzeniach.
+   Kolejność w `blockReason()` ma znaczenie: `NO_GPU` jest sprawdzany **przed**
+   pamięcią i miejscem na dysku, żeby komunikat był właściwy („brak GPU", nie „brak RAM").
 
 ⚠️ **Pułapka overloadów:** `downloadModel(tier: ModelTier)` i
 `downloadModel(isAccurate: Boolean = false)` — **tylko jeden może mieć wartość
