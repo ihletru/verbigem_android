@@ -1,116 +1,54 @@
 # Verbigem Android — historia zmian
 
-
-> ⚠️ Tagi `v1.0.1`–`v1.0.3` to **wczesne buildy historyczne** (versionCode 2–3).
-> Bieżąca wersja to **v1.0.42** (versionCode 43).
-> Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
-
 ---
+
+## v1.0.44 (2026-09-07) — versionCode 45
+
+**Łatwiejsze korzystanie z własnego klucza OpenRouter.**
+
+- Karta wyboru modelu online nazywa się teraz **Domyślny model tłumaczenia online** — od razu widać, że to ustawienie modelu używanego do tłumaczeń online.
+- W karcie **Własny klucz OpenRouter** (darmowe modele na własny klucz) dodałem klikalny link do strony generowania klucza — i w opisie pod kartą, i w oknie pomocy. Po rejestracji w OpenRouter wystarczy jedno kliknięcie, by przejść do utworzenia klucza.
+
+## v1.0.43 (2026-09-07) — versionCode 44
+
+**Doładowanie konta prosto z aplikacji.**
+
+- W karcie statusu konta pojawił się przycisk **Doładuj portfel**. Otwiera on bezpieczną płatność i po zakupie automatycznie dopisuje kredyty do Twojego portfela — bez przeładowywania ani ręcznego wpisywania czegokolwiek.
+- Do wyboru trzy pakiety: Mały (300 kreditów), Średni (500 kreditów) i Duży (1000 kreditów).
+- Saldo portfela odświeża się samo w tle zaraz po udanej płatności.
 
 ## v1.0.42 (2026-09-06) — versionCode 43
 
-**Pomoc działa też na nieaktywnych kontrolkach.**
+**Pomoc działa teraz także na nieaktywnych przyciskach.**
 
-- `Modifier.helpClickable(enabled = false)` przekazywało `enabled` do
-  `combinedClickable`, a to wyłącza **również długi klik** — więc na wyszarzonej
-  kontrolce okno pomocy znikało bez śladu. Teraz `enabled` blokuje tylko akcję:
-  `combinedClickable` dostaje zawsze `enabled = true`, a wartownik siedzi w
-  `onClick = { if (enabled) onClick() }`.
-- Dotknięte miejsca: przycisk „Tłumacz" przy pustym polu, ikony silników
-  (dokładny / oba / online) przy darmowym koncie, przyciski OCR bez zdjęcia.
-- README: nowy punkt 10 na liście pułapek okien pomocy.
+- Długie przytrzymanie przycisku pokazuje jego opis nawet wtedy, gdy przycisk jest wyszarzony — na przykład przy pustym polu tekstowym, przy silnikach zablokowanych dla darmowego konta czy przy braku zdjęcia do odczytu.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 
-**Poprawki UI po globalnej regule okien pomocy (v40).**
+**Poprawki wyglądu po wprowadzeniu okien pomocy.**
 
-- **„Rozumiem" w oknie pomocy** zawsze w języku interfejsu (wcześniej zostawał po polsku).
-  `HelpWindow` przechwytuje `LocalContext` przed `Dialog{}` i odtwarza go przez
-  `CompositionLocalProvider` — bo wewnątrz `Dialog` kontekst wraca do bazowej
-  Aktywności i `stringResource` ignoruje preferencję użytkownika.
-- **Pasek dolny wraca do 5 ikon** (Tłumacz, Rozmowa, Czat, Kontakty, Profil).
-  Szósta pozycja OCR zapychała pasek i nie skracała drogi do OCR — wejście i tak
-  jest jednym tapem z Tłumacza (ikona aparatu w `HelpFramedIconButton`). Ekran
-  OCR dalej pokazuje `BottomNav`, ale jego ikona nie jest pozycją w pasku.
-- **Tłumacz**: przycisk „Tłumacz" sam przewija się nad klawiaturę (`bringIntoViewRequester`
-  + `LaunchedEffect(WindowInsets.isImeVisible)` z `delay(250)` — bo klawiatura
-  wjeżdża 250 ms po focusie).
-- **Ikony silników (dokładny, oba, online)** mają pomoc nawet gdy są nieaktywne
-  dla free (`EnginePicker.helpClickable` bez `enabled`, tylko `onClick` sprawdza
-  `isEnabled`).
-- **Rozmowa i OCR**: zbędne podtytuły pod tytułem usunięte — w nagłówku jest
-  przycisk „?" z opisem strony, drugi opis obok był redundantny.
-- **Kontakty → Z telefonu**: przyciski „Znajdź znajomych w kontaktach" i
-  „Importuj .vcf" mają pomoc (długie przytrzymanie). To już nie `Button` —
-  przepisane na `Box` + `helpClickable`, bo `Button` połykałł long-press.
-- **Profil**: język interfejsu dostał ramkę — widać, że to przycisk.
-  Pod polityką prywatności pojawiła się karta **O aplikacji** z wersją
-  (`Wersja <versionName> · build <versionCode>` z `BuildConfig`) i linkiem
-  **Co nowego** (`AppLinks.whatsNew(uiLang)` → `mini.verbigem.com/android/changelog[-<lang>].html`).
-- **Ikona aplikacji**: tło adaptive icon z zielonego (#2C6B85) na krem
-  (`CalmDayBg` #F7F5F1) — zgadza się z tłem stron w motywie domyślnym.
-  PNGi w w `drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/` w rozmiarach
-  108/162/216/324/432 px (Lanczos z `mini/public/logo-firefly.png`).
-
----
+- Przycisk „Rozumiem" w oknach pomocy jest teraz zawsze w wybranym języku interfejsu.
+- Dolny pasek wrócił do 5 ikon: Tłumacz, Rozmowa, Czat, Kontakty, Profil.
+- Ekran Tłumacza przewija się nad klawiaturę, gdy wpisujesz tekst.
+- Ikony silników (dokładny, oba, online) mają opis nawet przy wyłączonym koncie.
+- W profilu pojawiła się karta **O aplikacji** z numerem wersji oraz linkiem **Co nowego**.
+- Ikona aplikacji zmieniła tło na kremowe, zgodne z motywem stron.
 
 ## v1.0.40 (2026-09-06) — versionCode 41
 
-**Globalna reguła UI: kliknięcie ikony = akcja, długie kliknięcie = okno pomocy.**
+**Każda ikona w aplikacji ma teraz okno z wyjaśnieniem.**
 
-- **Każda ikona w aplikacji** ma teraz okno z wyjaśnieniem: czym jest, co robi, jak używać.
-  Nowa infrastruktura w `ui/components/HelpDialog.kt` (`HelpWindow`, `helpClickable`,
-  `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
-- **Nagłówek każdego ekranu**: logo świetlika (przezroczyste) + tytuł + przycisk **„?"**
-  po prawej stronie, otwierający opis całej strony.
-- **Tłumacz**: pomoc dla pól wyboru języka i ikony zamiany, 4 silniki z krótkimi
-  podpisami (szybki / dokładny / oba / online) i obszernymi oknami — **dotychczasowe
-  opisy pod silnikami usunięte**; mikrofon / aparat / aparat Pro dostały **ramki**
-  i podpisy „z głosu" / „ze zdjęcia" / „ze zdjęcia pro"; pomoc dla przycisku „Tłumacz",
-  5 ikon w kartach historii i wyniku, oraz menu dolnego.
-- **Rozmowa**: logo + „?" (z klauzulą, że rozmowa nie jest zapisywana i nie opuszcza
-  urządzenia), pomoc dla pól języka, zamiany, mikrofonu i przycisku wysyłki.
-- **OCR dostało pozycję w menu dolnym** — pasek ma teraz 6 ikon (był jedynym ekranem
-  bez nawigacji).
-- **Kontakty**: zakładki Znajomi / Zaproszenia / Z telefonu / Zewnętrzne jako
-  **ikona nad tekstem 11.sp** (jak w menu dolnym) + okna pomocy.
-- **Czat, Profil, mój kod QR, weryfikacja numeru** — nagłówki „?" i pomoc na ikonach.
-- **~50 nowych tekstów pomocy × 6 języków** (394 klucze, zero braków w żadnym języku).
-
----
+- Kliknięcie ikony wykonuje jej zadanie, a długie przytrzymanie otwiera opis: czym jest, co robi i jak z niej korzystać.
+- Dotyczy to ekranów Tłumacza, Rozmowy, Czatu, Kontaktów i Profilu — łącznie kilkudziesięciu nowych opisów w 6 językach.
 
 ## v1.0.39 (2026-09-05) — versionCode 40
 
-Podsumowanie całego rozwoju od v1.0.3 do dziś.
+**Największa paczka nowości do tej pory.**
 
-**Co nowego**
-
-- **Czat 1:1 + Kontakty (Faza 1–3)**
-  - Skrzynka odbiorcza, wątek czatu, zakładki w Kontaktach (TabRow, 4 zakładki).
-  - Import `.vcf` (własny parser, zero zależności), wyszukiwanie w wiadomościach, „Możesz znać" (`suggestFriends`), zaproszenia po numerze telefonu.
-- **Weryfikacja numeru i SMS (Faza 2.4 / 2.6)**
-  - Czytelne błędy Phone Auth, odblokowany region SMS (**ALL** — cały świat).
-  - Poprawki crashy: „no activity" (v37), crash po kliknięciu „wyślij SMS" (v38), czytelne błędy (v39).
-- **Powiadomienia push FCM** (Faza 2): Cloud Functions + FCM, App Check (sekret HMAC), `matchContacts`.
-- **Zdjęcia i OCR** (Faza 5): podgląd zdjęcia na pełnym ekranie + postęp ładowania, OCR w czacie, transkrypcja STT na żywo.
-- **Kody QR** (Faza 4): mój kod QR (ZXing), skaner GMS Code Scanner, App Links + `assetlinks.json`.
-- **Branding Firefly**: przezroczysta ikona launchera (v40), logo, krok App Check w planie publikacji na Play Store.
-- **Prywatność**: polityka prywatności w 6 językach, prominent disclosure dla `READ_CONTACTS`.
-- **6 języków** (pl, en, es, zh, de, tr); audyt stringów ×6 (257 kluczy, zero braków).
-- **Runtime Cloud Functions**: Node 20 → nodejs22 (7 funkcji Androida).
-
----
-
-## v1.0.3 — versionCode 3
-
-Auto-update z GitHub raw (`master`), poprawki UI: głośnik Pro zamiast gwiazdki,
-OCR Pro obok OCR free, ukryte menu nad klawiaturą.
-
-## v1.0.2
-
-Reaktywny sync, czerwony śmietnik, głośnik Pro dla free z tooltipem,
-OCR Pro + historia OCR, klawiatura nie zasłania Tłumacza.
-
-## v1.0.1 — versionCode 2
-
-Auto-update test build. Ikony Czytaj Pro / Skasuj, sync Firestore,
+- Czat 1:1 i Kontakty: zaproszenia, import zapisanych kontaktów (plik .vcf), wyszukiwanie znajomych.
+- Weryfikacja numeru telefonu przez SMS działa w każdym regionie świata, a błędy są czytelne.
+- Powiadomienia push (FCM) o nowych wiadomościach.
+- Zdjęcia z podglądem na pełnym ekranie i odczyt tekstu ze zdjęć (OCR) w czacie.
+- Własne kody QR do dodawania znajomych oraz skaner kodów.
+- Polityka prywatności w 6 językach i przejrzysta informacja o uprawnieniach.
+- Aplikacja działa w 6 językach: polskim, angielskim, hiszpańskim, chińskim, niemieckim i tureckim.

@@ -50,9 +50,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
+import com.verbigem.app.ui.components.buildOpenRouterLinkedText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.BuildConfig
@@ -533,7 +536,15 @@ fun ProfileScreen(
             ) {
                 Text(stringResource(R.string.own_api_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(stringResource(R.string.own_api_explainer), fontSize = 13.sp, color = VerbigemTheme.colors.ink)
+                val ownApiExplainer = buildOpenRouterLinkedText(stringResource(R.string.own_api_explainer))
+                ClickableText(
+                    text = ownApiExplainer,
+                    style = TextStyle(fontSize = 13.sp, color = VerbigemTheme.colors.ink),
+                    onClick = { offset ->
+                        ownApiExplainer.getStringAnnotations(tag = "url", start = offset, end = offset)
+                            .firstOrNull()?.let { context.openUrl(it.item) }
+                    }
+                )
                 Spacer(modifier = Modifier.height(10.dp))
                 if (hasOwnKey) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

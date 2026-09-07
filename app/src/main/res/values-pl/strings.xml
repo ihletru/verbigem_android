@@ -518,7 +518,7 @@
     <string name="model_local_offline">offline</string>
 
     <!-- Wybór modelu online (OpenRouter) -->
-    <string name="online_model_title">Model tłumaczenia online</string>
+    <string name="online_model_title">Domyślny model tłumaczenia online</string>
     <string name="online_recommended">polecany</string>
     <string name="online_paid_no_credits">Brak środków — doładuj portfel, by używać płatnych modeli</string>
     <string name="help_online_model">Który model tłumaczy tekst przy użyciu silnika Online. Trzy wymienione modele są hostowane przez Verbigem i obciążają Twój portfel (najpierw ten z najlepszą relacją jakość/cena). Jeśli wkleisz własny klucz OpenRouter poniżej, pojawią się darmowe modele „:free” i tłumaczą za 0 zł.</string>
@@ -535,13 +535,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Własny klucz OpenRouter</string>
-    <string name="own_api_explainer">Używaj darmowych modeli „:free” OpenRouter na własny klucz — tłumaczenia kosztują 0 zł.</string>
+    <string name="own_api_explainer">Używaj darmowych modeli „:free” OpenRouter na własny klucz — tłumaczenia kosztują 0 zł. Klucz wygenerujesz na openrouter.ai/keys.</string>
     <string name="own_api_status_on">Aktywny — odblokowano darmowe modele</string>
     <string name="own_api_clear">Usuń klucz</string>
     <string name="own_api_placeholder">Wklej swój klucz API OpenRouter</string>
     <string name="own_api_save">Zapisz klucz</string>
     <string name="own_api_howto">Jak zdobyć klucz</string>
-    <string name="help_own_api">OpenRouter to usługa kierująca tłumaczenia do wielu modeli AI. Załóż darmowe konto na openrouter.ai, otwórz stronę Keys i kliknij „Create Key”. Skopiuj klucz i wklej go tutaj. Jest przechowywany tylko na tym telefonie. Po dodaniu w liście modeli online pojawią się darmowe modele „:free” i nic nie kosztują.</string>
+    <string name="help_own_api">OpenRouter to usługa kierująca tłumaczenia do wielu modeli AI. Załóż darmowe konto na openrouter.ai, otwórz stronę Keys i kliknij „Create Key”. Skopiuj klucz i wklej go tutaj. Jest przechowywany tylko na tym telefonie. Po dodaniu w liście modeli online pojawią się darmowe modele „:free” i nic nie kosztują. Klucz wygenerujesz na openrouter.ai/keys.</string>
     <string name="topup_button">Doładuj portfel</string>
     <string name="topup_dialog_title">Doładuj portfel</string>
     <string name="topup_dialog_subtitle">Wybierz pakiet kredytów</string>

@@ -499,7 +499,7 @@
     <string name="model_local_offline">离线</string>
 
     <!-- Wybór modelu online (OpenRouter) -->
-    <string name="online_model_title">在线翻译模型</string>
+    <string name="online_model_title">默认在线翻译模型</string>
     <string name="online_recommended">推荐</string>
     <string name="online_paid_no_credits">余额不足——请充值钱包以使用付费模型</string>
     <string name="help_online_model">使用在线引擎时，由哪个模型来翻译你的文本。列出的三个模型由 Verbigem 托管，并从你的钱包扣费（性价比最高的排在最前）。如果你在下方粘贴自己的 OpenRouter 密钥，免费“:free”模型会出现在这里，且翻译不花你一分钱。</string>
@@ -516,13 +516,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">你自己的 OpenRouter 密钥</string>
-    <string name="own_api_explainer">用你自己的密钥使用 OpenRouter 的免费“:free”模型——翻译零花费。</string>
+    <string name="own_api_explainer">用你自己的密钥使用 OpenRouter 的免费“:free”模型——翻译零花费。在 openrouter.ai/keys 生成你的密钥。</string>
     <string name="own_api_status_on">已启用——免费模型已解锁</string>
     <string name="own_api_clear">移除密钥</string>
     <string name="own_api_placeholder">粘贴你的 OpenRouter API 密钥</string>
     <string name="own_api_save">保存密钥</string>
     <string name="own_api_howto">如何获取密钥</string>
-    <string name="help_own_api">OpenRouter 是一项把翻译请求路由到多种 AI 模型的服务。在 openrouter.ai 注册免费账号，打开 Keys 页面，点击“Create Key”。复制密钥并粘贴到这里。它只存储在本机。添加后，免费“:free”模型会出现在上方在线模型列表中，且完全免费。</string>
+    <string name="help_own_api">OpenRouter 是一项把翻译请求路由到多种 AI 模型的服务。在 openrouter.ai 注册免费账号，打开 Keys 页面，点击“Create Key”。复制密钥并粘贴到这里。它只存储在本机。添加后，免费“:free”模型会出现在上方在线模型列表中，且完全免费。在 openrouter.ai/keys 生成你的密钥。</string>
     <string name="topup_button">充值钱包</string>
     <string name="topup_dialog_title">充值钱包</string>
     <string name="topup_dialog_subtitle">选择积分套餐</string>

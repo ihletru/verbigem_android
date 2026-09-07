@@ -41,13 +41,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.verbigem.app.R
+import com.verbigem.app.data.openUrl
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 /*
@@ -59,6 +67,37 @@ import com.verbigem.app.ui.theme.VerbigemTheme
  * `helpClickable` oraz gotowe komponenty-ikony, żeby każdy ekran korzystał
  * z dokładnie tego samego wzorca.
  */
+
+/**
+ * Zamienia tekst pomocy zawierający token "openrouter.ai/keys" na AnnotatedString
+ * z klikalnym linkiem do https://openrouter.ai/keys. Jeśli tokenu nie ma, zwraca
+ * zwykły tekst — ClickableText nadal działa, po prostu bez linku.
+ */
+@Composable
+fun buildOpenRouterLinkedText(text: String): AnnotatedString {
+    val token = "openrouter.ai/keys"
+    val idx = text.indexOf(token)
+    if (idx < 0) return AnnotatedString(text)
+    val end = idx + token.length
+    return buildAnnotatedString {
+        append(text.substring(0, idx))
+        withStyle(
+            SpanStyle(
+                color = VerbigemTheme.colors.accent,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(token)
+            addStringAnnotation(
+                tag = "url",
+                annotation = "https://openrouter.ai/keys",
+                start = idx,
+                end = end
+            )
+        }
+        append(text.substring(end))
+    }
+}
 
 /** Stan okna pomocy. Jedna instancja na ekran/grupę elementów. */
 class HelpWindowState internal constructor() {
@@ -139,11 +178,14 @@ fun HelpWindow(state: HelpWindowState) {
                         .heightIn(max = 400.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text(
-                        text = text,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = VerbigemTheme.colors.ink
+                    val annotatedHelp = buildOpenRouterLinkedText(text)
+                    ClickableText(
+                        text = annotatedHelp,
+                        style = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, color = VerbigemTheme.colors.ink),
+                        onClick = { offset ->
+                            annotatedHelp.getStringAnnotations(tag = "url", start = offset, end = offset)
+                                .firstOrNull()?.let { localizedContext.openUrl(it.item) }
+                        }
                     )
                 }
 

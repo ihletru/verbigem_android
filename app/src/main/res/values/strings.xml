@@ -520,7 +520,7 @@
     <string name="model_local_offline">offline</string>
 
     <!-- Wybór modelu online (OpenRouter) -->
-    <string name="online_model_title">Online translation model</string>
+    <string name="online_model_title">Default online translation model</string>
     <string name="online_recommended">recommended</string>
     <string name="online_paid_no_credits">No credits — top up your wallet to use paid models</string>
     <string name="help_online_model">Which model translates your text when you use the Online engine. The three listed models are hosted by Verbigem and billed to your wallet (best value first). If you paste your own OpenRouter key below, the free “:free” models appear here and translate at no cost to you.</string>
@@ -537,13 +537,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Your own OpenRouter key</string>
-    <string name="own_api_explainer">Use OpenRouter’s free “:free” models with your own key — translations cost you $0.</string>
+    <string name="own_api_explainer">Use OpenRouter’s free “:free” models with your own key — translations cost you $0. Get a key at openrouter.ai/keys.</string>
     <string name="own_api_status_on">Active — free models unlocked</string>
     <string name="own_api_clear">Remove key</string>
     <string name="own_api_placeholder">Paste your OpenRouter API key</string>
     <string name="own_api_save">Save key</string>
     <string name="own_api_howto">How to get a key</string>
-    <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing.</string>
+    <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing. Generate your key at openrouter.ai/keys.</string>
     <string name="topup_button">Top up wallet</string>
     <string name="topup_dialog_title">Top up your wallet</string>
     <string name="topup_dialog_subtitle">Choose a credit package</string>

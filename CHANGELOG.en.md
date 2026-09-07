@@ -1,97 +1,54 @@
 # Verbigem Android — changelog
 
-
-> ⚠️ Tags `v1.0.1`–`v1.0.3` are **early historical builds** (versionCode 2–3).
-> The current version is **v1.0.42** (versionCode 43).
-> The version lives in `app/build.gradle.kts` (`versionCode` / `versionName`).
-
 ---
+
+## v1.0.44 (2026-09-07) — versionCode 45
+
+**Easier to use your own OpenRouter key.**
+
+- The online-model picker card is now called **Default online translation model**, so it's clear it sets the model used for online translations.
+- The **Own OpenRouter key** card (free models on your own key) now has a clickable link to the key-generation page — both in the description under the card and in the help window. Once you've signed up at OpenRouter, one tap takes you straight to creating a key.
+
+## v1.0.43 (2026-09-07) — versionCode 44
+
+**Top up your account right inside the app.**
+
+- The account status card now has a **Top up wallet** button. It opens a secure checkout and, once you pay, automatically adds credits to your wallet — no reload and nothing to type in by hand.
+- Three packs to choose from: Small (300 credits), Medium (500 credits) and Large (1000 credits).
+- Your wallet balance refreshes itself in the background right after a successful payment.
 
 ## v1.0.42 (2026-09-06) — versionCode 43
 
-**Help now works on disabled controls too.**
+**Help now works on disabled buttons too.**
 
-- `Modifier.helpClickable(enabled = false)` forwarded `enabled` to
-  `combinedClickable`, which disables **the long press as well** — so a greyed-out
-  control silently lost its help window. Now `enabled` blocks only the action:
-  `combinedClickable` always gets `enabled = true` and the guard lives in
-  `onClick = { if (enabled) onClick() }`.
-- Affected: the "Translate" button with an empty field, the engine icons
-  (accurate / both / online) on a free account, the OCR buttons with no picture.
-- README: new point 10 in the help-window trap list.
+- Long-pressing a button shows its explanation even when the button is greyed out — for example an empty text field, engines locked on a free account, or when there is no photo to read.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 
-**UI fixes after the global help-window rule (v40).**
+**Look-and-feel fixes after the help windows rolled out.**
 
-- **"I understand"** in the help window now follows the UI language (it used to stay in Polish). `HelpWindow` captures `LocalContext` before `Dialog{}` and replays it via `CompositionLocalProvider` — `Dialog` resets the locale to the base activity.
-- **Bottom bar back to 5 icons** (Translator, Conversation, Chat, Contacts, Profile). The sixth OCR slot crowded the bar and did not shorten the path — OCR is one tap from Translator (camera icon in `HelpFramedIconButton`). The OCR screen still shows `BottomNav` but its icon is not in the bar.
-- **Translator**: the "Translate" button auto-scrolls above the keyboard (`bringIntoViewRequester` + `LaunchedEffect(WindowInsets.isImeVisible)` with `delay(250)` — the keyboard slides in 250 ms after focus).
-- **Engine icons (accurate, both, online)** show help on long-press even when disabled for free users (`EnginePicker.helpClickable` without `enabled` — only `onClick` checks `isEnabled`).
-- **Conversation and OCR**: redundant subtitles under the title removed — the header "?" button already explains the page.
-- **Contacts → From phone**: "Find friends in my contacts" and "Import .vcf" now have help (long-press). Rewritten from `Button` to `Box` + `helpClickable` because `Button` swallowed the long-press.
-- **Profile**: the UI language picker now has a visible frame; under the privacy card a new **About** card shows `Version <versionName> · build <versionCode>` (from `BuildConfig`) and a **What is new** link (`AppLinks.whatsNew(uiLang)` → `mini.verbigem.com/android/changelog[-<lang>].html`).
-- **Launcher icon**: adaptive icon background changed from green (#2C6B85) to cream (`CalmDayBg` #F7F5F1) to match the app pages. PNGs live in `drawable-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/` at 108/162/216/324/432 px (Lanczos from `mini/public/logo-firefly.png`).
-
----
+- The “Got it” button in help windows is now always in your chosen interface language.
+- The bottom bar is back to 5 icons: Translate, Conversation, Chat, Contacts, Profile.
+- The Translate screen scrolls above the keyboard while you type.
+- The engine icons (accurate, both, online) show help even on a free account.
+- The profile gained an **About the app** card with the version number and a **What's new** link.
+- The app icon now uses a cream background that matches the pages' theme.
 
 ## v1.0.40 (2026-09-06) — versionCode 41
 
-**Global UI rule: tap an icon = do its job, long-press it = help pop-up.**
+**Every icon in the app now has an explainer window.**
 
-- **Every icon in the app** now explains itself: what it is, what it does, how to use it.
-  New shared infrastructure in `ui/components/HelpDialog.kt` (`HelpWindow`, `helpClickable`,
-  `HelpIconButton`, `HelpFramedIconButton`, `QuestionMarkButton`, `ScreenHeader`).
-- **Every screen header**: firefly logo (transparent) + title + a **"?"** button on the right
-  that opens an explanation of the whole page.
-- **Translator**: help for both language pickers and the swap icon; four engines with short
-  captions (fast / accurate / both / online) and full pop-ups — the old descriptions under the
-  engines are **gone**; mic / camera / camera Pro now have **frames** and the captions
-  "from voice" / "from photo" / "from photo pro"; help for the Translate button, the five icons
-  on history and result cards, and the bottom bar.
-- **Conversation**: logo + "?" (including the note that the conversation is never saved and
-  never leaves the device), help for the language fields, swap, mic and send button.
-- **OCR now has a bottom-bar entry** — the bar has six tabs (it used to be the only screen
-  without navigation).
-- **Contacts**: Friends / Invites / From phone / External as an **icon above 11.sp text**
-  (like the bottom bar) plus help pop-ups.
-- **Chat, Profile, my QR code, phone verification** — "?" headers and help on the icons.
-- **~50 new help texts in 6 languages** (394 keys, nothing missing in any language).
-
----
+- Tapping an icon does its job; long-pressing it opens a description of what it is, what it does and how to use it.
+- This covers the Translate, Conversation, Chat, Contacts and Profile screens — dozens of new descriptions across 6 languages.
 
 ## v1.0.39 (2026-09-05) — versionCode 40
 
-Summary of all development from v1.0.3 up to today.
+**The biggest batch of new features so far.**
 
-**What's new**
-
-- **1:1 chat + Contacts (Phase 1–3)**
-  - Inbox, chat thread, tabs in Contacts (TabRow, 4 tabs).
-  - `.vcf` import (own parser, zero dependencies), message search, "People you may know" (`suggestFriends`), invitations by phone number.
-- **Phone number and SMS verification (Phase 2.4 / 2.6)**
-  - Readable Phone Auth errors, unlocked SMS region (**ALL** — worldwide).
-  - Crash fixes: "no activity" (v37), crash after tapping "send SMS" (v38), readable errors (v39).
-- **FCM push notifications** (Phase 2): Cloud Functions + FCM, App Check (HMAC secret), `matchContacts`.
-- **Photos and OCR** (Phase 5): full-screen photo preview + loading progress, OCR in chat, live STT transcription.
-- **QR codes** (Phase 4): my QR code (ZXing), GMS Code Scanner, App Links + `assetlinks.json`.
-- **Firefly branding**: transparent launcher icon (v40), logo, App Check step in the Play Store release plan.
-- **Privacy**: privacy policy in 6 languages, prominent disclosure for `READ_CONTACTS`.
-- **6 languages** (pl, en, es, zh, de, tr); string audit ×6 (257 keys, no gaps).
-- **Cloud Functions runtime**: Node 20 → nodejs22 (7 Android functions).
-
----
-
-## v1.0.3 — versionCode 3
-
-Auto-update from GitHub raw (`master`), UI fixes: the Pro speaker instead of a star,
-Pro OCR next to free OCR, hidden menu above the keyboard.
-
-## v1.0.2
-
-Reactive sync, red trash icon, Pro speaker for free users with a tooltip,
-Pro OCR + OCR history, the keyboard no longer covers the Translator.
-
-## v1.0.1 — versionCode 2
-
-Auto-update test build. Read Pro / Delete icons, Firestore sync,
+- 1:1 Chat and Contacts: invitations, importing saved contacts (.vcf files), and finding friends.
+- Phone-number verification by SMS works in every region of the world, with clear error messages.
+- Push notifications (FCM) for new messages.
+- Photos with full-screen preview and text reading from images (OCR) in chat.
+- Your own QR codes to add friends, plus a code scanner.
+- A privacy policy in 6 languages and a clear explanation of app permissions.
+- The app runs in 6 languages: Polish, English, Spanish, Chinese, German and Turkish.
