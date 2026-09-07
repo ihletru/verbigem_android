@@ -523,4 +523,14 @@
     <string name="own_api_save">Guardar clave</string>
     <string name="own_api_howto">Cómo obtener una clave</string>
     <string name="help_own_api">OpenRouter es un servicio que envía traducciones a muchos modelos de IA. Crea una cuenta gratuita en openrouter.ai, abre la página de claves y haz clic en «Create Key». Copia la clave y pégala aquí. Se guarda solo en este teléfono. Una vez añadida, los modelos gratuitos «:free» aparecen en la lista en línea y no cuestan nada.</string>
+    <string name="topup_button">Recargar monedero</string>
+    <string name="topup_dialog_title">Recarga tu monedero</string>
+    <string name="topup_dialog_subtitle">Elige un paquete de créditos</string>
+    <string name="topup_small">Pequeño</string>
+    <string name="topup_medium">Mediano</string>
+    <string name="topup_large">Grande</string>
+    <string name="topup_credits">%1$d créditos</string>
+    <string name="topup_pay">Ir al pago</string>
+    <string name="topup_error">No se pudo iniciar el pago</string>
+    <string name="topup_loading">Abriendo pago…</string>
 </resources>

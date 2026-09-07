@@ -11,11 +11,13 @@ import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.R
 import com.verbigem.app.data.repository.PhoneVerificationRepository
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.ModelDownloader
 import com.verbigem.app.engine.OnlineApiEngine
 import com.verbigem.app.notifications.FcmTokenManager
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -66,6 +69,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     /** API wallet balance in cents, mirrored from the Firestore profile. */
     val walletCents: StateFlow<Long> =
         preferencesManager.walletCentsFlow.stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
+    // ---- Wallet top-up (Paddle checkout) ----
+
+    private val _topUpLoading = MutableStateFlow(false)
+    val topUpLoading: StateFlow<Boolean> = _topUpLoading.asStateFlow()
+
+    private val _topUpError = MutableStateFlow<String?>(null)
+    val topUpError: StateFlow<String?> = _topUpError.asStateFlow()
+
+    /** Hosted Paddle checkout URL to open in the browser, or null. */
+    private val _topUpUrl = MutableStateFlow<String?>(null)
+    val topUpUrl: StateFlow<String?> = _topUpUrl.asStateFlow()
 
     /** Live list of OpenRouter ":free" models — only meaningful when [hasOwnKeyFlow] is true. */
     private val _freeModels = MutableStateFlow<List<FreeModelInfo>>(emptyList())
@@ -158,6 +173,40 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun setOnlineModel(id: String) {
         viewModelScope.launch { preferencesManager.setOnlineModel(id) }
     }
+
+    /**
+     * Starts a Paddle checkout for the chosen wallet package and returns a hosted
+     * checkout URL via [_topUpUrl]. The Cloud Function `createCheckout` maps the
+     * package to a Paddle price; after payment, `paddleWebhook` credits the wallet
+     * and the profile snapshot listener above reflects it live.
+     */
+    fun topUp(type: String) {
+        viewModelScope.launch {
+            _topUpLoading.value = true
+            _topUpError.value = null
+            try {
+                val result = FirebaseFunctions.getInstance()
+                    .getHttpsCallable("createCheckout")
+                    .call(mapOf("type" to type))
+                    .await()
+                val data = result.data as? Map<*, *>
+                val url = data?.get("url") as? String
+                if (!url.isNullOrBlank()) {
+                    _topUpUrl.value = url
+                } else {
+                    _topUpError.value = getApplication<Application>().getString(R.string.topup_error)
+                }
+            } catch (e: Exception) {
+                _topUpError.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.topup_error)
+            } finally {
+                _topUpLoading.value = false
+            }
+        }
+    }
+
+    fun consumeTopUpUrl() { _topUpUrl.value = null }
+    fun clearTopUpError() { _topUpError.value = null }
 
     fun saveOpenRouterKey(key: String) {
         val trimmed = key.trim()

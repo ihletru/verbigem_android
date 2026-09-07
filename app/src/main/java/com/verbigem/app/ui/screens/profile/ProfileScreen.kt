@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -89,6 +90,8 @@ fun ProfileScreen(
     val hasOwnKey by viewModel.hasOwnKeyFlow.collectAsState(initial = false)
     val openRouterKey by viewModel.openRouterKeyFlow.collectAsState(initial = "")
     val walletCents by viewModel.walletCents.collectAsState(initial = 0L)
+    val topUpLoading by viewModel.topUpLoading.collectAsState(initial = false)
+    val topUpUrl by viewModel.topUpUrl.collectAsState(initial = null)
     val freeModels by viewModel.freeModels.collectAsState(initial = emptyList())
     val freeModelsLoading by viewModel.freeModelsLoading.collectAsState(initial = false)
     val downloadedModels by viewModel.downloadedModels.collectAsState(initial = emptyList())
@@ -96,8 +99,20 @@ fun ProfileScreen(
     // Which local model (if any) is awaiting delete confirmation.
     var pendingDelete by remember { mutableStateOf<ModelTier?>(null) }
 
+    // Whether the wallet top-up package chooser is open.
+    var showTopUp by remember { mutableStateOf(false) }
+
     val help = rememberHelpWindowState()
     HelpWindow(help)
+
+    // Open the Paddle checkout URL returned by createCheckout, then consume it.
+    LaunchedEffect(topUpUrl) {
+        topUpUrl?.let {
+            showTopUp = false
+            context.openUrl(it)
+            viewModel.consumeTopUpUrl()
+        }
+    }
 
     val helpNicknameTitle = stringResource(R.string.nick_label)
     val helpNicknameText = stringResource(R.string.help_profile_nickname)
@@ -325,6 +340,18 @@ fun ProfileScreen(
                         fontSize = 13.sp,
                         color = VerbigemTheme.colors.success,
                         modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { showTopUp = true },
+                    enabled = !topUpLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(
+                        text = if (topUpLoading) stringResource(R.string.topup_loading) else stringResource(R.string.topup_button),
+                        fontSize = 13.sp
                     )
                 }
             }
@@ -816,6 +843,53 @@ fun ProfileScreen(
                         else stringResource(R.string.model_name_accurate)
                     )
                 )
+            }
+        )
+    }
+
+    // Wybór pakietu doładowania portfela (Paddle). Po wyborze wywołujemy
+    // createCheckout — zwraca URL checkoutu, który LaunchedEffect wyżej otwiera.
+    if (showTopUp) {
+        val dialogLoading by viewModel.topUpLoading.collectAsState(initial = false)
+        val dialogError by viewModel.topUpError.collectAsState(initial = null)
+        AlertDialog(
+            onDismissRequest = { showTopUp = false; viewModel.clearTopUpError() },
+            confirmButton = {},
+            dismissButton = {
+                Button(
+                    onClick = { showTopUp = false; viewModel.clearTopUpError() },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg)
+                ) { Text(stringResource(R.string.cancel)) }
+            },
+            title = { Text(stringResource(R.string.topup_dialog_title), fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.topup_dialog_subtitle), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    listOf(
+                        Triple("wallet3", R.string.topup_small, 300),
+                        Triple("wallet5", R.string.topup_medium, 500),
+                        Triple("wallet10", R.string.topup_large, 1000),
+                    ).forEach { (type, labelRes, credits) ->
+                        Button(
+                            onClick = { showTopUp = false; viewModel.topUp(type) },
+                            enabled = !dialogLoading,
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Text(stringResource(labelRes), color = VerbigemTheme.colors.ink, fontWeight = FontWeight.SemiBold)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.topup_credits, credits), color = VerbigemTheme.colors.muted, fontSize = 12.sp)
+                        }
+                    }
+                    dialogError?.let {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(it, color = VerbigemTheme.colors.danger, fontSize = 12.sp)
+                    }
+                }
             }
         )
     }

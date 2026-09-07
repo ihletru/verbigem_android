@@ -461,6 +461,14 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
   dla domyślnego), `AlertDialog` potwierdzający usunięcie modelu.
 - Zmiana modelu: `ProfileViewModel.setOnlineModel(id)` → `KEY_ONLINE_MODEL`
   (domyślnie `OnlineModels.DEFAULT_ID`).
+- **Doładowanie portfela w apce:** karta „Status konta" w `ProfileScreen` ma guzik
+  **Doładuj portfel**, który otwiera dialog z 3 pakietami (300/500/1000 kredytów →
+  `wallet3/5/10`). `ProfileViewModel.topUp(type)` woła Cloud Function **`createCheckout`**
+  (Paddle, sandbox), tworzącą transakcję z `customData.uid` i zwracającą hosted
+  `checkout.url`; apka otwiera go w przeglądarce. Po opłaceniu `paddleWebhook`
+  (`transaction.completed`, `customData.type` zaczynające się na `wallet`) dopisuje
+  `wallet.creditsCents` — portfel odświeża się na żywo (snapshota `users/{uid}`).
+  ⚠️ `walletTopUp` to funkcja **admin-only** (ręczne dopisywanie) — NIE używana z apki.
 
 ---
 

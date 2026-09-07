@@ -523,4 +523,14 @@
     <string name="own_api_save">保存密钥</string>
     <string name="own_api_howto">如何获取密钥</string>
     <string name="help_own_api">OpenRouter 是一项把翻译请求路由到多种 AI 模型的服务。在 openrouter.ai 注册免费账号，打开 Keys 页面，点击“Create Key”。复制密钥并粘贴到这里。它只存储在本机。添加后，免费“:free”模型会出现在上方在线模型列表中，且完全免费。</string>
+    <string name="topup_button">充值钱包</string>
+    <string name="topup_dialog_title">充值钱包</string>
+    <string name="topup_dialog_subtitle">选择积分套餐</string>
+    <string name="topup_small">小</string>
+    <string name="topup_medium">中</string>
+    <string name="topup_large">大</string>
+    <string name="topup_credits">%1$d 积分</string>
+    <string name="topup_pay">去支付</string>
+    <string name="topup_error">无法发起支付</string>
+    <string name="topup_loading">正在打开支付…</string>
 </resources>
