@@ -499,3 +499,20 @@ Q4_K_M różnica jest przypadkowa, nie rejestrowa. Nie budujemy tego.
 5. **Pro = glosariusz?** (§11) Jedyna rzecz w tym researchu, która działa od
    ręki na obu silnikach i nie wymaga ani GPU, ani pobierania: własny słownik
    użytkownika wstrzykiwany do promptu. Budujemy to jako pierwszą funkcję Pro?
+
+   **Status: warstwa danych + wstrzyknięcie do promptu — ZROBIONE** (Room v8→v9,
+   `glossary` / `GlossaryEntity` / `GlossaryDao` / `GlossaryRepository` /
+   `GlossaryPrompt`, `buildPrompt(text, from, to, glossary)`). Zweryfikowane na
+   urządzeniu: `user_version = 9`, tabela i oba indeksy obecne, aplikacja startuje
+   bez błędu migracji.
+
+   ⚠️ **UI nie ma** — wpisów nie da się jeszcze dodać z poziomu aplikacji. To
+   nadal pytanie do Milosza, tyle że węższe: czy dopisać ekran (nowa trasa +
+   ~6 stringów × 6 języków + wejście w Profilu), czy glosariusz ma zostać
+   warstwą wewnętrzną do czasu decyzji o Pro.
+
+   Decyzje wbudowane w kod, do ewentualnego cofnięcia:
+   - kluczowanie **parą** języków, nie tylko docelowym (słownik DE→PL ≠ EN→PL);
+   - brak synchronizacji z Firestore — urządzenie lokalne, działa offline, za darmo;
+   - blok wstrzykiwany **tylko** przy trafieniu terminu w tekście (typowy prompt bez zmian);
+   - kapy 12 terminów / 600 znaków, nadmiar odrzucany a nie ucinany.

@@ -20,9 +20,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ChatDeletedEntity::class,
         ChatHiddenEntity::class,
         ExternalContactEntity::class,
-        ExternalOutboxEntity::class
+        ExternalOutboxEntity::class,
+        GlossaryEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chatHiddenDao(): ChatHiddenDao
     abstract fun externalContactDao(): ExternalContactDao
     abstract fun externalOutboxDao(): ExternalOutboxDao
+    abstract fun glossaryDao(): GlossaryDao
 
     companion object {
         @Volatile
@@ -235,6 +237,50 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v8 -> v9: the user's termbase (glossary).
+        //
+        //   glossary — "when translating <sourceLang> -> <targetLang>, render
+        //              <sourceTerm> as <targetTerm>". Injected into the Hy-MT2 prompt
+        //              as Tencent's documented terminology block. It is the one quality
+        //              lever that measures as working without shipping a bigger model,
+        //              so it is local-first: no account, no sync, no server.
+        //
+        // (sourceLang, targetLang, sourceTerm) is UNIQUE so re-adding a term updates
+        // it instead of creating a second, contradicting row. The UNIQUE index is what
+        // makes ON CONFLICT REPLACE do that — a plain index would not.
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // ⚠️ Room runs `onValidateSchema` AFTER every migration and throws
+                // IllegalStateException ("Migration didn't properly handle …") on a
+                // mismatch with the entity. Authoritative DDL to copy from:
+                // app/build/generated/ksp/debug/java/.../AppDatabase_Impl.java
+                // Room compares name / notNull / affinity / PK position, plus
+                // defaultValue — but ONLY when the ENTITY declares one
+                // (@ColumnInfo(defaultValue=…)). A Kotlin `= ""` is not a column
+                // default, so the generated Column carries `null` and a `DEFAULT`
+                // clause here is tolerated (see MIGRATION_7_8). Kept verbatim anyway.
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS glossary (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "sourceLang TEXT NOT NULL, " +
+                        "targetLang TEXT NOT NULL, " +
+                        "sourceTerm TEXT NOT NULL, " +
+                        "targetTerm TEXT NOT NULL, " +
+                        "caseSensitive INTEGER NOT NULL, " +
+                        "createdAt INTEGER NOT NULL)"
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                        "index_glossary_sourceLang_targetLang_sourceTerm " +
+                        "ON glossary (sourceLang, targetLang, sourceTerm)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_glossary_sourceLang_targetLang " +
+                        "ON glossary (sourceLang, targetLang)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -248,7 +294,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_4_5,
                     MIGRATION_5_6,
                     MIGRATION_6_7,
-                    MIGRATION_7_8
+                    MIGRATION_7_8,
+                    MIGRATION_8_9
                 ).build().also { instance = it }
             }
         }

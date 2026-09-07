@@ -314,7 +314,7 @@ app/src/main/
 │   ├── VerbigemApplication.kt      # Firebase + SyncManager + ConnectivityObserver + App Check + FCM
 │   ├── data/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline
-│   │   ├── local/                  # Room v8: History, OcrHistory, TtsConfig, PendingDelete,
+│   │   ├── local/                  # Room v9: History, OcrHistory, TtsConfig, PendingDelete,
 │   │   │                           #   ChatRoomEntities (chat_translations, chat_outbox, chat_reads,
 │   │   │                           #   chat_deleted_messages, chat_hidden), external_* + DataStore
 │   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage, ChatSummary,
@@ -329,6 +329,7 @@ app/src/main/
 │   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2: prompt, translateSegmented, sanityzacja
 │   │   ├── ModelDownloader.kt      # WZNAWIALNE pobieranie GGUF (Range) + gating urządzenia
 │   │   ├── CpuTopology.kt          # inferenceThreads(): wszystkie rdzenie, kapa 8 (zmierzone)
+│   │   ├── GlossaryPrompt.kt       # terminologia → blok Tencenta (filtr + kapy, n_ctx=1024)
 │   │   ├── GpuAcceleration.kt      # sonda GPU: GGML_BACKENDS x możliwości urządzenia
 │   │   ├── SpeechManager.kt        # Android STT (SpeechRecognizer) + TTS
 │   │   ├── OcrManager.kt           # Google ML Kit Text Recognition
@@ -348,7 +349,9 @@ app/src/main/
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
-**Migracje Room (skrót):** v2→v3 `pending_deletes` (kolejka tombstone'ów) · v3→v4 `ocr_history` (+ kolumna `collection` w `PendingDeleteEntity`) · v5→v6 cztery tabele czatu · v6→v7 `chat_hidden` · v7→v8 `external_contacts` + `external_outbox`.
+**Migracje Room (skrót):** v2→v3 `pending_deletes` (kolejka tombstone'ów) · v3→v4 `ocr_history` (+ kolumna `collection` w `PendingDeleteEntity`) · v5→v6 cztery tabele czatu · v6→v7 `chat_hidden` · v7→v8 `external_contacts` + `external_outbox` · **v8→v9 `glossary`** (słownik użytkownika, patrz niżej).
+
+⚠️ **Room WALIDUJE schemat PO migracji — `CREATE TABLE` z głowy to rosyjska ruletka.** Po każdej migracji Room odpala `onValidateSchema` i rzuca `IllegalStateException: Migration didn't properly handle: <tabela>` przy każdej różnicy względem encji. **Autorytatywne DDL jest w `app/build/generated/ksp/debug/java/.../AppDatabase_Impl.java` — skopiuj je stamtąd.** Room porównuje `name` / `notNull` / `affinity` / `primaryKeyPosition` oraz `defaultValue`, ale `defaultValue` **tylko wtedy, gdy encja sama je deklaruje** (`@ColumnInfo(defaultValue=…)`). Zwykłe `= ""` w Kotlinie to domyślna wartość konstruktora, nie kolumny — generowany `TableInfo.Column` dostaje `null`, więc klauzula `DEFAULT` w migracji jest tolerowana (tak żyje `MIGRATION_7_8`). Nie ma `fallbackToDestructiveMigration` i nie wolno go dodać — to kasuje dane użytkowników.
 
 ---
 
@@ -382,6 +385,11 @@ EditText (Compose) → TranslatorViewModel.translate()   [Dispatchers.Default]
 - ⚠️ **Sampler: greedy — celowo, temat ZAMKNIĘTY (§10 + §10b).** Tencent zaleca `temp 0.7 / top_p 0.6 / top_k 20 / rep 1.05`. Zmierzone na urządzeniu, 6 zdań × 2 tiery, sampler zalecany **po 3 razy**: na Q4_K_M bez różnicy; na 1.25-bit próbkowanie dodaje wariancję **w obie strony** — jedno losowanie lepsze, jedno takie samo, jedno ewidentna bzdura („Rada **przetoczyła** raport", „Serwer jest **niefunkcyjny**"). ⚠️ Wcześniejszy sygnał „sampling naprawia 2/4" był **szumem pojedynczego losowania** — nie wnioskuj o samplerze z jednej próbki. Greedy jest dodatkowo **w 100% deterministyczny** (dwa przebiegi = 24/24 identycznych wyników). Nie zmieniaj tego bez nowego, wielokrotnego pomiaru.
 - ⚠️ **Prompt nie jest dźwignią jakości — nie rób churnu (§10b).** Obecne sformułowanie („Translate the following segment into X, without additional explanation：" + pełnoszerokości dwukropek) i oficjalne Tencenta dają w praktyce **identyczne** tłumaczenia (4/6 i 3/6 zdań co do znaku); w jednym miejscu oficjalny jest gorszy (literówka „Prosim" zamiast „Prosimy"). Dźwignią jest **tier**, nie prompt.
 - ⚠️ **Pułapka narzędziowa: `llama-completion -p` NIE symuluje aplikacji.** Wkłada tekst do slotu **systemowego** (`<bos>{prompt}<｜hy_User｜>`), a aplikacja do roli **user** (`<｜hy_User｜>{prompt}<｜hy_Assistant｜>`). Wyniki z `llama-completion` bywają kompletnie inne — potrafił wygenerować `Razorowowowow…`, czego aplikacja nie robi. Do wiernych testów jest `_probe.cpp` (replikuje ścieżkę JNI: `hunyuan-dense`, rola user, `n_ctx=1024`, `n_batch=512`).
+- 📖 **Glosariusz użytkownika (od v9 bazy) — jedyna działająca funkcja „Pro" bez GPU.** Tabela `glossary` + `GlossaryRepository` (singleton z cache w pamięci) + `GlossaryPrompt`. Wpisy są kluczowane **parą języków** (`sourceLang`→`targetLang`), bo „board" to słowo angielskie, a słownik DE→PL to inna lista niż EN→PL. `buildPrompt()` dokłada blok Tencenta **tylko gdy któryś termin faktycznie występuje w tekście** — w przeciwnym razie prompt jest identyczny jak wcześniej (zero kosztu w typowym przypadku).
+  - **Dopasowanie:** `\bTERMIN\b` dla terminów ASCII (żeby `art` nie odpaliło się na `party`), substring dla tych zaczynających/kończących się znakiem nie-ASCII (`\b`/`\w` są w Javie ASCII-only, więc `sądowa` nie da się obstawić granicami). Flaga `caseSensitive` istnieje dla akronimów — `IT` nie może się odpalić na angielskie „it".
+  - **Kapy:** `MAX_TERMS = 12`, `MAX_BLOCK_CHARS = 600` (n_ctx to 1024). Po przekroczeniu nadmiarowe wpisy są **odrzucane**, nie ucinane — urwana linia byłaby gorsza niż jej brak.
+  - **Cache jest konieczny:** `translateSegmented` woła `translate()` raz na ~400-znakowy segment; bez cache każdy segment robiłby odczyt z dysku wewnątrz pętli dekodowania.
+  - ⚠️ **UI glosariusza nie ma** — warstwa danych i wstrzyknięcie do promptu są gotowe i zweryfikowane na urządzeniu (`user_version = 9`, tabela + oba indeksy), ale nikt nie może jeszcze dodać wpisu. Ekran czeka na zgodę.
 - 💡 **Zmierzone: glosariusz działa, styl nie.** Instrukcja terminologiczna Tencent (`Reference the following translations: X translates to Y`) jest respektowana **na obu tierach**, też na 1.25-bit — jedyna realna funkcja „Pro" bez GPU i bez pobierania. Instrukcja stylu (`...must strictly conform to [formal]`) **nie działa** (na 1.25-bit formal i informal dały identyczny wynik). `docs/SILNIK_PRO_RESEARCH.md` §11.
 - **GPU: wykrywanie w runtime (`GpuAcceleration`), nie hardcodowanie.** Decyzja = iloczyn dwóch rzeczy: (1) co jest wkompilowane — `BuildConfig.GGML_BACKENDS` w `app/build.gradle.kts` (dziś `"CPU"`), (2) co to urządzenie potrafi. `gpuLayers()` zwraca 99 albo 0. Aplikacja jest publiczna: stary telefon to poprawny przypadek, nie błąd.
 - ⚠️ **OpenCL: `dlopen` to ZA MAŁO — biała lista SoC (`GGML_OPENCL_ALLOWED_SOCS`, domyślnie PUSTA = wyłączone).** Zmierzone na Adreno 610: `libOpenCL.so` ładuje się bezbłędnie, ale (a) ggml zbudowany na OpenCL 3.0 **twardo abortuje proces** na urządzeniach OpenCL 2.0 (platforma raportuje 3.0, device 2.0 → `GGML_ASSERT` w `ggml-opencl.cpp:212`), (b) zbudowany na 2.0 jest **4× wolniejszy od CPU** (decode 1.22 vs 5.17 tok/s przy `-ngl 1`), (c) przy pełnym offloadzie segfault. Szczegóły: `docs/SILNIK_PRO_RESEARCH.md` §7b. **Nie wpisuj SoC na listę bez prawdziwego pomiaru.**

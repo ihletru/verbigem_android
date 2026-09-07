@@ -2,8 +2,10 @@ package com.verbigem.app.engine
 
 import android.content.Context
 import android.util.Log
+import com.verbigem.app.data.model.GlossaryEntry
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelTier
+import com.verbigem.app.data.repository.GlossaryRepository
 import com.verbigem.app.jni.LlamaNativeBridge
 import com.verbigem.app.R
 import kotlinx.coroutines.Dispatchers
@@ -128,11 +130,24 @@ class HyMt2NativeEngine(private val context: Context) {
         onPartial: (String) -> Unit = {}
     ): String = translate(text, from, to, ModelTier.fromAccurate(isAccurate), onPartial)
 
-    fun buildPrompt(text: String, from: LangCode, to: LangCode): String {
+    /**
+     * @param glossary user terms for this pair; only those present in [text] are
+     *                 injected, and only as Tencent's `Reference the following
+     *                 translations:` block. Empty means "no change from before
+     *                 the glossary existed", which keeps this function honest.
+     */
+    fun buildPrompt(
+        text: String,
+        from: LangCode,
+        to: LangCode,
+        glossary: List<GlossaryEntry> = emptyList()
+    ): String {
         // Format zgodny z oficjalnym repo Tencent Hy-MT2 (llama-completion -p):
         // "Translate the following segment into <TARGET>, without additional explanation：<TEXT>"
         // Używamy pełnych nazw języków (English names), bo model tak wymaga.
-        return "Translate the following segment into ${to.englishName}, without additional explanation：$text"
+        val block = GlossaryPrompt.build(glossary, text)
+        return block +
+            "Translate the following segment into ${to.englishName}, without additional explanation：$text"
     }
 
     fun sanitizeTranslation(raw: String): String {
