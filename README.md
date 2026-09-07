@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.41`** (versionCode 42) —
+> 📦 **Aktualna wersja: `v1.0.42`** (versionCode 43) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -195,6 +195,12 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
 9. **`BuildConfig.VERSION_NAME` / `VERSION_CODE` wymagają `buildFeatures { buildConfig = true }`.**
    AGP 8+ ma to domyślnie wyłączone; bez flagi każdy ekran odwołujący się do `BuildConfig`
    (karta „O aplikacji" w Profilu) sypie `Unresolved reference 'BuildConfig'`.
+10. **`enabled` w `helpClickable` wyłącza tylko AKCJĘ, nigdy pomoc.**
+    `combinedClickable(enabled = false)` wyłącza też `onLongClick` — więc na
+    nieaktywnej kontrolce (pusty tekst → „Tłumacz", darmowe konto → silniki,
+    brak zdjęcia → przyciski OCR) pomoc znikała bez śladu. Dlatego
+    `helpClickable` zawsze przekazuje `enabled = true` i guarduje dopiero
+    `onClick = { if (enabled) onClick() }`. Nie „naprawiaj" tego z powrotem.
 
 ### Konwencja podpisów
 

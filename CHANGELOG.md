@@ -2,10 +2,23 @@
 
 
 > ⚠️ Tagi `v1.0.1`–`v1.0.3` to **wczesne buildy historyczne** (versionCode 2–3).
-> Bieżąca wersja to **v1.0.41** (versionCode 42).
+> Bieżąca wersja to **v1.0.42** (versionCode 43).
 > Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
 
 ---
+
+## v1.0.42 (2026-09-06) — versionCode 43
+
+**Pomoc działa też na nieaktywnych kontrolkach.**
+
+- `Modifier.helpClickable(enabled = false)` przekazywało `enabled` do
+  `combinedClickable`, a to wyłącza **również długi klik** — więc na wyszarzonej
+  kontrolce okno pomocy znikało bez śladu. Teraz `enabled` blokuje tylko akcję:
+  `combinedClickable` dostaje zawsze `enabled = true`, a wartownik siedzi w
+  `onClick = { if (enabled) onClick() }`.
+- Dotknięte miejsca: przycisk „Tłumacz" przy pustym polu, ikony silników
+  (dokładny / oba / online) przy darmowym koncie, przyciski OCR bez zdjęcia.
+- README: nowy punkt 10 na liście pułapek okien pomocy.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 

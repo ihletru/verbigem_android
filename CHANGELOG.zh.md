@@ -2,10 +2,22 @@
 
 
 > ⚠️ `v1.0.1`–`v1.0.3` 标签属于**早期历史构建**（versionCode 2–3）。
-> 当前版本为 **v1.0.41**（versionCode 42）。
+> 当前版本为 **v1.0.42**（versionCode 43）。
 > 版本号保存在 `app/build.gradle.kts`（`versionCode` / `versionName`）。
 
 ---
+
+## v1.0.42（2026-09-06）— versionCode 43
+
+**禁用的控件现在也能打开帮助窗口。**
+
+- `Modifier.helpClickable(enabled = false)` 会把 `enabled` 传给
+  `combinedClickable`，而后者会**连长按一起禁用** —— 于是变灰的控件上帮助窗口
+  会无声消失。现在 `enabled` 只拦截动作：`combinedClickable` 始终收到
+  `enabled = true`，判断放在 `onClick = { if (enabled) onClick() }` 里。
+- 涉及：输入为空时的“翻译”按钮、免费账户下的引擎图标（精确 / 两者 / 在线）、
+  没有图片时的 OCR 按钮。
+- README：帮助窗口陷阱清单新增第 10 条。
 
 ## v1.0.41（2026-09-06）— versionCode 42
 

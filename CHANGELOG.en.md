@@ -2,10 +2,23 @@
 
 
 > ⚠️ Tags `v1.0.1`–`v1.0.3` are **early historical builds** (versionCode 2–3).
-> The current version is **v1.0.41** (versionCode 42).
+> The current version is **v1.0.42** (versionCode 43).
 > The version lives in `app/build.gradle.kts` (`versionCode` / `versionName`).
 
 ---
+
+## v1.0.42 (2026-09-06) — versionCode 43
+
+**Help now works on disabled controls too.**
+
+- `Modifier.helpClickable(enabled = false)` forwarded `enabled` to
+  `combinedClickable`, which disables **the long press as well** — so a greyed-out
+  control silently lost its help window. Now `enabled` blocks only the action:
+  `combinedClickable` always gets `enabled = true` and the guard lives in
+  `onClick = { if (enabled) onClick() }`.
+- Affected: the "Translate" button with an empty field, the engine icons
+  (accurate / both / online) on a free account, the OCR buttons with no picture.
+- README: new point 10 in the help-window trap list.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 

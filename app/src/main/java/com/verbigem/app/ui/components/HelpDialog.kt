@@ -174,15 +174,23 @@ fun HelpWindow(state: HelpWindowState) {
     }
 }
 
-/** Tap = akcja, długi tap = okno pomocy. */
+/**
+ * Tap = akcja, długi tap = okno pomocy.
+ *
+ * `enabled` wyłącza **tylko akcję**, NIGDY pomoc. Nie wolno przekazać go do
+ * `combinedClickable(enabled = ...)`: tam `enabled = false` wyłącza też
+ * `onLongClick`, więc na nieaktywnej kontrolce (pusty tekst → „Tłumacz",
+ * darmowe konto → silniki, brak zdjęcia → przyciski OCR) pomoc znika bez
+ * śladu — dokładnie ten błąd, przez który Milosz zgłaszał v41.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 fun Modifier.helpClickable(
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = true
 ): Modifier = this.combinedClickable(
-    enabled = enabled,
-    onClick = onClick,
+    enabled = true,
+    onClick = { if (enabled) onClick() },
     onLongClick = onLongClick
 )
 

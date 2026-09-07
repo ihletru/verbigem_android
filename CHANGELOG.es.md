@@ -2,10 +2,23 @@
 
 
 > ⚠️ Las etiquetas `v1.0.1`–`v1.0.3` son **compilaciones históricas tempranas** (versionCode 2–3).
-> La versión actual es **v1.0.41** (versionCode 42).
+> La versión actual es **v1.0.42** (versionCode 43).
 > La versión está en `app/build.gradle.kts` (`versionCode` / `versionName`).
 
 ---
+
+## v1.0.42 (2026-09-06) — versionCode 43
+
+**La ayuda también funciona en los controles desactivados.**
+
+- `Modifier.helpClickable(enabled = false)` pasaba `enabled` a
+  `combinedClickable`, y eso desactiva **también la pulsación larga** — en un
+  control atenuado la ventana de ayuda desaparecía sin avisar. Ahora `enabled`
+  bloquea solo la acción: `combinedClickable` recibe siempre `enabled = true` y
+  la comprobación vive en `onClick = { if (enabled) onClick() }`.
+- Afecta a: el botón „Traducir" con el campo vacío, los iconos de motor
+  (preciso / ambos / online) en la cuenta gratuita y los botones de OCR sin imagen.
+- README: nuevo punto 10 en la lista de trampas de las ventanas de ayuda.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 

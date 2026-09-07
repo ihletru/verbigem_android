@@ -2,10 +2,23 @@
 
 
 > ⚠️ `v1.0.1`–`v1.0.3` etiketleri **erken tarihli derlemelerdir** (versionCode 2–3).
-> Güncel sürüm **v1.0.41** (versionCode 42).
+> Güncel sürüm **v1.0.42** (versionCode 43).
 > Sürüm `app/build.gradle.kts` içinde tutulur (`versionCode` / `versionName`).
 
 ---
+
+## v1.0.42 (2026-09-06) — versionCode 43
+
+**Yardım artık devre dışı kontrollerde de çalışıyor.**
+
+- `Modifier.helpClickable(enabled = false)` `enabled` değerini
+  `combinedClickable`a iletiyordu; bu **uzun basmayı da** kapatır — bu yüzden
+  soluk görünen kontrolde yardım penceresi sessizce kayboluyordu. Artık
+  `enabled` yalnızca eylemi engelliyor: `combinedClickable` her zaman
+  `enabled = true` alıyor, koruma `onClick = { if (enabled) onClick() }` içinde.
+- Etkilenenler: alan boşken „Çevir" düğmesi, ücretsiz hesapta motor simgeleri
+  (kesin / her ikisi / çevrimiçi), fotoğraf yokken OCR düğmeleri.
+- README: yardım penceresi tuzakları listesine yeni 10. madde eklendi.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 

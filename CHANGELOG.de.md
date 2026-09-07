@@ -2,10 +2,23 @@
 
 
 > ⚠️ Die Tags `v1.0.1`–`v1.0.3` sind **frühe historische Builds** (versionCode 2–3).
-> Die aktuelle Version ist **v1.0.41** (versionCode 42).
+> Die aktuelle Version ist **v1.0.42** (versionCode 43).
 > Die Version steht in `app/build.gradle.kts` (`versionCode` / `versionName`).
 
 ---
+
+## v1.0.42 (2026-09-06) — versionCode 43
+
+**Hilfe funktioniert jetzt auch auf deaktivierten Bedienelementen.**
+
+- `Modifier.helpClickable(enabled = false)` reichte `enabled` an
+  `combinedClickable` weiter, und das deaktiviert **auch den langen Klick** — auf
+  ausgegrauten Elementen verschwand das Hilfefenster lautlos. Jetzt sperrt
+  `enabled` nur noch die Aktion: `combinedClickable` bekommt immer
+  `enabled = true`, die Prüfung steckt in `onClick = { if (enabled) onClick() }`.
+- Betroffen: Schaltfläche „Übersetzen" bei leerem Feld, Motor-Symbole
+  (genau / beide / online) im kostenlosen Konto, OCR-Schaltflächen ohne Bild.
+- README: neuer Punkt 10 in der Liste der Hilfe-Fallen.
 
 ## v1.0.41 (2026-09-06) — versionCode 42
 
