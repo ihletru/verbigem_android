@@ -388,6 +388,65 @@ samplera). Wszystko poniżej jest z `probe`.
 
 ---
 
+## 10b. Dogęszczenie: 6 zdań × 3 powtórzenia + test determinizmu (OSTATECZNE)
+
+Tabela w §10 opierała się na **4 zdaniach i jednym losowaniu** na konfigurację.
+To za mało, żeby wyrokować o samplerze, który jest z definicji niedeterministyczny.
+Dlatego powtórzono: 6 zdań (EN→PL, EN→DE, PL→EN) × 2 tiery × 2 sformułowania
+promptu, sampler zalecany przez Tencent **po 3 razy** (`_probe -b`, model
+ładowany raz).
+
+### ✅ Greedy jest w 100% deterministyczny — sprawdzone, nie zakładane
+
+Dwa niezależne przebiegi greedy po 12 promptów dały **24/24 identycznych
+wyników, co do znaku**. Dla aplikacji to realna cecha produktowa: użytkownik
+tłumaczy to samo zdanie dwa razy i dostaje to samo. Jest to warte więcej niż
+każda hipotetyczna poprawa jakości z próbkowania.
+
+### Sygnał z §10 („sampling naprawia 2/4 na 1.25-bit") był SZUMEM
+
+Przy 3 powtórzeniach próbkowanie nie „naprawia" niczego — ono **dodaje
+wariancję**, a część tej wariancji to ewidentne bzdury, których greedy nie
+produkuje:
+
+| zdanie | greedy | temp 0.7 — 3 losowania |
+|---|---|---|
+| *The board reviewed the report…* | „Rada sprawdziła raport i podpisała umowy." | „…i **zatwierdziła warunki**" ✓ · „…i podpisała umowy" · „Rada **przetoczyła** raport i podpisała umowy" ✗ |
+| *The server is down…* | „Serwer jest wyłączony, a my tracimy pieniądze z każdą minutą." | „…wyłączony…" · „…wyłączony…" · „Serwer jest **niefunkcyjny**" ✗ |
+| *Could you please send me the file…* | „Czy mógłbyś prosić o przesłanie mi tego pliku…" (złamane) | „Czy moglibyście przysłać mi plik…" ✓ · „Czy mógłbyś prosić…" (jak greedy) · „Czy **moglibyście prosić, abyśmy otrzymali plik**…" ✗ |
+
+Rozkład: **jedno losowanie lepsze, jedno takie samo, jedno wyraźnie gorsze.**
+Dokładnie to, czego należało się spodziewać po próbkowaniu — i dokładny powód,
+dla którego pojedyncze próbkowanie na zdanie daje fałszywe wnioski.
+
+Na Q4_K_M próbkowanie jest stabilne i ≈ greedy (S2 „Dołączono fakturę…" ✓ we
+wszystkich 3, S4 „wieder Kontakt aufnehmen" ✓ we wszystkich 3) — ale to tylko
+potwierdza, że **nie ma powodu zmieniać czegoś, co działa**.
+
+### Prompt NIE jest dźwignią jakości
+
+Porównanie parami (to samo zdanie, to samo urządzenie, greedy — jedyna różnica
+to sformułowanie instrukcji):
+
+- **FAST:** 4 z 6 zdań identyczne; jedyna realna różnica to „**świadczyliśmy**"
+  (poprawne) zamiast „udzieliliśmy" (błędne) przy oficjalnym promptcie.
+  Oba warianty **tak samo mylą sens** „Please find attached" → „Prosimy o
+  załączenie faktury".
+- **Q4_K_M:** 3 z 6 identyczne; oficjalny prompt w jednym miejscu jest **gorszy**
+  — „**Prosim** o przesłanie dołączonej faktury" (literówka, brak „y") zamiast
+  poprawnego „Dołączono fakturę…".
+
+**Wniosek: nie róbmy churnu na prompcie.** Obecny („segment" + pełnoszerokości
+dwukropek) i oficjalny Tencenta dają w praktyce to samo. Zostawiamy jak jest.
+
+### Odpowiedź na pytanie 4: zostawić greedy wszędzie
+
+Nie ma żadnego zmierzonego powodu, żeby przełączać sampler — ani na Q4_K_M
+(bez różnicy), ani na 1.25-bit (wariancja w obie strony, w tym bzdury).
+Greedy dodatkowo gwarantuje powtarzalność. **Temat uznaję za zamknięty.**
+
+---
+
 ## 11. Funkcje „Pro" bez GPU: terminologia TAK, styl NIE
 
 Karta modelu dokumentuje 7 wariantów instrukcji. Sprawdziliśmy dwa, które
@@ -427,13 +486,16 @@ Q4_K_M różnica jest przypadkowa, nie rejestrowa. Nie budujemy tego.
 2. **Czy w międzyczasie wystawić Pro 7B na CPU z ostrzeżeniem** („wolne, ~20 s
    za zdanie") dla chętnych, czy trzymać ukryte do czasu GPU? Moja rekomendacja:
    ukryte — recenzje za 1.6 tok/s zjedzą aplikację.
-3. **Alternatywa dla Pro na CPU:** może zamiast 7B zrobić Pro = 1.8B Q4_K_M z
-   lepszym promptem / dłuższym kontekstem / korektą post-hoc? Mamy zmierzone
-   4.0 s za zdanie — to jest używalne.
-4. **Sampler na tiere FAST** (§10): greedy zostaje na Q4_K_M, ale na 1.25-bit
-   sampling naprawił 2 z 4 zdań. Przełączyć 1.25-bit na `temp 0.7 / top_p 0.6 /
-   top_k 20 / rep 1.05` (ceną jest niedeterminizm), czy zostawić greedy
-   wszędzie i zamiast tego mocniej promować ACCURATE?
+3. **Alternatywa dla Pro na CPU:** może zamiast 7B zrobić Pro = po prostu
+   🎯 Dokładny (Q4_K_M) jako domyślny? Mamy zmierzone 4.0 s za zdanie.
+   ⚠️ Z głowy: **lepszy prompt nic tu nie da** — §10b pokazuje, że obecne i
+   oficjalne sformułowanie dają w praktyce identyczne wyniki. Dźwignią jest
+   **tier**, nie prompt: 1.25-bit myli sens „Please find attached" i gubi
+   idiomy („circle back" → „einen Kreis umrunden"), Q4_K_M robi to poprawnie.
+4. ~~Sampler na tiere FAST~~ — **ZAMKNIĘTE, bez decyzji.** §10b: przy 3
+   powtórzeniach próbkowanie daje wariancję w obie strony, w tym bzdury
+   („Rada przetoczyła raport", „Serwer jest niefunkcyjny"). Greedy zostaje
+   wszędzie, także dlatego, że jest w 100% deterministyczny (24/24).
 5. **Pro = glosariusz?** (§11) Jedyna rzecz w tym researchu, która działa od
    ręki na obu silnikach i nie wymaga ani GPU, ani pobierania: własny słownik
    użytkownika wstrzykiwany do promptu. Budujemy to jako pierwszą funkcję Pro?
