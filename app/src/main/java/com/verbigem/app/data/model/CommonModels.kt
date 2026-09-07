@@ -241,4 +241,13 @@ sealed interface ModelDownloadState {
     data object LoadingToMemory : ModelDownloadState
     data object Ready : ModelDownloadState
     data class Error(val message: String) : ModelDownloadState
+
+    /**
+     * The requested tier is large and the active network is metered.
+     *
+     * Deliberately NOT [Error]: a hard block would be wrong, because plenty of
+     * users are on unlimited plans and would be stuck with no way forward. The
+     * UI shows "Wi-Fi recommended" and offers a "download anyway" escape hatch.
+     */
+    data class MeteredWarning(val tier: ModelTier) : ModelDownloadState
 }

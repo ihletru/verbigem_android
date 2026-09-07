@@ -21,7 +21,8 @@ Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_A
 ### 1. Translator (ekran główny)
 
 - Tłumaczenie między 6 językami: **PL, EN, ES, ZH, DE, TR**.
-- Silniki: ⚡ **Hy-MT2 Szybki** (TQ1.25 / 1.25Bit ~440 MB) · 🎯 **Hy-MT2 Dokładny** (Q4_K_M ~1.1 GB) · ⚖️ **Oba (porównaj)** · ☁️ **API online** (fallback DeepSeek z portfelem).
+- Silniki: ⚡ **Szybki** (1.8B @1.25Bit, ~440 MB) · 🎯 **Dokładny** (1.8B @Q4_K_M, ~1.1 GB) · 🧠 **Pro 7B** (7B @UD-Q2_K_XL, ~2.9 GB) · ⚖️ **Oba (porównaj)** · ☁️ **API online** (fallback DeepSeek z portfelem).
+- ⚠️ **Pro 7B jest ukryty na słabszych urządzeniach.** `ModelDownloader.blockReason()` sprawdza RAM ≥ 5 GB i ≥ 1.2× rozmiar wag wolnego miejsca; jeśli warunek nie jest spełniony, ikona w ogóle się nie pojawia (`TranslatorViewModel.availableEngines`). Użytkownik nie może więc pobrać 2.9 GB, których nie da się załadować.
 - **Push-to-talk (🎤):** przycisk po lewej od OCR. Trzymaj → nagrywa (SpeechRecognizer STT z podglądem na żywo), puść → dopisuje rozpoznany tekst do pola (**append, nie overwrite**). W trakcie nagrywania mikrofon jest czerwony.
 - **Czytaj Pro (💎):** płatne TTS przez **OpenRouter**, konfigurowane w `app_config/tts` na Firestore (domyślny model `google/gemini-3.1-flash-tts-preview`, osobny dla ZH: `fish-audio/s2.1-pro`). Szczegóły niżej.
 - **Skasuj** — czyszczenie wejścia i wyniku. Automatyczny downloader modeli z Hugging Face.
@@ -202,6 +203,26 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
     `helpClickable` zawsze przekazuje `enabled = true` i guarduje dopiero
     `onClick = { if (enabled) onClick() }`. Nie „naprawiaj" tego z powrotem.
 
+### ➕ Jak dodać nowy silnik (checklista, sprawdzona na Pro 7B)
+
+1. `ModelTier` — nowa pozycja z `fileName`, `approxBytes`, `minRamBytes`.
+2. `ModelDownloader.URL_*` + wpis w `urlFor()`.
+3. `EngineChoice` — nowa pozycja: `id`, ikona (emoji), `captionResId`,
+   `helpTitleResId`, `helpTextResId`, `isProOnly`, **`modelTier`**.
+   Brak `modelTier` = silnik bez własnego GGUF (BOTH, ONLINE).
+4. **5 stringów × 6 języków**: `engine_X_label`, `engine_X_desc`,
+   `engine_caption_X`, `help_engine_X_title`, `help_engine_X`.
+   Zweryfikuj skryptem porównującym zbiór `<string name=...>` w `values/` z każdym locale.
+5. `TranslatorViewModel.translate()` — `when` jest wyczerpujący, kompilator wymusi
+   obsługę nowej pozycji. Silniki jedno-modelowe idą jedną gałęzią przez `engine.modelTier`.
+6. Gating: `computeAvailableEngines()` filtruje po `ModelDownloader.blockReason()` —
+   nowy silnik z dużym `minRamBytes` **sam zniknie** na słabszych urządzeniach.
+
+⚠️ **Pułapka overloadów:** `downloadModel(tier: ModelTier)` i
+`downloadModel(isAccurate: Boolean = false)` — **tylko jeden może mieć wartość
+domyślną**, inaczej wywołanie bez argumentów jest niejednoznaczne i nie kompiluje się.
+To samo dotyczy `translate` / `translateSegmented` / `startModelDownload`.
+
 ### Konwencja podpisów
 
 Podpisy ikon są zawsze **11.sp** — ta sama wielkość co w menu dolnym. Tam, gdzie
@@ -280,8 +301,9 @@ app/src/main/
 │   ├── cpp/
 │   │   ├── CMakeLists.txt              # libverbigem_llama.so
 │   │   ├── llama_jni.cpp               # Mostek JNI C++ do wnioskowania GGUF
-│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), branch STQ_0 (PR #22836)
+│   │   └── llama.cpp/                  # Vendored llama.cpp (gitignored), commit f5e85d43 + patch STQ (PR #22836)
 │   │       └── ggml/src/ggml-cpu/llamafile/sgemm.cpp  # fp16→fp32 fallback dla NDK 26
+│   │   └── patches/                # stq1_0.patch — JEDYNA kopia kernela STQ1_0 w repo (406 linii)
 ├── java/com/verbigem/app/
 │   ├── MainActivity.kt             # Entry point, Edge-to-Edge Compose, dialog auto-update, deep linki
 │   ├── VerbigemApplication.kt      # Firebase + SyncManager + ConnectivityObserver + App Check + FCM
@@ -291,7 +313,8 @@ app/src/main/
 │   │   │                           #   ChatRoomEntities (chat_translations, chat_outbox, chat_reads,
 │   │   │                           #   chat_deleted_messages, chat_hidden), external_* + DataStore
 │   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage, ChatSummary,
-│   │   │                           #   Friendship, EngineChoice, TranslationHistory, TtsConfig
+│   │   │                           #   Friendship, EngineChoice, TranslationHistory, TtsConfig,
+│   │   │                           #   ModelTier (FAST/ACCURATE/PRO_7B), ModelTierBlockReason
 │   │   ├── AppLinks.kt             # Polityka prywatności, ProfileLinks, InviteLinks, openUrl(), shareText()
 │   │   ├── PhoneContactsImporter.kt, PhoneNumbers.kt, VcfImporter.kt, OutboundChannel.kt,
 │   │   ├── MessageSearch.kt, QRBitmap.kt
@@ -299,7 +322,9 @@ app/src/main/
 │   │                               #   ExternalThread, Storage + SyncManager, TtsConfigSync
 │   ├── engine/
 │   │   ├── HyMt2NativeEngine.kt    # Natywny silnik Hy-MT2: prompt, translateSegmented, sanityzacja
-│   │   ├── ModelDownloader.kt      # Pobieranie i cache modeli GGUF z Hugging Face
+│   │   ├── ModelDownloader.kt      # WZNAWIALNE pobieranie GGUF (Range) + gating urządzenia
+│   │   ├── CpuTopology.kt          # inferenceThreads(): wszystkie rdzenie, kapa 8 (zmierzone)
+│   │   ├── GpuAcceleration.kt      # sonda GPU: GGML_BACKENDS x możliwości urządzenia
 │   │   ├── SpeechManager.kt        # Android STT (SpeechRecognizer) + TTS
 │   │   ├── OcrManager.kt           # Google ML Kit Text Recognition
 │   │   ├── OnlineApiEngine.kt      # Chmurowe proxy DeepSeek
@@ -328,7 +353,7 @@ Tłumaczenie jest **w 100% lokalne** (offline, bez serwera) — tekst trafia do 
 
 ```
 EditText (Compose) → TranslatorViewModel.translate()   [Dispatchers.Default]
-   → HyMt2NativeEngine.translate(text, from, to, isAccurate, onPartial)
+   → HyMt2NativeEngine.translate(text, from, to, tier: ModelTier, onPartial)
         1. ensureModelLoaded()  — ładuje .gguf z filesDir/models/ (mmap)
         2. buildPrompt()        — "Translate the following segment into <TARGET>,
                                   without additional explanation：<TEXT>"
@@ -344,14 +369,22 @@ EditText (Compose) → TranslatorViewModel.translate()   [Dispatchers.Default]
 
 **Kluczowe fakty:**
 
-- **Modele:** `Hy-MT2-1.8B-1.25Bit.gguf` (Szybki, ~440 MB) / `Hy-MT2-1.8B-Q4_K_M.gguf` (Dokładny, ~1.1 GB). Pobierane z Hugging Face przez `ModelDownloader` przy pierwszym uruchomieniu.
-- **STQ1_0 to kernel CPU-only** — `gpuLayers = 0` (wymuszone; kwant 1.25-bit nie ma ścieżki GPU). Akceleracja: ARM NEON + (opcjonalnie) KleidiAI.
+- **Modele (`ModelTier`):** `FAST` = `Hy-MT2-1.8B-1.25Bit.gguf` (~440 MB) · `ACCURATE` = `Hy-MT2-1.8B-Q4_K_M.gguf` (~1.1 GB) · `PRO_7B` = `Hy-MT2-7B-UD-Q2_K_XL.gguf` (~2.91 GB, Pro). Pobierane z Hugging Face przez `ModelDownloader`.
+- **Wznawialne pobieranie (od v43):** `ModelDownloader` wysyła `Range: bytes=N-` i dopisuje do `<name>.gguf.tmp`. Obsługuje 206 (wznowienie), 200 (serwer zignorował Range → restart od zera) i 416 (mamy już całość → rename). **Po błędzie `.tmp` jest celowo NIE usuwane** — następna próba wznawia zamiast ściągać 2.9 GB od nowa. `cancelPartial()` usuwa ręcznie.
+- **Gating urządzenia:** `ModelDownloader.blockReason()` sprawdza `ActivityManager.MemoryInfo.totalMem` vs `ModelTier.minRamBytes` i `StatFs(filesDir).availableBytes` vs `approxBytes * 1.2` → `LOW_RAM` / `NO_SPACE`. ⚠️ `totalMem` zwraca RAM *użyteczny*, zawsze niższy niż marketingowy — telefon „6 GB" raportuje ~5.6 GB, dlatego próg PRO_7B to 5 GB, nie 6.
+- **Wątki = WSZYSTKIE rdzenie, kapa 8 (`CpuTopology`) — ZMIERZONE, nie zgadywane.** ⚠️ Ta reguła była wcześniej odwrotna („tylko duże rdzenie") i pomiar ją obalił. Pełna tabela w `CpuTopology.kt` i `docs/SILNIK_PRO_RESEARCH.md` §5. Skrót (llama-bench, `-p 64 -n 64`, Snapdragon 685): prompt-processing rośnie z wątkami zawsze (+27% od 4→8 na 1.8B), decode na małym modelu *spada* (7.99→7.17) ale na 7B *rośnie*. Tłumaczenie jest **prompt-ciężkie** (szablon + tekst = 30–100 tokenów wejścia), więc więcej wątków wygrywa: zdanie 30/10 na 1.25-bit to 3.68 s @8 wątków vs 4.15 s @4. **Nie wracaj do „tylko duże rdzenie" — to była ~11% regresja.**
+- ⚠️ **KV cache: f16, nie q8_0.** Zmierzone: q8_0 daje 6.60 vs 7.17 tok/s na 1.25-bit (narzut dekwantyzacji > oszczędność przepustowości przy krótkim kontekście, który tu mamy).
+- **GPU: wykrywanie w runtime (`GpuAcceleration`), nie hardcodowanie.** Decyzja = iloczyn dwóch rzeczy: (1) co jest wkompilowane — `BuildConfig.GGML_BACKENDS` w `app/build.gradle.kts` (dziś `"CPU"`), (2) co to urządzenie potrafi. `gpuLayers()` zwraca 99 albo 0. Aplikacja jest publiczna: stary telefon to poprawny przypadek, nie błąd.
+- ⚠️ **OpenCL: `dlopen` to ZA MAŁO — biała lista SoC (`GGML_OPENCL_ALLOWED_SOCS`, domyślnie PUSTA = wyłączone).** Zmierzone na Adreno 610: `libOpenCL.so` ładuje się bezbłędnie, ale (a) ggml zbudowany na OpenCL 3.0 **twardo abortuje proces** na urządzeniach OpenCL 2.0 (platforma raportuje 3.0, device 2.0 → `GGML_ASSERT` w `ggml-opencl.cpp:212`), (b) zbudowany na 2.0 jest **4× wolniejszy od CPU** (decode 1.22 vs 5.17 tok/s przy `-ngl 1`), (c) przy pełnym offloadzie segfault. Szczegóły: `docs/SILNIK_PRO_RESEARCH.md` §7b. **Nie wpisuj SoC na listę bez prawdziwego pomiaru.**
+- 🧠 **Pro 7B wymaga GPU (`ModelTier.PRO_7B.requiresGpu = true`).** Zmierzone 1.64 tok/s na CPU (Snapdragon 685) = ~37 s za zdanie. `blockReason()` zwraca `NO_GPU` i silnik znika z listy, zamiast sprzedawać komuś 2.9 GB pobierania, po którym dostanie 1.6 tok/s. Włącza się **sam**, gdy `GGML_BACKENDS` dostanie `OPENCL`/`VULKAN` i urządzenie to udźwignie.
+- **Pobieranie > 1 GB przez sieć komórkową:** ostrzeżenie (nie blokada) + przycisk „Pobierz mimo to" (`ModelDownloadState.MeteredWarning`). Blokada na sztywno byłaby zła przy nielimitowanych taryfach. ⚠️ `onConfirmMetered` **musi** przekazać `allowMetered = true`, inaczej użytkownik kręci się w kółko.
 - ⚠️ **Szablon czatu `hunyuan-dense` jest obowiązkowy.** Surowy prompt bez niego daje bełkot — model oczekuje tokenów `<|hy_User|>` / `<|hy_Assistant|>`.
 - **Streaming wyrazami:** natywna pętla wysyła do UI **ukończone wyrazy**, nie surowe subwordy (`trans`+`lat`+`ion` zostają w buforze do granicy słowa), więc UI nie migocze literami.
 - ⚠️ **Tłumaczenie segmentami (`translateSegmented`) — Hy-MT2 to model segmentowy:** dostaje cały akapit i tłumaczy tylko PIERWSZE zdanie, po czym daje EOS. Żeby przetłumaczyć CAŁY tekst, wejście jest dzielone na segmenty (~400 znaków) na granicach zdań (`.!?\n`), nadmiarowo długie zdanie łamane dalej po słowach, każdy segment tłumaczony osobnym wywołaniem, wynik składany `\n\n`. Dla krótkiego zdania zachowuje się jak `translate()`. `TranslatorViewModel` i `OcrViewModel` wołają `translateSegmented` dla silników lokalnych (Fast/Accurate/Both); online (DeepSeek) idzie bez zmian. Szczegóły: skill `hy-mt2-offline-translation` → `references/segmented-translation.md` (**przeczytaj przed modyfikacją silnika tłumaczenia**).
 - **Sanityzacja:** `sanitizeTranslation()` usuwa znaczniki `<think>`, wiodące cudzysłowy, etykiety „Tłumaczenie:". **NIE** ucina do pierwszego akapitu — cała obsługa wielu zdań jest w `translateSegmented`.
 - **Języki:** model wymaga **angielskich nazw** w prompcie (`LangCode.englishName`), nie kodów ISO.
-- **Wydajność:** native lib budowany jako Release (`-DCMAKE_BUILD_TYPE=Release`) + KleidiAI; ~3–4 tok/s na słabszym ARM.
+- **Wydajność:** native lib budowany jako Release (`-DCMAKE_BUILD_TYPE=Release`) + KleidiAI; ~3–4 tok/s na słabszym ARM. Decode na CPU jest **ograniczony przepustowością pamięci** — czas na token ≈ rozmiar wag / przepustowość RAM, więc drabinka rozmiarów GGUF jest jednocześnie drabinką prędkości. Szczegółowa analiza i drabinka 7B: **`docs/SILNIK_PRO_RESEARCH.md`**.
+- ⚠️ **KleidiAI nie pomaga na starych rdzeniach:** szybkie ścieżki wymagają `dotprod` / `i8mm` (ARMv8.2+). Cortex-A73 (Snapdragon 685) to ARMv8.0 — llama.cpp spada na generyczny NEON.
 
 ---
 

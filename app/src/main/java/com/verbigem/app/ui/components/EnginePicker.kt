@@ -37,6 +37,13 @@ fun EnginePicker(
     onEngineSelected: (EngineChoice) -> Unit,
     isPro: Boolean,
     helpState: HelpWindowState,
+    /**
+     * Silniki, które to urządzenie jest w stanie faktycznie uruchomić.
+     * Domyślnie wszystkie. `LOCAL_PRO_7B` (2.9 GB wag) wypada z listy na
+     * telefonach z małą ilością RAM lub miejsca — patrz
+     * `ModelDownloader.blockReason`.
+     */
+    availableEngines: List<EngineChoice> = EngineChoice.entries,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -57,7 +64,7 @@ fun EnginePicker(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            EngineChoice.entries.forEach { engine ->
+            availableEngines.forEach { engine ->
                 val isSelected = selectedEngine == engine
                 val isEnabled = !engine.isProOnly || isPro
 

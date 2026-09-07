@@ -24,6 +24,22 @@ android {
             useSupportLibrary = true
         }
 
+        // Backends GGML wkompilowane w libverbigem_llama.so. To JEDYNE miejsce,
+        // które trzeba zmienić po przebudowaniu natywnej biblioteki z GPU.
+        // Oddzielone przecinkami, dozwolone wartości: CPU, OPENCL, VULKAN.
+        // Kotlin czyta to przez BuildConfig.GGML_BACKENDS (patrz GpuAcceleration).
+        // ⚠️ Nigdy nie wpisuj tu backendu, którego nie ma w CMakeLists.txt —
+        // aplikacja spróbuje go użyć i GPU init poleci na starych urządzeniach.
+        buildConfigField("String", "GGML_BACKENDS", "\"CPU\"")
+
+        // OpenCL: biała lista SoC (wartości `ro.soc.model`, np. "SM8650").
+        // PUSTA = OpenCL wyłączone wszędzie. To nie jest ostrożność na wyrost:
+        // zmierzono, że na Adreno 610 ggml-opencl jest 4x WOLNIEJSZY od CPU
+        // (decode 1.22 vs 5.17 tok/s przy -ngl 1), przy pełnym offloadzie
+        // segfaultuje, a zbudowany na OpenCL 3.0 twardo abortuje proces na
+        // urządzeniach OpenCL 2.0. Dopisuj TYLKO po prawdziwym pomiarze.
+        buildConfigField("String", "GGML_OPENCL_ALLOWED_SOCS", "\"\"")
+
         // Only arm64-v8a — STQ1_0 has ARM NEON kernel; x86 emulator is not worth building.
         ndk {
             abiFilters.addAll(listOf("arm64-v8a"))

@@ -74,6 +74,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.ui.components.AdBannerView
 import com.verbigem.app.ui.components.EnginePicker
@@ -114,6 +115,7 @@ fun TranslatorScreen(
     )
     val targetLang by viewModel.targetLang.collectAsState()
     val engineChoice by viewModel.engineChoice.collectAsState()
+    val availableEngines by viewModel.availableEngines.collectAsState()
     val inputText by viewModel.inputText.collectAsState()
     val primaryResult by viewModel.primaryResult.collectAsState()
     val secondaryResult by viewModel.secondaryResult.collectAsState()
@@ -230,7 +232,8 @@ fun TranslatorScreen(
                     selectedEngine = engineChoice,
                     onEngineSelected = { viewModel.setEngine(it) },
                     isPro = isPro,
-                    helpState = help
+                    helpState = help,
+                    availableEngines = availableEngines
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -506,7 +509,19 @@ fun TranslatorScreen(
     if (showDownloadDialog) {
         ModelDownloadDialog(
             downloadState = downloadState,
-            onStartDownload = { viewModel.startModelDownload(isAccurate = engineChoice == EngineChoice.LOCAL_ACCURATE) },
+            sizeLabel = engineChoice.modelTier
+                ?.takeIf { it != ModelTier.FAST } // Szybki: tekst dialogu już mówi "~440 MB"
+                ?.sizeLabel,
+            onStartDownload = {
+                val tier = engineChoice.modelTier ?: ModelTier.fromAccurate(engineChoice == EngineChoice.LOCAL_ACCURATE)
+                viewModel.startModelDownload(tier)
+            },
+            // Cellular escape hatch. Must pass allowMetered = true, otherwise the
+            // downloader re-emits MeteredWarning and the user loops forever.
+            onConfirmMetered = {
+                val tier = engineChoice.modelTier ?: ModelTier.fromAccurate(engineChoice == EngineChoice.LOCAL_ACCURATE)
+                viewModel.startModelDownload(tier, allowMetered = true)
+            },
             onDismiss = { viewModel.setShowDownloadDialog(false) }
         )
     }

@@ -1,6 +1,7 @@
 package com.verbigem.app.ui.screens.translator
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.verbigem.app.data.local.AppDatabase
@@ -8,6 +9,8 @@ import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelDownloadState
+import com.verbigem.app.data.model.ModelTier
+import com.verbigem.app.data.model.ModelTierBlockReason
 import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.repository.HistoryRepository
@@ -72,7 +75,24 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     companion object {
+        private const val TAG = "TranslatorVM"
         private const val HISTORY_PAGE_SIZE = 20
+
+        /**
+         * Silniki, dla których urządzenie spełnia wymagania RAM, miejsca na dysku
+         * i (dla tierów GPU) ma działający backend.
+         *
+         * Logujemy werdykt — to jedyny sposób, żeby na żywym telefonie sprawdzić,
+         * dlaczego 🧠 Pro 7B jest widoczny albo nie, bez zgadywania.
+         */
+        private fun computeAvailableEngines(app: Application): List<EngineChoice> =
+            EngineChoice.entries.filter { engine ->
+                val tier = engine.modelTier
+                if (tier == null) return@filter true
+                val reason = ModelDownloader.blockReason(app, tier)
+                Log.i(TAG, "engine ${engine.id} (tier ${tier.id}) -> $reason")
+                reason == ModelTierBlockReason.NONE
+            }
     }
 
     val downloadState: StateFlow<ModelDownloadState> = modelDownloader.downloadState
@@ -85,6 +105,16 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _engineChoice = MutableStateFlow(EngineChoice.LOCAL_FAST)
     val engineChoice: StateFlow<EngineChoice> = _engineChoice.asStateFlow()
+
+    /**
+     * Silniki, które to urządzenie jest w stanie faktycznie uruchomić.
+     *
+     * `LOCAL_PRO_7B` (2.9 GB wag) wypada z listy, gdy brakuje RAM-u albo miejsca
+     * na dysku — decyduje [ModelDownloader.blockReason]. Bez tego użytkownik
+     * zobaczyłby ikonę, pobrał 2.9 GB, a potem dostał cichego OOM-a przy ładowaniu.
+     */
+    private val _availableEngines = MutableStateFlow(computeAvailableEngines(application))
+    val availableEngines: StateFlow<List<EngineChoice>> = _availableEngines.asStateFlow()
 
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText.asStateFlow()
@@ -141,7 +171,12 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
             preferencesManager.dstLangFlow.collect { _targetLang.value = LangCode.fromCode(it) }
         }
         viewModelScope.launch {
-            preferencesManager.engineFlow.collect { _engineChoice.value = EngineChoice.fromId(it) }
+            preferencesManager.engineFlow.collect { saved ->
+                val restored = EngineChoice.fromId(saved)
+                // Zapisany silnik mógł przestać być dostępny (np. Pro 7B po
+                // zmianie telefonu na słabszy) — wtedy wracamy do Szybkiego.
+                _engineChoice.value = if (restored in _availableEngines.value) restored else EngineChoice.LOCAL_FAST
+            }
         }
         speechManager.onSpeakingStateChanged = { speaking ->
             if (!speaking) _speakingSyncId.value = null
@@ -250,10 +285,14 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         _showDownloadDialog.value = show
     }
 
-    fun startModelDownload(isAccurate: Boolean = false) {
+    fun startModelDownload(tier: ModelTier, allowMetered: Boolean = false) {
         viewModelScope.launch {
-            modelDownloader.downloadModel(isAccurate)
+            modelDownloader.downloadModel(tier, allowMetered)
         }
+    }
+
+    fun startModelDownload(isAccurate: Boolean = false, allowMetered: Boolean = false) {
+        startModelDownload(ModelTier.fromAccurate(isAccurate), allowMetered)
     }
 
     fun translate() {
@@ -271,13 +310,20 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
 
         val engine = _engineChoice.value
 
-        // Sprawdzenie obecności modelu offline
-        if (engine == EngineChoice.LOCAL_FAST || engine == EngineChoice.LOCAL_ACCURATE || engine == EngineChoice.BOTH) {
-            val isAccurate = engine == EngineChoice.LOCAL_ACCURATE
-            if (!HyMt2NativeEngine.isModelDownloaded(getApplication(), isAccurate)) {
-                _showDownloadDialog.value = true
-                return
-            }
+        // Sprawdzenie obecności modelu offline.
+        // Silnik bez własnego modelu (ONLINE) nie ma czego sprawdzać.
+        val tier = engine.modelTier
+        if (tier != null && !HyMt2NativeEngine.isModelDownloaded(getApplication(), tier)) {
+            _showDownloadDialog.value = true
+            return
+        }
+        // BOTH ładuje dwa modele naraz — oba muszą być na dysku.
+        if (engine == EngineChoice.BOTH && (
+                !HyMt2NativeEngine.isModelDownloaded(getApplication(), ModelTier.FAST) ||
+                !HyMt2NativeEngine.isModelDownloaded(getApplication(), ModelTier.ACCURATE))
+        ) {
+            _showDownloadDialog.value = true
+            return
         }
 
         _isLoading.value = true
@@ -288,15 +334,13 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 when (engine) {
-                    EngineChoice.LOCAL_FAST -> {
-                        val result = hyMt2Engine.translateSegmented(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
-                            _primaryResult.value = partial
-                        }
-                        _primaryResult.value = result
-                        addHistoryAndSync(text, result, _sourceLang.value.code, _targetLang.value.code)
-                    }
-                    EngineChoice.LOCAL_ACCURATE -> {
-                        val result = hyMt2Engine.translateSegmented(text, _sourceLang.value, _targetLang.value, isAccurate = true) { partial ->
+                    // Silniki jedno-modelowe: Szybki, Dokładny i Pro 7B różnią się
+                    // wyłącznie wagami, więc idą jedną ścieżką.
+                    EngineChoice.LOCAL_FAST,
+                    EngineChoice.LOCAL_ACCURATE,
+                    EngineChoice.LOCAL_PRO_7B -> {
+                        val modelTier = engine.modelTier ?: ModelTier.FAST
+                        val result = hyMt2Engine.translateSegmented(text, _sourceLang.value, _targetLang.value, modelTier) { partial ->
                             _primaryResult.value = partial
                         }
                         _primaryResult.value = result

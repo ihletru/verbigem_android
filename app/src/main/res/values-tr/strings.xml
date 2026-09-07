@@ -466,4 +466,14 @@
         <string name="help_contact_mute">Bu kişinin bildirimlerini sessize al. Mesajlar yine gelir, ama telefon çalmaz.</string>
         <string name="help_contact_block">Bu kişiden gelen tüm mesajları düşür — onları görmezsin ve o bunu bilmez.</string>
         <string name="help_contact_delete">Tüm konuşmayı gelen kutundan gizle. Diğer taraf saklıyor. Sonra bu ekrandan geri getirebilirsin.</string>
+
+    <!-- Hy-MT2 7B — Pro engine (v43) -->
+    <string name="engine_pro7b_label">En iyi kalite ~2,9 GB</string>
+    <string name="engine_pro7b_desc">En iyi kalite ~2,9 GB — en büyük yerel model, birkaç kat daha yavaş.</string>
+    <string name="engine_caption_pro7b">pro 7B</string>
+    <string name="help_engine_pro7b_title">Pro 7B motoru</string>
+    <string name="help_engine_pro7b">Ağır sıklet. 7 milyar parametreli bir model (yaklaşık 2,9 GB), Doğru motordan yaklaşık dört kat büyük, bu yüzden belirgin şekilde daha yavaş: hızlı bir telefonda bile uzun bir cümle birkaç saniye sürer. Karşılığında deyimleri, sözcük dizilişini ve nadir dilleri iki 1.8B modelden de daha iyi işler. Çevrimdışı çalışır. Pro özelliğidir ve en az 6 GB RAM ile 3,5 GB boş alan gerektirir; daha zayıf cihazlarda simge gizli kalır. Bir kez Wi-Fi üzerinden indirin.</string>
+    <string name="model_download_size">İndirme boyutu: %1$s</string>
+    <string name="download_metered_warning">Bu model %1$s boyutunda. Mobil veri kullanıyorsunuz — Wi-Fi önerilir.</string>
+    <string name="download_anyway">Yine de indir</string>
 </resources>

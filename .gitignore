@@ -60,3 +60,9 @@ firebase.json
 
 # Kotlin incremental-compilation caches (Gradle 9 / KGP 2.x)
 .kotlin/
+
+# Lokalne benchmarki llama-bench (modele GGUF + build) — nie commitować
+_bench/
+_bench_build/
+_ocl/
+_ocl_build/

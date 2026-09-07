@@ -466,4 +466,14 @@
         <string name="help_contact_mute">静音此联系人的通知。消息仍会到达，但手机不会响铃。</string>
         <string name="help_contact_block">丢弃此联系人的所有来信——你不会看到，对方也不会知道。</string>
         <string name="help_contact_delete">在收件箱中隐藏整段对话。对方仍保留。之后可在此界面重新显示。</string>
+
+    <!-- Hy-MT2 7B — Pro engine (v43) -->
+    <string name="engine_pro7b_label">最佳质量 ~2.9 GB</string>
+    <string name="engine_pro7b_desc">最佳质量 ~2.9 GB — 最大的本地模型，速度慢数倍。</string>
+    <string name="engine_caption_pro7b">pro 7B</string>
+    <string name="help_engine_pro7b_title">Pro 7B 引擎</string>
+    <string name="help_engine_pro7b">重量级选手。70 亿参数的模型（约 2.9 GB），体积约为精确引擎的四倍，因此明显更慢：即使在较快的手机上，长句也要花几秒钟。作为回报，它对习语、语序和稀有语言的处理都优于两个 1.8B 模型。可离线运行。这是 Pro 功能，并且需要至少 6 GB 内存和 3.5 GB 可用空间的手机；在较弱的设备上该图标会保持隐藏。建议通过 Wi-Fi 下载一次。</string>
+    <string name="model_download_size">下载大小：%1$s</string>
+    <string name="download_metered_warning">该模型大小为 %1$s。您正在使用移动数据，建议使用 Wi-Fi。</string>
+    <string name="download_anyway">仍然下载</string>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,7 +28,23 @@ import com.verbigem.app.ui.theme.VerbigemTheme
 fun ModelDownloadDialog(
     downloadState: ModelDownloadState,
     onStartDownload: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /**
+     * Rozmiar pakietu do pobrania, np. "~2.9 GB". Gdy `null`, pokazywany jest
+     * tylko domyślny tekst (który opisuje model Szybki ~440 MB).
+     *
+     * ⚠️ Bez tego parametr dialog Professional 7B (2.9 GB) informowałby
+     * użytkownika o "~440 MB" — tekst `model_download_body` jest na sztywno
+     * napisany pod model Szybki.
+     */
+    sizeLabel: String? = null,
+    /**
+     * „Pobierz mimo to" z ekranu [ModelDownloadState.MeteredWarning]. Musi
+     * przekazywać `allowMetered = true` do `ModelDownloader`, inaczej
+     * użytkownik kręci się w kółko: kliknięcie znów wyląduje w tym samym
+     * ostrzeżeniu.
+     */
+    onConfirmMetered: () -> Unit = onStartDownload
 ) {
     Dialog(onDismissRequest = {
         if (downloadState !is ModelDownloadState.Downloading) {
@@ -55,6 +72,17 @@ fun ModelDownloadDialog(
                     color = VerbigemTheme.colors.muted,
                     lineHeight = 20.sp
                 )
+
+                if (sizeLabel != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.model_download_size, sizeLabel),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = VerbigemTheme.colors.ink,
+                        lineHeight = 20.sp
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -113,6 +141,33 @@ fun ModelDownloadDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.ok), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    is ModelDownloadState.MeteredWarning -> {
+                        Text(
+                            text = stringResource(
+                                R.string.download_metered_warning,
+                                downloadState.tier.sizeLabel
+                            ),
+                            fontSize = 13.sp,
+                            color = VerbigemTheme.colors.danger,
+                            lineHeight = 20.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onConfirmMetered,
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.download_anyway), fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.cancel), color = VerbigemTheme.colors.muted)
                         }
                     }
                     is ModelDownloadState.Error -> {

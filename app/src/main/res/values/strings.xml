@@ -486,4 +486,14 @@
     <!-- Phone verification -->
     <string name="help_phone_intro">Adds your phone number so friends who already have it can find you. Confirming sends one SMS code; the number itself stays on your phone and is never uploaded.</string>
     <string name="help_phone_skip">Skips verification. Chat still works, but nobody with your number in their contacts will be able to find you. You can verify later from Profile.</string>
-    <string name="chat_search">Search messages</string></resources>
+    <string name="chat_search">Search messages</string>
+    <!-- Hy-MT2 7B — Pro engine (v43) -->
+    <string name="engine_pro7b_label">Best quality ~2.9 GB</string>
+    <string name="engine_pro7b_desc">Best quality ~2.9 GB — the largest local model, several times slower.</string>
+    <string name="engine_caption_pro7b">pro 7B</string>
+    <string name="help_engine_pro7b_title">Pro 7B engine</string>
+    <string name="help_engine_pro7b">The heavyweight. A 7-billion-parameter model (about 2.9 GB), roughly four times the size of Accurate, so it is clearly slower: a long sentence takes several seconds even on a fast phone. In exchange it handles idioms, word order and rare languages better than either 1.8B model. Runs offline. Pro feature, and it needs a phone with at least 6 GB of RAM and 3.5 GB of free space; on weaker devices the icon stays hidden. Download it once over Wi-Fi.</string>
+    <string name="model_download_size">Download size: %1$s</string>
+    <string name="download_metered_warning">This model is %1$s. You are on mobile data and Wi-Fi is recommended.</string>
+    <string name="download_anyway">Download anyway</string>
+</resources>

@@ -466,4 +466,14 @@
         <string name="help_contact_mute">Silencia las notificaciones de este contacto. Los mensajes siguen llegando, pero tu teléfono no suena.</string>
         <string name="help_contact_block">Descarta todos los mensajes entrantes de este contacto — no los verás y él no se enterará.</string>
         <string name="help_contact_delete">Oculta toda la conversación en tu bandeja. La otra parte la conserva. Puedes restaurarla después desde esta pantalla.</string>
+
+    <!-- Hy-MT2 7B — Pro engine (v43) -->
+    <string name="engine_pro7b_label">Mejor calidad ~2,9 GB</string>
+    <string name="engine_pro7b_desc">Mejor calidad ~2,9 GB — el modelo local más grande, varias veces más lento.</string>
+    <string name="engine_caption_pro7b">pro 7B</string>
+    <string name="help_engine_pro7b_title">Motor Pro 7B</string>
+    <string name="help_engine_pro7b">El peso pesado. Un modelo de 7 mil millones de parámetros (unos 2,9 GB), unas cuatro veces más grande que el preciso, por lo que es claramente más lento: una frase larga tarda varios segundos incluso en un teléfono rápido. A cambio maneja mejor los modismos, el orden de las palabras y los idiomas poco frecuentes que ambos modelos de 1.8B. Funciona sin conexión. Función Pro y requiere un teléfono con al menos 6 GB de RAM y 3,5 GB libres; en dispositivos más modestos el icono permanece oculto. Descárgalo una vez por Wi-Fi.</string>
+    <string name="model_download_size">Tamaño de descarga: %1$s</string>
+    <string name="download_metered_warning">Este modelo pesa %1$s. Estás usando datos móviles — se recomienda Wi-Fi.</string>
+    <string name="download_anyway">Descargar de todos modos</string>
 </resources>

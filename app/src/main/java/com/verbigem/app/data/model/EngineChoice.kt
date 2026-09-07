@@ -13,21 +13,36 @@ enum class EngineChoice(
     val helpTitleResId: Int,
     /** Treść okna pomocy po długim naciśnięciu ikony. */
     val helpTextResId: Int,
-    val isProOnly: Boolean
+    val isProOnly: Boolean,
+    /**
+     * Które wagi GGUF ten silnik ładuje — `null` dla silników bez modelu
+     * lokalnego (BOTH używa dwóch, ONLINE żadnego).
+     */
+    val modelTier: ModelTier? = null
 ) {
     LOCAL_FAST(
         "localFast", "⚡",
         R.string.engine_fast_label, R.string.engine_fast_desc,
         R.string.engine_caption_fast,
         R.string.help_engine_fast_title, R.string.help_engine_fast,
-        false
+        false,
+        ModelTier.FAST
     ),
     LOCAL_ACCURATE(
         "localAccurate", "🎯",
         R.string.engine_accurate_label, R.string.engine_accurate_desc,
         R.string.engine_caption_accurate,
         R.string.help_engine_accurate_title, R.string.help_engine_accurate,
-        true
+        true,
+        ModelTier.ACCURATE
+    ),
+    LOCAL_PRO_7B(
+        "localPro7B", "🧠",
+        R.string.engine_pro7b_label, R.string.engine_pro7b_desc,
+        R.string.engine_caption_pro7b,
+        R.string.help_engine_pro7b_title, R.string.help_engine_pro7b,
+        true,
+        ModelTier.PRO_7B
     ),
     BOTH(
         "both", "⚖️",
@@ -43,6 +58,9 @@ enum class EngineChoice(
         R.string.help_engine_online_title, R.string.help_engine_online,
         true
     );
+
+    /** Silniki, które ładują dokładnie jeden plik GGUF. */
+    val isSingleModel: Boolean get() = modelTier != null
 
     companion object {
         fun fromId(id: String): EngineChoice {

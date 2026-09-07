@@ -485,4 +485,14 @@
         <string name="help_contact_mute">Wycisz powiadomienia od tego kontaktu. Wiadomości nadal przychodzą, ale telefon nie dzwoni.</string>
         <string name="help_contact_block">Odrzucaj wszystkie wiadomości od tego kontaktu — nie zobaczysz ich, a on się nie dowie.</string>
         <string name="help_contact_delete">Ukryj całą rozmowę w skrzynce. Druga strona ją zachowuje. Rozmowę możesz przywrócić później z tego ekranu.</string>
+
+    <!-- Hy-MT2 7B — Pro engine (v43) -->
+    <string name="engine_pro7b_label">Najlepsza jakość ~2,9 GB</string>
+    <string name="engine_pro7b_desc">Najlepsza jakość ~2,9 GB — największy model lokalny, kilka razy wolniejszy.</string>
+    <string name="engine_caption_pro7b">pro 7B</string>
+    <string name="help_engine_pro7b_title">Silnik Pro 7B</string>
+    <string name="help_engine_pro7b">Ciężki zawodnik. Model o 7 miliardach parametrów (ok. 2,9 GB), mniej więcej czterokrotnie większy od Dokładnego, więc wyraźnie wolniejszy: długie zdanie potrwa kilka sekund nawet na szybkim telefonie. W zamian lepiej radzi sobie z idiomami, szykiem zdania i rzadszymi językami niż oba modele 1.8B. Działa offline. Funkcja Pro; wymaga telefonu z co najmniej 6 GB RAM i 3,5 GB wolnego miejsca — na słabszych urządzeniach ikona jest ukryta. Pobierz raz przez Wi-Fi.</string>
+    <string name="model_download_size">Rozmiar do pobrania: %1$s</string>
+    <string name="download_metered_warning">Ten model waży %1$s. Jesteś na danych mobilnych — zalecane Wi-Fi.</string>
+    <string name="download_anyway">Pobierz mimo to</string>
 </resources>
