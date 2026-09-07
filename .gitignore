@@ -66,3 +66,8 @@ _bench/
 _bench_build/
 _ocl/
 _ocl_build/
+
+# dev probes (A/B samplera, docs/SILNIK_PRO_RESEARCH.md §10)
+/_probe
+/_ab*.sh
+/_ab*_out.txt

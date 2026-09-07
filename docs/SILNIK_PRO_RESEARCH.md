@@ -328,7 +328,98 @@ sprzedać komuś 2.9 GB pobierania, po którym dostanie 1.6 tok/s.
 
 ---
 
-## 10. Pytania do Milosza
+## 10. Czy greedy psuje jakość? (NIE — sprawdzone, hipoteza obalona)
+
+`llama_jni.cpp` używa `llama_sampler_init_greedy()`, a karta modelu Tencent
+zaleca **`temperature 0.7, top_p 0.6, top_k 20, repetition_penalty 1.05`**
+(dla 1.8B i 7B identycznie). Wyglądało to na darmowy zysk jakości — greedy
+jest deterministyczny, ale znany z powtarzalnych pętli i „płaskich" tłumaczeń.
+
+**Zmierzyliśmy. Hipoteza w większości nie wytrzymała.**
+
+### ⚠️ Pułapka narzędziowa (straciliśmy na to jeden pełny przebieg)
+
+`llama-completion -p "..." **nie** wkłada tekstu do roli `user`. Robi to:
+
+```
+<｜hy_begin▁of▁sentence｜>{TWOJ_PROMPT}<｜hy_User｜>      ← prompt w slocie SYSTEMOWYM
+```
+
+czyli model dostaje instrukcję tłumaczenia jako system prompt, a potem pustą
+turę użytkownika. Aplikacja robi **inaczej** — `llama_chat_apply_template(...
+{"user", prompt} ...)`, czyli:
+
+```
+<｜hy_User｜>{TWOJ_PROMPT}<｜hy_Assistant｜>
+```
+
+Pierwsza tabela A/B (przez `llama-completion`) była więc **niewiarygodna** —
+m.in. wygenerowała dla modelu 1.25-bit ciąg `Razorowowowowowow…`, co wzięliśmy
+za awarię domyślnego silnika. Po poprawnym ułożeniu promptu ten sam model
+oddaje `Rada sprawdziła raport.` — **aplikacja jest zdrowa, to był artefakt.**
+
+Dlatego powstał `_probe.cpp` — miniaturowy replikant ścieżki JNI (ten sam
+`hunyuan-dense`, rola `user`, `n_ctx=1024`, `n_batch=512`, te same parametry
+samplera). Wszystko poniżej jest z `probe`.
+
+### Wyniki (4 zdania × 2 samplery × 2 tiery, Redmi Note 13)
+
+| | FAST 1.25-bit greedy | FAST + Tencent | Q4_K_M greedy | Q4_K_M + Tencent |
+|---|---|---|---|---|
+| *board reviewed… signed off on the terms* | „…podpisała umowy" | „…**zatwierdziła warunki**" ✓ | „…podpisała warunki" | „…przyjrzała się raportowi…" |
+| *Please find attached the invoice…* | **„Prosimy o przesłanie faktury"** (= *proszę prześlij*, **znaczenie odwrotne**) | „Prosimy o znalezienie dołączonego rachunku" (bliżej) | **„Dołączono fakturę…"** ✓ | identycznie |
+| *Could you please send me the file…* | **„Czy mógłbyś prosić o przesłanie mi tego pliku"** (złamana gramatyka) | „Czy moglibyście przysłać mi plik" ✓ | „Czy mógłbyś wysłać mi plik" ✓ | identycznie |
+| DE *we will circle back once legal signs off* | **„einen Kreis umrunden"** (dosłownie) | identycznie | **„wieder Kontakt aufnehmen"** ✓ | identycznie |
+
+### Wniosek
+
+- **Na Q4_K_M: zero różnicy** (3/4 identyczne, jedno kosmetyczne).
+  `top_k 20` + `top_p 0.6` to i tak prawie greedy. **Zostawiamy greedy** —
+  jest deterministyczny, a to dla aplikacji tłumaczeniowej zaleta (to samo
+  zdanie daje ten sam wynik po ponownym tłumaczeniu).
+- **Na 1.25-bit: sampling naprawia 2 realne błędy na 4** (znaczenie S2,
+  gramatykę S3). Próba jest mała, ale sygnał jest spójny: mocno skwantowany
+  model ma płaski rozkład i argmax częściej trafia w śmieciowy token.
+  Opcja do rozważenia — patrz pytanie 4 w §12.
+- **Prawdziwy wniosek jest gdzie indziej:** to nie sampler tylko **tier**
+  decyduje o jakości. 1.25-bit gubi idiomy (*circle back*) i odwraca znaczenie
+  (*please find attached*), Q4_K_M robi to poprawnie. Warto kierować
+  użytkowników na ACCURATE, a nie szukać cudów w samplerze.
+
+---
+
+## 11. Funkcje „Pro" bez GPU: terminologia TAK, styl NIE
+
+Karta modelu dokumentuje 7 wariantów instrukcji. Sprawdziliśmy dwa, które
+nie kosztują nic poza tokenami w prompcie (żaden nowy model, żaden GPU).
+
+**Terminologia** (`Reference the following translations: X translates to Y`):
+
+| | wynik dla *The board reviewed the report and signed off on the terms* |
+|---|---|
+| Q4_K_M bez glosariusza | Rada przeanalizowała raport i podpisała warunki. |
+| Q4_K_M **z glosariuszem** | **Rada nadzorcza** przejrzała **sprawozdanie kwartalne** i podpisała **warunki umowy**. |
+| 1.25-bit bez glosariusza | Rada sprawdziła raport i podpisała umowy. |
+| 1.25-bit **z glosariuszem** | **Rada nadzorcza** przeanalizowała **sprawozdanie kwartalne** i podpisała **warunki umowy**. |
+
+**Działa na obu tierach, wszystkie trzy terminy respektowane** — także na
+domyślnym silniku 1.25-bit. To jedyna rzecz w tym całym researchu, która daje
+wymiernie „więcej" bez żadnego kosztu w czasie dekodowania (tylko ok. 40
+tokenów promptu więcej, a prompt przetwarza się ~2× szybciej niż dekodowanie).
+
+**Styl / formalność** (`...translation style must strictly conform to [formal]`):
+
+| | formal | informal |
+|---|---|---|
+| Q4_K_M | „Czy mógłbyś w miarę czasu wysłać mi ten plik?" | „Czy mógłbyś wysłać mi plik, gdy będziesz mógł?" |
+| 1.25-bit | „Czy mógłbyś przysłać mi plik, gdy będziesz miał chwilę?" | **identycznie** |
+
+**Nie działa.** Na 1.25-bit obie odpowiedzi są co do znaku takie same; na
+Q4_K_M różnica jest przypadkowa, nie rejestrowa. Nie budujemy tego.
+
+---
+
+## 12. Pytania do Milosza
 
 1. **GPU: budujemy?** Bez tego Pro 7B nie ma sensu. OpenCL jest realny do
    zbudowania (wymaga dogrania `OpenCL-Headers`), ale nie przetestujemy go na
@@ -339,3 +430,10 @@ sprzedać komuś 2.9 GB pobierania, po którym dostanie 1.6 tok/s.
 3. **Alternatywa dla Pro na CPU:** może zamiast 7B zrobić Pro = 1.8B Q4_K_M z
    lepszym promptem / dłuższym kontekstem / korektą post-hoc? Mamy zmierzone
    4.0 s za zdanie — to jest używalne.
+4. **Sampler na tiere FAST** (§10): greedy zostaje na Q4_K_M, ale na 1.25-bit
+   sampling naprawił 2 z 4 zdań. Przełączyć 1.25-bit na `temp 0.7 / top_p 0.6 /
+   top_k 20 / rep 1.05` (ceną jest niedeterminizm), czy zostawić greedy
+   wszędzie i zamiast tego mocniej promować ACCURATE?
+5. **Pro = glosariusz?** (§11) Jedyna rzecz w tym researchu, która działa od
+   ręki na obu silnikach i nie wymaga ani GPU, ani pobierania: własny słownik
+   użytkownika wstrzykiwany do promptu. Budujemy to jako pierwszą funkcję Pro?
