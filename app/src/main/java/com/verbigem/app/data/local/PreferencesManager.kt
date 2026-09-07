@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.verbigem.app.data.model.OnlineModels
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -42,6 +43,27 @@ class PreferencesManager(private val context: Context) {
          * moment keeps the door open for "ask again after a month" without a migration.
          */
         private val KEY_PHONE_GATE_SKIPPED_AT = longPreferencesKey("phone_gate_skipped_at")
+
+        /**
+         * User's own OpenRouter API key, used only for ":free" models. Empty means
+         * "not set" — the three curated (paid) models then go through Verbigem's
+         * backend proxy instead. Stored on-device only.
+         */
+        private val KEY_OPENROUTER_KEY = stringPreferencesKey("openrouter_api_key")
+
+        /**
+         * Which online model the user picked (OpenRouter model id). Defaults to the
+         * best quality-per-dollar curated model.
+         */
+        private val KEY_ONLINE_MODEL = stringPreferencesKey("online_model_id")
+
+        /**
+         * API wallet balance in cents, mirrored from the Firestore profile so any
+         * ViewModel (not just Profile) can gate paid models without re-fetching
+         * the user document. Written by [ProfileViewModel] whenever the profile
+         * arrives; 0 means "no credits".
+         */
+        private val KEY_WALLET_CENTS = longPreferencesKey("wallet_credits_cents")
     }
 
     val themeFlow: Flow<String> = context.dataStore.data.map { it[KEY_THEME] ?: "calm" }
@@ -57,6 +79,9 @@ class PreferencesManager(private val context: Context) {
     val askedNotifPermFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_ASKED_NOTIF_PERM] ?: false }
     val phoneGateSkippedAtFlow: Flow<Long> =
         context.dataStore.data.map { it[KEY_PHONE_GATE_SKIPPED_AT] ?: 0L }
+    val openRouterKeyFlow: Flow<String> = context.dataStore.data.map { it[KEY_OPENROUTER_KEY] ?: "" }
+    val onlineModelFlow: Flow<String> = context.dataStore.data.map { it[KEY_ONLINE_MODEL] ?: OnlineModels.DEFAULT_ID }
+    val walletCentsFlow: Flow<Long> = context.dataStore.data.map { it[KEY_WALLET_CENTS] ?: 0L }
 
     suspend fun setTheme(theme: String) = context.dataStore.edit { it[KEY_THEME] = theme }
     suspend fun setMode(mode: String) = context.dataStore.edit { it[KEY_MODE] = mode }
@@ -82,4 +107,16 @@ class PreferencesManager(private val context: Context) {
      */
     suspend fun setPhoneGateSkippedAt(ts: Long) =
         context.dataStore.edit { it[KEY_PHONE_GATE_SKIPPED_AT] = ts }
+
+    suspend fun setOpenRouterKey(key: String) =
+        context.dataStore.edit { it[KEY_OPENROUTER_KEY] = key.trim() }
+
+    suspend fun clearOpenRouterKey() =
+        context.dataStore.edit { it.remove(KEY_OPENROUTER_KEY) }
+
+    suspend fun setOnlineModel(id: String) =
+        context.dataStore.edit { it[KEY_ONLINE_MODEL] = id }
+
+    suspend fun setWalletCents(cents: Long) =
+        context.dataStore.edit { it[KEY_WALLET_CENTS] = cents }
 }

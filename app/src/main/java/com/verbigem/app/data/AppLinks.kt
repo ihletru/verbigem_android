@@ -56,6 +56,9 @@ object AppLinks {
     private const val WHATSNEW_BASE = "https://mini.verbigem.com/android/changelog"
     private const val WHATSNEW_SUFFIX = ".html"
 
+    /** Where the user creates their own OpenRouter API key (free account). */
+    fun openRouterKeys(): String = "https://openrouter.ai/keys"
+
     /**
      * URL strony „co nowego" (changelog) w języku interfejsu. Strona jest
      * hostowana statycznie na Firebase Hostingu (projekt `mini`) i generowana

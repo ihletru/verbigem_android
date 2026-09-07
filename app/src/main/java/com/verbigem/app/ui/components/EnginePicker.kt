@@ -38,6 +38,11 @@ fun EnginePicker(
     isPro: Boolean,
     helpState: HelpWindowState,
     /**
+     * Gdy użytkownik podał własny klucz OpenRouter, silnik ONLINE działa dla
+     * niego nawet bez konta Pro (tłumaczy darmowymi modelami na jego klucz).
+     */
+    hasOwnKey: Boolean = false,
+    /**
      * Silniki, które to urządzenie jest w stanie faktycznie uruchomić.
      * Domyślnie wszystkie. `LOCAL_PRO_7B` (2.9 GB wag) wypada z listy na
      * telefonach z małą ilością RAM lub miejsca — patrz
@@ -66,7 +71,14 @@ fun EnginePicker(
         ) {
             availableEngines.forEach { engine ->
                 val isSelected = selectedEngine == engine
-                val isEnabled = !engine.isProOnly || isPro
+                // ONLINE działa dla Pro LUB gdy użytkownik ma własny klucz
+                // OpenRouter (darmowe modele na jego klucz). Pozostałe silniki
+                // Pro (Dokładny, Oba) wymagają konta Pro.
+                val isEnabled = when {
+                    !engine.isProOnly -> true
+                    engine == EngineChoice.ONLINE -> isPro || hasOwnKey
+                    else -> isPro
+                }
 
                 val bgColor = if (isSelected) VerbigemTheme.colors.accent else Color.Transparent
                 val textColor = if (isSelected) Color.White else if (isEnabled) VerbigemTheme.colors.ink else VerbigemTheme.colors.muted

@@ -43,6 +43,20 @@ class HyMt2NativeEngine(private val context: Context) {
 
         fun isModelDownloaded(context: Context, isAccurate: Boolean): Boolean =
             isModelDownloaded(context, ModelTier.fromAccurate(isAccurate))
+
+        /**
+         * Deletes the downloaded weights for [tier] (and any leftover `.tmp`
+         * partial). Returns true if a complete file was actually removed.
+         */
+        fun deleteModel(context: Context, tier: ModelTier): Boolean {
+            val target = getModelFile(context, tier)
+            val tmp = File(target.parentFile, "${target.name}.tmp")
+            var removed = false
+            if (target.exists()) removed = target.delete()
+            if (tmp.exists()) tmp.delete()
+            Log.i(TAG, "deleteModel[${tier.id}]: removed=$removed")
+            return removed
+        }
     }
 
     suspend fun ensureModelLoaded(tier: ModelTier): Boolean = withContext(Dispatchers.IO) {

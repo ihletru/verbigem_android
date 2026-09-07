@@ -11,6 +11,8 @@ import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelDownloadState
 import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.data.model.ModelTierBlockReason
+import com.verbigem.app.R
+import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.repository.HistoryRepository
@@ -87,6 +89,13 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
          */
         private fun computeAvailableEngines(app: Application): List<EngineChoice> =
             EngineChoice.entries.filter { engine ->
+                // Pro 7B temporarily disabled (2026-09): on a CPU-only build it
+                // decodes at ~1.6 tok/s, i.e. unusable. Keep the enum + dispatch
+                // branch so it can be re-enabled later, but never offer it.
+                if (engine == EngineChoice.LOCAL_PRO_7B) {
+                    Log.i(TAG, "engine ${engine.id} -> DISABLED (Pro 7B paused)")
+                    return@filter false
+                }
                 val tier = engine.modelTier
                 if (tier == null) return@filter true
                 val reason = ModelDownloader.blockReason(app, tier)
@@ -115,6 +124,17 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
      */
     private val _availableEngines = MutableStateFlow(computeAvailableEngines(application))
     val availableEngines: StateFlow<List<EngineChoice>> = _availableEngines.asStateFlow()
+
+    // Online model selection (OpenRouter). Paid (curated) models are billed to
+    // the wallet; ":free" models use the user's own key.
+    private val _onlineModelId = MutableStateFlow(OnlineModels.DEFAULT_ID)
+    val onlineModelId: StateFlow<String> = _onlineModelId.asStateFlow()
+
+    private val _openRouterKey = MutableStateFlow("")
+    val openRouterKey: StateFlow<String> = _openRouterKey.asStateFlow()
+
+    private val _walletCents = MutableStateFlow(0L)
+    val walletCents: StateFlow<Long> = _walletCents.asStateFlow()
 
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText.asStateFlow()
@@ -177,6 +197,15 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 // zmianie telefonu na słabszy) — wtedy wracamy do Szybkiego.
                 _engineChoice.value = if (restored in _availableEngines.value) restored else EngineChoice.LOCAL_FAST
             }
+        }
+        viewModelScope.launch {
+            preferencesManager.onlineModelFlow.collect { _onlineModelId.value = it }
+        }
+        viewModelScope.launch {
+            preferencesManager.openRouterKeyFlow.collect { _openRouterKey.value = it }
+        }
+        viewModelScope.launch {
+            preferencesManager.walletCentsFlow.collect { _walletCents.value = it }
         }
         speechManager.onSpeakingStateChanged = { speaking ->
             if (!speaking) _speakingSyncId.value = null
@@ -358,7 +387,23 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                         addHistoryAndSync(text, resFast, _sourceLang.value.code, _targetLang.value.code)
                     }
                     EngineChoice.ONLINE -> {
-                        val result = onlineEngine.translate(text, _sourceLang.value, _targetLang.value)
+                        val modelId = _onlineModelId.value
+                        val isFree = modelId.endsWith(":free")
+                        // Paid (curated) models are billed to the wallet. Without
+                        // credits they must stay inactive, so we stop here.
+                        if (!isFree && _walletCents.value <= 0) {
+                            _isLoading.value = false
+                            _errorMessage.value =
+                                getApplication<Application>().getString(R.string.online_no_credits)
+                            return@launch
+                        }
+                        // ":free" models go direct with the user's own key; curated
+                        // models go through Verbigem's proxy (apiKey = null).
+                        val apiKey = if (isFree) _openRouterKey.value.takeIf { it.isNotBlank() } else null
+                        val result = onlineEngine.translate(
+                            text, _sourceLang.value, _targetLang.value,
+                            model = modelId, apiKey = apiKey
+                        )
                         _primaryResult.value = result
                         addHistoryAndSync(text, result, _sourceLang.value.code, _targetLang.value.code)
                     }

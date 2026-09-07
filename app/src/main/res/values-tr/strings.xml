@@ -488,4 +488,39 @@
     <string name="glossary_add">Ekle</string>
     <string name="glossary_empty">Henüz girdi yok. İstediğin gibi çevrilmesini istediğin bir sözcük ekle.</string>
     <string name="glossary_delete">Sil</string>
+    <!-- Pobrane modele lokalne (offline) -->
+    <string name="downloaded_models_title">İndirilen modeller</string>
+    <string name="downloaded_models_empty">Henüz model indirilmedi.</string>
+    <string name="downloaded_models_delete_title">Bu model silinsin mi?</string>
+    <string name="downloaded_models_delete_body">“%1$s” modeli bu telefonadan kaldırılacak. İstediğin zaman Wi-Fi üzerinden yeniden indirebilirsin.</string>
+    <string name="help_downloaded_models">Bu telefonda saklanan çevrimdışı çeviri modelleri. Her ikisine de ihtiyacın yok — birini tercih ediyorsan diğeri yalnızca yer kaplar. Silmek için çöp kutusuna dokun; yeniden indirmek ücretsizdir.</string>
+    <string name="model_name_fast">Hızlı</string>
+    <string name="model_name_accurate">Doğru</string>
+    <string name="model_local_offline">çevrimdışı</string>
+
+    <!-- Wybór modelu online (OpenRouter) -->
+    <string name="online_model_title">Çevrimiçi çeviri modeli</string>
+    <string name="online_recommended">önerilen</string>
+    <string name="online_paid_no_credits">Bakiye yok — ücretli modeller için cüzdanını doldur</string>
+    <string name="help_online_model">Çevrimiçi motoru kullanırken metnini hangi modelin çevireceği. Listelenen üç model Verbigem tarafından barındırılır ve cüzdanından ücretlendirilir (önce en iyi fiyat/kalite oranı). Aşağıya kendi OpenRouter anahtarını yapıştırırsan, ücretsiz “:free” modelleri görünür ve senin için ücretsiz çevirir.</string>
+    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
+    <string name="online_model_deepseek_desc">En iyi değer — hızlı ve yüksek kaliteli (~0,14 $ / 1M token).</string>
+    <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
+    <string name="online_model_gemini_desc">Güçlü çok yönlü model, geniş bağlam (~0,75 $ / 1M token).</string>
+    <string name="online_model_claude_label">Claude Opus 5</string>
+    <string name="online_model_claude_desc">Fiyata bakılmaksızın en yüksek kalite (~5 $ / 1M token).</string>
+    <string name="free_models_section">Ücretsiz modeller (kendi anahtarın)</string>
+    <string name="free_models_loading">Ücretsiz modeller yükleniyor…</string>
+    <string name="free_models_empty">Şu an kullanılabilir ücretsiz model yok.</string>
+    <string name="online_no_credits">Cüzdanda bakiye yok — hesabını doldur ya da ücretsiz modeller için kendi OpenRouter anahtarını ekle.</string>
+
+    <!-- Własne API OpenRouter -->
+    <string name="own_api_title">Kendi OpenRouter anahtarın</string>
+    <string name="own_api_explainer">Kendi anahtarınla OpenRouter’ın ücretsiz “:free” modellerini kullan — çeviriler sana 0 $’a mal olur.</string>
+    <string name="own_api_status_on">Aktif — ücretsiz modeller açıldı</string>
+    <string name="own_api_clear">Anahtarı kaldır</string>
+    <string name="own_api_placeholder">OpenRouter API anahtarını yapıştır</string>
+    <string name="own_api_save">Anahtarı kaydet</string>
+    <string name="own_api_howto">Anahtar nasıl alınır</string>
+    <string name="help_own_api">OpenRouter, çevirileri birçok yapay zeka modeline yönlendiren bir hizmettir. openrouter.ai’de ücretsiz bir hesap oluştur, Anahtarlar sayfasını aç ve “Create Key”e tıkla. Anahtarı kopyalayıp buraya yapıştır. Yalnızca bu telefonda saklanır. Eklendikten sonra çevrimiçi model listesinde ücretsiz “:free” modelleri görünür ve hiçbir ücret istemez.</string>
 </resources>

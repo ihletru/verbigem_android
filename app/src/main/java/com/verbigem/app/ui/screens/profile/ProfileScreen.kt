@@ -23,17 +23,25 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
@@ -42,12 +50,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.BuildConfig
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.model.ModelTier
+import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.components.ScreenHeader
@@ -72,6 +84,18 @@ fun ProfileScreen(
     val currentUiLang by viewModel.currentUiLang.collectAsState(initial = "pl")
     val context = LocalContext.current
 
+    // Online translation models (OpenRouter) + own API key.
+    val onlineModel by viewModel.onlineModelFlow.collectAsState(initial = OnlineModels.DEFAULT_ID)
+    val hasOwnKey by viewModel.hasOwnKeyFlow.collectAsState(initial = false)
+    val openRouterKey by viewModel.openRouterKeyFlow.collectAsState(initial = "")
+    val walletCents by viewModel.walletCents.collectAsState(initial = 0L)
+    val freeModels by viewModel.freeModels.collectAsState(initial = emptyList())
+    val freeModelsLoading by viewModel.freeModelsLoading.collectAsState(initial = false)
+    val downloadedModels by viewModel.downloadedModels.collectAsState(initial = emptyList())
+
+    // Which local model (if any) is awaiting delete confirmation.
+    var pendingDelete by remember { mutableStateOf<ModelTier?>(null) }
+
     val help = rememberHelpWindowState()
     HelpWindow(help)
 
@@ -95,6 +119,14 @@ fun ProfileScreen(
     val helpPrivacyText = stringResource(R.string.help_profile_privacy)
     val helpLogoutTitle = stringResource(R.string.logout)
     val helpLogoutText = stringResource(R.string.help_profile_logout)
+
+    // Nowe karty: pobrane modele, model online, własne API.
+    val helpDownloadedTitle = stringResource(R.string.downloaded_models_title)
+    val helpDownloadedText = stringResource(R.string.help_downloaded_models)
+    val helpOnlineTitle = stringResource(R.string.online_model_title)
+    val helpOnlineText = stringResource(R.string.help_online_model)
+    val helpOwnApiTitle = stringResource(R.string.own_api_title)
+    val helpOwnApiText = stringResource(R.string.help_own_api)
 
 
     LazyColumn(
@@ -209,6 +241,57 @@ fun ProfileScreen(
                             helpTitle = stringResource(R.string.speak_langs_label),
                             helpText = stringResource(R.string.help_profile_conv_langs)
                         )
+                    }
+                }
+            }
+        }
+
+        // Pobrane modele lokalne (Szybki, Dokładny) z opcją usunięcia.
+        item {
+            val models = downloadedModels
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(helpDownloadedTitle, helpDownloadedText) }
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.downloaded_models_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(8.dp))
+                if (models.isEmpty()) {
+                    Text(stringResource(R.string.downloaded_models_empty), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+                } else {
+                    models.forEach { tier ->
+                        val name = stringResource(
+                            if (tier == ModelTier.FAST) R.string.model_name_fast else R.string.model_name_accurate
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = VerbigemTheme.colors.ink)
+                                Text(
+                                    text = "${tier.sizeLabel} · ${stringResource(R.string.model_local_offline)}",
+                                    fontSize = 12.sp, color = VerbigemTheme.colors.muted
+                                )
+                            }
+                            IconButton(onClick = { pendingDelete = tier }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = stringResource(R.string.action_delete),
+                                    tint = VerbigemTheme.colors.danger,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -349,6 +432,126 @@ fun ProfileScreen(
                                 color = if (isSelected) Color.White else VerbigemTheme.colors.ink,
                                 fontSize = 12.sp
                             )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Wybór modelu tłumaczenia online (OpenRouter).
+        item {
+            val selectedModel = onlineModel
+            val canUsePaid = walletCents > 0
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(helpOnlineTitle, helpOnlineText) }
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.online_model_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(8.dp))
+                OnlineModels.CURATED.forEach { model ->
+                    OnlineModelRow(
+                        label = stringResource(model.labelResId),
+                        desc = stringResource(model.descResId),
+                        isSelected = selectedModel == model.id,
+                        isRecommended = model.id == OnlineModels.DEFAULT_ID,
+                        enabled = canUsePaid,
+                        disabledNote = if (!canUsePaid) stringResource(R.string.online_paid_no_credits) else null,
+                        onClick = { if (canUsePaid) viewModel.setOnlineModel(model.id) }
+                    )
+                }
+                if (hasOwnKey) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(stringResource(R.string.free_models_section), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    when {
+                        freeModelsLoading -> Text(stringResource(R.string.free_models_loading), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+                        freeModels.isEmpty() -> Text(stringResource(R.string.free_models_empty), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+                        else -> freeModels.forEach { fm ->
+                            OnlineModelRow(
+                                label = fm.name,
+                                desc = if (fm.contextLength > 0) "${fm.contextLength / 1000}K ctx" else "",
+                                isSelected = selectedModel == fm.id,
+                                isRecommended = false,
+                                enabled = true,
+                                onClick = { viewModel.setOnlineModel(fm.id) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Własne API OpenRouter (darmowe modele na własny klucz).
+        item {
+            var keyInput by remember { mutableStateOf(openRouterKey) }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(helpOwnApiTitle, helpOwnApiText) }
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(stringResource(R.string.own_api_title), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = VerbigemTheme.colors.muted)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(stringResource(R.string.own_api_explainer), fontSize = 13.sp, color = VerbigemTheme.colors.ink)
+                Spacer(modifier = Modifier.height(10.dp))
+                if (hasOwnKey) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = VerbigemTheme.colors.success, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.own_api_status_on), fontSize = 13.sp, color = VerbigemTheme.colors.success, fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = { viewModel.clearOpenRouterKey(); keyInput = "" },
+                        colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.danger),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(stringResource(R.string.own_api_clear))
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = keyInput,
+                        onValueChange = { keyInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        placeholder = { Text(stringResource(R.string.own_api_placeholder)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = VerbigemTheme.colors.accent,
+                            unfocusedBorderColor = VerbigemTheme.colors.border
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row {
+                        Button(
+                            onClick = { viewModel.saveOpenRouterKey(keyInput) },
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(stringResource(R.string.own_api_save))
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { context.openUrl(AppLinks.openRouterKeys()) },
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(stringResource(R.string.own_api_howto))
                         }
                     }
                 }
@@ -586,4 +789,93 @@ fun ProfileScreen(
             }
         }
     }
+
+    // Potwierdzenie usunięcia pobranego modelu.
+    if (pendingDelete != null) {
+        val tier = pendingDelete!!
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.deleteModel(tier); pendingDelete = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.danger)
+                ) { Text(stringResource(R.string.action_delete)) }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { pendingDelete = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg)
+                ) { Text(stringResource(R.string.cancel)) }
+            },
+            title = { Text(stringResource(R.string.downloaded_models_delete_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.downloaded_models_delete_body,
+                        if (tier == ModelTier.FAST) stringResource(R.string.model_name_fast)
+                        else stringResource(R.string.model_name_accurate)
+                    )
+                )
+            }
+        )
+    }
+}
+
+/**
+ * Pojedynczy wiersz wyboru modelu online (kuratorski lub darmowy).
+ * Zaznaczony = wypełniony kolorem akcentu; nieaktywny = wyszarzony.
+ */
+@Composable
+private fun OnlineModelRow(
+    label: String,
+    desc: String,
+    isSelected: Boolean,
+    isRecommended: Boolean,
+    enabled: Boolean,
+    disabledNote: String? = null,
+    onClick: () -> Unit
+) {
+    val bgColor = if (isSelected) VerbigemTheme.colors.accent else Color.Transparent
+    val textColor = if (isSelected) {
+        Color.White
+    } else if (enabled) {
+        VerbigemTheme.colors.ink
+    } else {
+        VerbigemTheme.colors.muted
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(bgColor)
+            .then(if (enabled) Modifier.clickable { onClick() } else Modifier)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor)
+                if (isRecommended) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "• ${stringResource(R.string.online_recommended)}",
+                        fontSize = 11.sp,
+                        color = if (isSelected) Color.White else VerbigemTheme.colors.accent
+                    )
+                }
+            }
+            if (desc.isNotBlank()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(desc, fontSize = 12.sp, color = textColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            if (disabledNote != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(disabledNote, fontSize = 11.sp, color = if (isSelected) Color.White else VerbigemTheme.colors.danger)
+            }
+        }
+        if (isSelected) {
+            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+    }
+    Spacer(modifier = Modifier.height(6.dp))
 }

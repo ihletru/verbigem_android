@@ -125,6 +125,8 @@ fun TranslatorScreen(
     val resultSpeaking by viewModel.resultSpeaking.collectAsState()
     val resultSpeakingPro by viewModel.resultSpeakingPro.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
+    val openRouterKey by viewModel.openRouterKey.collectAsState()
+    val hasOwnKey = openRouterKey.isNotBlank()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val historyItems by viewModel.historyItems.collectAsState()
     val historyListState = rememberLazyListState()
@@ -232,6 +234,7 @@ fun TranslatorScreen(
                     selectedEngine = engineChoice,
                     onEngineSelected = { viewModel.setEngine(it) },
                     isPro = isPro,
+                    hasOwnKey = hasOwnKey,
                     helpState = help,
                     availableEngines = availableEngines
                 )

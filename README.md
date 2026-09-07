@@ -333,7 +333,7 @@ app/src/main/
 │   │   ├── GpuAcceleration.kt      # sonda GPU: GGML_BACKENDS x możliwości urządzenia
 │   │   ├── SpeechManager.kt        # Android STT (SpeechRecognizer) + TTS
 │   │   ├── OcrManager.kt           # Google ML Kit Text Recognition
-│   │   ├── OnlineApiEngine.kt      # Chmurowe proxy DeepSeek
+│   │   ├── OnlineApiEngine.kt      # Tłumaczenie online: 3 modele kuratorskie (proxy OpenRouter) + :free z własnym kluczem
 │   │   ├── ProTtsEngine.kt         # Płatne TTS przez OpenRouter (/audio/speech)
 │   │   └── UpdateManager.kt        # Auto-update: Hosting → OkHttp → instalacja APK
 │   ├── jni/LlamaNativeBridge.kt    # JNI external fun
@@ -419,6 +419,41 @@ Dostępne tylko dla użytkowników Pro (`UserProfile.isPro`). Zamiast darmowego 
 - `ProTtsRepository` + `TtsConfigDao`/`TtsConfigEntity` — cache w Room (`tts_config`, 1 wiersz, id=1). `TtsConfigSync` przy starcie pobiera `app_config/tts` i nadpisuje lokalne, gdy `remote.updatedAt >= local.updatedAt`.
 - **Modele:** domyślny `google/gemini-3.1-flash-tts-preview` (70+ języków), chiński `fish-audio/s2.1-pro`. Odrzucone: `hexgrad/kokoro-82m` (brak PL/TR).
 - **Konfiguracja:** `apiKey` wpisuje się ręcznie do Firestore (`app_config/tts`) do czasu powstania webappu admina. App nie ma UI do wpisywania klucza.
+
+---
+
+## ☁️ Tłumaczenie online (OpenRouter)
+
+Silnik `ONLINE` w `EngineChoice` (ikona ☁️). Tłumaczy przez chmurę, gdy brak modelu
+lokalnego lub dla lepszej jakości. Dwa niezależne źródła:
+
+1. **3 modele kuratorskie (płatne, rozliczane z portfela)** — `OnlineModels.CURATED`
+   w `data/model/OnlineModel.kt`: `deepseek/deepseek-v4-flash-latest` (domyślny,
+   oznaczony „polecany"), `google/gemini-3.8-flash`, `anthropic/claude-opus-5`. Idą przez
+   proxy Cloud Function **`deepseekProxy`** (trzyma klucz Verbigema, OpenRouter), które
+   przekazuje wybrany `model` **1:1** do OpenRouter. ⚠️ Proxy **musi** czytać pole `model`
+   — wcześniej hardkodowało `deepseek-chat` i ignorowało wybór (plus appka wysyła
+   `fromLang`/`toLang`, a proxy czytało `from`/`to` → odrzucało każde żądanie). Poprawka w
+   `mini/functions/index.js` (kierunek: OpenRouter, sekret `OPENROUTER_API_KEY`).
+2. **Własny klucz użytkownika + modele `:free`** — w Profilu (karta „Własne API") wpisujesz
+   klucz OpenRouter (`AppLinks.openRouterKeys()` → openrouter.ai/keys). Wtedy w liście modeli
+   online pojawiają się **dynamicznie pobierane** modele `:free` (`OnlineApiEngine.fetchFreeModels`:
+   GET `/api/v1/models`, filtruj `id` kończące się na `:free` + cena 0, sortuj wg
+   `context_length`). Lista **NIE jest hardkodowana** — free modele zmieniają się codziennie.
+
+**Gating portfelem (`walletCents`):** modele płatne są nieaktywne, gdy
+`KEY_WALLET_CENTS <= 0` (mirror `UserProfile.walletCreditsCents` w `PreferencesManager`).
+Wtedy płatna translacja online kończy się `R.string.online_no_credits`. Modele `:free`
+(z własnym kluczem) działają **BEZ środków**. Silnik `ONLINE` w `EnginePicker` jest aktywny,
+gdy `isPro || hasOwnKey`.
+
+- `OnlineApiEngine.translate(text, from, to, model, apiKey?)` — `apiKey != null` → OpenRouter
+  bezpośrednio (Bearer, własny klucz, `:free`); `apiKey == null` → proxy (kuratorskie).
+- UI: `ProfileScreen` ma 3 nowe karty (Pobrane modele + usuwanie czerwonym koszem,
+  Model online, Własne API z tutorialem), `OnlineModelRow` (wybór + odznaka „polecany"
+  dla domyślnego), `AlertDialog` potwierdzający usunięcie modelu.
+- Zmiana modelu: `ProfileViewModel.setOnlineModel(id)` → `KEY_ONLINE_MODEL`
+  (domyślnie `OnlineModels.DEFAULT_ID`).
 
 ---
 

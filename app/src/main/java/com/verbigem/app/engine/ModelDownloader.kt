@@ -171,6 +171,13 @@ class ModelDownloader(private val context: Context) {
         return maxOf(done, if (tmp.exists()) tmp.length() else 0L)
     }
 
+    /**
+     * Removes the downloaded weights for [tier]. Safe to call even when nothing
+     * is on disk — it just returns false then.
+     */
+    fun deleteModel(tier: ModelTier): Boolean =
+        HyMt2NativeEngine.deleteModel(context, tier)
+
     private fun finish(targetFile: File, tempFile: File, tier: ModelTier) {
         if (tempFile.exists()) {
             if (targetFile.exists()) targetFile.delete()

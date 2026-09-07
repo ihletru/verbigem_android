@@ -508,4 +508,40 @@
     <string name="glossary_add">Add</string>
     <string name="glossary_empty">No entries yet. Add a word you want translated your way.</string>
     <string name="glossary_delete">Delete</string>
+
+    <!-- Pobrane modele lokalne (offline) -->
+    <string name="downloaded_models_title">Downloaded models</string>
+    <string name="downloaded_models_empty">No models downloaded yet.</string>
+    <string name="downloaded_models_delete_title">Delete this model?</string>
+    <string name="downloaded_models_delete_body">The “%1$s” model will be removed from this phone. Download it again any time over Wi-Fi.</string>
+    <string name="help_downloaded_models">The offline translation models stored on this phone. You do not need both — if you prefer one, the other just takes up space. Tap the bin to delete it; downloading again later is free.</string>
+    <string name="model_name_fast">Fast</string>
+    <string name="model_name_accurate">Accurate</string>
+    <string name="model_local_offline">offline</string>
+
+    <!-- Wybór modelu online (OpenRouter) -->
+    <string name="online_model_title">Online translation model</string>
+    <string name="online_recommended">recommended</string>
+    <string name="online_paid_no_credits">No credits — top up your wallet to use paid models</string>
+    <string name="help_online_model">Which model translates your text when you use the Online engine. The three listed models are hosted by Verbigem and billed to your wallet (best value first). If you paste your own OpenRouter key below, the free “:free” models appear here and translate at no cost to you.</string>
+    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
+    <string name="online_model_deepseek_desc">Best value — fast and high quality (~$0.14 / 1M tokens).</string>
+    <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
+    <string name="online_model_gemini_desc">Strong all-rounder, large context (~$0.75 / 1M tokens).</string>
+    <string name="online_model_claude_label">Claude Opus 5</string>
+    <string name="online_model_claude_desc">Highest quality, regardless of price (~$5 / 1M tokens).</string>
+    <string name="free_models_section">Free models (your key)</string>
+    <string name="free_models_loading">Loading free models…</string>
+    <string name="free_models_empty">No free models available right now.</string>
+    <string name="online_no_credits">No wallet credits — top up your account or add your own OpenRouter key for free models.</string>
+
+    <!-- Własne API OpenRouter -->
+    <string name="own_api_title">Your own OpenRouter key</string>
+    <string name="own_api_explainer">Use OpenRouter’s free “:free” models with your own key — translations cost you $0.</string>
+    <string name="own_api_status_on">Active — free models unlocked</string>
+    <string name="own_api_clear">Remove key</string>
+    <string name="own_api_placeholder">Paste your OpenRouter API key</string>
+    <string name="own_api_save">Save key</string>
+    <string name="own_api_howto">How to get a key</string>
+    <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing.</string>
 </resources>

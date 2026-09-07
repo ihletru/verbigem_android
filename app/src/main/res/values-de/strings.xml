@@ -488,4 +488,39 @@
     <string name="glossary_add">Hinzufügen</string>
     <string name="glossary_empty">Noch keine Einträge. Füge ein Wort hinzu, das du so übersetzt haben willst.</string>
     <string name="glossary_delete">Löschen</string>
+    <!-- Pobrane modele lokalne (offline) -->
+    <string name="downloaded_models_title">Heruntergeladene Modelle</string>
+    <string name="downloaded_models_empty">Noch keine Modelle heruntergeladen.</string>
+    <string name="downloaded_models_delete_title">Dieses Modell löschen?</string>
+    <string name="downloaded_models_delete_body">Das Modell „%1$s” wird von diesem Telefon entfernt. Du kannst es jederzeit über WLAN neu laden.</string>
+    <string name="help_downloaded_models">Die offline gespeicherten Übersetzungsmodelle auf diesem Telefon. Du brauchst nicht beide — wenn du eines bevorzugst, belegt das andere nur Platz. Tippe auf den Mülleimer, um es zu löschen; ein erneuter Download ist kostenlos.</string>
+    <string name="model_name_fast">Schnell</string>
+    <string name="model_name_accurate">Genau</string>
+    <string name="model_local_offline">offline</string>
+
+    <!-- Wybór modelu online (OpenRouter) -->
+    <string name="online_model_title">Online-Übersetzungsmodell</string>
+    <string name="online_recommended">empfohlen</string>
+    <string name="online_paid_no_credits">Kein Guthaben — lade dein Wallet auf, um kostenpflichtige Modelle zu nutzen</string>
+    <string name="help_online_model">Welches Modell deinen Text übersetzt, wenn du die Online-Engine nutzt. Die drei gelisteten Modelle werden von Verbigem bereitgestellt und über dein Wallet abgerechnet (zuerst das mit dem besten Preis-Leistungs-Verhältnis). Wenn du unten deinen eigenen OpenRouter-Schlüssel einträgst, erscheinen die kostenlosen „:free”-Modelle und übersetzen kostenfrei für dich.</string>
+    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
+    <string name="online_model_deepseek_desc">Beste Wahl — schnell und qualitativ (~0,14 $ / 1 Mio. Token).</string>
+    <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
+    <string name="online_model_gemini_desc">Starker Allrounder, großer Kontext (~0,75 $ / 1 Mio. Token).</string>
+    <string name="online_model_claude_label">Claude Opus 5</string>
+    <string name="online_model_claude_desc">Höchste Qualität, egal zum Preis (~5 $ / 1 Mio. Token).</string>
+    <string name="free_models_section">Kostenlose Modelle (eigener Schlüssel)</string>
+    <string name="free_models_loading">Kostenlose Modelle werden geladen…</string>
+    <string name="free_models_empty">Momentan keine kostenlosen Modelle verfügbar.</string>
+    <string name="online_no_credits">Kein Guthaben im Wallet — lade es auf oder füge deinen eigenen OpenRouter-Schlüssel für kostenlose Modelle hinzu.</string>
+
+    <!-- Własne API OpenRouter -->
+    <string name="own_api_title">Dein eigener OpenRouter-Schlüssel</string>
+    <string name="own_api_explainer">Nutze OpenRouters kostenlose „:free”-Modelle mit deinem eigenen Schlüssel — Übersetzungen kosten dich 0 $.</string>
+    <string name="own_api_status_on">Aktiv — kostenlose Modelle freigeschaltet</string>
+    <string name="own_api_clear">Schlüssel entfernen</string>
+    <string name="own_api_placeholder">OpenRouter-API-Schlüssel einfügen</string>
+    <string name="own_api_save">Schlüssel speichern</string>
+    <string name="own_api_howto">Schlüssel erstellen</string>
+    <string name="help_own_api">OpenRouter ist ein Dienst, der Übersetzungen an viele KI-Modelle weiterleitet. Erstelle ein kostenloses Konto auf openrouter.ai, öffne die Keys-Seite und klicke auf „Create Key”. Kopiere den Schlüssel und füge ihn hier ein. Er wird nur auf diesem Telefon gespeichert. Sobald er hinzugefügt ist, erscheinen die kostenlosen „:free”-Modelle in der Onlineliste und kosten nichts.</string>
 </resources>
