@@ -560,4 +560,6 @@
     <string name="noads_3">$3 · 3 msc</string>
     <string name="noads_5">$5 · 5 msc</string>
     <string name="noads_10">$10 · 10 msc</string>
+    <string name="noads_resume_in">Reklamy wrócą za %1$d dni</string>
+    <string name="noads_resume_in_one">Reklamy wrócą za %1$d dzień</string>
 </resources>

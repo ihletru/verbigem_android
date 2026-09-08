@@ -2,13 +2,22 @@
 
 ---
 
+## v1.0.47 (2026-09-08) — versionCode 48
+
+**Status konta po wykupieniu „Bez reklam".**
+
+- Po zakupie **konto przechodzi na PRO 💎**. Nie tylko znika banner — odblokowują się też funkcje Pro (wcześniej część z nich wciąż widziała konto jako Free).
+- W karcie statusu konta pokazujemy teraz **saldo portfela zawsze** — jeśli nie doładowałeś, zobaczysz **0.00**. „Bez reklam" i portfel to dwie osobne płatności.
+- Pod spodem jest nowy **licznik czasu do wznowienia reklam** — od razu widać, ile dni zostało z wykupionego okresu.
+
 ## v1.0.46 (2026-09-08) — versionCode 47
 
 **Usuń reklamy — jednorazowa przedpłata, bez abonamentu.**
 
 - W karcie statusu konta, obok **Doładuj portfel**, pojawił się przycisk **Usuń reklamy**. Otwiera bezpieczną płatność jednorazową — wybierasz okres, a po zakupie banner reklamowy znika na ten czas.
 - Do wyboru cztery pakiety: **$1 · 1 msc**, **$3 · 3 msc**, **$5 · 5 msc**, **$10 · 10 msc**.
-- To **nie jest abonament** — płacisz raz, reklamy pozostają ukryte przez wybrany okres i nic nie odnawia się samo. Stan konta (PRO / Free) nie zmienia się.
+- To **nie jest abonament** — płacisz raz, reklamy pozostają ukryte przez wybrany okres i nic nie odnawia się samo. **Konto przechodzi na status PRO 💎.**
+- W karcie statusu konta widać teraz też **saldo portfela** — jeśli go nie doładowałeś, pokaże się **0.00** („Bez reklam" nie doładowuje portfela, to osobna płatność) oraz **licznik czasu do wznowienia reklam**, czyli ile dni zostało do końca wykupionego okresu.
 
 ## v1.0.45 (2026-09-08) — versionCode 46
 

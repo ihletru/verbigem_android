@@ -2,13 +2,22 @@
 
 ---
 
+## v1.0.47 (2026-09-08) — versionCode 48
+
+**„Reklamları kaldır" satın aldıktan sonra hesap durumu.**
+
+- Satın aldığında **hesap PRO 💎 olur**. Sadece reklam banner'ı kaybolmakla kalmaz, Pro özellikler de açılır (bazıları hesabı önce hâlâ Free görüyordu).
+- Durum kartı artık **cüzdan bakiyesini her zaman** gösteriyor — hiç doldurmadıysan **0.00** görürsün. Reklamları kaldırmak ile cüzdan doldurmak iki ayrı ödemedir.
+- Altında yeni bir **reklamların geri dönmesine kalan süre sayacı** var — satın aldığın dönemden kaç gün kaldığını hemen görürsün.
+
 ## v1.0.46 (2026-09-08) — versionCode 47
 
 **Reklamları kaldır — tek seferlik ön ödeme, abonelik değil.**
 
 - Hesap durumu kartında, **Cüzdanı doldur**'un yanında artık **Reklamları kaldır** düğmesi var. Güvenli bir tek seferlik ödeme açıyor: bir süre seçiyorsun ve ödemeden sonra reklam banner'ı o süre boyunca gizli kalıyor.
 - Dört seçenek: **$1 · 1 ay**, **$3 · 3 ay**, **$5 · 5 ay**, **$10 · 10 ay**.
-- Bu bir **abonelik değil** — bir kez ödüyorsun, reklamlar seçtiğin süre boyunca gizli kalıyor ve hiçbir şey kendiliğinden yenilenmiyor. Hesap durumun (PRO / Free) değişmiyor.
+- Bu bir **abonelik değil** — bir kez ödüyorsun, reklamlar seçtiğin süre boyunca gizli kalıyor ve hiçbir şey kendiliğinden yenilenmiyor. **Hesabın PRO 💎 olur.**
+- Hesap durumu kartında artık **cüzdan bakiyesi** de görünüyor — hiç doldurmadıysan **0.00** yazar (reklamları kaldırmak kredi eklemez, bu ayrı bir ödeme) — ve ayrıca **reklamların geri dönmesine kalan süre**, yani satın aldığın dönemden kaç gün kaldığı.
 
 ## v1.0.45 (2026-09-08) — versionCode 46
 

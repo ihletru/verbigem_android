@@ -2,13 +2,22 @@
 
 ---
 
+## v1.0.47 (2026-09-08) — versionCode 48
+
+**Account status after buying "Remove ads".**
+
+- Buying it **switches the account to PRO 💎**. Not only does the ad banner disappear — the Pro features unlock too (some of them previously still saw the account as Free).
+- The status card now **always shows your wallet balance** — if you never topped it up you'll see **0.00**. Removing ads and the wallet are two separate purchases.
+- Below it there's a new **countdown to when ads come back** — you can see straight away how many days are left of the period you paid for.
+
 ## v1.0.46 (2026-09-08) — versionCode 47
 
 **Remove ads — a one-time prepaid purchase, not a subscription.**
 
 - Next to **Top up wallet** in the account status card there is now a **Remove ads** button. It opens a secure one-time payment — you pick a period and, once paid, the ad banner stays hidden for that long.
 - Four tiers to choose from: **$1 · 1 mo**, **$3 · 3 mo**, **$5 · 5 mo**, **$10 · 10 mo**.
-- This is **not a subscription** — you pay once, ads stay hidden for the chosen period and nothing renews by itself. Your account status (PRO / Free) does not change.
+- This is **not a subscription** — you pay once, ads stay hidden for the chosen period and nothing renews by itself. **Your account switches to PRO 💎.**
+- The account status card now also shows your **wallet balance** — if you never topped it up you'll see **0.00** (removing ads does not add credits, that's a separate purchase) — plus a **countdown to when ads come back**, i.e. how many days are left of the period you paid for.
 
 ## v1.0.45 (2026-09-08) — versionCode 46
 

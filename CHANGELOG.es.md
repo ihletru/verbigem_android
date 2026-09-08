@@ -2,13 +2,22 @@
 
 ---
 
+## v1.0.47 (2026-09-08) — versionCode 48
+
+**Estado de la cuenta tras comprar «Quitar anuncios».**
+
+- Al comprarlo **la cuenta pasa a PRO 💎**. No solo desaparece el banner: también se desbloquean las funciones Pro (antes algunas seguían viendo la cuenta como Free).
+- La tarjeta de estado muestra ahora **siempre el saldo de la cartera** — si nunca la recargaste verás **0.00**. Quitar anuncios y la cartera son dos pagos distintos.
+- Debajo hay un nuevo **contador hasta que vuelvan los anuncios**: ves de un vistazo cuántos días quedan del periodo pagado.
+
 ## v1.0.46 (2026-09-08) — versionCode 47
 
 **Quitar anuncios — pago único, sin suscripción.**
 
 - Junto a **Recargar cartera** en la tarjeta de estado de la cuenta aparece ahora el botón **Quitar anuncios**. Abre un pago único seguro: eliges un periodo y, tras pagar, el banner de anuncios se oculta durante ese tiempo.
 - Cuatro opciones a elegir: **$1 · 1 mes**, **$3 · 3 meses**, **$5 · 5 meses**, **$10 · 10 meses**.
-- **No es una suscripción**: pagas una sola vez, los anuncios se ocultan durante el periodo elegido y nada se renueva automáticamente. El estado de la cuenta (PRO / Free) no cambia.
+- **No es una suscripción**: pagas una sola vez, los anuncios se ocultan durante el periodo elegido y nada se renueva automáticamente. **Tu cuenta pasa a PRO 💎.**
+- En la tarjeta de estado de la cuenta verás también el **saldo de la cartera** — si nunca la recargaste aparecerá **0.00** (quitar anuncios no añade créditos, es un pago distinto) — y un **contador hasta que vuelvan los anuncios**, es decir, los días que quedan del periodo pagado.
 
 ## v1.0.45 (2026-09-08) — versionCode 46
 

@@ -1,5 +1,7 @@
 package com.verbigem.app.ui.screens.profile
 
+import kotlin.math.ceil
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -341,7 +343,26 @@ fun ProfileScreen(
                     fontWeight = FontWeight.Bold,
                     color = if (profile?.isPro == true) VerbigemTheme.colors.accent else VerbigemTheme.colors.ink
                 )
-                if (profile?.walletCreditsCents ?: 0 > 0) {
+                // Licznik czasu do wznowienia reklam (dni, zaokrąglane w górę — min. 1).
+                val noAdsUntilMs = profile?.noAdsUntil ?: 0L
+                if (noAdsUntilMs > System.currentTimeMillis()) {
+                    val daysLeft = maxOf(
+                        1,
+                        ceil((noAdsUntilMs - System.currentTimeMillis()) / 86_400_000.0).toInt()
+                    )
+                    Text(
+                        text = stringResource(
+                            if (daysLeft == 1) R.string.noads_resume_in_one else R.string.noads_resume_in,
+                            daysLeft
+                        ),
+                        fontSize = 13.sp,
+                        color = VerbigemTheme.colors.success,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                // Saldo portfela pokazujemy ZAWSZE dla konta PRO — również 0.00,
+                // żeby od razu było widać, że „Bez reklam" nie doładowuje portfela.
+                if (profile?.isPro == true) {
                     Text(
                         text = stringResource(R.string.api_wallet, (profile?.walletCreditsCents ?: 0) / 100f),
                         fontSize = 13.sp,

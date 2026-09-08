@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.46`** (versionCode 47) —
+> 📦 **Aktualna wersja: `v1.0.47`** (versionCode 48) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -474,7 +474,9 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
   (ceny Paddle bez `billingCycle`) — NIE abonament; ten sam `createCheckout`, a
   `paddleWebhook` przy `customData.type` zaczynającym się na `noads` ustawia
   `noAdsUntil = teraz + miesiące × 30 dni` (dolicza się do już wykupionego okresu).
-  Status konta nadal pokazuje tylko **PRO 💎 / Free 🆓**. Katalog LIVE: produkt
+  **Po zakupie konto przechodzi na PRO 💎** (webhook ustawia `plan: 'pro'`) — w karcie
+  statusu widać wtedy **saldo portfela** (również **0.00**, gdy nie doładowany) oraz
+  **licznik dni do wznowienia reklam** (`noads_resume_in`). Katalog LIVE: produkt
   `pro_01m2133ymye9s0dxhtgyh3tqma` + 4 ceny w `NOADS_PRICES` (`functions/index.js`
   w repo `mini`) — zob. `scripts/provision-no-ads-onetime-live.mjs`.
 

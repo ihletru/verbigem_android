@@ -541,4 +541,6 @@
     <string name="noads_3">$3 · 3 个月</string>
     <string name="noads_5">$5 · 5 个月</string>
     <string name="noads_10">$10 · 10 个月</string>
+    <string name="noads_resume_in">广告将在 %1$d 天后恢复</string>
+    <string name="noads_resume_in_one">广告将在 %1$d 天后恢复</string>
 </resources>

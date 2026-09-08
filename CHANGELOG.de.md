@@ -2,13 +2,22 @@
 
 ---
 
+## v1.0.47 (2026-09-08) — versionCode 48
+
+**Kontostatus nach dem Kauf von „Werbung entfernen".**
+
+- Nach dem Kauf **wechselt das Konto auf PRO 💎**. Nicht nur das Werbebanner verschwindet — auch die Pro-Funktionen werden freigeschaltet (einige sahen das Konto vorher weiterhin als Free).
+- Die Statuskarte zeigt jetzt **immer dein Guthaben** — hast du nie aufgeladen, siehst du **0.00**. „Werbung entfernen" und Guthaben sind zwei getrennte Zahlungen.
+- Darunter neu: ein **Countdown bis zur Rückkehr der Werbung** — du siehst sofort, wie viele Tage vom bezahlten Zeitraum übrig sind.
+
 ## v1.0.46 (2026-09-08) — versionCode 47
 
 **Werbung entfernen — einmalige Vorauszahlung, kein Abo.**
 
 - Neben **Guthaben aufladen** in der Karte zum Kontostatus gibt es jetzt die Schaltfläche **Werbung entfernen**. Sie öffnet eine sichere Einmalzahlung — du wählst einen Zeitraum und nach dem Kauf bleibt das Werbebanner für diese Dauer ausgeblendet.
 - Vier Pakete zur Auswahl: **$1 · 1 Monat**, **$3 · 3 Monate**, **$5 · 5 Monate**, **$10 · 10 Monate**.
-- Das ist **kein Abonnement** — du zahlst einmal, die Werbung bleibt für den gewählten Zeitraum ausgeblendet und nichts verlängert sich von selbst. Dein Kontostatus (PRO / Free) bleibt unverändert.
+- Das ist **kein Abonnement** — du zahlst einmal, die Werbung bleibt für den gewählten Zeitraum ausgeblendet und nichts verlängert sich von selbst. **Dein Konto wechselt auf PRO 💎.**
+- In der Kontostatus-Karte siehst du jetzt auch dein **Guthaben** — hast du nie aufgeladen, steht dort **0.00** („Werbung entfernen" lädt das Guthaben nicht auf, das ist eine eigene Zahlung) — sowie einen **Countdown bis zur Rückkehr der Werbung**, also die Anzahl der Tage, die vom bezahlten Zeitraum übrig sind.
 
 ## v1.0.45 (2026-09-08) — versionCode 46
 
