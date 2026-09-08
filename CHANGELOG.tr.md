@@ -2,6 +2,21 @@
 
 ---
 
+## v1.0.46 (2026-09-08) — versionCode 47
+
+**Reklamları kaldır — tek seferlik ön ödeme, abonelik değil.**
+
+- Hesap durumu kartında, **Cüzdanı doldur**'un yanında artık **Reklamları kaldır** düğmesi var. Güvenli bir tek seferlik ödeme açıyor: bir süre seçiyorsun ve ödemeden sonra reklam banner'ı o süre boyunca gizli kalıyor.
+- Dört seçenek: **$1 · 1 ay**, **$3 · 3 ay**, **$5 · 5 ay**, **$10 · 10 ay**.
+- Bu bir **abonelik değil** — bir kez ödüyorsun, reklamlar seçtiğin süre boyunca gizli kalıyor ve hiçbir şey kendiliğinden yenilenmiyor. Hesap durumun (PRO / Free) değişmiyor.
+
+## v1.0.45 (2026-09-08) — versionCode 46
+
+**Düzeltildi: ücretli çevrimiçi çeviri ve cüzdan doldurma.**
+
+- Verbigem'in sunucusu (projenin bölgesiyle uyumlu olarak) başka bir bölgeye taşındı. Uygulama hâlâ eski adresi çağırıyordu, bu yüzden **ücretli çevrimiçi modellerle çeviri hata veriyordu** — şimdi yeniden çalışıyor.
+- **Cüzdanı uygulamadan doldurmak hiç çalışmıyordu** — düğme aynı nedenle ödeme sayfasını açamıyordu. Düzeltildi; satın alma sonrası krediler otomatik ekleniyor.
+
 ## v1.0.44 (2026-09-07) — versionCode 45
 
 **Kendi OpenRouter anahtarını kullanmak artık daha kolay.**

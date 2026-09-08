@@ -105,6 +105,9 @@ fun ProfileScreen(
     // Whether the wallet top-up package chooser is open.
     var showTopUp by remember { mutableStateOf(false) }
 
+    // Whether the "Remove ads" (one-time prepaid) package chooser is open.
+    var showNoAds by remember { mutableStateOf(false) }
+
     val help = rememberHelpWindowState()
     HelpWindow(help)
 
@@ -112,6 +115,7 @@ fun ProfileScreen(
     LaunchedEffect(topUpUrl) {
         topUpUrl?.let {
             showTopUp = false
+            showNoAds = false
             context.openUrl(it)
             viewModel.consumeTopUpUrl()
         }
@@ -356,6 +360,15 @@ fun ProfileScreen(
                         text = if (topUpLoading) stringResource(R.string.topup_loading) else stringResource(R.string.topup_button),
                         fontSize = 13.sp
                     )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showNoAds = true },
+                    enabled = !topUpLoading,
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(stringResource(R.string.noads_title), fontSize = 13.sp)
                 }
             }
         }
@@ -894,6 +907,53 @@ fun ProfileScreen(
                             Text(stringResource(labelRes), color = VerbigemTheme.colors.ink, fontWeight = FontWeight.SemiBold)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.topup_credits, credits), color = VerbigemTheme.colors.muted, fontSize = 12.sp)
+                        }
+                    }
+                    dialogError?.let {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(it, color = VerbigemTheme.colors.danger, fontSize = 12.sp)
+                    }
+                }
+            }
+        )
+    }
+
+    // Wybór pakietu "Bez reklam" (Paddle, JEDNORAZOWA przedpłata — nie abonament).
+    // createCheckout mapuje noAds1..10 na ceny jednorazowe; paddleWebhook ustawia
+    // noAdsUntil na odpowiednią liczbę miesięcy. Status konta to wciąż PRO / Free.
+    if (showNoAds) {
+        val dialogLoading by viewModel.topUpLoading.collectAsState(initial = false)
+        val dialogError by viewModel.topUpError.collectAsState(initial = null)
+        AlertDialog(
+            onDismissRequest = { showNoAds = false; viewModel.clearTopUpError() },
+            confirmButton = {},
+            dismissButton = {
+                Button(
+                    onClick = { showNoAds = false; viewModel.clearTopUpError() },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg)
+                ) { Text(stringResource(R.string.cancel)) }
+            },
+            title = { Text(stringResource(R.string.noads_title), fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.noads_subtitle), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    listOf(
+                        "noAds1" to R.string.noads_1,
+                        "noAds3" to R.string.noads_3,
+                        "noAds5" to R.string.noads_5,
+                        "noAds10" to R.string.noads_10,
+                    ).forEach { (type, labelRes) ->
+                        Button(
+                            onClick = { showNoAds = false; viewModel.topUp(type) },
+                            enabled = !dialogLoading,
+                            colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp)
+                        ) {
+                            Text(stringResource(labelRes), color = VerbigemTheme.colors.ink, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     dialogError?.let {

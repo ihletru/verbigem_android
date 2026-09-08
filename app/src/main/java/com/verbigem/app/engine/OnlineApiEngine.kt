@@ -26,7 +26,7 @@ class OnlineApiEngine {
     // Verbigem's backend proxy — holds Verbigem's own OpenRouter key, so the
     // three curated (paid) models work for every user without any setup.
     private val proxyEndpoint =
-        "https://europe-west1-mini-verbigem.cloudfunctions.net/deepseekProxy"
+        "https://us-central1-mini-verbigem.cloudfunctions.net/deepseekProxy"
     private val openRouterChatEndpoint = "https://openrouter.ai/api/v1/chat/completions"
     private val openRouterModelsEndpoint = "https://openrouter.ai/api/v1/models"
 

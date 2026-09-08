@@ -2,6 +2,21 @@
 
 ---
 
+## v1.0.46 (2026-09-08) — versionCode 47
+
+**Werbung entfernen — einmalige Vorauszahlung, kein Abo.**
+
+- Neben **Guthaben aufladen** in der Karte zum Kontostatus gibt es jetzt die Schaltfläche **Werbung entfernen**. Sie öffnet eine sichere Einmalzahlung — du wählst einen Zeitraum und nach dem Kauf bleibt das Werbebanner für diese Dauer ausgeblendet.
+- Vier Pakete zur Auswahl: **$1 · 1 Monat**, **$3 · 3 Monate**, **$5 · 5 Monate**, **$10 · 10 Monate**.
+- Das ist **kein Abonnement** — du zahlst einmal, die Werbung bleibt für den gewählten Zeitraum ausgeblendet und nichts verlängert sich von selbst. Dein Kontostatus (PRO / Free) bleibt unverändert.
+
+## v1.0.45 (2026-09-08) — versionCode 46
+
+**Behoben: kostenpflichtige Online-Übersetzung und Guthaben aufladen.**
+
+- Der Verbigem-Server ist in eine andere Region umgezogen (passend zur Region des Projekts). Die App rief weiterhin die alte Adresse auf, deshalb **schlug das Übersetzen mit den kostenpflichtigen Online-Modellen fehl** — jetzt funktioniert es wieder.
+- **Das Aufladen des Guthabens aus der App funktionierte überhaupt nicht** — die Schaltfläche konnte aus demselben Grund keine Zahlung öffnen. Behoben; nach dem Kauf werden die Credits automatisch gutgeschrieben.
+
 ## v1.0.44 (2026-09-07) — versionCode 45
 
 **Einfachere Nutzung deines eigenen OpenRouter-Schlüssels.**

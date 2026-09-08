@@ -533,4 +533,12 @@
     <string name="topup_pay">Zur Zahlung</string>
     <string name="topup_error">Zahlung konnte nicht gestartet werden</string>
     <string name="topup_loading">Zahlung wird geöffnet…</string>
+
+    <!-- Bez reklam (jednorazowa przedpłata, nie abonament) -->
+    <string name="noads_title">Keine Werbung (einmalig)</string>
+    <string name="noads_subtitle">Einmalzahlung — blendet das Werbebanner für den gewählten Zeitraum aus. Kein Abo.</string>
+    <string name="noads_1">$1 · 1 Mon.</string>
+    <string name="noads_3">$3 · 3 Mon.</string>
+    <string name="noads_5">$5 · 5 Mon.</string>
+    <string name="noads_10">$10 · 10 Mon.</string>
 </resources>

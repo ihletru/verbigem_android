@@ -533,4 +533,12 @@
     <string name="topup_pay">去支付</string>
     <string name="topup_error">无法发起支付</string>
     <string name="topup_loading">正在打开支付…</string>
+
+    <!-- Bez reklam (jednorazowa przedpłata, nie abonament) -->
+    <string name="noads_title">去除广告（一次性）</string>
+    <string name="noads_subtitle">一次性预付 — 在所选时长内隐藏广告横幅。无订阅。</string>
+    <string name="noads_1">$1 · 1 个月</string>
+    <string name="noads_3">$3 · 3 个月</string>
+    <string name="noads_5">$5 · 5 个月</string>
+    <string name="noads_10">$10 · 10 个月</string>
 </resources>

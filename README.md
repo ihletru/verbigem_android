@@ -662,15 +662,17 @@ export FUNCTIONS_DISCOVERY_TIMEOUT=60
 
 ### ☠️ NIGDY nie deployuj funkcji bez wylistowania nazw
 
-Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, który ma własny katalog `functions/` i pięć działających funkcji produkcyjnych:
+Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, który ma własny katalog `functions/` i sześć działających funkcji produkcyjnych.
+⚠️ **Od 2026-09-08 wszystkie funkcje webminiego są w `us-central1`** (zgodnie z regionem projektu Firebase). Wcześniej były w `europe-west1`, co psuło APK: `FirebaseFunctions.getInstance()` bez regionu woła domyślnie `us-central1`, więc `createCheckout` (doładowanie portfela) w ogóle nie istniał z punktu widzenia aplikacji.
 
 | Funkcja | Region | Po co |
 |---|---|---|
-| `deepseekProxy` | europe-west1 | tłumaczenie online — OpenRouter, przekazuje wybrany model 1:1 + rozlicza z `usage.cost` |
-| `paddleWebhook` | europe-west1 | płatności — webhook Paddle |
-| `portalSession` | europe-west1 | portal klienta Paddle |
-| `visionProxy` | europe-west1 | OCR online |
-| `walletTopUp` | europe-west1 | doładowanie portfela |
+| `deepseekProxy` | us-central1 | tłumaczenie online — OpenRouter, przekazuje wybrany model 1:1 + rozlicza z `usage.cost` |
+| `paddleWebhook` | us-central1 | płatności — webhook Paddle |
+| `portalSession` | us-central1 | portal klienta Paddle |
+| `visionProxy` | us-central1 | OCR online |
+| `walletTopUp` | us-central1 | doładowanie portfela |
+| `createCheckout` | us-central1 | otwiera checkout Paddle (APK: doładowanie portfela) |
 
 Oba projekty mają `codebase: default`, więc Firebase widzi **jeden** zbiór funkcji. `firebase deploy --only functions` uruchomiony stąd uznaje tamte pięć za osierocone i chce je **usunąć**. W trybie nieinteraktywnym na szczęście się wykłada (`Aborting because deletion cannot proceed in non-interactive mode`) — z `--force` po prostu by je skasowało: **płatności, OCR i portfel przestałyby działać.**
 

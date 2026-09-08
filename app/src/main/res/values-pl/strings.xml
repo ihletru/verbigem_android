@@ -552,4 +552,12 @@
     <string name="topup_pay">Przejdź do płatności</string>
     <string name="topup_error">Nie udało się rozpocząć płatności</string>
     <string name="topup_loading">Otwieram płatność…</string>
+
+    <!-- Bez reklam (jednorazowa przedpłata, nie abonament) -->
+    <string name="noads_title">Usuń reklamy (jednorazowo)</string>
+    <string name="noads_subtitle">Jednorazowa przedpłata — ukrywa banner reklamowy na wybrany okres. Bez abonamentu.</string>
+    <string name="noads_1">$1 · 1 msc</string>
+    <string name="noads_3">$3 · 3 msc</string>
+    <string name="noads_5">$5 · 5 msc</string>
+    <string name="noads_10">$10 · 10 msc</string>
 </resources>

@@ -2,6 +2,21 @@
 
 ---
 
+## v1.0.46 (2026-09-08) — versionCode 47
+
+**Quitar anuncios — pago único, sin suscripción.**
+
+- Junto a **Recargar cartera** en la tarjeta de estado de la cuenta aparece ahora el botón **Quitar anuncios**. Abre un pago único seguro: eliges un periodo y, tras pagar, el banner de anuncios se oculta durante ese tiempo.
+- Cuatro opciones a elegir: **$1 · 1 mes**, **$3 · 3 meses**, **$5 · 5 meses**, **$10 · 10 meses**.
+- **No es una suscripción**: pagas una sola vez, los anuncios se ocultan durante el periodo elegido y nada se renueva automáticamente. El estado de la cuenta (PRO / Free) no cambia.
+
+## v1.0.45 (2026-09-08) — versionCode 46
+
+**Corregido: traducción online de pago y recarga de cartera.**
+
+- El servidor de Verbigem se ha mudado a otra región (la misma del proyecto). La app seguía llamando a la dirección antigua, por lo que **la traducción con los modelos online de pago fallaba** — ahora vuelve a funcionar.
+- **Recargar la cartera desde la app no funcionaba en absoluto** — el botón no podía abrir la pasarela de pago por el mismo motivo. Corregido; los créditos se añaden automáticamente tras el pago.
+
 ## v1.0.44 (2026-09-07) — versionCode 45
 
 **Más fácil usar tu propia clave de OpenRouter.**

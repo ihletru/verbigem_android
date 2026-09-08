@@ -554,4 +554,12 @@
     <string name="topup_pay">Continue to payment</string>
     <string name="topup_error">Couldn\'t start the payment</string>
     <string name="topup_loading">Opening payment…</string>
+
+    <!-- Bez reklam (jednorazowa przedpłata, nie abonament) -->
+    <string name="noads_title">Remove ads (one-time)</string>
+    <string name="noads_subtitle">One-time prepaid — hides the ad banner for the chosen period. No subscription.</string>
+    <string name="noads_1">$1 · 1 mo</string>
+    <string name="noads_3">$3 · 3 mo</string>
+    <string name="noads_5">$5 · 5 mo</string>
+    <string name="noads_10">$10 · 10 mo</string>
 </resources>

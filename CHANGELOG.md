@@ -2,6 +2,21 @@
 
 ---
 
+## v1.0.46 (2026-09-08) — versionCode 47
+
+**Usuń reklamy — jednorazowa przedpłata, bez abonamentu.**
+
+- W karcie statusu konta, obok **Doładuj portfel**, pojawił się przycisk **Usuń reklamy**. Otwiera bezpieczną płatność jednorazową — wybierasz okres, a po zakupie banner reklamowy znika na ten czas.
+- Do wyboru cztery pakiety: **$1 · 1 msc**, **$3 · 3 msc**, **$5 · 5 msc**, **$10 · 10 msc**.
+- To **nie jest abonament** — płacisz raz, reklamy pozostają ukryte przez wybrany okres i nic nie odnawia się samo. Stan konta (PRO / Free) nie zmienia się.
+
+## v1.0.45 (2026-09-08) — versionCode 46
+
+**Naprawione: płatne tłumaczenia online i doładowanie portfela.**
+
+- Serwer Verbigema przeniósł się do innego regionu (zgodnie z regionem projektu). Aplikacja wciąż wołała stary adres, przez co **tłumaczenie płatnymi modelami online kończyło się błędem** — teraz działa ponownie.
+- **Doładowanie portfela z aplikacji w ogóle nie działało** — przycisk nie potrafił otworzyć płatności z tego samego powodu. Naprawione; po zakupie kredyty dopisują się automatycznie.
+
 ## v1.0.44 (2026-09-07) — versionCode 45
 
 **Łatwiejsze korzystanie z własnego klucza OpenRouter.**
