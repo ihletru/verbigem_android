@@ -19,6 +19,15 @@ data class UserProfile(
     @ServerTimestamp
     val updatedAt: Timestamp? = null
 ) {
+    /**
+     * Status PRO jest WYLICZANY, nie zapisany: konto jest PRO wtedy i tylko wtedy,
+     * gdy spełniony jest co najmniej jeden z dwóch warunków:
+     *   1. aktywne wykupienie wyłączenia bannera (noAdsUntil w przyszłości),
+     *   2. saldo portfela > 0.
+     * Gdy żaden nie jest spełniony (np. wygaśnięcie noAds przy zerowym portfelu),
+     * konto wraca na FREE. Zapisane pole [plan] jest tylko informacyjne i NIE
+     * może być tu używane jako źródło prawdy.
+     */
     val isPro: Boolean
-        get() = plan == "pro" || (noAdsUntil != null && noAdsUntil > System.currentTimeMillis()) || walletCreditsCents > 0
+        get() = (noAdsUntil != null && noAdsUntil > System.currentTimeMillis()) || walletCreditsCents > 0
 }

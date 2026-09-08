@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.48 (2026-09-08) — versionCode 49
+
+**PRO-Status wird jetzt berechnet, nicht dauerhaft gespeichert.**
+
+- Konto ist PRO nur bei aktivem Werbe-Entfernungs-Kauf (`noAdsUntil` in der Zukunft) oder Guthaben > 0.
+- Beim Ablauf von `noAdsUntil` mit leerem Guthaben kehrt das Konto zu Free zurück. Das Feld `plan` ist nur informativ.
+
 ## v1.0.47 (2026-09-08) — versionCode 48
 
 **Kontostatus nach dem Kauf von „Werbung entfernen".**

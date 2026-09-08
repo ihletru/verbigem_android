@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.48 (2026-09-08) — versionCode 49
+
+**El estado PRO ahora se calcula, no se guarda de forma permanente.**
+
+- La cuenta es PRO solo con compra activa de eliminación de anuncios (`noAdsUntil` en el futuro) o saldo de monedero > 0.
+- Al caducar `noAdsUntil` con monedero vacío, la cuenta vuelve a Free. El campo `plan` es solo informativo.
+
 ## v1.0.47 (2026-09-08) — versionCode 48
 
 **Estado de la cuenta tras comprar «Quitar anuncios».**

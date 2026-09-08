@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.48 (2026-09-08) — versionCode 49
+
+**PRO durumu artık sabit kaydedilmiyor, hesaplanıyor.**
+
+- Hesap yalnızca aktif reklam kaldırma satın alımı (gelecekte `noAdsUntil`) veya cüzdan bakiyesi > 0 ise PRO'dur.
+- `noAdsUntil` boş cüzdanla dolduğunda hesap Free'e döner. `plan` alanı yalnızca bilgilendirmedir.
+
 ## v1.0.47 (2026-09-08) — versionCode 48
 
 **„Reklamları kaldır" satın aldıktan sonra hesap durumu.**

@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.48 (2026-09-08) — versionCode 49
+
+**PRO status is now derived, not stored permanently.**
+
+- Account is PRO only when an active ad-removal purchase (`noAdsUntil` in the future) OR wallet balance > 0.
+- On `noAdsUntil` expiry with empty wallet the account returns to Free. The stored `plan` field is informational only.
+
 ## v1.0.47 (2026-09-08) — versionCode 48
 
 **Account status after buying "Remove ads".**
