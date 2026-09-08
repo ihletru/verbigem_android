@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.44`** (versionCode 45) —
+> 📦 **Aktualna wersja: `v1.0.46`** (versionCode 47) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -469,6 +469,14 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
   (`transaction.completed`, `customData.type` zaczynające się na `wallet`) dopisuje
   `wallet.creditsCents` — portfel odświeża się na żywo (snapshota `users/{uid}`).
   ⚠️ `walletTopUp` to funkcja **admin-only** (ręczne dopisywanie) — NIE używana z apki.
+- **Usuń reklamy (od v1.0.46):** obok „Doładuj portfel" jest guzik **Usuń reklamy** z 4
+  pakietami `$1/$3/$5/$10 → 1/3/5/10 msc` (`noAds1/3/5/10`). To **przedpłata jednorazowa**
+  (ceny Paddle bez `billingCycle`) — NIE abonament; ten sam `createCheckout`, a
+  `paddleWebhook` przy `customData.type` zaczynającym się na `noads` ustawia
+  `noAdsUntil = teraz + miesiące × 30 dni` (dolicza się do już wykupionego okresu).
+  Status konta nadal pokazuje tylko **PRO 💎 / Free 🆓**. Katalog LIVE: produkt
+  `pro_01m2133ymye9s0dxhtgyh3tqma` + 4 ceny w `NOADS_PRICES` (`functions/index.js`
+  w repo `mini`) — zob. `scripts/provision-no-ads-onetime-live.mjs`.
 
 ---
 
