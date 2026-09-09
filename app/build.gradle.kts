@@ -40,10 +40,8 @@ android {
         // polityk, nie zarabiają. Podmień oba na ID z konsoli AdMob i tyle.
         // App ID Verbigema (AdMob → Aplikacje → identyfikator aplikacji).
         val admobAppId = "ca-app-pub-7473087307651079~4666239941"
-        // TODO: podmień na jednostkę banera z konsoli AdMob (Aplikacje → Verbigem →
-        // Jednostki reklamowe → Baner). Póki jej nie ma, zostaje testowa Google'a:
-        // działa z dowolnym App ID i nie łamie polityk, ale nie zarabia.
-        val admobBannerUnitId = "ca-app-pub-3940256099942544/9214589741"
+        // Jednostka banera (AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner).
+        val admobBannerUnitId = "ca-app-pub-7473087307651079/6237092472"
         buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppId\"")
         buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$admobBannerUnitId\"")
         // UMP (zgody RODO) czyta App ID z manifestu, nie z kodu — ten sam placeholder
