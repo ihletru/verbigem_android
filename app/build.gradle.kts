@@ -32,6 +32,24 @@ android {
         // aplikacja spróbuje go użyć i GPU init poleci na starych urządzeniach.
         buildConfigField("String", "GGML_BACKENDS", "\"CPU\"")
 
+        // --- AdMob (GMA Next-Gen SDK) ---------------------------------------
+        // ⚠️ APK dystrybuowany auto-update'm jest buildem DEBUGOWYM, więc NIE WOLNO
+        // przełączać tych ID po `BuildConfig.DEBUG` — realni użytkownicy dostawaliby
+        // reklamy testowe do końca świata. JEDYNE miejsce do zmiany to dwie stałe
+        // poniżej. `3940256099942544` to testowe ID Google'a: bezpieczne, nie łamią
+        // polityk, nie zarabiają. Podmień oba na ID z konsoli AdMob i tyle.
+        // App ID Verbigema (AdMob → Aplikacje → identyfikator aplikacji).
+        val admobAppId = "ca-app-pub-7473087307651079~4666239941"
+        // TODO: podmień na jednostkę banera z konsoli AdMob (Aplikacje → Verbigem →
+        // Jednostki reklamowe → Baner). Póki jej nie ma, zostaje testowa Google'a:
+        // działa z dowolnym App ID i nie łamie polityk, ale nie zarabia.
+        val admobBannerUnitId = "ca-app-pub-3940256099942544/9214589741"
+        buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppId\"")
+        buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$admobBannerUnitId\"")
+        // UMP (zgody RODO) czyta App ID z manifestu, nie z kodu — ten sam placeholder
+        // ląduje w AndroidManifest.xml, żeby oba miejsca nigdy się nie rozjechały.
+        manifestPlaceholders["admobAppId"] = admobAppId
+
         // OpenCL: biała lista SoC (wartości `ro.soc.model`, np. "SM8650").
         // PUSTA = OpenCL wyłączone wszędzie. To nie jest ostrożność na wyrost:
         // zmierzono, że na Adreno 610 ggml-opencl jest 4x WOLNIEJSZY od CPU
@@ -172,6 +190,10 @@ dependencies {
     implementation(libs.play.services.code.scanner)
     // Obrazki w czatach (Faza 5): Coil — AsyncImage + cache (5.4)
     implementation(libs.coil.compose)
+
+    // Reklamy: GMA Next-Gen SDK (banery) + UMP (zgody RODO/EOG, osobny artefakt)
+    implementation(libs.gma.ads)
+    implementation(libs.ump.user.messaging)
 
     debugImplementation(libs.androidx.ui.tooling)
 }

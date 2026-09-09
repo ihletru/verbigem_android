@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.verbigem.app.ads.AdsConsent
 import com.verbigem.app.data.ProfileLinks
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.engine.UpdateManager
@@ -123,6 +125,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+
+        // Zgody reklamowe (UMP) — raz na start aplikacji, w tle. Formularz pokazuje
+        // się TYLKO gdy jest wymagany (EOG / UK / CH); wszędzie indziej to no-op.
+        // ⚠️ Musi polecieć PRZED pierwszą reklamą: AdsConsent inicjuje SDK dopiero
+        // gdy `canRequestAds()` zwróci true, więc baner nie zdąży niczego odpalić
+        // bez zgody. Nie przenoś tego do VerbigemApplication — UMP potrzebuje
+        // prawdziwego Activity, a tam go nie ma.
+        lifecycleScope.launch {
+            runCatching { AdsConsent.refresh(this@MainActivity) }
+                .onFailure { Log.e("MainActivity", "Ad consent flow failed", it) }
         }
     }
 

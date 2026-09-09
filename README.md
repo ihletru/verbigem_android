@@ -312,6 +312,8 @@ app/src/main/
 ├── java/com/verbigem/app/
 │   ├── MainActivity.kt             # Entry point, Edge-to-Edge Compose, dialog auto-update, deep linki
 │   ├── VerbigemApplication.kt      # Firebase + SyncManager + ConnectivityObserver + App Check + FCM
+│   ├── ads/
+│   │   └── AdsConsent.kt               # Zgody UMP (RODO/EOG) + inicjalizacja AdMob — kolejnosc wymuszona kodem
 │   ├── data/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline
 │   │   ├── local/                  # Room v9: History, OcrHistory, TtsConfig, PendingDelete,
@@ -339,7 +341,8 @@ app/src/main/
 │   ├── jni/LlamaNativeBridge.kt    # JNI external fun
 │   └── ui/
 │       ├── components/             # FlagIcon, LangSelect, BottomNav, EnginePicker, DownloadDialog,
-│       │                           #   AdBannerView, ProFeatureButton (Pro + grayscale + tooltip),
+│       │                           #   AdBannerView (AdMob: AndroidView + AdView.loadAd, placeholder
+│       │                           #   dopoki AdsConsent.adsReady), ProFeatureButton (Pro + grayscale + tooltip),
 │       │                           #   HelpDialog (HelpWindow/helpClickable/HelpIconButton/
 │       │                           #   HelpFramedIconButton/QuestionMarkButton/ScreenHeader)
 │       ├── navigation/             # AppNavigation, Screen
@@ -479,6 +482,82 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
   **licznik dni do wznowienia reklam** (`noads_resume_in`). Katalog LIVE: produkt
   `pro_01m2133ymye9s0dxhtgyh3tqma` + 4 ceny w `NOADS_PRICES` (`functions/index.js`
   w repo `mini`) — zob. `scripts/provision-no-ads-onetime-live.mjs`.
+
+---
+
+## 📢 Reklamy (AdMob — GMA Next-Gen SDK)
+
+Prawdziwy baner na dole ekranu Tłumacza, tylko dla kont Free. **SDK nowej generacji**,
+nie klasyczny `play-services-ads`.
+
+| Rzecz | Gdzie |
+|---|---|
+| Zależności | `libs.versions.toml` → `gma-ads` (`ads-mobile-sdk:1.2.1`) + `ump-user-messaging` (`user-messaging-platform:4.0.0`) |
+| **ID aplikacji i jednostki — JEDYNE miejsce** | `app/build.gradle.kts`, stałe `admobAppId` / `admobBannerUnitId` (→ `BuildConfig.ADMOB_APP_ID` / `ADMOB_BANNER_UNIT_ID`) |
+| App ID w manifeście | `AndroidManifest.xml` — `meta-data com.google.android.gms.ads.APPLICATION_ID` = `${admobAppId}` (**wymóg UMP**) |
+| Zgody + inicjalizacja | `ads/AdsConsent.kt` |
+| Baner (Compose) | `ui/components/AdBannerView.kt` (`AndroidView` + `AdView.loadAd`) |
+| Wywołanie zgód | `MainActivity.onCreate` → `lifecycleScope.launch { AdsConsent.refresh(this) }` |
+
+### ⚠️ Kolejność: zgoda → SDK → reklama (wymuszona kodem, nie konwencją)
+
+Google wprost ostrzega: SDK potrafi wstępnie pobrać reklamy **już w trakcie inicjalizacji**.
+Dlatego `MobileAds.initialize()` odpala się **dopiero gdy `canRequestAds()` zwróci true**,
+czyli po `requestConsentInfoUpdate()` + ewentualnym formularzu UMP. Baner czyta
+`AdsConsent.adsReady` i do tego momentu pokazuje placeholder. **Nie zamieniaj tej
+kolejności** — request reklamowy przed zgodą w EOG to najszybsza droga do zamknięcia
+konta w AdMobie.
+
+- `canRequestAds()` zwraca **`false` zawsze, dopóki nie wywoła się
+  `requestConsentInfoUpdate()`** — nawet gdy zgoda z poprzedniej sesji jest ważna.
+  Sprawdzamy je więc dopiero po odświeżeniu.
+- Formularz UMP pokazuje się **tylko gdy jest wymagany** (EOG / UK / CH). W Paragwaju,
+  USA czy Chinach to no-op i od razu leci inicjalizacja SDK.
+- `MobileAds.initialize()` idzie na `Dispatchers.IO` — na głównym wątku grozi ANR.
+
+### ⚠️ NIE kluczuj ID reklam po `BuildConfig.DEBUG`
+
+APK dystrybuowany auto-update'm jest buildem **debugowym** (patrz App Check). Gdyby
+testowe ID włączały się od `BuildConfig.DEBUG`, realni użytkownicy dostawaliby reklamy
+testowe do końca świata. Przełącznik jest ręczny: obie stałe w `build.gradle.kts`.
+
+Testowe ID Google'a (`ca-app-pub-3940256099942544/…`) działają z dowolnym App ID i nie
+łamią polityk — można ich używać, póki nie ma prawdziwej jednostki banera.
+
+### ✅ Do domknięcia przed premierą
+
+1. **Jednostka banera** — AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner;
+   ID wstawić do `admobBannerUnitId`.
+2. **Wejście do ustawień prywatności (EOG)** — Google wymaga go, gdy
+   `privacyOptionsRequirementStatus == REQUIRED`. Helper już jest
+   (`AdsConsent.privacyOptionsRequired()` / `showPrivacyOptions()`), brakuje karty
+   w `ProfileScreen` + stringów `privacy_options_*` × 6 języków.
+3. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
+   (`AD_ID`) i danych o użytkowaniu.
+
+---
+
+## 🌐 Reklamy w webappie — AdMob tu NIE zadziała
+
+**AdMob obsługuje wyłącznie aplikacje mobilne.** Na stronę potrzebny jest osobny produkt:
+**Google AdSense** (osobna rejestracja + weryfikacja domeny). Checklista:
+
+1. Zgłosić `mini.verbigem.com` do AdSense i przejść weryfikację domeny.
+2. **`mini/public/ads.txt`** → `google.com, pub-<TWOJE-ID>, DIRECT, f08c47fec0942fa0`
+   (Vite kopiuje `public/` → `dist/`).
+3. ☠️ **Polityka prywatności kłamie.** `mini/scripts/build_privacy.py` (wszystkie 6 języków)
+   ma zdanie *„Nie używamy zestawów SDK reklamowych ani narzędzi analitycznych"* — przed
+   wstawieniem reklam **musi** tam pojawić się sekcja o cookies i Google jako dostawcy
+   reklam (wymóg AdSense). Regeneracja: `python scripts/build_privacy.py` + deploy hostingu.
+4. ☠️ **`index.html` obiecuje „bez reklam"** — meta `description`, `og:description`
+   i JSON-LD. Trzy miejsca do poprawki.
+5. **SPA:** mini to `react-router` — zwykły `<ins class="adsbygoogle">` nie odświeża się
+   przy zmianie trasy. Albo Auto Ads (sam nasłuchuje), albo ręczne
+   `(adsbygoogle = window.adsbygoogle || []).push({})` w `AdBanner.tsx` przy zmianie
+   lokalizacji.
+6. **Zgody (CMP)** — jak UMP w Androidzie: AdSense wymaga certyfikowanego CMP dla EOG.
+   ⚠️ Deploy: procedura z sekcji *„mini.verbigem.com to TA SAMA webapp"* — `npm run build`
+   przebudowuje całą stronę, nie tylko reklamy.
 
 ---
 

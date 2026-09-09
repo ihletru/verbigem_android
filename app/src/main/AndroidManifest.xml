@@ -92,6 +92,14 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- AdMob / UMP: identyfikator aplikacji. Wartość leci z `manifestPlaceholders`
+             w app/build.gradle.kts — JEDNO źródło prawdy z `BuildConfig.ADMOB_APP_ID`
+             (gdyby się rozjechały, UMP pokaże formularz dla innej aplikacji).
+             Next-Gen SDK dostaje App ID w kodzie, ale UMP czyta go stąd. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
     </application>
 
 </manifest>
