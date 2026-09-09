@@ -41,6 +41,14 @@ object AdsConsent {
     private val _adsReady = MutableStateFlow(false)
     val adsReady: StateFlow<Boolean> get() = _adsReady
 
+    /**
+     * Czy użytkownik MUSI mieć w aplikacji wejście do ustawień prywatności
+     * (EOG / UK / CH). Flow, nie zwykła funkcja: Profil czyta to w Compose i musi
+     * zareagować, gdy UMP zmieni zdanie po pokazaniu formularza.
+     */
+    private val _privacyOptionsRequired = MutableStateFlow(false)
+    val privacyOptionsRequired: StateFlow<Boolean> get() = _privacyOptionsRequired
+
     private val sdkInitializing = AtomicBoolean(false)
     @Volatile private var sdkInitialized = false
 
@@ -70,6 +78,10 @@ object AdsConsent {
         // wciąż ważna. Dlatego sprawdzamy je dopiero tutaj, po odświeżeniu.
         // Błąd odświeżenia nie jest blokadą: SDK UMP używa wtedy stanu z poprzedniej
         // sesji i to on decyduje.
+        _privacyOptionsRequired.value =
+            info.privacyOptionsRequirementStatus ==
+                ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+
         if (info.canRequestAds()) {
             initializeSdk(activity.applicationContext)
         } else {
@@ -77,16 +89,7 @@ object AdsConsent {
         }
     }
 
-    /**
-     * Czy użytkownik MUSI mieć w aplikacji wejście do ustawień prywatności
-     * (EOG/UK/CH). ⚠️ TODO: dodać kartę w Profilu wołającą [showPrivacyOptions] —
-     * bez tego nie spełniamy wymogu Google'a dla użytkowników z EOG.
-     */
-    fun privacyOptionsRequired(): Boolean =
-        consentInfo?.privacyOptionsRequirementStatus ==
-            ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
-
-    /** Otwiera formularz zmiany zgód (do podpięcia pod Profil — patrz wyżej). */
+    /** Otwiera formularz zmiany zgód (karta „Ustawienia prywatności" w Profilu). */
     suspend fun showPrivacyOptions(activity: Activity) = withContext(Dispatchers.Main) {
         suspendCancellableCoroutine { cont ->
             UserMessagingPlatform.showPrivacyOptionsForm(activity) { err ->

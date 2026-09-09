@@ -50,6 +50,8 @@
     <string name="privacy_label">GİZLİLİK</string>
     <string name="privacy_policy">Gizlilik politikası</string>
     <string name="privacy_policy_desc">Verbigem verilerinizi nasıl işler</string>
+    <string name="privacy_ad_settings">Reklam gizlilik ayarları</string>
+    <string name="privacy_ad_settings_desc">Reklam izinlerinizi değiştirin</string>
     <string name="about_label">Hakkında</string>
     <string name="app_version">Sürüm %1$s · derleme %2$d</string>
     <string name="whats_new_label">Yenilikler</string>

@@ -528,12 +528,17 @@ Testowe ID Google'a (`ca-app-pub-3940256099942544/…`) działają z dowolnym Ap
 
 1. **Jednostka banera** — AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner;
    ID wstawić do `admobBannerUnitId`.
-2. **Wejście do ustawień prywatności (EOG)** — Google wymaga go, gdy
-   `privacyOptionsRequirementStatus == REQUIRED`. Helper już jest
-   (`AdsConsent.privacyOptionsRequired()` / `showPrivacyOptions()`), brakuje karty
-   w `ProfileScreen` + stringów `privacy_options_*` × 6 języków.
-3. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
-   (`AD_ID`) i danych o użytkowaniu.
+2. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
+   (`AD_ID`) i danych o użytkowaniu. Tylko w konsoli, nic w kodzie.
+
+### Wejście do ustawień prywatności (wymóg dla EOG) — zrobione
+
+Karta **„Ustawienia prywatności reklam"** w Profilu, pod polityką prywatności. Pokazuje
+się **tylko gdy `AdsConsent.privacyOptionsRequired`** — czyli wyłącznie dla użytkowników
+z EOG / UK / CH (reszta świata jej nie zobaczy) i nie dla kont Pro (te nie widzą reklam,
+więc nie ma czego wycofywać). Woła `AdsConsent.showPrivacyOptions(activity)`; Activity
+bierzemy przez `context.findActivity()`, bo UMP nie przyjmie zwykłego kontekstu.
+Stringi: `privacy_ad_settings` / `privacy_ad_settings_desc` × 6 języków.
 
 ---
 

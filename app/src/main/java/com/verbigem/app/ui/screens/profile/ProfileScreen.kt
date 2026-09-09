@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -61,6 +62,10 @@ import com.verbigem.app.ui.components.buildOpenRouterLinkedText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.BuildConfig
+import com.verbigem.app.ads.AdsConsent
+import com.verbigem.app.ui.screens.phone.findActivity
+import kotlinx.coroutines.launch
+import android.util.Log
 import com.verbigem.app.data.AppLinks
 import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
@@ -89,6 +94,10 @@ fun ProfileScreen(
     val currentMode by viewModel.currentMode.collectAsState(initial = "day")
     val currentUiLang by viewModel.currentUiLang.collectAsState(initial = "pl")
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // UMP (zgody reklamowe) mówi, czy użytkownik MUSI mieć wejście do ustawień
+    // prywatności — prawda tylko w EOG / UK / CH.
+    val privacyOptionsRequired by AdsConsent.privacyOptionsRequired.collectAsState()
 
     // Online translation models (OpenRouter) + own API key.
     val onlineModel by viewModel.onlineModelFlow.collectAsState(initial = OnlineModels.DEFAULT_ID)
@@ -759,6 +768,59 @@ fun ProfileScreen(
                         tint = VerbigemTheme.colors.muted,
                         modifier = Modifier.size(18.dp)
                     )
+                }
+
+                // Zgody reklamowe (UMP) — karta pokazuje się TYLKO gdy UMP tego
+                // wymaga, czyli dla użytkowników z EOG / UK / CH. Reszta świata
+                // jej nie zobaczy. Konta Pro nie widzą reklam, więc też jej nie
+                // dostają — nie ma czego wycofywać.
+                if (privacyOptionsRequired && profile?.isPro != true) {
+                    val activity = context.findActivity()
+                    if (activity != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    scope.launch {
+                                        runCatching { AdsConsent.showPrivacyOptions(activity) }
+                                            .onFailure {
+                                                Log.e("ProfileScreen", "Privacy options failed", it)
+                                            }
+                                    }
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = VerbigemTheme.colors.accent,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(R.string.privacy_ad_settings),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = VerbigemTheme.colors.ink
+                                )
+                                Text(
+                                    stringResource(R.string.privacy_ad_settings_desc),
+                                    fontSize = 12.sp,
+                                    color = VerbigemTheme.colors.muted
+                                )
+                            }
+                            Icon(
+                                Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                tint = VerbigemTheme.colors.muted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

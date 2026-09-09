@@ -50,6 +50,8 @@
     <string name="privacy_label">隐私</string>
     <string name="privacy_policy">隐私政策</string>
     <string name="privacy_policy_desc">Verbigem 如何处理您的数据</string>
+    <string name="privacy_ad_settings">广告隐私设置</string>
+    <string name="privacy_ad_settings_desc">更改您的广告同意选项</string>
     <string name="about_label">关于</string>
     <string name="app_version">版本 %1$s · 构建 %2$d</string>
     <string name="whats_new_label">更新日志</string>

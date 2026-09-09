@@ -53,6 +53,8 @@
     <string name="privacy_label">PRYWATNOŚĆ</string>
     <string name="privacy_policy">Polityka prywatności</string>
     <string name="privacy_policy_desc">Jak Verbigem przetwarza Twoje dane</string>
+    <string name="privacy_ad_settings">Ustawienia prywatności reklam</string>
+    <string name="privacy_ad_settings_desc">Zmień zgody na reklamy</string>
     <string name="about_label">O aplikacji</string>
     <string name="app_version">Wersja %1$s · build %2$d</string>
     <string name="whats_new_label">Co nowego</string>

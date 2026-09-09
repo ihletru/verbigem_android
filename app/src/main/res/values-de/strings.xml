@@ -50,6 +50,8 @@
     <string name="privacy_label">DATENSCHUTZ</string>
     <string name="privacy_policy">Datenschutzerklärung</string>
     <string name="privacy_policy_desc">Wie Verbigem Ihre Daten verarbeitet</string>
+    <string name="privacy_ad_settings">Datenschutz für Anzeigen</string>
+    <string name="privacy_ad_settings_desc">Ihre Einwilligung für Anzeigen ändern</string>
     <string name="about_label">Über</string>
     <string name="app_version">Version %1$s · Build %2$d</string>
     <string name="whats_new_label">Neuigkeiten</string>

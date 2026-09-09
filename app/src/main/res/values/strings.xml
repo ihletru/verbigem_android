@@ -53,6 +53,10 @@
     <string name="privacy_label">PRIVACY</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="privacy_policy_desc">How Verbigem handles your data</string>
+    <!-- AdMob/UMP: wejście do zmiany zgód reklamowych. Pokazywane TYLKO gdy UMP
+         tego wymaga (EOG / UK / CH) — reszta świata go nie zobaczy. -->
+    <string name="privacy_ad_settings">Ad privacy settings</string>
+    <string name="privacy_ad_settings_desc">Change your ad consent choices</string>
     <string name="about_label">About</string>
     <string name="app_version">Version %1$s · build %2$d</string>
     <string name="whats_new_label">What\'s new</string>
