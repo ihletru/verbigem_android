@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.53`** (versionCode 54) — skaner (OCR) ma własny wybór silnika + nagłówek wyniku bez polskiego „Szybki" w obcych locale —
+> 📦 **Aktualna wersja: `v1.0.54`** (versionCode 55) — komunikaty błędów wreszcie w 6 językach (były wpisane na sztywno w kodzie) + wybór silnika w skanerze —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)

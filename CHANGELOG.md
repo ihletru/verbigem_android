@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.54 (2026-09-10) — versionCode 55
+
+**Naprawione: komunikaty błędów były po polsku (albo po angielsku) bez względu na język aplikacji.**
+
+- Część błędów — logowanie, tłumaczenie w trybie rozmowy, rozpoznawanie tekstu ze zdjęcia, Czytaj Pro — miała treść wpisaną na sztywno w kodzie. Przy aplikacji po angielsku, niemiecku, hiszpańsku, turecku albo chińsku dostawałeś polskie zdanie, np. „Błąd logowania".
+- Wszystkie komunikaty błędów idą teraz przez te same zasoby co reszta interfejsu, więc są w 6 językach.
+- Przy okazji przejrzeliśmy całą lokalizację: 482 teksty, żadnego braku w żadnym z 6 języków.
+
 ## v1.0.53 (2026-09-09) — versionCode 54
 
 **Nowe: ekran skanera (OCR) ma własny wybór silnika.**

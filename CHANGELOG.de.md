@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.54 (2026-09-10) — versionCode 55
+
+**Behoben: Fehlermeldungen waren unabhängig von der App-Sprache polnisch (oder englisch).**
+
+- Manche Fehler — Anmeldung, Übersetzung im Gesprächsmodus, Texterkennung vom Foto, Vorlesen Pro — hatten ihren Text fest im Code stehen. Bei englischer, deutscher, spanischer, türkischer oder chinesischer App bekam man trotzdem einen polnischen Satz, z. B. „Błąd logowania".
+- Alle Fehlermeldungen kommen jetzt aus denselben Ressourcen wie der Rest der Oberfläche und sind damit in allen 6 Sprachen vorhanden.
+- Dabei haben wir die gesamte Lokalisierung geprüft: 482 Texte, in keiner der 6 Sprachen fehlt einer.
+
 ## v1.0.53 (2026-09-09) — versionCode 54
 
 **Neu: der Scanner-Bildschirm (OCR) hat eine eigene Motor-Auswahl.**

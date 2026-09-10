@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.54 (2026-09-10) — versionCode 55
+
+**Corregido: los mensajes de error salían en polaco (o en inglés) sin importar el idioma de la aplicación.**
+
+- Algunos errores —inicio de sesión, traducción en modo conversación, reconocimiento de texto desde una foto, Lectura Pro— tenían el texto escrito directamente en el código. Con la aplicación en inglés, alemán, español, turco o chino aparecía igualmente una frase en polaco, p. ej. «Błąd logowania».
+- Todos los mensajes de error salen ahora de los mismos recursos que el resto de la interfaz, así que están en los 6 idiomas.
+- De paso revisamos toda la localización: 482 textos, ninguno falta en ninguno de los 6 idiomas.
+
 ## v1.0.53 (2026-09-09) — versionCode 54
 
 **Nuevo: la pantalla del escáner (OCR) tiene su propio selector de motor.**

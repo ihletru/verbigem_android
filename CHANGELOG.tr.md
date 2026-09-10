@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.54 (2026-09-10) — versionCode 55
+
+**Düzeltildi: hata mesajları uygulama diline bakılmadan Lehçe (veya İngilizce) çıkıyordu.**
+
+- Bazı hataların —giriş, sohbet modunda çeviri, fotoğraftan metin tanıma, Pro Okuma— metni doğrudan kodun içine yazılmıştı. Uygulama İngilizce, Almanca, İspanyolca, Türkçe ya da Çince olsa bile Lehçe bir cümle görünüyordu, örn. «Błąd logowania».
+- Artık tüm hata mesajları arayüzün geri kalanıyla aynı kaynaklardan geliyor, yani 6 dilde de var.
+- Bu arada tüm yerelleştirmeyi denetledik: 482 metin, 6 dilin hiçbirinde eksik yok.
+
 ## v1.0.53 (2026-09-09) — versionCode 54
 
 **Yeni: tarayıcı (OCR) ekranında artık motor seçimi var.**

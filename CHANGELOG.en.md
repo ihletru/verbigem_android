@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.54 (2026-09-10) — versionCode 55
+
+**Fixed: error messages were in Polish (or English) regardless of the app language.**
+
+- Some errors — sign-in, conversation-mode translation, text recognition from a photo, Read Pro — had their text hardcoded. With the app set to English, German, Spanish, Turkish or Chinese you still got a Polish sentence, e.g. "Błąd logowania".
+- All error messages now come from the same resources as the rest of the interface, so they exist in all 6 languages.
+- We also audited the whole localization: 482 strings, none missing in any of the 6 languages.
+
 ## v1.0.53 (2026-09-09) — versionCode 54
 
 **New: the scanner (OCR) screen has its own engine picker.**
