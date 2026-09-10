@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.60 (2026-09-10) — versionCode 61
+
+**Build: derleme/hedef SDK API 36 (Android 16) seviyesine yükseltildi.**
+
+- Google Play, 2026-08-31'den itibaren yeni uygulamaların en az API 36'yı hedeflemesini zorunlu kılıyor; `compileSdk` ve `targetSdk` 35'ten 36'ya yükseltildi.
+- Kodda değişiklik yok; yalnızca derleme hedefi. Son kullanıcılar fark görmez.
+
 ## v1.0.59 (2026-09-10) — versionCode 60
 
 **Düzeltildi: «Imported 5 contact», «1 mutual friends».**

@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.60 (2026-09-10) — versionCode 61
+
+**Build: SDK de compilación y destino subido a API 36 (Android 16).**
+
+- Google Play exige desde el 2026-08-31 que las aplicaciones nuevas apunten al menos a API 36; subimos `compileSdk` y `targetSdk` de 35 a 36.
+- Sin cambios de código; solo el destino de compilación. Los usuarios finales no notan ninguna diferencia.
+
 ## v1.0.59 (2026-09-10) — versionCode 60
 
 **Corregido: «Imported 5 contact», «1 mutual friends».**

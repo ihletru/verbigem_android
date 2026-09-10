@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.60 (2026-09-10) — versionCode 61
+
+**构建：编译/目标 SDK 提升至 API 36（Android 16）。**
+
+- Google Play 自 2026-08-31 起要求新应用至少以 API 36 为目标；我们将 `compileSdk` 和 `targetSdk` 从 35 提升到 36。
+- 无代码变更，仅构建目标调整。终端用户无感知。
+
 ## v1.0.59 (2026-09-10) — versionCode 60
 
 **修复：「Imported 5 contact」「1 mutual friends」这类数量错误。**

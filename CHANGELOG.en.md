@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.60 (2026-09-10) — versionCode 61
+
+**Build: compile/target SDK raised to API 36 (Android 16).**
+
+- Google Play requires new apps to target API 36 since 2026-08-31; we raised `compileSdk` and `targetSdk` from 35 to 36.
+- No code changes; build target only. End users see no difference.
+
 ## v1.0.59 (2026-09-10) — versionCode 60
 
 **Fixed: "1 contacts", "1 mutual friends".**
