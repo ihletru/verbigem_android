@@ -99,6 +99,7 @@ fun ContactsScreen(
     val searchTerm by viewModel.searchTerm.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
+    val searchError by viewModel.searchError.collectAsState()
     val sentRequests by viewModel.sentRequests.collectAsState()
     val showDisclosure by viewModel.showPermissionDisclosure.collectAsState()
     val phoneContacts by viewModel.phoneContacts.collectAsState()
@@ -279,6 +280,7 @@ fun ContactsScreen(
                     searchTerm = searchTerm,
                     searchResults = searchResults,
                     isSearching = isSearching,
+                    searchError = searchError,
                     sentRequests = sentRequests,
                     suggestedFriends = suggestedFriends,
                     onSearchTermChanged = viewModel::onSearchTermChanged,
@@ -397,6 +399,7 @@ private fun FriendsTab(
     searchTerm: String,
     searchResults: List<SearchResultUser>,
     isSearching: Boolean,
+    searchError: Boolean,
     sentRequests: Set<String>,
     suggestedFriends: List<FriendSuggestion>,
     onSearchTermChanged: (String) -> Unit,
@@ -542,6 +545,14 @@ private fun FriendsTab(
                             }
                         }
                     }
+                }
+                if (searchError && searchResults.isEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.contacts_search_failed),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.danger
+                    )
                 }
             }
         }

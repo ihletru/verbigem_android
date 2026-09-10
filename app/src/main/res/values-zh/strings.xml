@@ -338,6 +338,8 @@
     <string name="voice_not_available">此设备不支持语音识别</string>
     <string name="voice_permission_denied">发送语音消息需要麦克风权限</string>
     <string name="voice_recognition_error">语音识别失败，请重试。</string>
+    <string name="hide_conversation_failed">无法删除该对话，请重试。</string>
+    <string name="contacts_search_failed">搜索失败，请检查网络连接后重试。</string>
     <string name="image_close">关闭预览</string>
 
     <!-- ============================================================

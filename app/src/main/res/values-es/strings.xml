@@ -338,6 +338,8 @@
     <string name="voice_not_available">El reconocimiento de voz no está disponible en este dispositivo</string>
     <string name="voice_permission_denied">Se necesita el permiso de micrófono para enviar un mensaje de voz</string>
     <string name="voice_recognition_error">No se pudo reconocer la voz. Inténtalo de nuevo.</string>
+    <string name="hide_conversation_failed">No se pudo eliminar la conversación. Inténtalo de nuevo.</string>
+    <string name="contacts_search_failed">La búsqueda falló. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="image_close">Cerrar vista previa</string>
 
     <!-- ============================================================

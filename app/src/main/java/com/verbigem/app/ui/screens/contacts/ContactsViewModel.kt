@@ -38,6 +38,10 @@ data class SearchResultUser(
 
 class ContactsViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        private const val TAG = "ContactsViewModel"
+    }
+
     private val authRepository = AuthRepository()
     private val chatRepository = ChatRepository()
     private val firestore = FirebaseFirestore.getInstance()
@@ -56,6 +60,16 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
+
+    /**
+     * Prawda, gdy ostatnie wyszukiwanie padło (brak sieci, `permission-denied`).
+     *
+     * Bez tego błąd wyglądał identycznie jak „nie ma takiego użytkownika" — ekran
+     * po prostu nie pokazywał wyników. Pusta lista musi znaczyć „nikogo nie ma",
+     * a nie „nie udało się zapytać".
+     */
+    private val _searchError = MutableStateFlow(false)
+    val searchError: StateFlow<Boolean> = _searchError.asStateFlow()
 
     private val _sentRequests = MutableStateFlow<Set<String>>(emptySet())
     val sentRequests: StateFlow<Set<String>> = _sentRequests.asStateFlow()
@@ -193,6 +207,7 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         if (term.length < 2) return
 
         val needle = term.lowercase()
+        _searchError.value = false
         _isSearching.value = true
         viewModelScope.launch {
             try {
@@ -223,10 +238,12 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
                 }
                 _searchResults.value = merged.values.toList()
             } catch (e: Exception) {
-                // Previously swallowed by `finally` — a denied search looked like
-                // "no results" instead of an error.
-                android.util.Log.w("ContactsViewModel", "User search failed", e)
+                // Earlier this was swallowed by `finally`, so a denied or offline
+                // search rendered exactly like "nobody found". The log stays (it
+                // carries the stack trace) but the screen now says so out loud.
+                android.util.Log.w(TAG, "User search failed", e)
                 _searchResults.value = emptyList()
+                _searchError.value = true
             } finally {
                 _isSearching.value = false
             }

@@ -2,8 +2,10 @@ package com.verbigem.app.ui.screens.chat
 
 import android.app.Application
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.verbigem.app.R
 import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.local.ChatHiddenEntity
 import com.verbigem.app.data.model.ContactSettings
@@ -168,6 +170,16 @@ class ContactCardViewModel(application: Application) : AndroidViewModel(applicat
                 _isHidden.value = true
             } catch (e: Exception) {
                 Log.w(TAG, "Could not hide conversation", e)
+                // A Toast, not a Snackbar: the screen calls `onBack()` the moment it
+                // calls this, so anything hosted by the screen would die with it.
+                // Silence here is the real bug — the user would land back in an inbox
+                // where the conversation is still sitting there, with no idea why.
+                val app = getApplication<Application>()
+                Toast.makeText(
+                    app,
+                    app.getString(R.string.hide_conversation_failed),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }

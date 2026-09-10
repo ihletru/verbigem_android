@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.58 (2026-09-10) — versionCode 59
+
+**Fixed: two places that pretended everything worked.**
+
+- Deleting a conversation that failed to save gave no sign at all — you went back to your inbox and the conversation was still sitting there, with no explanation. The phone now says it did not work.
+- A failed people search (offline, or permission denied) looked exactly like "no such user": just an empty list. The search box now reports that the request failed. An empty list means nobody was found again.
+- Both messages are localised in all 6 languages, like the rest of the app.
+
+
 ## v1.0.57 (2026-09-10) — versionCode 58
 
 **Fixed: the second message could get stuck on "sending".**

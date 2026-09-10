@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.58 (2026-09-10) — versionCode 59
+
+**Naprawione: dwa miejsca, które udawały, że się udało.**
+
+- Usunięcie rozmowy, którego nie udało się zapisać, nie dawało żadnego znaku. Wracałeś do skrzynki, a rozmowa nadal tam była — bez słowa dlaczego. Teraz telefon pokazuje krótki komunikat, że się nie udało.
+- Szukanie znajomych, które padło (brak sieci albo brak uprawnień), wyglądało dokładnie jak „nie ma takiego użytkownika": po prostu pusta lista. Teraz pod polem wyszukiwania pojawia się informacja, że zapytanie się nie udało. Pusta lista znów znaczy tylko tyle, że nikogo nie znaleziono.
+- Komunikaty są w 6 językach, jak reszta aplikacji.
+
+
 ## v1.0.57 (2026-09-10) — versionCode 58
 
 **Naprawione: druga wiadomość potrafiła utknąć na „wysyłanie".**

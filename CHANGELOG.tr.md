@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.58 (2026-09-10) — versionCode 59
+
+**Düzeltildi: her şey yolunda gibi davranan iki yer.**
+
+- Kaydedilemeyen bir sohbet silme işlemi hiçbir işaret vermiyordu: gelen kutusuna dönüyordunuz ve sohbet hâlâ oradaydı, üstelik nedenini söyleyen hiçbir şey yoktu. Telefon artık işlemin başarısız olduğunu söylüyor.
+- Başarısız bir kişi araması (çevrimdışı veya izin yok) tıpkı «böyle bir kullanıcı yok» gibi görünüyordu: sadece boş bir liste. Arama kutusunun altında artık isteğin başarısız olduğu yazıyor. Boş liste yeniden yalnızca «kimse bulunamadı» anlamına geliyor.
+- Mesajlar uygulamanın geri kalanı gibi 6 dilde.
+
+
 ## v1.0.57 (2026-09-10) — versionCode 58
 
 **Düzeltildi: ikinci mesaj «gönderiliyor» durumunda takılı kalabiliyordu.**

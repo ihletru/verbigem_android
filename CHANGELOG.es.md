@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.58 (2026-09-10) — versionCode 59
+
+**Corregido: dos sitios que fingían que todo había ido bien.**
+
+- Si no se podía guardar el borrado de una conversación, no había ninguna señal: volvías a la bandeja de entrada y la conversación seguía ahí, sin explicación. Ahora el móvil avisa de que no se pudo hacer.
+- Una búsqueda de personas fallida (sin conexión o sin permisos) era idéntica a «no existe ese usuario»: solo una lista vacía. Ahora, bajo el campo de búsqueda se indica que la consulta falló. Una lista vacía vuelve a significar únicamente que no se encontró a nadie.
+- Los mensajes están en los 6 idiomas, como el resto de la aplicación.
+
+
 ## v1.0.57 (2026-09-10) — versionCode 58
 
 **Corregido: el segundo mensaje podía quedarse atascado en «enviando».**

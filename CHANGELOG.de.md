@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.58 (2026-09-10) — versionCode 59
+
+**Behoben: zwei Stellen, die so taten, als hätte alles geklappt.**
+
+- Wurde eine Unterhaltung nicht gelöscht, gab es keinerlei Hinweis: Du kehrtest zum Posteingang zurück und sie war noch da — ohne jede Erklärung. Das Handy meldet jetzt, dass es nicht geklappt hat.
+- Eine fehlgeschlagene Personen-Suche (offline oder keine Berechtigung) sah genau so aus wie „keinen solchen Nutzer gefunden": einfach eine leere Liste. Unter dem Suchfeld steht jetzt, dass die Anfrage fehlgeschlagen ist. Eine leere Liste heißt wieder nur: niemand gefunden.
+- Beide Meldungen gibt es in allen 6 Sprachen, wie den Rest der App.
+
+
 ## v1.0.57 (2026-09-10) — versionCode 58
 
 **Behoben: Die zweite Nachricht konnte auf „wird gesendet" hängen bleiben.**

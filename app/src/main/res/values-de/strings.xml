@@ -338,6 +338,8 @@
     <string name="voice_not_available">Spracherkennung auf diesem Gerät nicht verfügbar</string>
     <string name="voice_permission_denied">Für eine Sprachnachricht wird die Mikrofonberechtigung benötigt</string>
     <string name="voice_recognition_error">Die Spracherkennung ist fehlgeschlagen. Versuche es noch einmal.</string>
+    <string name="hide_conversation_failed">Unterhaltung konnte nicht gelöscht werden. Bitte erneut versuchen.</string>
+    <string name="contacts_search_failed">Suche fehlgeschlagen. Verbindung prüfen und erneut versuchen.</string>
     <string name="image_close">Vorschau schließen</string>
 
     <!-- ============================================================
