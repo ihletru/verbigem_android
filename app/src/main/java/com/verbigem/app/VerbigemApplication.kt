@@ -17,6 +17,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import com.verbigem.app.data.local.PreferencesManager
+import com.verbigem.app.util.UiLangState
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 class VerbigemApplication : Application() {
 
@@ -36,6 +41,17 @@ class VerbigemApplication : Application() {
         // every real user. Flip it on together with the first Play release — the TODO
         // in functions/src/contacts.ts says exactly where.
         AppCheckProvider.install(FirebaseAppCheck.getInstance())
+
+        // Język interfejsu musi być znany, ZANIM cokolwiek rozwiąże tekst. Ten kod
+        // biegnie bez kompozycji i bez LocalContext (usługa FCM też), więc bez tego
+        // kanał powiadomień i etykiety akcji były w języku TELEFONU, nie w wybranym.
+        // DataStore czyta jeden mały plik — blokada jest krótka i ograniczona do 2 s.
+        // Efekt uboczny na plus: znika mignięcie polskiego w pierwszej klatce UI.
+        runBlocking {
+            UiLangState.code = withTimeoutOrNull(2_000) {
+                PreferencesManager(this@VerbigemApplication).uiLangFlow.first()
+            } ?: UiLangState.code
+        }
 
         // Create the channel at startup, not on the first push: a channel only appears
         // in the system notification settings once it exists, and a user who goes

@@ -6,7 +6,8 @@
 
 **Corregido: algunos mensajes ignoraban el idioma de interfaz elegido.**
 
-- Con el inglés seleccionado, algunos mensajes seguían apareciendo en polaco (y al revés). Afectaba a errores de inicio de sesión, traducción, reconocimiento de voz y de texto, recarga de la cuenta y la ventana de actualización.
+- Con el inglés seleccionado, algunos mensajes seguían apareciendo en polaco (y al revés). Afectaba a errores de inicio de sesión, traducción, reconocimiento de voz y de texto, recarga de la cuenta y la ventana de actualización. La misma regla cubre ahora los mensajes de descarga de modelos, el nombre del canal de notificaciones, las etiquetas de acción de las notificaciones (Responder, Marcar como leído) y el asunto del correo al invitar a un contacto.
+- El idioma de la interfaz se lee ahora al arrancar la app, no en la primera pantalla. Eso elimina el breve destello de polaco al inicio y hace que el nombre del canal de notificaciones y las etiquetas de acción usen el idioma elegido incluso cuando la app funciona en segundo plano.
 - Causa: esos textos pedían la traducción al contexto del sistema, que no sabe nada del idioma elegido en la app: usaba el idioma del teléfono. Ahora todos esos puntos pasan por una única fuente correcta.
 - Los errores técnicos de las librerías (p. ej. «HTTP 402») ya no llegan a la pantalla: quedan en el registro y el usuario ve un mensaje claro en el idioma elegido.
 - Los errores de reconocimiento de voz tenían **once** textos en polaco escritos directamente en el código (entre ellos «Error de red» y «No se detectó voz»). Ahora todos vienen de las traducciones y siguen el idioma de la interfaz.

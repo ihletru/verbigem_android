@@ -6,7 +6,8 @@
 
 **Düzeltildi: bazı mesajlar seçilen arayüz dilini yok sayıyordu.**
 
-- İngilizce seçiliyken bazı mesajlar hâlâ Lehçe görünüyordu (ve tersi). Bu; oturum açma hataları, çeviri, konuşma ve metin tanıma, hesap yükleme ve güncelleme penceresi için geçerliydi.
+- İngilizce seçiliyken bazı mesajlar hâlâ Lehçe görünüyordu (ve tersi). Bu; oturum açma hataları, çeviri, konuşma ve metin tanıma, hesap yükleme ve güncelleme penceresi için geçerliydi. Aynı kural artık model indirme mesajlarını, bildirim kanalı adını, bildirim eylem etiketlerini (Yanıtla, Okundu olarak işaretle) ve kişi davet ederken kullanılan e-posta konusunu da kapsıyor.
+- Arayüz dili artık ilk ekranda değil, uygulama başlarken okunuyor. Bu, açılışta kısa süreli Lehçe görünmesini ortadan kaldırıyor ve uygulama arka planda çalışırken bile bildirim kanalı adının ve eylem etiketlerinin seçilen dilde olmasını sağlıyor.
 - Nedeni: bu metinler çeviriyi sistem bağlamından alıyordu; sistem bağlamı uygulamada seçilen dili bilmez, telefonun dilini kullanır. Artık tüm bu noktalar tek ve doğru bir metin kaynağından geçiyor.
 - Kitaplıklardan gelen teknik hatalar (örn. "HTTP 402") artık ekrana çıkmıyor; günlükte kalıyor ve kullanıcı seçilen dilde anlaşılır bir mesaj görüyor.
 - Konuşma tanıma hatalarında kodun içine gömülü **on bir** Lehçe metin vardı (örn. "Ağ hatası", "Ses algılanmadı"). Artık hepsi çevirilerden geliyor ve arayüz dilini izliyor.

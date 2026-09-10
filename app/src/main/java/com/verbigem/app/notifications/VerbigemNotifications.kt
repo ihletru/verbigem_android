@@ -15,6 +15,7 @@ import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat
 import com.verbigem.app.MainActivity
 import com.verbigem.app.R
+import com.verbigem.app.util.uiString
 
 /**
  * Everything the app posts into the notification shade.
@@ -73,10 +74,10 @@ object VerbigemNotifications {
         if (manager.getNotificationChannel(CHANNEL_MESSAGES) != null) return
         val channel = NotificationChannel(
             CHANNEL_MESSAGES,
-            context.getString(R.string.notif_channel_messages_name),
+            context.uiString(R.string.notif_channel_messages_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = context.getString(R.string.notif_channel_messages_desc)
+            description = context.uiString(R.string.notif_channel_messages_desc)
             enableVibration(true)
         }
         manager.createNotificationChannel(channel)
@@ -170,7 +171,7 @@ object VerbigemNotifications {
             .setSmallIcon(R.drawable.ic_stat_message)
             .setStyle(
                 NotificationCompat.InboxStyle()
-                    .setSummaryText(context.getString(R.string.notif_group_summary))
+                    .setSummaryText(context.uiString(R.string.notif_group_summary))
             )
             .setGroup(GROUP_MESSAGES)
             .setGroupSummary(true)
@@ -198,7 +199,7 @@ object VerbigemNotifications {
 
     private fun replyAction(context: Context, chatId: String): NotificationCompat.Action {
         val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY)
-            .setLabel(context.getString(R.string.notif_action_reply))
+            .setLabel(context.uiString(R.string.notif_action_reply))
             .build()
         val intent = Intent(context, NotificationActionReceiver::class.java)
             .setAction(ACTION_REPLY)
@@ -214,7 +215,7 @@ object VerbigemNotifications {
         )
         return NotificationCompat.Action.Builder(
             R.drawable.ic_stat_message,
-            context.getString(R.string.notif_action_reply),
+            context.uiString(R.string.notif_action_reply),
             pending
         )
             .addRemoteInput(remoteInput)
@@ -234,7 +235,7 @@ object VerbigemNotifications {
         )
         return NotificationCompat.Action.Builder(
             R.drawable.ic_stat_message,
-            context.getString(R.string.notif_action_mark_read),
+            context.uiString(R.string.notif_action_mark_read),
             pending
         ).build()
     }

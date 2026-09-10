@@ -6,7 +6,8 @@
 
 **Behoben: Einige Meldungen ignorierten die gewählte Oberflächensprache.**
 
-- Bei ausgewähltem Englisch erschienen manche Meldungen weiterhin auf Polnisch (und umgekehrt). Betroffen waren Anmeldefehler, Übersetzung, Sprach- und Texterkennung, das Aufladen des Kontos sowie das Update-Fenster.
+- Bei ausgewähltem Englisch erschienen manche Meldungen weiterhin auf Polnisch (und umgekehrt). Betroffen waren Anmeldefehler, Übersetzung, Sprach- und Texterkennung, das Aufladen des Kontos sowie das Update-Fenster. Dieselbe Regel gilt jetzt auch für Meldungen beim Modell-Download, den Namen des Benachrichtigungskanals, die Aktionsbeschriftungen in Benachrichtigungen (Antworten, Als gelesen markieren) und den E-Mail-Betreff beim Einladen eines Kontakts.
+- Die Oberflächensprache wird jetzt beim App-Start gelesen und nicht erst auf dem ersten Bildschirm. Das entfernt das kurze Aufblitzen von Polnisch beim Start und sorgt dafür, dass der Name des Benachrichtigungskanals und die Aktionsbeschriftungen auch dann in der gewählten Sprache sind, wenn die App im Hintergrund läuft.
 - Ursache: Diese Texte holten die Übersetzung aus dem Systemkontext, der nichts über die in der App gewählte Sprache weiß — er nahm die Sprache des Telefons. Alle diese Stellen laufen jetzt über eine gemeinsame, korrekte Textquelle.
 - Technische Fehler aus Bibliotheken (z. B. „HTTP 402") erreichen den Bildschirm nicht mehr — sie bleiben im Protokoll, und der Nutzer sieht eine verständliche Meldung in der gewählten Sprache.
 - Fehler bei der Spracherkennung hatten **elf** fest im Code hinterlegte polnische Texte (u. a. „Netzwerkfehler", „Keine Sprache erkannt"). Sie stammen jetzt aus den Übersetzungen und folgen der Oberflächensprache.

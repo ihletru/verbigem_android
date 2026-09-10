@@ -6,7 +6,8 @@
 
 **Fixed: some messages ignored the chosen interface language.**
 
-- With English selected, some messages still appeared in Polish (and the other way round). This covered sign-in errors, translation, speech and text recognition, account top-up and the app-update window.
+- With English selected, some messages still appeared in Polish (and the other way round). This covered sign-in errors, translation, speech and text recognition, account top-up and the app-update window. The same rule now covers model-download messages, the notification-channel name, the notification action labels (Reply, Mark as read) and the e-mail subject used when inviting a contact.
+- The interface language is now read at app startup rather than on the first screen. That removes the brief flash of Polish on launch, and makes the notification-channel name and action labels use the chosen language even while the app runs in the background, with no screen and no selected context.
 - Cause: those texts asked the system context for a translation, and the system context knows nothing about the language picked in the app — it used the phone's language. Every such place now goes through one shared, correct source of texts.
 - Technical errors from libraries (e.g. "HTTP 402") no longer reach the screen — they stay in the log, while the user sees a clear message in the chosen language.
 - Speech-recognition errors had **eleven** Polish texts hardcoded in the source (including "Network error" and "No speech detected"). They now all come from the translations and follow the interface language.

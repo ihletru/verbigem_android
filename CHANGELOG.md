@@ -6,7 +6,8 @@
 
 **Naprawione: część komunikatów ignorowała wybrany język interfejsu.**
 
-- Po ustawieniu angielskiego część komunikatów nadal pojawiała się po polsku (i odwrotnie). Dotyczyło to błędów logowania, tłumaczenia, rozpoznawania mowy i tekstu z obrazka, doładowania konta oraz okna aktualizacji aplikacji.
+- Po ustawieniu angielskiego część komunikatów nadal pojawiała się po polsku (i odwrotnie). Dotyczyło to błędów logowania, tłumaczenia, rozpoznawania mowy i tekstu z obrazka, doładowania konta oraz okna aktualizacji aplikacji. Pod tę samą regułę trafiły komunikaty pobierania modelu, nazwa kanału powiadomień, etykiety akcji w powiadomieniu („Odpowiedz", „Oznacz jako przeczytane") oraz temat e-maila przy zapraszaniu kontaktu.
+- Język interfejsu jest odczytywany już przy starcie aplikacji, a nie dopiero na pierwszym ekranie. Usuwa to krótkie mignięcie polskiego na starcie i sprawia, że nazwa kanału powiadomień oraz etykiety akcji są w wybranym języku także wtedy, gdy aplikacja działa w tle (bez ekranu i bez wybranego kontekstu).
 - Przyczyna: te teksty pobierały tłumaczenie z kontekstu systemowego, który nie wie nic o języku wybranym w aplikacji — brał język telefonu. Wszystkie takie miejsca przechodzą teraz przez jedno wspólne, poprawne źródło tekstów.
 - Błędy techniczne z bibliotek (np. „HTTP 402") przestały trafiać na ekran — zostają w logach, a użytkownik widzi zrozumiały komunikat w wybranym języku.
 - Błędy rozpoznawania mowy miały **jedenaście** polskich tekstów wpisanych na sztywno w kodzie (m.in. „Błąd sieci", „Brak dźwięku mowy"). Teraz wszystkie pochodzą z tłumaczeń i zmieniają się razem z językiem interfejsu.

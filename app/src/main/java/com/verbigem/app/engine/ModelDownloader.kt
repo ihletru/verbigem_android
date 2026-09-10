@@ -57,7 +57,7 @@ class ModelDownloader(private val context: Context) {
                 ModelTierBlockReason.NONE -> R.string.model_error_generic
             }
             Log.w(TAG, "Refusing download of ${tier.id}: $blockReason")
-            _downloadState.value = ModelDownloadState.Error(context.getString(msgRes), tier)
+            _downloadState.value = ModelDownloadState.Error(context.uiString(msgRes), tier)
             return@withContext false
         }
 
@@ -107,7 +107,7 @@ class ModelDownloader(private val context: Context) {
             } else if (!response.isSuccessful) {
                 response.close()
                 _downloadState.value = ModelDownloadState.Error(
-                    context.getString(R.string.model_error_http, response.code),
+                    context.uiString(R.string.model_error_http, response.code),
                     tier,
                 )
                 return@withContext false

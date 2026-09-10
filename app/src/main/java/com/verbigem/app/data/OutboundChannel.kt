@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.annotation.StringRes
 import com.verbigem.app.R
+import com.verbigem.app.util.uiString
 
 /**
  * Komu chcemy coś przekazać — osoba spoza Verbigem.
@@ -234,7 +235,7 @@ object EmailChannel : OutboundChannel {
     private fun intent(context: Context, target: OutboundTarget, body: String): Intent =
         Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
             putExtra(Intent.EXTRA_EMAIL, arrayOf(target.email))
-            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.channel_email_subject))
+            putExtra(Intent.EXTRA_SUBJECT, context.uiString(R.string.channel_email_subject))
             putExtra(Intent.EXTRA_TEXT, body)
         }
 }

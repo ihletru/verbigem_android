@@ -785,6 +785,10 @@ context.uiString(R.string.x)    // w silniku, ekranie, Toast
 Wyjątkiem jest **tekst techniczny do logów** — `Log.e(TAG, "HTTP ${code}", e)` zostaje po angielsku, bo nie jest komunikatem dla użytkownika. Wzorzec: powód do logu, `uiString(...)` na ekran.
 
 Audyt: `grep -rn "getApplication<Application>().getString\|appContext.getString\|localizedMessage" --include=*.kt app/src/main/java` — poza `util/UiStrings.kt` (opis problemu w KDoc) i wywołaniami `Log.*` nie powinno nic zwracać.
+
+⚠️ **Język musi być znany, ZANIM cokolwiek rozwiąże tekst.** `VerbigemApplication.onCreate()` ustawia `UiLangState.code` z DataStore (blokująco, z limitem 2 s) **przed** `VerbigemNotifications.ensureChannel(this)`. Bez tego nazwa kanału powiadomień, jego opis i etykiety akcji („Odpowiedz", „Oznacz jako przeczytane") powstawały w języku telefonu — usługa FCM działa bez kompozycji i bez `LocalContext`, więc nie ma skąd wziąć wybranego języka. Ten sam odczyt usuwa mignięcie polskiego w pierwszej klatce UI (wcześniej `collectAsState(initial = "pl")` dawało jedną klatkę po polsku).
+
+Uwaga: nazwę kanału system zapamiętuje przy pierwszym utworzeniu. Po zmianie języka istniejąca instalacja zachowa starą nazwę w Ustawieniach systemowych — to ograniczenie Androida, nie błąd aplikacji (aktualizacja nazwy wymaga ponownego `createNotificationChannel`, co nadpisuje ustawienia wybrane przez użytkownika, dlatego tego nie robimy).
 ⚠️ **Reguła dla okien w Compose:** wnętrze `Dialog { }` to **osobna kompozycja**, której `LocalContext` wraca do bazowego Activity (locale urządzenia), a nie do `LocalizedContext`. Okno jest wtedy w języku telefonu, a nie w języku wybranym w aplikacji.
 
 **Dlatego nie używaj `Dialog` / `AlertDialog` bezpośrednio — używaj `LocalizedDialog` / `LocalizedAlertDialog`** z `ui/components/LocalizedDialog.kt`. Te dwa komponenty łapią kontekst przed otwarciem okna i przepisują go do treści (a `LocalizedAlertDialog` do każdej lambdy osobno, bo `AlertDialog` renderuje `title`/`text`/`confirmButton` wewnątrz własnego okna). Przepisanie kontekstu, który i tak był poprawny, nic nie zmienia — więc użycie opakowania jest bezpieczne zawsze.

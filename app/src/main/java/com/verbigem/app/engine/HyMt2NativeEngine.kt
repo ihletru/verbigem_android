@@ -11,6 +11,7 @@ import com.verbigem.app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.verbigem.app.util.uiString
 
 class HyMt2NativeEngine(private val context: Context) {
 
@@ -113,7 +114,7 @@ class HyMt2NativeEngine(private val context: Context) {
 
         val isReady = ensureModelLoaded(tier)
         if (!isReady || nativeHandle == 0L) {
-            throw IllegalStateException(context.getString(R.string.model_not_loaded))
+            throw IllegalStateException(context.uiString(R.string.model_not_loaded))
         }
 
         val prompt = buildPrompt(text.trim(), from, to)
