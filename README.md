@@ -109,17 +109,21 @@ Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` 
 - **Mój kod QR** — `MyQrScreen` + ZXing `core` 3.5.3 (`data/QRBitmap.kt`), trasa `Screen.MyQr`.
 - **Skaner** — `ScanScreen` na GMS Code Scanner (`play-services-code-scanner` 18.3.0). Obcy link → komunikat „to nie kod Verbigem", nie otwieramy obcych stron. Trasa `Screen.Scan`.
 - **App Links** — `intent-filter` VIEW z `autoVerify="true"`. Obsługa w `MainActivity.handleDeepLink` + `AppNavigation.openProfileUid`.
-  > ⚠️ **App Links są dziś NIESKONFIGURUROWANE (stan na v1.0.39).** Pliku `assetlinks.json`
-  > **nie ma** w repo — brak `mini/public/.well-known/`, brak `mini/dist/.well-known/`,
-  > brak śladu w historii gita. Przez to `https://mini.verbigem.com/.well-known/assetlinks.json`
-  > zwraca 404, weryfikacja `autoVerify` się nie udaje i link profilowy otwiera się
-  > w przeglądarce zamiast w apce. **Skaner QR działa niezależnie** — dlatego objaw łatwo przeoczyć.
+  > ✅ **Skonfigurowane i zweryfikowane (sprawdzone 2026-09-10):** `mini/public/.well-known/assetlinks.json`
+  > istnieje (commit `3f3c796`), `https://mini.verbigem.com/.well-known/assetlinks.json` zwraca
+  > 200, a odcisk w pliku (`A4:2A:45:FF:…:94`) jest identyczny z tym, który zwraca
+  > `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey` (hasło `android`).
+  > ⚠️ Ten odcisk to **debug keystore** — czyli klucz, którym podpisany jest rozpowszechniany
+  > `app-debug.apk`. Przy wydaniu przez Play trzeba **dopisać** do tablicy
+  > `sha256_cert_fingerprints` odcisk z Google Play Console → App signing (Play podpisuje
+  > APK własnym kluczem) i odcisk z Firebase: Project settings → Your apps → SHA certificate
+  > fingerprints. Tablica może trzymać wiele odcisków — nie nadpisuj, dopisuj.
   >
-  > Naprawa: utworzyć `mini/public/.well-known/assetlinks.json` z odciskami SHA256 i zdeployować
-  > hosting miniego. Debug: `keytool -list -v -keystore ~/.android/debug.keystore -alias
-  > androiddebugkey` (hasło `android`). **Release: SHA z Google Play Console → App signing**,
-  > nie z lokalnego keystore'a (Play podpisuje APK własnym kluczem). Odciski muszą być też
-  > wpisane w Firebase: Project settings → Your apps → SHA certificate fingerprints.
+  > ⚠️ **HTTP 200 to za mało, żeby uznać to za działające.** Hosting ma rewrite `**` → `/index.html`,
+  > więc brakujący plik też zwróci 200 — tyle że z landing page’em w środku. Weryfikuj treścią:
+  > `curl -s -D - https://mini.verbigem.com/.well-known/assetlinks.json` musi dać
+  > `Content-Type: application/json` i tablicę z `delegate_permission`, nie `<!doctype html>`.
+  > (Mimo `**/.*` w `ignore` w `firebase.json` plik wylatuje na produkcję — sprawdzone 2026-09-10.)
 
 ### 7. Profil i Design System
 
@@ -724,7 +728,7 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
    python -c "import re,os;base={m for m in re.findall(r'<string name=\"([^\"]+)\"',open('app/src/main/res/values/strings.xml',encoding='utf-8').read())};[print(d,sorted(base-set(re.findall(r'<string name=\"([^\"]+)\"',open(f'app/src/main/res/{d}/strings.xml',encoding=\"utf-8\").read())))) for d in ['values-pl','values-de','values-es','values-zh','values-tr']]"
    ```
 8. **Komunikaty błędów z ViewModeli też podlegają zakazowi** — `_errorMessage.value = "Błąd logowania"` to ten sam grzech co `Text("Błąd logowania")`. Bierzemy `getApplication<Application>().getString(R.string.xxx)` (albo `appContext.getString(...)`). Audyt: `grep -rn '_errorMessage.value = .*"' --include=*.kt app/src/main/java` — wszystkie trafienia muszą mieć `getString`.
-   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków.**
+   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków** (po v1.0.56, która dodała `voice_permission_denied` i `voice_recognition_error`: **492**).
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 
