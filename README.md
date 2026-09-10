@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.49`** (versionCode 50) — reklamy banerowe AdMob + zgody UMP —
+> 📦 **Aktualna wersja: `v1.0.50`** (versionCode 51) — naprawione logowanie PRO (noAdsUntil) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
