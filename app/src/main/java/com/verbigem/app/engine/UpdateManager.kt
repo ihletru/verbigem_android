@@ -19,6 +19,8 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.json.JSONObject
+import com.verbigem.app.R
+import com.verbigem.app.util.uiString
 
 /**
  * Self-update controller.
@@ -252,7 +254,11 @@ class UpdateManager(private val context: Context) {
                     if (!resp.isSuccessful) {
                         val msg = "Download failed: HTTP ${resp.code} ${resp.message}"
                         Log.e(TAG, msg)
-                        withContext(Dispatchers.Main) { onError(msg) }
+                        // `msg` (techniczny, angielski) zostaje w logu; do UI
+                        // idzie tekst w języku interfejsu.
+                        withContext(Dispatchers.Main) {
+                            onError(context.uiString(R.string.update_error_http, resp.code))
+                        }
                         return@launch
                     }
                     val body = resp.body
@@ -300,14 +306,20 @@ class UpdateManager(private val context: Context) {
                         Log.e(TAG, msg)
                         // Keep the last known progress on screen: the error text next to it
                         // explains why the bar stopped, instead of the UI silently resetting.
-                        withContext(Dispatchers.Main) { onError(msg) }
+                        // `msg` (techniczny) zostaje w logu — do UI idzie tekst
+                        // w języku interfejsu.
+                        withContext(Dispatchers.Main) {
+                            onError(context.uiString(R.string.update_error_incomplete))
+                        }
                         return@launch
                     }
                     withContext(Dispatchers.Main) { launchInstall(targetFile, onComplete, onError) }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Download error", e)
-                withContext(Dispatchers.Main) { onError(e.localizedMessage ?: "Download error") }
+                withContext(Dispatchers.Main) {
+                    onError(context.uiString(R.string.update_error_download))
+                }
             }
         }
     }
@@ -327,7 +339,7 @@ class UpdateManager(private val context: Context) {
             onComplete()
         } catch (e: Exception) {
             Log.e(TAG, "Install launch failed", e)
-            onError(e.localizedMessage ?: "Install failed")
+            onError(context.uiString(R.string.update_error_install))
         }
     }
 

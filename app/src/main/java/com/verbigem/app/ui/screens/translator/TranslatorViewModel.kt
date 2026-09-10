@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
+import android.util.Log
 
 class TranslatorViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -369,7 +371,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                         if (!isFree && _walletCents.value <= 0) {
                             _isLoading.value = false
                             _errorMessage.value =
-                                getApplication<Application>().getString(R.string.online_no_credits)
+                                uiString(R.string.online_no_credits)
                             return@launch
                         }
                         // ":free" models go direct with the user's own key; curated
@@ -384,8 +386,10 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                     }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.translation_error_generic)
+                // Techniczny powód (np. "HTTP 402") zostaje w logach — użytkownik
+                // dostaje tekst w swoim języku, nie angielski tekst z SDK.
+                Log.e("TranslatorViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.translation_error_generic)
             } finally {
                 _isLoading.value = false
             }
@@ -406,8 +410,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     fun speakPro(text: String, lang: LangCode) {
         if (!_isPro.value || text.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = getApplication<Application>()
-                    .getString(R.string.read_pro_not_configured)
+            _errorMessage.value = uiString(R.string.read_pro_not_configured)
             return
         }
         _resultSpeakingPro.value = true
@@ -420,8 +423,10 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 proTtsEngine.speak(text, lang, ttsConfig)
             } catch (e: Exception) {
                 _resultSpeakingPro.value = false
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.read_pro_failed)
+                // Techniczny powód (np. "HTTP 402") zostaje w logach — użytkownik
+                // dostaje tekst w swoim języku, nie angielski tekst z SDK.
+                Log.e("TranslatorViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.read_pro_failed)
             }
         }
     }
@@ -439,8 +444,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     fun speakProHistory(item: TranslationHistory) {
         if (!_isPro.value || item.translatedText.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = getApplication<Application>()
-                    .getString(R.string.read_pro_not_configured)
+            _errorMessage.value = uiString(R.string.read_pro_not_configured)
             return
         }
         _speakingProSyncId.value = item.syncId
@@ -452,8 +456,10 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 proTtsEngine.speak(item.translatedText, LangCode.fromCode(item.targetLang), ttsConfig)
             } catch (e: Exception) {
                 _speakingProSyncId.value = null
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.read_pro_failed)
+                // Techniczny powód (np. "HTTP 402") zostaje w logach — użytkownik
+                // dostaje tekst w swoim języku, nie angielski tekst z SDK.
+                Log.e("TranslatorViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.read_pro_failed)
             }
         }
     }

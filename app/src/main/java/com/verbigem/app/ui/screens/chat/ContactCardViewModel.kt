@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
 
 /**
  * The contact card: everything *I* think about one other person.
@@ -177,7 +178,7 @@ class ContactCardViewModel(application: Application) : AndroidViewModel(applicat
                 val app = getApplication<Application>()
                 Toast.makeText(
                     app,
-                    app.getString(R.string.hide_conversation_failed),
+                    app.uiString(R.string.hide_conversation_failed),
                     Toast.LENGTH_LONG
                 ).show()
             }

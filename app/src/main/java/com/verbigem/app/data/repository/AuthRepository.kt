@@ -40,14 +40,17 @@ class AuthRepository {
 
     suspend fun signInEmail(email: String, pass: String): FirebaseUser {
         val result = auth.signInWithEmailAndPassword(email, pass).await()
-        val user = result.user ?: throw IllegalStateException("Nie udało się zalogować")
+        // Tekst techniczny (EN) — trafia tylko do logów. UI pokazuje komunikat
+        // z R.string przez AuthViewModel.authErrorMessage(), bo ten wyjątek nie jest
+        // FirebaseAuthException, więc mapper podstawia auth_error_login.
+        val user = result.user ?: throw IllegalStateException("signInWithEmailAndPassword returned null user")
         ensureProfile(user)
         return user
     }
 
     suspend fun signUpEmail(email: String, pass: String): FirebaseUser {
         val result = auth.createUserWithEmailAndPassword(email, pass).await()
-        val user = result.user ?: throw IllegalStateException("Nie udało się utworzyć konta")
+        val user = result.user ?: throw IllegalStateException("createUserWithEmailAndPassword returned null user")
         ensureProfile(user)
         return user
     }
@@ -55,7 +58,7 @@ class AuthRepository {
     suspend fun signInWithGoogle(idToken: String): FirebaseUser {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = auth.signInWithCredential(credential).await()
-        val user = result.user ?: throw IllegalStateException("Logowanie Google nieudane")
+        val user = result.user ?: throw IllegalStateException("signInWithCredential returned null user")
         ensureProfile(user)
         return user
     }

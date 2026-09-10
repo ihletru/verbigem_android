@@ -20,6 +20,7 @@ import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
+import com.verbigem.app.util.uiString
 
 class ModelDownloader(private val context: Context) {
 
@@ -154,7 +155,9 @@ class ModelDownloader(private val context: Context) {
             // of re-downloading several gigabytes. It is only ever removed on
             // success (rename) or via [cancelPartial].
             _downloadState.value = ModelDownloadState.Error(
-                e.localizedMessage ?: context.getString(R.string.model_error_generic),
+                // Techniczny powód zostaje w logu powyżej — użytkownik dostaje
+                // komunikat w swoim języku, nie angielski tekst z SDK.
+                context.uiString(R.string.model_error_generic),
                 tier,
             )
             false

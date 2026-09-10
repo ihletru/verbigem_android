@@ -196,6 +196,10 @@
     <string name="update_download_bytes_unknown">%1$.1f MB</string>
     <string name="update_failed_title">Update fehlgeschlagen</string>
     <string name="update_failed">Der Download wurde nicht abgeschlossen: %1$s</string>
+    <string name="update_error_incomplete">Die heruntergeladene Datei ist unvollständig – bitte erneut versuchen</string>
+    <string name="update_error_download">Download fehlgeschlagen</string>
+    <string name="update_error_install">Installer konnte nicht gestartet werden</string>
+    <string name="update_error_http">Download fehlgeschlagen (HTTP %1$d)</string>
     <string name="update_retry">Erneut versuchen</string>
 
     <!-- Chat: Postfach + Verlauf (Phase 1) -->
@@ -348,6 +352,16 @@
     <string name="voice_not_available">Spracherkennung auf diesem Gerät nicht verfügbar</string>
     <string name="voice_permission_denied">Für eine Sprachnachricht wird die Mikrofonberechtigung benötigt</string>
     <string name="voice_recognition_error">Die Spracherkennung ist fehlgeschlagen. Versuche es noch einmal.</string>
+    <string name="voice_error_audio">Fehler bei der Tonaufnahme</string>
+    <string name="voice_error_client">App-Fehler bei der Spracherkennung</string>
+    <string name="voice_error_permissions">Mikrofonberechtigung fehlt</string>
+    <string name="voice_error_network">Netzwerkfehler</string>
+    <string name="voice_error_network_timeout">Zeitüberschreitung im Netzwerk</string>
+    <string name="voice_error_no_match">Sprache nicht erkannt – bitte erneut versuchen</string>
+    <string name="voice_error_busy">Spracherkennung ist beschäftigt</string>
+    <string name="voice_error_server">Fehler beim Spracherkennungsserver</string>
+    <string name="voice_error_speech_timeout">Keine Sprache erkannt</string>
+    <string name="voice_error_unknown">Mikrofonfehler (%1$d)</string>
     <string name="hide_conversation_failed">Unterhaltung konnte nicht gelöscht werden. Bitte erneut versuchen.</string>
     <string name="contacts_search_failed">Suche fehlgeschlagen. Verbindung prüfen und erneut versuchen.</string>
     <string name="image_close">Vorschau schließen</string>
@@ -576,6 +590,9 @@
 
     <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
     <string name="auth_error_login">Anmeldung fehlgeschlagen</string>
+    <string name="auth_error_wrong_password">Falsche E-Mail oder falsches Passwort.</string>
+    <string name="auth_error_email_in_use">Diese E-Mail hat schon ein Konto. Melde dich stattdessen an.</string>
+    <string name="auth_error_network">Keine Verbindung. Prüfe dein Internet und versuche es erneut.</string>
     <string name="auth_error_unsupported_credential">Nicht unterstützte Anmeldemethode</string>
     <string name="auth_error_google">Google-Anmeldung fehlgeschlagen</string>
     <string name="conv_error_translation">Übersetzung im Gesprächsmodus fehlgeschlagen</string>

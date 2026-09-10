@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.65 (2026-09-10) — versionCode 65
+
+**Behoben: Einige Meldungen ignorierten die gewählte Oberflächensprache.**
+
+- Bei ausgewähltem Englisch erschienen manche Meldungen weiterhin auf Polnisch (und umgekehrt). Betroffen waren Anmeldefehler, Übersetzung, Sprach- und Texterkennung, das Aufladen des Kontos sowie das Update-Fenster.
+- Ursache: Diese Texte holten die Übersetzung aus dem Systemkontext, der nichts über die in der App gewählte Sprache weiß — er nahm die Sprache des Telefons. Alle diese Stellen laufen jetzt über eine gemeinsame, korrekte Textquelle.
+- Technische Fehler aus Bibliotheken (z. B. „HTTP 402") erreichen den Bildschirm nicht mehr — sie bleiben im Protokoll, und der Nutzer sieht eine verständliche Meldung in der gewählten Sprache.
+- Fehler bei der Spracherkennung hatten **elf** fest im Code hinterlegte polnische Texte (u. a. „Netzwerkfehler", „Keine Sprache erkannt"). Sie stammen jetzt aus den Übersetzungen und folgen der Oberflächensprache.
+- Falsches Passwort, bereits verwendete E-Mail und fehlende Internetverbindung bei der Anmeldung haben endlich eigene Meldungen statt englischem Text von Firebase.
+- Fehler beim Herunterladen von Updates (unvollständige Datei, Serverfehler, Installer-Fehler) sind jetzt ebenfalls in der gewählten Sprache.
+
 ## v1.0.64 (2026-09-10) — versionCode 64
 
 **Behoben: Die Google-Play-Version hatte nur zwei Oberflächensprachen.**

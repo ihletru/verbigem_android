@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.65 (2026-09-10) — versionCode 65
+
+**Corregido: algunos mensajes ignoraban el idioma de interfaz elegido.**
+
+- Con el inglés seleccionado, algunos mensajes seguían apareciendo en polaco (y al revés). Afectaba a errores de inicio de sesión, traducción, reconocimiento de voz y de texto, recarga de la cuenta y la ventana de actualización.
+- Causa: esos textos pedían la traducción al contexto del sistema, que no sabe nada del idioma elegido en la app: usaba el idioma del teléfono. Ahora todos esos puntos pasan por una única fuente correcta.
+- Los errores técnicos de las librerías (p. ej. «HTTP 402») ya no llegan a la pantalla: quedan en el registro y el usuario ve un mensaje claro en el idioma elegido.
+- Los errores de reconocimiento de voz tenían **once** textos en polaco escritos directamente en el código (entre ellos «Error de red» y «No se detectó voz»). Ahora todos vienen de las traducciones y siguen el idioma de la interfaz.
+- Contraseña incorrecta, correo ya en uso y falta de internet al iniciar sesión tienen por fin sus propios mensajes en lugar del texto en inglés de Firebase.
+- Los errores al descargar actualizaciones (archivo incompleto, error del servidor, error del instalador) también están ya en el idioma elegido.
+
 ## v1.0.64 (2026-09-10) — versionCode 64
 
 **Corregido: la versión de Google Play solo tenía dos idiomas de interfaz.**

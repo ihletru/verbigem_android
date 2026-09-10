@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import com.google.firebase.auth.FirebaseAuthException
 import com.verbigem.app.R
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.repository.AuthRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,6 +44,39 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    /**
+     * Zamienia wyjątek na komunikat w języku INTERFEJSU.
+     *
+     * `e.localizedMessage` zwraca **angielski tekst dla programisty** (np.
+     * "The password is invalid or the user does not have a password."), więc
+     * użytkownik widział angielski komunikat mimo polskiego UI. Kluczujemy po
+     * stabilnym `errorCode`, nie po treści (treść zmienia się między wersjami SDK).
+     */
+    private fun authErrorMessage(e: Exception, fallbackRes: Int): String {
+        val code = (e as? FirebaseAuthException)?.errorCode
+        val res = when (code) {
+            "ERROR_WRONG_PASSWORD",
+            "ERROR_INVALID_CREDENTIAL",
+            "ERROR_INVALID_LOGIN_CREDENTIALS",
+            "ERROR_USER_NOT_FOUND" -> R.string.auth_error_wrong_password
+
+            "ERROR_EMAIL_ALREADY_IN_USE" -> R.string.auth_error_email_in_use
+
+            "ERROR_NETWORK_REQUEST_FAILED",
+            "ERROR_WEB_NETWORK_REQUEST_FAILED" -> R.string.auth_error_network
+
+            "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL",
+            "ERROR_CREDENTIAL_ALREADY_IN_USE" -> R.string.auth_error_unsupported_credential
+
+            // Brak internetu potrafi przyjść jako ogólny błąd Credential Managera,
+            // a nie jako FirebaseAuthException — łapiemy go po typie.
+            null -> if (e is java.io.IOException) R.string.auth_error_network else fallbackRes
+
+            else -> fallbackRes
+        }
+        return uiString(res)
+    }
+
     fun onEmailChanged(text: String) { _email.value = text }
     fun onPasswordChanged(text: String) { _password.value = text }
     fun toggleAuthMode() { _isSignUp.value = !_isSignUp.value }
@@ -53,7 +88,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         val em = _email.value.trim()
         val pass = _password.value.trim()
         if (em.isBlank() || pass.length < 6) {
-            _errorMessage.value = getApplication<Application>().getString(R.string.auth_error_password)
+            _errorMessage.value = uiString(R.string.auth_error_password)
             return
         }
 
@@ -69,8 +104,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 onSuccess()
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.auth_error_login)
+                _errorMessage.value = authErrorMessage(e, R.string.auth_error_login)
             } finally {
                 _isLoading.value = false
             }
@@ -104,13 +138,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     authRepository.signInWithGoogle(googleIdTokenCredential.idToken)
                     onSuccess()
                 } else {
-                    _errorMessage.value = getApplication<Application>()
-                        .getString(R.string.auth_error_unsupported_credential)
+                    _errorMessage.value = uiString(R.string.auth_error_unsupported_credential)
                 }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Google Sign-in failed", e)
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.auth_error_google)
+                _errorMessage.value = authErrorMessage(e, R.string.auth_error_google)
             } finally {
                 _isLoading.value = false
             }

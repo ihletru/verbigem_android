@@ -57,6 +57,7 @@ import com.verbigem.app.ui.navigation.AppNavigation
 import com.verbigem.app.ui.theme.VerbigemAppTheme
 import com.verbigem.app.ui.theme.VerbigemTheme
 import java.util.Locale
+import com.verbigem.app.util.UiLangState
 
 class MainActivity : ComponentActivity() {
 
@@ -474,6 +475,12 @@ fun LocalizationWrapper(langCode: String, content: @Composable () -> Unit) {
     // surrounding context is the ComponentActivity itself, so this cast is safe.
     val activity = context as ComponentActivity
     val locale = remember(langCode) { Locale.forLanguageTag(langCode) }
+    // ViewModel-e i silniki nie widzą LocalContext, więc język interfejsu trzymamy
+    // też globalnie. Bez tego `getString()` z Application zwraca język SYSTEMU
+    // i na polskim telefonie z angielskim UI wychodził polski komunikat.
+    // Zwykłe przypisanie (nie SideEffect) celowo: musi być ustawione, ZANIM
+    // skomponują się dzieci i zanim jakikolwiek ViewModel zdąży rozwiązać tekst.
+    UiLangState.code = langCode
     // A wrapper around the Activity, NOT the context createConfigurationContext()
     // hands back — see LocalizedContext below for why that distinction matters.
     val localizedContext = remember(langCode) { LocalizedContext(activity, locale) }

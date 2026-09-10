@@ -196,6 +196,10 @@
     <string name="update_download_bytes_unknown">%1$.1f MB</string>
     <string name="update_failed_title">La actualización falló</string>
     <string name="update_failed">La descarga no terminó: %1$s</string>
+    <string name="update_error_incomplete">El archivo descargado está incompleto: inténtalo de nuevo</string>
+    <string name="update_error_download">La descarga falló</string>
+    <string name="update_error_install">No se pudo iniciar el instalador</string>
+    <string name="update_error_http">La descarga falló (HTTP %1$d)</string>
     <string name="update_retry">Reintentar</string>
 
     <!-- Chat: bandeja de entrada + conversación (fase 1) -->
@@ -348,6 +352,16 @@
     <string name="voice_not_available">El reconocimiento de voz no está disponible en este dispositivo</string>
     <string name="voice_permission_denied">Se necesita el permiso de micrófono para enviar un mensaje de voz</string>
     <string name="voice_recognition_error">No se pudo reconocer la voz. Inténtalo de nuevo.</string>
+    <string name="voice_error_audio">Error de grabación de audio</string>
+    <string name="voice_error_client">Error de la app al reconocer el habla</string>
+    <string name="voice_error_permissions">Se necesita permiso para el micrófono</string>
+    <string name="voice_error_network">Error de red</string>
+    <string name="voice_error_network_timeout">Se agotó el tiempo de red</string>
+    <string name="voice_error_no_match">No se reconoció el habla: inténtalo de nuevo</string>
+    <string name="voice_error_busy">El reconocimiento de voz está ocupado</string>
+    <string name="voice_error_server">Error del servidor de reconocimiento</string>
+    <string name="voice_error_speech_timeout">No se detectó voz</string>
+    <string name="voice_error_unknown">Error del micrófono (%1$d)</string>
     <string name="hide_conversation_failed">No se pudo eliminar la conversación. Inténtalo de nuevo.</string>
     <string name="contacts_search_failed">La búsqueda falló. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="image_close">Cerrar vista previa</string>
@@ -576,6 +590,9 @@
 
     <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
     <string name="auth_error_login">Error al iniciar sesión</string>
+    <string name="auth_error_wrong_password">Correo o contraseña incorrectos.</string>
+    <string name="auth_error_email_in_use">Ese correo ya tiene una cuenta. Inicia sesión en su lugar.</string>
+    <string name="auth_error_network">Sin conexión. Comprueba tu internet e inténtalo de nuevo.</string>
     <string name="auth_error_unsupported_credential">Método de inicio de sesión no compatible</string>
     <string name="auth_error_google">Error al iniciar sesión con Google</string>
     <string name="conv_error_translation">Error de traducción en el modo conversación</string>

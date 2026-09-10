@@ -207,6 +207,10 @@
     <string name="update_download_bytes_unknown">%1$.1f MB</string>
     <string name="update_failed_title">Aktualizacja nie udała się</string>
     <string name="update_failed">Pobieranie nie zostało ukończone: %1$s</string>
+    <string name="update_error_incomplete">Pobrany plik jest niekompletny — spróbuj ponownie</string>
+    <string name="update_error_download">Pobieranie nie powiodło się</string>
+    <string name="update_error_install">Nie udało się uruchomić instalatora</string>
+    <string name="update_error_http">Pobieranie nie powiodło się (HTTP %1$d)</string>
     <string name="update_retry">Ponów</string>
 
     <!-- Czat: skrzynka odbiorcza + wątek (faza 1) -->
@@ -361,6 +365,16 @@
     <string name="voice_not_available">Rozpoznawanie mowy niedostępne na tym urządzeniu</string>
     <string name="voice_permission_denied">Do wysłania głosówki potrzebne jest uprawnienie do mikrofonu</string>
     <string name="voice_recognition_error">Nie udało się rozpoznać mowy. Spróbuj ponownie.</string>
+    <string name="voice_error_audio">Błąd nagrywania dźwięku</string>
+    <string name="voice_error_client">Błąd aplikacji podczas rozpoznawania</string>
+    <string name="voice_error_permissions">Brak uprawnień do mikrofonu</string>
+    <string name="voice_error_network">Błąd sieci</string>
+    <string name="voice_error_network_timeout">Przekroczono limit czasu sieci</string>
+    <string name="voice_error_no_match">Nie rozpoznano mowy — spróbuj ponownie</string>
+    <string name="voice_error_busy">Rozpoznawanie mowy jest zajęte</string>
+    <string name="voice_error_server">Błąd serwera rozpoznawania</string>
+    <string name="voice_error_speech_timeout">Brak dźwięku mowy</string>
+    <string name="voice_error_unknown">Błąd mikrofonu (%1$d)</string>
     <string name="hide_conversation_failed">Nie udało się usunąć rozmowy. Spróbuj ponownie.</string>
     <string name="contacts_search_failed">Wyszukiwanie się nie udało. Sprawdź połączenie i spróbuj ponownie.</string>
     <string name="image_close">Zamknij podgląd</string>
@@ -601,6 +615,9 @@
 
     <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
     <string name="auth_error_login">Błąd logowania</string>
+    <string name="auth_error_wrong_password">Błędny e-mail lub hasło.</string>
+    <string name="auth_error_email_in_use">Ten e-mail ma już konto. Spróbuj się zalogować.</string>
+    <string name="auth_error_network">Brak połączenia. Sprawdź internet i spróbuj ponownie.</string>
     <string name="auth_error_unsupported_credential">Nieobsługiwany typ poświadczenia</string>
     <string name="auth_error_google">Błąd logowania przez Google</string>
     <string name="conv_error_translation">Błąd tłumaczenia w trybie rozmowy</string>

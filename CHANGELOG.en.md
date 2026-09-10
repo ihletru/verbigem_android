@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.65 (2026-09-10) — versionCode 65
+
+**Fixed: some messages ignored the chosen interface language.**
+
+- With English selected, some messages still appeared in Polish (and the other way round). This covered sign-in errors, translation, speech and text recognition, account top-up and the app-update window.
+- Cause: those texts asked the system context for a translation, and the system context knows nothing about the language picked in the app — it used the phone's language. Every such place now goes through one shared, correct source of texts.
+- Technical errors from libraries (e.g. "HTTP 402") no longer reach the screen — they stay in the log, while the user sees a clear message in the chosen language.
+- Speech-recognition errors had **eleven** Polish texts hardcoded in the source (including "Network error" and "No speech detected"). They now all come from the translations and follow the interface language.
+- Wrong password, e-mail already in use and no internet during sign-in finally have their own messages instead of English text from Firebase.
+- Update download errors (incomplete file, server error, installer error) are in the chosen language too.
+
 ## v1.0.64 (2026-09-10) — versionCode 64
 
 **Fixed: the Google Play build had only two interface languages.**

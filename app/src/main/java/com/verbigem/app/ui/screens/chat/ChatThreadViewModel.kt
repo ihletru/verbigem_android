@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.UUID
+import com.verbigem.app.util.uiString
 
 enum class BubbleStatus { SENT, SENDING, FAILED }
 
@@ -205,7 +206,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
 
     /** Tekst idzie z zasobów — żaden komunikat nie jest wpisany na sztywno (6 języków). */
     fun showMessage(resId: Int) {
-        showMessage(getApplication<Application>().getString(resId))
+        showMessage(uiString(resId))
     }
 
     /** Ekran woła po pokazaniu Snackbara; bez wyzerowania ten sam tekst nie wróci. */

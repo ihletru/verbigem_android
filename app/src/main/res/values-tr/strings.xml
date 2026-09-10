@@ -196,6 +196,10 @@
     <string name="update_download_bytes_unknown">%1$.1f MB</string>
     <string name="update_failed_title">Güncelleme başarısız</string>
     <string name="update_failed">İndirme tamamlanamadı: %1$s</string>
+    <string name="update_error_incomplete">İndirilen dosya eksik — tekrar deneyin</string>
+    <string name="update_error_download">İndirme başarısız</string>
+    <string name="update_error_install">Yükleyici başlatılamadı</string>
+    <string name="update_error_http">İndirme başarısız (HTTP %1$d)</string>
     <string name="update_retry">Yeniden dene</string>
 
     <!-- Sohbet: gelen kutusu + sohbet (aşama 1) -->
@@ -348,6 +352,16 @@
     <string name="voice_not_available">Sesli tanıma bu cihazda kullanılamıyor</string>
     <string name="voice_permission_denied">Sesli mesaj göndermek için mikrofon izni gerekiyor</string>
     <string name="voice_recognition_error">Ses tanıma başarısız oldu. Tekrar deneyin.</string>
+    <string name="voice_error_audio">Ses kaydı hatası</string>
+    <string name="voice_error_client">Konuşma tanıma sırasında uygulama hatası</string>
+    <string name="voice_error_permissions">Mikrofon izni gerekli</string>
+    <string name="voice_error_network">Ağ hatası</string>
+    <string name="voice_error_network_timeout">Ağ zaman aşımı</string>
+    <string name="voice_error_no_match">Konuşma tanınamadı — tekrar deneyin</string>
+    <string name="voice_error_busy">Konuşma tanıma meşgul</string>
+    <string name="voice_error_server">Konuşma tanıma sunucusu hatası</string>
+    <string name="voice_error_speech_timeout">Ses algılanmadı</string>
+    <string name="voice_error_unknown">Mikrofon hatası (%1$d)</string>
     <string name="hide_conversation_failed">Sohbet silinemedi. Tekrar deneyin.</string>
     <string name="contacts_search_failed">Arama başarısız. Bağlantınızı kontrol edip tekrar deneyin.</string>
     <string name="image_close">Önizlemeyi kapat</string>
@@ -576,6 +590,9 @@
 
     <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
     <string name="auth_error_login">Giriş başarısız</string>
+    <string name="auth_error_wrong_password">E-posta veya parola hatalı.</string>
+    <string name="auth_error_email_in_use">Bu e-postanın zaten bir hesabı var. Bunun yerine giriş yap.</string>
+    <string name="auth_error_network">Bağlantı yok. İnternetini kontrol edip tekrar dene.</string>
     <string name="auth_error_unsupported_credential">Desteklenmeyen giriş yöntemi</string>
     <string name="auth_error_google">Google ile giriş başarısız</string>
     <string name="conv_error_translation">Sohbet modunda çeviri hatası</string>

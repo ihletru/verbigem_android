@@ -205,6 +205,10 @@
     <string name="update_download_bytes_unknown">%1$.1f MB</string>
     <string name="update_failed_title">Update failed</string>
     <string name="update_failed">The download did not finish: %1$s</string>
+    <string name="update_error_incomplete">The downloaded file is incomplete — try again</string>
+    <string name="update_error_download">Download failed</string>
+    <string name="update_error_install">Couldn\'t start the installer</string>
+    <string name="update_error_http">Download failed (HTTP %1$d)</string>
     <string name="update_retry">Retry</string>
 
     <!-- Chat: inbox + thread (phase 1) -->
@@ -360,6 +364,16 @@
     <string name="voice_not_available">Speech recognition is unavailable on this device</string>
     <string name="voice_permission_denied">Microphone permission is needed to send a voice message</string>
     <string name="voice_recognition_error">Speech recognition failed. Please try again.</string>
+    <string name="voice_error_audio">Recording error</string>
+    <string name="voice_error_client">App error while recognising speech</string>
+    <string name="voice_error_permissions">Microphone permission is required</string>
+    <string name="voice_error_network">Network error</string>
+    <string name="voice_error_network_timeout">Network timed out</string>
+    <string name="voice_error_no_match">Speech not recognised — try again</string>
+    <string name="voice_error_busy">Speech recognition is busy</string>
+    <string name="voice_error_server">Speech recognition server error</string>
+    <string name="voice_error_speech_timeout">No speech detected</string>
+    <string name="voice_error_unknown">Microphone error (%1$d)</string>
     <string name="hide_conversation_failed">Couldn\'t delete the conversation. Try again.</string>
     <string name="contacts_search_failed">Search failed. Check your connection and try again.</string>
     <string name="image_close">Close preview</string>
@@ -602,6 +616,9 @@
 
     <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
     <string name="auth_error_login">Sign-in failed</string>
+    <string name="auth_error_wrong_password">Wrong e-mail or password.</string>
+    <string name="auth_error_email_in_use">That e-mail already has an account. Try signing in instead.</string>
+    <string name="auth_error_network">No connection. Check your internet and try again.</string>
     <string name="auth_error_unsupported_credential">Unsupported sign-in method</string>
     <string name="auth_error_google">Google sign-in failed</string>
     <string name="conv_error_translation">Translation failed in conversation mode</string>

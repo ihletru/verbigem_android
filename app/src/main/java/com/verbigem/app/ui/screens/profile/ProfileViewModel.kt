@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.verbigem.app.util.uiString
+import android.util.Log
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -194,11 +196,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 if (!url.isNullOrBlank()) {
                     _topUpUrl.value = url
                 } else {
-                    _topUpError.value = getApplication<Application>().getString(R.string.topup_error)
+                    _topUpError.value = uiString(R.string.topup_error)
                 }
             } catch (e: Exception) {
-                _topUpError.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.topup_error)
+                // Techniczny powód (np. "HTTP 402") zostaje w logach — użytkownik
+                // dostaje tekst w swoim języku, nie angielski tekst z SDK.
+                Log.e("ProfileViewModel", "Request failed", e)
+                _topUpError.value = uiString(R.string.topup_error)
             } finally {
                 _topUpLoading.value = false
             }

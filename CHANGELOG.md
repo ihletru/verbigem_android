@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.65 (2026-09-10) — versionCode 65
+
+**Naprawione: część komunikatów ignorowała wybrany język interfejsu.**
+
+- Po ustawieniu angielskiego część komunikatów nadal pojawiała się po polsku (i odwrotnie). Dotyczyło to błędów logowania, tłumaczenia, rozpoznawania mowy i tekstu z obrazka, doładowania konta oraz okna aktualizacji aplikacji.
+- Przyczyna: te teksty pobierały tłumaczenie z kontekstu systemowego, który nie wie nic o języku wybranym w aplikacji — brał język telefonu. Wszystkie takie miejsca przechodzą teraz przez jedno wspólne, poprawne źródło tekstów.
+- Błędy techniczne z bibliotek (np. „HTTP 402") przestały trafiać na ekran — zostają w logach, a użytkownik widzi zrozumiały komunikat w wybranym języku.
+- Błędy rozpoznawania mowy miały **jedenaście** polskich tekstów wpisanych na sztywno w kodzie (m.in. „Błąd sieci", „Brak dźwięku mowy"). Teraz wszystkie pochodzą z tłumaczeń i zmieniają się razem z językiem interfejsu.
+- Błędne hasło, zajęty e-mail i brak internetu przy logowaniu mają wreszcie własne komunikaty zamiast angielskiego tekstu z Firebase.
+- Błąd pobierania aktualizacji (niekompletny plik, błąd serwera, błąd instalatora) też jest w wybranym języku.
+
 ## v1.0.64 (2026-09-10) — versionCode 64
 
 **Naprawione: w wersji z Google Play były tylko dwa języki interfejsu.**

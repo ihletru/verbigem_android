@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.65 (2026-09-10) — versionCode 65
+
+**Düzeltildi: bazı mesajlar seçilen arayüz dilini yok sayıyordu.**
+
+- İngilizce seçiliyken bazı mesajlar hâlâ Lehçe görünüyordu (ve tersi). Bu; oturum açma hataları, çeviri, konuşma ve metin tanıma, hesap yükleme ve güncelleme penceresi için geçerliydi.
+- Nedeni: bu metinler çeviriyi sistem bağlamından alıyordu; sistem bağlamı uygulamada seçilen dili bilmez, telefonun dilini kullanır. Artık tüm bu noktalar tek ve doğru bir metin kaynağından geçiyor.
+- Kitaplıklardan gelen teknik hatalar (örn. "HTTP 402") artık ekrana çıkmıyor; günlükte kalıyor ve kullanıcı seçilen dilde anlaşılır bir mesaj görüyor.
+- Konuşma tanıma hatalarında kodun içine gömülü **on bir** Lehçe metin vardı (örn. "Ağ hatası", "Ses algılanmadı"). Artık hepsi çevirilerden geliyor ve arayüz dilini izliyor.
+- Oturum açmada yanlış parola, kullanımda olan e-posta ve internet yokluğu artık Firebase'in İngilizce metni yerine kendi mesajlarına sahip.
+- Güncelleme indirme hataları (eksik dosya, sunucu hatası, yükleyici hatası) da artık seçilen dilde.
+
 ## v1.0.64 (2026-09-10) — versionCode 64
 
 **Düzeltildi: Google Play sürümünde yalnızca iki arayüz dili vardı.**

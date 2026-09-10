@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
 
 /**
  * One-way thread with somebody who does not have Verbigem (3.6).
@@ -147,7 +148,7 @@ class ExternalThreadViewModel(application: Application) : AndroidViewModel(appli
         val context = getApplication<Application>()
         val ok = channel.handOff(context, repository.targetFor(entity), text, "")
         if (!ok) {
-            _error.value = context.getString(com.verbigem.app.R.string.channel_none_available)
+            _error.value = context.uiString(com.verbigem.app.R.string.channel_none_available)
             return null
         }
 

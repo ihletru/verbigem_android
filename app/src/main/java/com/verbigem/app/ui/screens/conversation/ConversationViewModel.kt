@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
+import android.util.Log
 
 enum class ConvSide { SIDE_A, SIDE_B }
 
@@ -139,8 +141,10 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
                 // Flip side
                 _currentSide.value = if (_currentSide.value == ConvSide.SIDE_A) ConvSide.SIDE_B else ConvSide.SIDE_A
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage
-                    ?: getApplication<Application>().getString(R.string.conv_error_translation)
+                // Techniczny powód (np. "HTTP 402") zostaje w logach — użytkownik
+                // dostaje tekst w swoim języku, nie angielski tekst z SDK.
+                Log.e("ConversationViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.conv_error_translation)
             } finally {
                 _isTranslating.value = false
             }

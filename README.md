@@ -757,18 +757,34 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
 1. Każdy widoczny tekst UI musi pochodzić z `stringResource(R.string.xxx)`.
 2. Zasoby: `app/src/main/res/values/strings.xml` (**domyślny = angielski**) oraz `values-pl/`, `values-de/`, `values-es/`, `values-zh/`, `values-tr/`.
 3. Etykiety silników (`EngineChoice`) i tooltipy używają `descriptionResId` / `labelResId` mapowanych na `R.string.*` (nie `labelKey` z hardkodowanym tekstem).
-4. Komunikaty błędów z warstwy `engine/*` bierzemy przez `context.getString(R.string.xxx)`.
+4. Komunikaty błędów z warstwy `engine/*` bierzemy przez `context.uiString(R.string.xxx)` — **nie** `getString`, bo kontekstem silnika jest `Application`, które nie zna języka wybranego w aplikacji (patrz reguła `uiString` niżej).
 5. **Po dodaniu `string` do `values/strings.xml` należy dodać go do wszystkich pozostałych `values-xx/strings.xml`** (nawet jako tymczasowy angielski fallback).
 6. Klucze akcji historii/result: `action_copy`, `action_share`, `action_read`, `action_read_pro`, `action_delete`. Dialog update: `update_available_title/body/action/later`. Reklama: `ad_banner_label/text`.
 7. Teksty okien pomocy: `help_*` (≈50 kluczy × 6 języków). Współdzielone: `help_close`, `help_open`. Per ekran: `help_intro_<ekran>` (+ wariant `_title`). Podpisy ikon: `input_caption_*`, `engine_caption_*`. **Najpierw `values/strings.xml`, potem reszta** — skryptem `python` można sprawdzić, czy żaden klucz nie został pominięty:
    ```bash
    python -c "import re,os;base={m for m in re.findall(r'<string name=\"([^\"]+)\"',open('app/src/main/res/values/strings.xml',encoding='utf-8').read())};[print(d,sorted(base-set(re.findall(r'<string name=\"([^\"]+)\"',open(f'app/src/main/res/{d}/strings.xml',encoding=\"utf-8\").read())))) for d in ['values-pl','values-de','values-es','values-zh','values-tr']]"
    ```
-8. **Komunikaty błędów z ViewModeli też podlegają zakazowi** — `_errorMessage.value = "Błąd logowania"` to ten sam grzech co `Text("Błąd logowania")`. Bierzemy `getApplication<Application>().getString(R.string.xxx)` (albo `appContext.getString(...)`). Audyt: `grep -rn '_errorMessage.value = .*"' --include=*.kt app/src/main/java` — wszystkie trafienia muszą mieć `getString`.
-   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków** (po v1.0.56, która dodała `voice_permission_denied` i `voice_recognition_error`: **492**; po v1.0.58, która dodała `hide_conversation_failed` i `contacts_search_failed`: **494**; po v1.0.64, która dodała 5 × `model_error_*` + `phone_verify_error_code_expired`: **497** — sprawdzone, 0 braków w każdym z 6 locale).
+8. **Komunikaty błędów z ViewModeli też podlegają zakazowi** — `_errorMessage.value = "Błąd logowania"` to ten sam grzech co `Text("Błąd logowania")`. Bierzemy `uiString(R.string.xxx)`. Audyt: `grep -rn '_errorMessage.value = .*"' --include=*.kt app/src/main/java` — wszystkie trafienia muszą mieć `uiString`.
+   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków** (po v1.0.56, która dodała `voice_permission_denied` i `voice_recognition_error`: **492**; po v1.0.58, która dodała `hide_conversation_failed` i `contacts_search_failed`: **494**; po v1.0.64, która dodała 5 × `model_error_*` + `phone_verify_error_code_expired`: **497**; po v1.0.65, która dodała 10 × `voice_error_*`, 3 × `auth_error_*` i 4 × `update_error_*`: **514** — sprawdzone, 0 braków w każdym z 6 locale).
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 
+⚠️ **Reguła `uiString` — tekst bierzemy z języka INTERFEJSU, nigdy z `Application`.** `Application` nie wie nic o języku wybranym w aplikacji, więc `getApplication<Application>().getString(...)`, `appContext.getString(...)` i `e.localizedMessage` zwracają **język telefonu** albo **angielski tekst z SDK**. To był systemowy powód zgłoszenia „ustawiłem angielski, a komunikat jest po polsku" w v1.0.65 — dotyczył logowania, tłumaczenia, OCR, rozpoznawania mowy, doładowania konta i okna aktualizacji.
+
+Rozwiązanie: `app/src/main/java/com/verbigem/app/util/UiStrings.kt`.
+
+```kotlin
+UiLangState.code = langCode     // raz na kompozycję, w MainActivity.LocalizationWrapper
+
+uiString(R.string.x)            // w ViewModelu — AndroidViewModel ma własne przeciążenie
+context.uiString(R.string.x)    // w silniku, ekranie, Toast
+```
+
+`UiLangState` trzyma wybrany język i cache `Resources` dla niego; `uiString` tworzy kontekst przez `createConfigurationContext` i bierze z niego **wyłącznie** `resources` (gołego `ContextImpl` nie wolno przekazywać dalej — patrz reguła dla kontekstu wyżej).
+
+Wyjątkiem jest **tekst techniczny do logów** — `Log.e(TAG, "HTTP ${code}", e)` zostaje po angielsku, bo nie jest komunikatem dla użytkownika. Wzorzec: powód do logu, `uiString(...)` na ekran.
+
+Audyt: `grep -rn "getApplication<Application>().getString\|appContext.getString\|localizedMessage" --include=*.kt app/src/main/java` — poza `util/UiStrings.kt` (opis problemu w KDoc) i wywołaniami `Log.*` nie powinno nic zwracać.
 ⚠️ **Reguła dla okien w Compose:** wnętrze `Dialog { }` to **osobna kompozycja**, której `LocalContext` wraca do bazowego Activity (locale urządzenia), a nie do `LocalizedContext`. Okno jest wtedy w języku telefonu, a nie w języku wybranym w aplikacji.
 
 **Dlatego nie używaj `Dialog` / `AlertDialog` bezpośrednio — używaj `LocalizedDialog` / `LocalizedAlertDialog`** z `ui/components/LocalizedDialog.kt`. Te dwa komponenty łapią kontekst przed otwarciem okna i przepisują go do treści (a `LocalizedAlertDialog` do każdej lambdy osobno, bo `AlertDialog` renderuje `title`/`text`/`confirmButton` wewnątrz własnego okna). Przepisanie kontekstu, który i tak był poprawny, nic nie zmienia — więc użycie opakowania jest bezpieczne zawsze.

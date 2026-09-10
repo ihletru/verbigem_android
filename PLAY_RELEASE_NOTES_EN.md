@@ -1,6 +1,6 @@
 # Verbigem — English release notes (What's new) for Google Play
 
-Wersja: **1.0.64** (versionCode 64). Tekst do wklejenia w Play Console →
+Wersja: **1.0.65** (versionCode 65). Tekst do wklejenia w Play Console →
 Release details → Release notes (język: English). Źródło: `CHANGELOG.en.md`.
 
 ---
@@ -8,10 +8,10 @@ Release details → Release notes (język: English). Źródło: `CHANGELOG.en.md
 ## Short (recommended for the "What's new" box, ≤ 500 characters)
 
 ```
-Verbigem 1.0.64 — the model-download window no longer claims a model is ready
-when it is not, and every window in the app now follows the interface language
-you picked. The SMS code screen tells you when a code has expired instead of
-saying it is wrong, and gives you twice as long to enter it.
+Verbigem 1.0.65 — messages that ignored the interface language you picked
+now follow it: sign-in, translation, speech and text recognition, top-up and the
+update window. Speech errors alone had eleven Polish texts hardcoded in the
+source. Technical library errors (like "HTTP 402") stay in the log, not on screen.
 ```
 
 ---
@@ -19,26 +19,38 @@ saying it is wrong, and gives you twice as long to enter it.
 ## Extended (gdy chcesz dać szerszy kontekst)
 
 ```
-Verbigem 1.0.64
+Verbigem 1.0.65
 
-Fixed: the model-download window could claim a model was ready when it was not
-on the phone, and windows ignored the interface language you had chosen.
+Fixed: some messages ignored the interface language you had picked.
 
-Downloading the Fast model and then switching to Accurate showed a green "The
-Accurate model is ready to use!" even though nothing had been downloaded.
+With English selected, some messages still came out in Polish — and the other
+way round. This covered sign-in errors, translation, speech and text
+recognition, account top-up and the app-update window.
 
-Windows were also following the phone's language instead of the one selected in
-the app — the model-download window was one of nine. All of them are fixed.
+The cause was the same every time: those texts asked the system context for a
+translation, and the system context knows nothing about the language chosen in
+the app — it used the phone's language. Every such place now goes through one
+shared, correct source of texts.
 
-An expired SMS code now says so plainly, rather than reporting a wrong code,
-and you have 120 seconds instead of 60 to enter it — with a slower SMS the old
-window ran out before the code could be typed, and a correct code was rejected.
+Technical errors from libraries (for example "HTTP 402") no longer reach the
+screen; they stay in the log, and you see a clear message in your language.
+
+Speech-recognition errors had eleven Polish texts hardcoded in the source,
+including "Network error" and "No speech detected". They now come from the
+translations and follow the interface language.
+
+Wrong password, an e-mail already in use and no internet during sign-in finally
+have their own messages instead of English text from Firebase. Update download
+errors (incomplete file, server error, installer error) are in your language too.
 ```
 
 ---
 
 ## Per-version (dokładnie z CHANGELOG.en.md, gdybyś chciał wypisać historię)
 
+- **1.0.65** — Fixed: messages that ignored the chosen interface language
+  (sign-in, translation, OCR, speech, top-up, app update) now follow it; library
+  errors stay in the log instead of the screen.
 - **1.0.64** — Fixed: the model-download window lied about a model being ready,
   and all nine windows now follow the chosen interface language; expired SMS
   codes have their own message and 120 s to be entered.

@@ -10,6 +10,8 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import com.verbigem.app.data.model.LangCode
 import java.util.Locale
+import com.verbigem.app.R
+import com.verbigem.app.util.uiString
 
 class SpeechManager(private val context: Context) : TextToSpeech.OnInitListener {
 
@@ -60,7 +62,7 @@ class SpeechManager(private val context: Context) : TextToSpeech.OnInitListener 
         stopListening()
 
         if (!isSttAvailable()) {
-            onError("Rozpoznawanie mowy nie jest dostępne na tym urządzeniu")
+            onError(context.uiString(R.string.voice_not_available))
             return
         }
 
@@ -73,17 +75,19 @@ class SpeechManager(private val context: Context) : TextToSpeech.OnInitListener 
                 override fun onEndOfSpeech() {}
 
                 override fun onError(error: Int) {
+                    // Teksty z zasobów i w języku INTERFEJSU. SpeechManager powstaje
+                    // z Application, więc getString() dałby język systemu.
                     val message = when (error) {
-                        SpeechRecognizer.ERROR_AUDIO -> "Błąd nagrywania dźwięku"
-                        SpeechRecognizer.ERROR_CLIENT -> "Błąd aplikacji podczas rozpoznawania"
-                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Brak uprawnień do mikrofonu"
-                        SpeechRecognizer.ERROR_NETWORK -> "Błąd sieci"
-                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Przekroczono limit czasu sieci"
-                        SpeechRecognizer.ERROR_NO_MATCH -> "Nie rozpoznano mowy — spróbuj ponownie"
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Rozpoznawanie mowy jest zajęte"
-                        SpeechRecognizer.ERROR_SERVER -> "Błąd serwera rozpoznawania"
-                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Brak dźwięku mowy"
-                        else -> "Błąd mikrofonu ($error)"
+                        SpeechRecognizer.ERROR_AUDIO -> context.uiString(R.string.voice_error_audio)
+                        SpeechRecognizer.ERROR_CLIENT -> context.uiString(R.string.voice_error_client)
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> context.uiString(R.string.voice_error_permissions)
+                        SpeechRecognizer.ERROR_NETWORK -> context.uiString(R.string.voice_error_network)
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> context.uiString(R.string.voice_error_network_timeout)
+                        SpeechRecognizer.ERROR_NO_MATCH -> context.uiString(R.string.voice_error_no_match)
+                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> context.uiString(R.string.voice_error_busy)
+                        SpeechRecognizer.ERROR_SERVER -> context.uiString(R.string.voice_error_server)
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> context.uiString(R.string.voice_error_speech_timeout)
+                        else -> context.uiString(R.string.voice_error_unknown, error)
                     }
                     onError(message)
                 }

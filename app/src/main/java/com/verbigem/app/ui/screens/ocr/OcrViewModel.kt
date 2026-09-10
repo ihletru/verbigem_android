@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiString
+import android.util.Log
 
 class OcrViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -248,7 +250,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
             _selectedBitmap.value = bmp
             _cropRect.value = defaultCropRect()
         } else {
-            _errorMessage.value = appContext.getString(R.string.ocr_error_no_text)
+            _errorMessage.value = appContext.uiString(R.string.ocr_error_no_text)
         }
     }
 
@@ -277,13 +279,14 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val extracted = ocrBlock()
                 if (extracted.isBlank()) {
-                    _errorMessage.value = appContext.getString(R.string.ocr_error_no_text)
+                    _errorMessage.value = appContext.uiString(R.string.ocr_error_no_text)
                     return@launch
                 }
                 _recognizedText.value = extracted
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage
-                    ?: appContext.getString(R.string.ocr_error_recognition)
+                // Techniczny powód zostaje w logu — użytkownik dostaje tekst w swoim języku.
+                Log.e("OcrViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.ocr_error_recognition)
             } finally {
                 _isProcessing.value = false
             }
@@ -300,7 +303,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun translateText() {
         val text = _recognizedText.value.trim()
         if (text.isBlank()) {
-            _errorMessage.value = appContext.getString(R.string.ocr_no_text)
+            _errorMessage.value = appContext.uiString(R.string.ocr_no_text)
             return
         }
         val engine = _engineChoice.value
@@ -361,7 +364,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                         // nieaktywne (ta sama reguła co w Tłumaczu).
                         if (!isFree && _walletCents.value <= 0) {
                             _isProcessing.value = false
-                            _errorMessage.value = appContext.getString(R.string.online_no_credits)
+                            _errorMessage.value = appContext.uiString(R.string.online_no_credits)
                             return@launch
                         }
                         // ":free" idą bezpośrednio na klucz użytkownika;
@@ -376,8 +379,9 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage
-                    ?: appContext.getString(R.string.translation_error_generic)
+                // Techniczny powód zostaje w logu — użytkownik dostaje tekst w swoim języku.
+                Log.e("OcrViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.translation_error_generic)
             } finally {
                 _isProcessing.value = false
             }
@@ -416,7 +420,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun speakPro(text: String) {
         if (!_isPro.value || text.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = appContext.getString(R.string.read_pro_not_configured)
+            _errorMessage.value = appContext.uiString(R.string.read_pro_not_configured)
             return
         }
         _resultSpeakingPro.value = true
@@ -429,8 +433,9 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                 proTtsEngine.speak(text, _targetLang.value, ttsConfig)
             } catch (e: Exception) {
                 _resultSpeakingPro.value = false
-                _errorMessage.value = e.localizedMessage
-                    ?: appContext.getString(R.string.read_pro_failed)
+                // Techniczny powód zostaje w logu — użytkownik dostaje tekst w swoim języku.
+                Log.e("OcrViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.read_pro_failed)
             }
         }
     }
@@ -448,7 +453,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun speakProHistory(item: TranslationHistory) {
         if (!_isPro.value || item.translatedText.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = appContext.getString(R.string.read_pro_not_configured)
+            _errorMessage.value = appContext.uiString(R.string.read_pro_not_configured)
             return
         }
         _speakingProSyncId.value = item.syncId
@@ -460,8 +465,9 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                 proTtsEngine.speak(item.translatedText, LangCode.fromCode(item.targetLang), ttsConfig)
             } catch (e: Exception) {
                 _speakingProSyncId.value = null
-                _errorMessage.value = e.localizedMessage
-                    ?: appContext.getString(R.string.read_pro_failed)
+                // Techniczny powód zostaje w logu — użytkownik dostaje tekst w swoim języku.
+                Log.e("OcrViewModel", "Request failed", e)
+                _errorMessage.value = uiString(R.string.read_pro_failed)
             }
         }
     }
