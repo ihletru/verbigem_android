@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.56 (2026-09-10) — versionCode 57
+
+**Naprawione: mikrofon milczał, gdy coś nie działało.**
+
+- Brak zgody na mikrofon, brak rozpoznawania mowy w telefonie i błąd rozpoznawania kończyły się tylko wpisem w logu systemowym. Dla Ciebie wyglądały identycznie: mikrofon „po prostu nie działa", bez podania powodu.
+- Teraz każda z tych trzech sytuacji mówi wprost, co się stało — krótkim komunikatem nad polem wpisywania. Teksty są w 6 językach, jak reszta aplikacji.
+
+
 ## v1.0.55 (2026-09-10) — versionCode 56
 
 **Naprawione: nieudane wysłanie zdjęcia albo głosówki znikało bez śladu.**

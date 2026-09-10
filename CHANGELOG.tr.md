@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.56 (2026-09-10) — versionCode 57
+
+**Düzeltildi: bir şey ters gittiğinde mikrofon sessiz kalıyordu.**
+
+- Mikrofon izni olmaması, telefonda ses tanıma bulunmaması ve tanıma hatası yalnızca sistem günlüğüne bir satır yazıyordu. Senin için üçü de aynı görünüyordu: mikrofon «sadece çalışmıyor», sebep belirtilmeden.
+- Artık bu üç durumun her biri ne olduğunu doğrudan söylüyor — yazma alanının üzerinde kısa bir mesajla. Metinler, uygulamanın geri kalanı gibi 6 dilde.
+
+
 ## v1.0.55 (2026-09-10) — versionCode 56
 
 **Düzeltildi: gönderilemeyen fotoğraf ya da sesli mesaf iz bırakmadan kayboluyordu.**

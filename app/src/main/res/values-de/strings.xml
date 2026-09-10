@@ -336,6 +336,8 @@
     <string name="voice_listening">Höre zu…</string>
     <string name="voice_stop">Stopp</string>
     <string name="voice_not_available">Spracherkennung auf diesem Gerät nicht verfügbar</string>
+    <string name="voice_permission_denied">Für eine Sprachnachricht wird die Mikrofonberechtigung benötigt</string>
+    <string name="voice_recognition_error">Die Spracherkennung ist fehlgeschlagen. Versuche es noch einmal.</string>
     <string name="image_close">Vorschau schließen</string>
 
     <!-- ============================================================

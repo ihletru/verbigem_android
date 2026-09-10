@@ -336,6 +336,8 @@
     <string name="voice_listening">正在聆听…</string>
     <string name="voice_stop">停止</string>
     <string name="voice_not_available">此设备不支持语音识别</string>
+    <string name="voice_permission_denied">发送语音消息需要麦克风权限</string>
+    <string name="voice_recognition_error">语音识别失败，请重试。</string>
     <string name="image_close">关闭预览</string>
 
     <!-- ============================================================

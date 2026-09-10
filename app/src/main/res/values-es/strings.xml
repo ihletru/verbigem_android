@@ -336,6 +336,8 @@
     <string name="voice_listening">Escuchando…</string>
     <string name="voice_stop">Detener</string>
     <string name="voice_not_available">El reconocimiento de voz no está disponible en este dispositivo</string>
+    <string name="voice_permission_denied">Se necesita el permiso de micrófono para enviar un mensaje de voz</string>
+    <string name="voice_recognition_error">No se pudo reconocer la voz. Inténtalo de nuevo.</string>
     <string name="image_close">Cerrar vista previa</string>
 
     <!-- ============================================================

@@ -2,7 +2,6 @@ package com.verbigem.app.ui.screens.chat
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -49,6 +48,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -133,12 +134,26 @@ fun ChatThreadScreen(
     // Faza 5.3: głosówki — stan nagrywania + uprawnienie mikrofonu.
     val isListening by viewModel.isListening.collectAsState()
     val voiceInterim by viewModel.voiceInterim.collectAsState()
+    val uiMessage by viewModel.uiMessage.collectAsState()
+    val snackbarHost = remember { SnackbarHostState() }
+    // `stringResource` jest @Composable, więc nie wolno go wołać z callbacku
+    // (wynik musi być wyniesiony wyżej) — ten sam schemat co `sendingLabel` niżej.
+    val micDeniedLabel = stringResource(R.string.voice_permission_denied)
     val context = LocalContext.current
     val recordPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) viewModel.startVoice()
-        else Log.w("ChatThread", "Brak zgody na mikrofon (RECORD_AUDIO)")
+        // Brak zgody to JEDYNA rzecz, której aplikacja nie może obejść sama —
+        // bez słowa zwrotnego użytkownik myśli, że mikrofon nie działa.
+        else viewModel.showMessage(micDeniedLabel)
+    }
+
+    // Komunikaty z ViewModelu (brak STT, błąd rozpoznawania) — jeden Snackbar na raz.
+    LaunchedEffect(uiMessage) {
+        val text = uiMessage ?: return@LaunchedEffect
+        snackbarHost.showSnackbar(text)
+        viewModel.consumeMessage()
     }
 
     val labelToday = stringResource(R.string.chat_today)
@@ -174,328 +189,339 @@ fun ChatThreadScreen(
             }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .background(VerbigemTheme.colors.bg)
-    ) {
-        // ------------------------------------------------------------- header
-        Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(VerbigemTheme.colors.surface)
-                .border(1.dp, VerbigemTheme.colors.border)
-                .padding(horizontal = 4.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .imePadding()
+                .background(VerbigemTheme.colors.bg)
         ) {
-            HelpIconButton(
-                onClick = onBack,
-                helpState = help,
-                helpTitle = stringResource(R.string.action_back),
-                helpText = stringResource(R.string.help_thread_back),
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back),
-                    tint = VerbigemTheme.colors.ink
-                )
-            }
-            // Tapping the name opens the contact card (alias, translation language,
-            // pin / mute / block). The whole block is the target, not just the text —
-            // a 38 dp avatar plus a name is a much easier hit than a line of text.
+            // ------------------------------------------------------------- header
             Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable(onClick = onOpenContactCard)
-                    .padding(4.dp)
-                    .semantics { contentDescription = openCardLabel },
+                    .fillMaxWidth()
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border)
+                    .padding(horizontal = 4.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(VerbigemTheme.colors.bg)
-                        .border(1.dp, VerbigemTheme.colors.border, CircleShape),
-                    contentAlignment = Alignment.Center
+                HelpIconButton(
+                    onClick = onBack,
+                    helpState = help,
+                    helpTitle = stringResource(R.string.action_back),
+                    helpText = stringResource(R.string.help_thread_back),
+                    modifier = Modifier.size(48.dp)
                 ) {
-                    Text(otherProfile?.photoURL ?: "🙂", fontSize = 18.sp)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.action_back),
+                        tint = VerbigemTheme.colors.ink
+                    )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = headerName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = VerbigemTheme.colors.ink,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = if (otherTyping) {
-                            stringResource(R.string.chat_typing)
-                        } else {
-                            stringResource(R.string.chat_other_lang, otherLang.displayName)
-                        },
-                        fontSize = 11.sp,
-                        color = if (otherTyping) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
-                    )
+                // Tapping the name opens the contact card (alias, translation language,
+                // pin / mute / block). The whole block is the target, not just the text —
+                // a 38 dp avatar plus a name is a much easier hit than a line of text.
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable(onClick = onOpenContactCard)
+                        .padding(4.dp)
+                        .semantics { contentDescription = openCardLabel },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(VerbigemTheme.colors.bg)
+                            .border(1.dp, VerbigemTheme.colors.border, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(otherProfile?.photoURL ?: "🙂", fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = headerName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.ink,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = if (otherTyping) {
+                                stringResource(R.string.chat_typing)
+                            } else {
+                                stringResource(R.string.chat_other_lang, otherLang.displayName)
+                            },
+                            fontSize = 11.sp,
+                            color = if (otherTyping) VerbigemTheme.colors.accent else VerbigemTheme.colors.muted
+                        )
+                    }
                 }
             }
-        }
 
-        // ----------------------------------------------------------- messages
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            if (canLoadMore) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        if (loadingOlder) {
-                            CircularProgressIndicator(
-                                color = VerbigemTheme.colors.accent,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        } else {
-                            TextButton(onClick = { viewModel.loadOlder() }) {
-                                Text(
-                                    stringResource(R.string.chat_load_older),
-                                    fontSize = 12.sp,
-                                    color = VerbigemTheme.colors.accent
+            // ----------------------------------------------------------- messages
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (canLoadMore) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            if (loadingOlder) {
+                                CircularProgressIndicator(
+                                    color = VerbigemTheme.colors.accent,
+                                    modifier = Modifier.size(20.dp)
                                 )
+                            } else {
+                                TextButton(onClick = { viewModel.loadOlder() }) {
+                                    Text(
+                                        stringResource(R.string.chat_load_older),
+                                        fontSize = 12.sp,
+                                        color = VerbigemTheme.colors.accent
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            itemsIndexed(bubbles, key = { _, bubble -> bubble.id }) { index, bubble ->
-                val previousStamp = if (index > 0) bubbles[index - 1].createdAt else -1L
-                val showDayHeader =
-                    dayLabel(bubble.createdAt, labelToday, labelYesterday) !=
-                        dayLabel(previousStamp, labelToday, labelYesterday)
-                Column {
-                    if (showDayHeader) {
+                itemsIndexed(bubbles, key = { _, bubble -> bubble.id }) { index, bubble ->
+                    val previousStamp = if (index > 0) bubbles[index - 1].createdAt else -1L
+                    val showDayHeader =
+                        dayLabel(bubble.createdAt, labelToday, labelYesterday) !=
+                            dayLabel(previousStamp, labelToday, labelYesterday)
+                    Column {
+                        if (showDayHeader) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayLabel(bubble.createdAt, labelToday, labelYesterday),
+                                    fontSize = 11.sp,
+                                    color = VerbigemTheme.colors.muted
+                                )
+                            }
+                        }
+                        MessageBubble(
+                            bubble = bubble,
+                            targetLang = translationLang,
+                            translated = translations[bubble.id],
+                            isTranslating = bubble.id in translating,
+                            hasFailed = bubble.id in failed,
+                            showOriginal = bubble.id in showOriginal,
+                            readByOther = bubble.isMine && (readReceipts[otherUid] ?: 0L) >= bubble.createdAt,
+                            isMenuOpen = menuFor == bubble.id,
+                            isPro = isPro,
+                            onDismissMenu = { menuFor = null },
+                            onOpenMenu = { menuFor = bubble.id },
+                            onToggleOriginal = { viewModel.toggleOriginal(bubble.id) },
+                            onRetranslate = { viewModel.retranslate(bubble.id) },
+                            onRetrySend = { viewModel.retryFailed() },
+                            onQuote = { viewModel.quote(bubble.id) },
+                            onDelete = { viewModel.deleteForMe(bubble.id) },
+                            onSpeak = { text, lang -> viewModel.speak(text, lang) },
+                            onSpeakPro = { text, lang -> viewModel.speakPro(text, lang) },
+                            onOpenImage = { previewImageUrl = it }
+                        )
+                    }
+                }
+
+                if (bubbles.isEmpty()) {
+                    item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = dayLabel(bubble.createdAt, labelToday, labelYesterday),
-                                fontSize = 11.sp,
+                                text = stringResource(R.string.chat_new_thread_hint),
+                                fontSize = 13.sp,
                                 color = VerbigemTheme.colors.muted
                             )
                         }
                     }
-                    MessageBubble(
-                        bubble = bubble,
-                        targetLang = translationLang,
-                        translated = translations[bubble.id],
-                        isTranslating = bubble.id in translating,
-                        hasFailed = bubble.id in failed,
-                        showOriginal = bubble.id in showOriginal,
-                        readByOther = bubble.isMine && (readReceipts[otherUid] ?: 0L) >= bubble.createdAt,
-                        isMenuOpen = menuFor == bubble.id,
-                        isPro = isPro,
-                        onDismissMenu = { menuFor = null },
-                        onOpenMenu = { menuFor = bubble.id },
-                        onToggleOriginal = { viewModel.toggleOriginal(bubble.id) },
-                        onRetranslate = { viewModel.retranslate(bubble.id) },
-                        onRetrySend = { viewModel.retryFailed() },
-                        onQuote = { viewModel.quote(bubble.id) },
-                        onDelete = { viewModel.deleteForMe(bubble.id) },
-                        onSpeak = { text, lang -> viewModel.speak(text, lang) },
-                        onSpeakPro = { text, lang -> viewModel.speakPro(text, lang) },
-                        onOpenImage = { previewImageUrl = it }
-                    )
                 }
             }
 
-            if (bubbles.isEmpty()) {
-                item {
+            // Faza 5.2: wybór zdjęcia z galerii → wysyłka przez ViewModel.
+            val imagePicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.GetContent()
+            ) { uri -> uri?.let { viewModel.sendImage(it) } }
+
+            // -------------------------------------------------------------- input
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border)
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isListening) {
+                    // Faza 5.3: trwa rozpoznawanie — czerwona kropka + bieżący tekst + stop.
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.chat_new_thread_hint),
-                            fontSize = 13.sp,
-                            color = VerbigemTheme.colors.muted
-                        )
-                    }
-                }
-            }
-        }
-
-        // Faza 5.2: wybór zdjęcia z galerii → wysyłka przez ViewModel.
-        val imagePicker = rememberLauncherForActivityResult(
-            ActivityResultContracts.GetContent()
-        ) { uri -> uri?.let { viewModel.sendImage(it) } }
-
-        // -------------------------------------------------------------- input
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(VerbigemTheme.colors.surface)
-                .border(1.dp, VerbigemTheme.colors.border)
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isListening) {
-                // Faza 5.3: trwa rozpoznawanie — czerwona kropka + bieżący tekst + stop.
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(Color.Red)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = voiceInterim.takeIf { it.isNotBlank() }
-                        ?: stringResource(R.string.voice_listening),
-                    fontSize = 14.sp,
-                    color = VerbigemTheme.colors.ink,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(
-                    onClick = { viewModel.stopVoice() },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Stop,
-                        contentDescription = stringResource(R.string.voice_stop),
-                        tint = VerbigemTheme.colors.accent
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red)
                     )
-                }
-            } else {
-                // Faza 5.3: mikrofon — nagrywanie głosówki (transkrypcja na żywo).
-                HelpIconButton(
-                    onClick = {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.RECORD_AUDIO
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) viewModel.startVoice()
-                        else recordPermission.launch(Manifest.permission.RECORD_AUDIO)
-                    },
-                    helpState = help,
-                    helpTitle = stringResource(R.string.record_voice),
-                    helpText = stringResource(R.string.help_thread_mic),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Mic,
-                        contentDescription = stringResource(R.string.record_voice),
-                        tint = VerbigemTheme.colors.muted
-                    )
-                }
-                HelpIconButton(
-                    onClick = { imagePicker.launch("image/*") },
-                    helpState = help,
-                    helpTitle = stringResource(R.string.attach_image),
-                    helpText = stringResource(R.string.help_thread_image),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Image,
-                        contentDescription = stringResource(R.string.attach_image),
-                        tint = VerbigemTheme.colors.muted
-                    )
-                }
-                OutlinedTextField(
-                    value = inputText,
-                    onValueChange = { viewModel.onInputChanged(it) },
-                    placeholder = { Text(stringResource(R.string.message_hint), fontSize = 13.sp) },
-                    modifier = Modifier.weight(1f),
-                    maxLines = 4,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = VerbigemTheme.colors.accent,
-                        unfocusedBorderColor = VerbigemTheme.colors.border
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                HelpIconButton(
-                    onClick = { viewModel.sendMessage() },
-                    enabled = inputText.isNotBlank(),
-                    helpState = help,
-                    helpTitle = stringResource(R.string.send),
-                    helpText = stringResource(R.string.help_thread_send),
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (inputText.isNotBlank()) VerbigemTheme.colors.accent
-                            else VerbigemTheme.colors.accent.copy(alpha = 0.4f)
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = stringResource(R.string.send),
-                        tint = Color.White
-                    )
-                }
-            }
-        }
-
-        // Faza 5.4: podgląd zdjęcia na pełnym ekranie.
-        if (previewImageUrl != null) {
-            Dialog(
-                onDismissRequest = { previewImageUrl = null },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                        .clickable { previewImageUrl = null },
-                    contentAlignment = Alignment.Center
-                ) {
-                    SubcomposeAsyncImage(
-                        model = previewImageUrl,
-                        contentDescription = stringResource(R.string.photo),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit,
-                        loading = {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(32.dp),
-                                strokeWidth = 3.dp
-                            )
-                        },
-                        error = {
-                            Icon(
-                                Icons.Filled.Warning,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = voiceInterim.takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.voice_listening),
+                        fontSize = 14.sp,
+                        color = VerbigemTheme.colors.ink,
+                        modifier = Modifier.weight(1f)
                     )
                     IconButton(
-                        onClick = { previewImageUrl = null },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        onClick = { viewModel.stopVoice() },
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
-                            Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.image_close),
+                            imageVector = Icons.Filled.Stop,
+                            contentDescription = stringResource(R.string.voice_stop),
+                            tint = VerbigemTheme.colors.accent
+                        )
+                    }
+                } else {
+                    // Faza 5.3: mikrofon — nagrywanie głosówki (transkrypcja na żywo).
+                    HelpIconButton(
+                        onClick = {
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.RECORD_AUDIO
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) viewModel.startVoice()
+                            else recordPermission.launch(Manifest.permission.RECORD_AUDIO)
+                        },
+                        helpState = help,
+                        helpTitle = stringResource(R.string.record_voice),
+                        helpText = stringResource(R.string.help_thread_mic),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Mic,
+                            contentDescription = stringResource(R.string.record_voice),
+                            tint = VerbigemTheme.colors.muted
+                        )
+                    }
+                    HelpIconButton(
+                        onClick = { imagePicker.launch("image/*") },
+                        helpState = help,
+                        helpTitle = stringResource(R.string.attach_image),
+                        helpText = stringResource(R.string.help_thread_image),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Image,
+                            contentDescription = stringResource(R.string.attach_image),
+                            tint = VerbigemTheme.colors.muted
+                        )
+                    }
+                    OutlinedTextField(
+                        value = inputText,
+                        onValueChange = { viewModel.onInputChanged(it) },
+                        placeholder = { Text(stringResource(R.string.message_hint), fontSize = 13.sp) },
+                        modifier = Modifier.weight(1f),
+                        maxLines = 4,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = VerbigemTheme.colors.accent,
+                            unfocusedBorderColor = VerbigemTheme.colors.border
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    HelpIconButton(
+                        onClick = { viewModel.sendMessage() },
+                        enabled = inputText.isNotBlank(),
+                        helpState = help,
+                        helpTitle = stringResource(R.string.send),
+                        helpText = stringResource(R.string.help_thread_send),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (inputText.isNotBlank()) VerbigemTheme.colors.accent
+                                else VerbigemTheme.colors.accent.copy(alpha = 0.4f)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = stringResource(R.string.send),
                             tint = Color.White
                         )
                     }
                 }
             }
+
+            // Faza 5.4: podgląd zdjęcia na pełnym ekranie.
+            if (previewImageUrl != null) {
+                Dialog(
+                    onDismissRequest = { previewImageUrl = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black)
+                            .clickable { previewImageUrl = null },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SubcomposeAsyncImage(
+                            model = previewImageUrl,
+                            contentDescription = stringResource(R.string.photo),
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            loading = {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            },
+                            error = {
+                                Icon(
+                                    Icons.Filled.Warning,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            }
+                        )
+                        IconButton(
+                            onClick = { previewImageUrl = null },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.image_close),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            }
         }
+
+        // Komunikaty (brak zgody na mikrofon, brak STT, błąd rozpoznawania).
+        // Nad polem wprowadzania, bo tam pada wzrok po tapnięciu mikrofonu.
+        SnackbarHost(
+            hostState = snackbarHost,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 16.dp, end = 16.dp, bottom = 88.dp)
+        )
     }
 }
 

@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.56 (2026-09-10) — versionCode 57
+
+**Corregido: el micrófono se quedaba callado cuando algo fallaba.**
+
+- La falta de permiso de micrófono, la ausencia de reconocimiento de voz en el teléfono y un error de reconocimiento terminaban solo en una línea del registro del sistema. Para ti las tres situaciones eran idénticas: el micrófono «simplemente no funciona», sin motivo.
+- Ahora cada una de esas tres situaciones dice claramente qué ocurrió, con un mensaje breve sobre el campo de escritura. Los textos están en 6 idiomas, como el resto de la aplicación.
+
+
 ## v1.0.55 (2026-09-10) — versionCode 56
 
 **Corregido: una foto o un mensaje de voz que no se enviaba desaparecía sin dejar rastro.**

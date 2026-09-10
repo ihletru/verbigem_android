@@ -345,6 +345,8 @@
     <string name="voice_listening">Listening…</string>
     <string name="voice_stop">Stop</string>
     <string name="voice_not_available">Speech recognition is unavailable on this device</string>
+    <string name="voice_permission_denied">Microphone permission is needed to send a voice message</string>
+    <string name="voice_recognition_error">Speech recognition failed. Please try again.</string>
     <string name="image_close">Close preview</string>
 
     <!-- ============================================================

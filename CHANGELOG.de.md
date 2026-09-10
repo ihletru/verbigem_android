@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.56 (2026-09-10) — versionCode 57
+
+**Behoben: Das Mikrofon schwieg, wenn etwas schiefging.**
+
+- Fehlende Mikrofonberechtigung, keine Spracherkennung im Telefon und ein Fehler beim Erkennen endeten bisher nur in einem Eintrag im Systemprotokoll. Für dich sahen alle drei gleich aus: Das Mikrofon „geht einfach nicht", ohne jeden Grund.
+- Jetzt sagt jede dieser drei Situationen direkt, was los ist — mit einem kurzen Hinweis über dem Eingabefeld. Die Texte gibt es in 6 Sprachen, wie den Rest der App.
+
+
 ## v1.0.55 (2026-09-10) — versionCode 56
 
 **Behoben: Ein Foto oder eine Sprachnachricht, die nicht gesendet werden konnte, verschwand spurlos.**

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.verbigem.app.R
 import com.verbigem.app.data.ConnectivityObserver
 import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.local.ChatDeletedEntity
@@ -179,6 +180,31 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     /** Faza 5.3: bieżący (częściowy) wynik rozpoznawania — pokazywany w UI. */
     private val _voiceInterim = MutableStateFlow("")
     val voiceInterim: StateFlow<String> = _voiceInterim.asStateFlow()
+
+    /**
+     * Komunikat do pokazania w Snackbarze; `null` = nie ma nic do pokazania.
+     *
+     * Do v1.0.55 brak STT na urządzeniu i błąd rozpoznawania kończyły się tylko na
+     * `Log.w` — z punktu widzenia użytkownika mikrofon „po prostu nie działał".
+     * Osobny stan (zamiast wyjątku z funkcji) dlatego, że oba zdarzenia przychodzą z
+     * callbacków `SpeechRecognizer`, czyli spoza miejsca, które można wyłapać.
+     */
+    private val _uiMessage = MutableStateFlow<String?>(null)
+    val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
+
+    fun showMessage(text: String) {
+        _uiMessage.value = text
+    }
+
+    /** Tekst idzie z zasobów — żaden komunikat nie jest wpisany na sztywno (6 języków). */
+    fun showMessage(resId: Int) {
+        showMessage(getApplication<Application>().getString(resId))
+    }
+
+    /** Ekran woła po pokazaniu Snackbara; bez wyzerowania ten sam tekst nie wróci. */
+    fun consumeMessage() {
+        _uiMessage.value = null
+    }
 
     private val _tick = MutableStateFlow(0L)
     private val _typingUntil = MutableStateFlow<Map<String, Long>>(emptyMap())
@@ -381,8 +407,8 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     fun startVoice() {
         if (_isListening.value) return
         if (!speechManager.isSttAvailable()) {
-            // TODO (UI): pokaż Snackbar z R.string.voice_not_available.
             Log.w(TAG, "STT niedostępne na tym urządzeniu")
+            showMessage(R.string.voice_not_available)
             return
         }
         _voiceInterim.value = ""
@@ -399,6 +425,9 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 _isListening.value = false
                 _voiceInterim.value = ""
                 Log.w(TAG, "STT failed: $err")
+                // Rozpoznawanie pada często (szum, brak sieci, błąd usługi Google).
+                // Bez komunikatu wygląda to na „mikrofon nie działa" — a to nie to samo.
+                showMessage(R.string.voice_recognition_error)
             }
         )
     }

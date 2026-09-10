@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.56 (2026-09-10) — versionCode 57
+
+**Fixed: the microphone stayed silent when something went wrong.**
+
+- No microphone permission, no speech recognition on the phone, and a failed recognition all ended in nothing but a line in the system log. To you they looked identical: the microphone "just doesn't work", with no reason given.
+- Now each of those three cases says plainly what happened, in a short message above the input box. The wording is in 6 languages, like the rest of the app.
+
+
 ## v1.0.55 (2026-09-10) — versionCode 56
 
 **Fixed: a photo or voice message that failed to send used to disappear without a trace.**
