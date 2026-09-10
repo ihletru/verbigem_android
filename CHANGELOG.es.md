@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.64 (2026-09-10) — versionCode 64
+
+**Corregido: la versión de Google Play solo tenía dos idiomas de interfaz.**
+
+- Desde Play solo llegaban polaco e inglés: alemán, español, turco y chino faltaban por completo, aunque en la versión descargada de nuestra web funcionaban los seis.
+- Causa: Google Play divide el AAB en partes más pequeñas y, por defecto, también **por idioma**: el teléfono recibía solo los recursos de su idioma más el inglés como reserva. El APK de nuestra web es un único archivo con todo, por eso allí el problema nunca apareció.
+- La división por idioma queda desactivada para la versión de Play. Cuesta unos cientos de kilobytes, pero ahora todos los idiomas funcionan en cualquier teléfono.
+
+**Corregido: la ventana de descarga del modelo mentía y hablaba en polaco.**
+
+- Tras descargar el modelo Rápido, al cambiar a Preciso aparecía el mensaje verde «¡El modelo Preciso está listo para usar!», aunque ese modelo no estaba en el teléfono. La aplicación tomaba el estado de la última descarga y le pegaba el nombre del nuevo modelo.
+- La ventana de descarga ignoraba el idioma de interfaz elegido: con inglés seguía mostrándose en polaco. Los textos que aparecen dentro de ventanas del sistema tienen que recibir explícitamente el idioma elegido en la aplicación, y esta ventana no lo hacía.
+- Se han eliminado los textos polacos escritos directamente en el código de descarga (sin memoria, sin espacio, error del servidor): aparecían en polaco sin importar el idioma seleccionado.
+- Un código SMS caducado tiene ahora su propio mensaje. «Ese no parece el código que enviamos» servía tanto para un error al escribir como para un código ya caducado, y esos dos casos requieren reacciones completamente distintas.
+- El tiempo para introducir el código pasa de 60 a 120 segundos. Con una entrega del SMS más lenta, los 60 segundos antiguos se agotaban antes de poder escribirlo y un código totalmente correcto era rechazado.
+
 ## v1.0.63 (2026-09-10) — versionCode 63
 
 **Corregido: la aplicación se cerraba al iniciar.**

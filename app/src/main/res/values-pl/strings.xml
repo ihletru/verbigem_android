@@ -301,6 +301,7 @@
     <string name="phone_verify_error_bad_number">Nie rozpoznaję tego numeru. Podaj go z numerem kraju, np. +48 601 234 567.</string>
     <string name="phone_verify_error_send">Nie udało się tego zrobić. %1$s</string>
     <string name="phone_verify_error_code">To nie wygląda na kod, który wysłaliśmy.</string>
+    <string name="phone_verify_error_code_expired">Ten kod wygasł. Dotknij „Wyślij ponownie”, żeby dostać nowy.</string>
     <string name="phone_verify_error_region">SMS-y do tego kraju są wyłączone. (Firebase: włącz region w Authentication -> Settings -> SMS region policy.)</string>
     <string name="phone_verify_error_provider_off">Logowanie numerem telefonu jest wyłączone w Firebase. (Authentication -> Sign-in method -> Phone.)</string>
     <string name="phone_verify_error_app_not_authorized">Ta wersja nie jest zarejestrowana w Firebase. Dodaj jej SHA-1 i SHA-256 w Project settings -> Your apps.</string>
@@ -521,6 +522,15 @@
     <!-- nieużywane od v1.0.52 — rozmiar jest teraz w body i na przycisku -->
     <string name="download_metered_warning">Ten model waży %1$s. Jesteś na danych mobilnych — zalecane Wi-Fi.</string>
     <string name="download_anyway">Pobierz mimo to</string>
+
+    <!-- Błędy pobierania modelu — ModelDownloader wkłada je wprost do
+         ModelDownloadState.Error, więc literał w kodzie pokazywałby się po polsku
+         niezależnie od wybranego języka interfejsu. -->
+    <string name="model_error_low_ram">Za mało pamięci RAM na ten model.</string>
+    <string name="model_error_no_space">Za mało wolnego miejsca na tym telefonie.</string>
+    <string name="model_error_no_gpu">Ten model wymaga obsługi GPU, której ten telefon nie ma.</string>
+    <string name="model_error_http">Nie udało się pobrać modelu (serwer zwrócił %1$d).</string>
+    <string name="model_error_generic">Pobieranie nie powiodło się.</string>
 
     <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
     <string name="glossary_title">Słownik</string>

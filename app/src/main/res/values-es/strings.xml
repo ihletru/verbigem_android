@@ -290,6 +290,7 @@
     <string name="phone_verify_error_bad_number">No reconozco ese número. Escríbelo con el prefijo del país, p. ej. +34 612 345 678.</string>
     <string name="phone_verify_error_send">No se pudo hacer ahora mismo. %1$s</string>
     <string name="phone_verify_error_code">Ese no parece el código que enviamos.</string>
+    <string name="phone_verify_error_code_expired">Ese código ha caducado. Toca «Reenviar» para recibir otro.</string>
     <string name="phone_verify_error_region">Los SMS a este país están desactivados. (Firebase: activa la región en Authentication -> Settings -> SMS region policy.)</string>
     <string name="phone_verify_error_provider_off">El inicio de sesión por teléfono está desactivado en Firebase. (Authentication -> Sign-in method -> Phone.)</string>
     <string name="phone_verify_error_app_not_authorized">Esta versión no está registrada en Firebase. Añade su SHA-1 y SHA-256 en Project settings -> Your apps.</string>
@@ -496,6 +497,15 @@
     <!-- no usado desde v1.0.52 -->
     <string name="download_metered_warning">Este modelo pesa %1$s. Estás usando datos móviles — se recomienda Wi-Fi.</string>
     <string name="download_anyway">Descargar de todos modos</string>
+
+    <!-- Errores de descarga del modelo — ModelDownloader los pone directamente en
+         ModelDownloadState.Error, así que un literal en el código aparecería en
+         este idioma sin importar el idioma de la interfaz. -->
+    <string name="model_error_low_ram">No hay suficiente memoria RAM para este modelo.</string>
+    <string name="model_error_no_space">No hay suficiente espacio libre en este teléfono.</string>
+    <string name="model_error_no_gpu">Este modelo necesita compatibilidad con GPU, que este teléfono no tiene.</string>
+    <string name="model_error_http">No se pudo descargar el modelo (el servidor devolvió %1$d).</string>
+    <string name="model_error_generic">La descarga ha fallado.</string>
 
     <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
     <string name="glossary_title">Glosario</string>

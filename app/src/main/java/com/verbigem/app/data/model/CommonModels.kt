@@ -235,12 +235,31 @@ data class TranslationHistory(
     }
 }
 
+/**
+ * Stan pobierania modelu — **każdy wariant niesie tier, którego dotyczy**.
+ *
+ * ⚠️ Po co ten tier: [ModelDownloader] trzyma JEDEN wspólny strumień stanu, a nie
+ * mapę per model. Dopóki `Ready` było `data object` (bez tieru), wystarczyło
+ * pobrać Szybki i przełączyć silnik na Dokładny, żeby okno pokazało
+ * „✓ Model Dokładny jest gotowy do użycia!" — mimo że pliku Dokładnego nie ma
+ * na dysku. Okno dostawało świeży `tier` z ekranu i stary stan z downloadera.
+ *
+ * Zawsze pytaj o tier przez [tierOrNull] i porównuj z tym, o który pyta UI.
+ */
 sealed interface ModelDownloadState {
+    /** Nic się nie dzieje. Jedyny stan, który nie dotyczy żadnego tieru. */
     data object Idle : ModelDownloadState
-    data class Downloading(val progressPercent: Int, val bytesDownloaded: Long, val totalBytes: Long) : ModelDownloadState
-    data object LoadingToMemory : ModelDownloadState
-    data object Ready : ModelDownloadState
-    data class Error(val message: String) : ModelDownloadState
+
+    data class Downloading(
+        val progressPercent: Int,
+        val bytesDownloaded: Long,
+        val totalBytes: Long,
+        val tier: ModelTier,
+    ) : ModelDownloadState
+
+    data class LoadingToMemory(val tier: ModelTier) : ModelDownloadState
+    data class Ready(val tier: ModelTier) : ModelDownloadState
+    data class Error(val message: String, val tier: ModelTier) : ModelDownloadState
 
     /**
      * The requested tier is large and the active network is metered.
@@ -251,3 +270,20 @@ sealed interface ModelDownloadState {
      */
     data class MeteredWarning(val tier: ModelTier) : ModelDownloadState
 }
+
+/**
+ * Tier, którego dotyczy ten stan, albo `null` dla [ModelDownloadState.Idle].
+ *
+ * Używaj tego zamiast `when (state)` w UI: stan z innego modelu to nie „prawie
+ * pasuje", tylko stan, o który nikt nie pytał — patrz komentarz przy
+ * [ModelDownloadState].
+ */
+val ModelDownloadState.tierOrNull: ModelTier?
+    get() = when (this) {
+        is ModelDownloadState.Idle -> null
+        is ModelDownloadState.Downloading -> tier
+        is ModelDownloadState.LoadingToMemory -> tier
+        is ModelDownloadState.Ready -> tier
+        is ModelDownloadState.Error -> tier
+        is ModelDownloadState.MeteredWarning -> tier
+    }

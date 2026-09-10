@@ -297,6 +297,17 @@ class PhoneVerificationRepository {
     companion object {
         private const val TAG = "PhoneVerificationRepo"
         private const val FUNCTION_VERIFY_PHONE = "verifyPhone"
-        private const val TIMEOUT_SECONDS = 60L
+
+        /**
+         * Jak długo czekamy na auto-odczyt SMS-a, zanim sesja wygaśnie.
+         *
+         * ⚠️ To NIE jest „czas na wpisanie kodu" w sensie wygody — po jego
+         * upływie Firebase woła `onVerificationFailed(ERROR_SESSION_EXPIRED)`
+         * i **kod przestaje działać**, nawet wpisany poprawnie. Przy 60 s
+         * wystarczyło wolniejsze doręczenie SMS-a (albo chwila na przepisanie),
+         * żeby użytkownik zobaczył „to nie wygląda na kod, który wysłaliśmy".
+         * 120 s to maksimum, jakie przyjmuje `PhoneAuthOptions`.
+         */
+        private const val TIMEOUT_SECONDS = 120L
     }
 }

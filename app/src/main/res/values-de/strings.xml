@@ -290,6 +290,7 @@
     <string name="phone_verify_error_bad_number">Diese Nummer verstehe ich nicht. Bitte mit Landesvorwahl, z. B. +49 151 12345678.</string>
     <string name="phone_verify_error_send">Das hat gerade nicht geklappt. %1$s</string>
     <string name="phone_verify_error_code">Das sieht nicht nach dem Code aus, den wir gesendet haben.</string>
+    <string name="phone_verify_error_code_expired">Dieser Code ist abgelaufen. Tippe auf „Erneut senden“, um einen neuen zu erhalten.</string>
     <string name="phone_verify_error_region">SMS in dieses Land sind abgeschaltet. (Firebase: Region aktivieren unter Authentication -> Settings -> SMS region policy.)</string>
     <string name="phone_verify_error_provider_off">Die Telefon-Anmeldung ist in Firebase deaktiviert. (Authentication -> Sign-in method -> Phone.)</string>
     <string name="phone_verify_error_app_not_authorized">Dieser Build ist nicht in Firebase registriert. SHA-1 und SHA-256 unter Project settings -> Your apps hinzufügen.</string>
@@ -496,6 +497,15 @@
     <!-- unbenutzt seit v1.0.52 -->
     <string name="download_metered_warning">Dieses Modell ist %1$s groß. Du nutzt mobile Daten — WLAN wird empfohlen.</string>
     <string name="download_anyway">Trotzdem herunterladen</string>
+
+    <!-- Fehler beim Modell-Download — ModelDownloader legt sie direkt in
+         ModelDownloadState.Error ab; ein Literal im Code würde also in dieser
+         Sprache erscheinen, egal welche Oberflächensprache gewählt ist. -->
+    <string name="model_error_low_ram">Nicht genug Arbeitsspeicher für dieses Modell.</string>
+    <string name="model_error_no_space">Nicht genug freier Speicherplatz auf diesem Telefon.</string>
+    <string name="model_error_no_gpu">Dieses Modell benötigt GPU-Unterstützung, die dieses Telefon nicht hat.</string>
+    <string name="model_error_http">Das Modell konnte nicht heruntergeladen werden (Server antwortete mit %1$d).</string>
+    <string name="model_error_generic">Der Download ist fehlgeschlagen.</string>
 
     <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
     <string name="glossary_title">Glossar</string>

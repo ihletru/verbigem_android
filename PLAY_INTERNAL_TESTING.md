@@ -27,8 +27,8 @@ wyjściem do produkcji** — to osobny krok, nie teraz.
 | Parametr | Wartość |
 |---|---|
 | Pakiet | `com.verbigem.app` (flavor `play`) |
-| Sideload | osobny pakiet `com.verbigem.app.sideload` (flavor `standalone`) — **nie instaluje się obok wersji Play** |
-| Wersja | `versionCode` = `versionName` patch: **63 / `1.0.63`** (w `app/build.gradle.kts`). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
+| Sideload | osobny pakiet `com.verbigem.app.sideload` (flavor `standalone`) — inny pakiet, więc **instaluje się obok** wersji Play. Konflikt podpisu (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`) grozi tylko wtedy, gdy na telefonie siedzi **stary** build sideload o pakiecie `com.verbigem.app`. |
+| Wersja | `versionCode` = `versionName` patch: **64 / `1.0.64`** (w `app/build.gradle.kts`). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
 | `minSdk` / `targetSdk` | 26 / 36 (wymóg Google od 31.08.2026 dla nowych aplikacji — spełniony) |
 | Klucz uploadu | `app/release-keystore.jks`, alias `verbigem` |
 | SHA-1 klucza uploadu | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
@@ -97,6 +97,42 @@ testerem" albo otworzył link na innym koncie Google niż zaproszony.
 | „Pobrało się 8 MB, a APK ma 30 MB" | **to normalne.** Play pokazuje rozmiar skompresowanego modułu `base` AAB (~8,3 MB). Debug-sideload APK (~30 MB) ma nieskompresowane `.so`. | nic — nie jest to objaw błędu |
 | Instalacja kończy się błędem od razu | stara wersja sideload `com.verbigem.app` jest zainstalowana i ma **inny podpis** → `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | odinstalować starą wersję przed instalacją z Play |
 | Apka się instaluje, ale wywala się przy starcie; w logu `NullPointerException` w `ActivityThread.performLaunchActivity:4324` | pole Activity zainicjowane `applicationContext` **w deklaracji** — `applicationContext` jest `null` przed `attachBaseContext`. Android 14+ rzuca NPE (starsze wersje zwracały `sEmptyContext`). | `by lazy { ... }` albo inicjalizacja w `onCreate` po `super.onCreate()`. **Naprawione w v1.0.63** (`MainActivity.updateManager`) |
+| Przycisk „Instalar" wyszarzony, po kliknięciu „No se puede descargar" / „Nie można pobrać" | Play nie mówi wprost, co jest nie tak — w teście wewnętrznym komunikaty są celowo ogólnikowe. Sprawdzać po kolei, nie zgadywać. | patrz lista niżej |
+| W wersji z Play są tylko 2 języki interfejsu, a w APK było 6 | Play dzieli AAB **także po języku** — telefon dostaje tylko swój język + angielski. APK sideload to jeden plik ze wszystkimi. | **Naprawione w v1.0.64** — `bundle { language { enableSplit = false } }` w `app/build.gradle.kts`. Weryfikacja: `BundleConfig.pb` w AAB musi zawierać `\x08\x03\x10\x01`. |
+| Okno (dialog) w języku telefonu, a nie w wybranym w aplikacji | wnętrze `Dialog { }` to osobna kompozycja — `LocalContext` wraca tam do bazowego Activity. | **Naprawione w v1.0.64** (`ModelDownloadDialog`) — złapać `LocalContext.current` przed `Dialog` i owinąć treść w `CompositionLocalProvider(LocalContext provides …)`. Wzorzec: `HelpDialog.kt`. |
+| Tester ma „0 wykluczeń" w katalogu urządzeń, a mimo to nie pobiera | ABI i wersja Androida są w porządku — zostają przyczyny „miękkie". | patrz lista niżej |
+
+### „Nie można pobrać" — kolejność sprawdzania
+
+1. **Tester nie kliknął „Zostań testerem"** w linku z maila. Sam link najpierw
+   pyta o zgodę, dopiero potem przekierowuje do Sklepu — jeśli tester zamknął
+   stronę na pytaniu o zgodę, w konsoli wygląda jak tester, ale nie jest
+   aktywowany.
+2. **Tester instaluje z wyszukiwania w Sklepie, nie z linku testerskiego.**
+   Play pokazuje testerom stronę apki w wynikach wyszukiwania, ale przycisk
+   „Instaluj" jest tam zablokowany. Musi wejść przez link opt-in → „Pobierz ze
+   Sklepu Play".
+3. **Inne konto Google w telefonie** niż to na liście testerów. Sklep Play
+   używa tego, które jest wybrane w Sklepie (ikona konta), nie tego, które
+   podał tester. Sprawdzić: Ustawienia → Konta → Google.
+4. **Cache Sklepu Play** — Ustawienia → Aplikacje → Sklep Play → Wyczyść
+   pamięć podręczną i Wyczyść dane → restart telefonu.
+5. **Kraj konta testera** poza dystrybucją apki. Tego **nie widać** w katalogu
+   urządzeń — to osobne ustawienie (Play Console → Kraje/regiony).
+6. **Brak wolnego miejsca** na telefonie.
+
+Diagnostyka bez zgadywania: **Play Console → Test and release → App bundle
+explorer → wybierz build → zakładka „Device catalog"**, filtr „Wykluczone" —
+pokazuje modele urządzeń i **powód** odcięcia (ABI / wersja Androida / RAM).
+Katalog pokazuje modele z bazy Google, więc „0 wykluczeń" nie dowodzi, że
+telefon konkretnego testera jest w porządku — ale wyklucza całą klasę przyczyn
+technicznych.
+
+⚠️ **AAB jest budowany wyłącznie dla `arm64-v8a`** (`ndk.abiFilters` w
+`app/build.gradle.kts`). Telefon 32-bitowy (ARMv7) nie zainstaluje apki, choć
+w katalogu urządzeń może nie być wprost wykluczony. Dodanie `armeabi-v7a`
+oznacza większy AAB **i** problem z modelami LLM: 32-bit to limit adresowania
+ok. 4 GB, więc duże modele (7B) mogą się nie zmieścić w pamięci procesu.
 
 ---
 

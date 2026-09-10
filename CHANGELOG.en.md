@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.64 (2026-09-10) — versionCode 64
+
+**Fixed: the Google Play build had only two interface languages.**
+
+- Installing from Play gave you Polish and English only — German, Spanish, Turkish and Chinese were missing entirely, even though all six worked in the version downloaded from our own site.
+- Cause: Google Play splits the AAB into smaller pieces, and by default it splits them **by language** too — the phone received only its own language plus English as the fallback. The APK from our site is a single file that contains everything, which is why the problem never showed up there.
+- Language splitting is now switched off for the Play build. It costs a few hundred kilobytes, but every language now works on every phone.
+
+**Fixed: the model-download window lied, and it spoke Polish.**
+
+- After downloading the Fast model, switching to Accurate showed a green "The Accurate model is ready to use!" — even though that model was not on the phone at all. The app took the state of the last download and stuck the new model's name on it.
+- The download window ignored the chosen interface language: with English selected it still read in Polish. Strings shown inside system windows have to be handed the in-app language explicitly, and this one window did not.
+- Polish texts hardcoded in the download code (out of memory, out of space, server error) are gone — they would have shown in Polish no matter which language was selected.
+- An expired SMS code now has its own message. "That does not look like the code we sent" used to mean both a typo and a code that had already expired, and those two need completely different reactions.
+- The window for entering the code went from 60 to 120 seconds. With a slower SMS delivery the old 60 seconds ran out before the code could be typed, and a perfectly correct code was then rejected.
+
 ## v1.0.63 (2026-09-10) — versionCode 63
 
 **Fixed: the app crashed on launch on newer phones.**

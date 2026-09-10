@@ -155,8 +155,13 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
                 context.getString(R.string.phone_verify_error_too_many)
             "ERROR_INVALID_PHONE_NUMBER" ->
                 context.getString(R.string.phone_verify_error_bad_number)
-            "ERROR_INVALID_VERIFICATION_CODE", "ERROR_SESSION_EXPIRED" ->
+            "ERROR_INVALID_VERIFICATION_CODE" ->
                 context.getString(R.string.phone_verify_error_code)
+            // Wygasła sesja to NIE to samo co literówka w kodzie: kod jest
+            // poprawny, ale okno na jego wpisanie minęło. Jedno zdanie dla obu
+            // przypadków kazało użytkownikowi wpisywać ten sam kod w kółko.
+            "ERROR_SESSION_EXPIRED" ->
+                context.getString(R.string.phone_verify_error_code_expired)
             "ERROR_NETWORK_REQUEST_FAILED", "ERROR_WEB_NETWORK_REQUEST_FAILED" ->
                 context.getString(R.string.phone_verify_error_network)
             else -> context.getString(R.string.phone_verify_error_send, detail)

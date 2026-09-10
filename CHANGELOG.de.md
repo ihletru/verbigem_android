@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.64 (2026-09-10) — versionCode 64
+
+**Behoben: Die Google-Play-Version hatte nur zwei Oberflächensprachen.**
+
+- Aus Play kamen nur Polnisch und Englisch — Deutsch, Spanisch, Türkisch und Chinesisch fehlten vollständig, obwohl in der Version von unserer Website alle sechs funktionierten.
+- Ursache: Google Play zerlegt das AAB in kleinere Teile und trennt sie standardmäßig auch **nach Sprache** — das Telefon erhielt nur die eigene Sprache plus Englisch als Rückfall. Das APK von unserer Website ist eine einzige Datei mit allem, deshalb trat das Problem dort nie auf.
+- Für die Play-Version ist die Sprachaufteilung jetzt abgeschaltet. Das kostet ein paar hundert Kilobyte, aber nun funktioniert jede Sprache auf jedem Telefon.
+
+**Behoben: Das Fenster für den Modell-Download log und sprach Polnisch.**
+
+- Nach dem Herunterladen des Modells „Schnell" zeigte der Wechsel zu „Genau" die grüne Meldung „Das Modell Genau ist einsatzbereit!" — obwohl dieses Modell gar nicht auf dem Telefon war. Die App nahm den Zustand des letzten Downloads und hängte den Namen des neuen Modells daran.
+- Das Download-Fenster ignorierte die gewählte Oberflächensprache: Bei Englisch stand dort weiterhin Polnisch. Texte in Systemfenstern müssen die in der App gewählte Sprache ausdrücklich erhalten — genau das tat dieses eine Fenster nicht.
+- Fest im Download-Code stehende polnische Texte (zu wenig Arbeitsspeicher, zu wenig Speicherplatz, Serverfehler) sind entfernt — sie wären unabhängig von der gewählten Sprache auf Polnisch erschienen.
+- Ein abgelaufener SMS-Code hat jetzt eine eigene Meldung. „Das sieht nicht nach dem Code aus, den wir gesendet haben" bedeutete bisher sowohl einen Tippfehler als auch einen bereits abgelaufenen Code — und diese beiden Fälle verlangen völlig unterschiedliche Reaktionen.
+- Die Zeit zum Eingeben des Codes wurde von 60 auf 120 Sekunden verlängert. Bei langsamer SMS-Zustellung liefen die alten 60 Sekunden ab, bevor der Code eingegeben werden konnte, und ein völlig korrekter Code wurde abgelehnt.
+
 ## v1.0.63 (2026-09-10) — versionCode 63
 
 **Behoben: Die App stürzte beim Start ab.**

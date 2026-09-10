@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.64 (2026-09-10) — versionCode 64
+
+**Düzeltildi: Google Play sürümünde yalnızca iki arayüz dili vardı.**
+
+- Play'den yalnızca Lehçe ve İngilizce geliyordu; Almanca, İspanyolca, Türkçe ve Çince hiç yoktu — oysa kendi sitemizden indirilen sürümde altısı da çalışıyordu.
+- Sebep: Google Play, AAB'yi daha küçük parçalara böler ve varsayılan olarak **dile göre** de böler — telefona yalnızca kendi dili ve yedek olarak İngilizce kurulur. Sitemizdeki APK her şeyi içeren tek bir dosyadır, bu yüzden orada sorun hiç görünmedi.
+- Play sürümü için dil bölme kapatıldı. Birkaç yüz kilobayta mal oluyor, ama artık her dil her telefonda çalışıyor.
+
+**Düzeltildi: Model indirme penceresi yalan söylüyordu ve Lehçe konuşuyordu.**
+
+- Hızlı modeli indirdikten sonra Kesin modeline geçildiğinde, o model telefonda hiç olmadığı hâlde yeşil „Kesin modeli kullanıma hazır!" mesajı çıkıyordu. Uygulama son indirmenin durumunu alıp yeni modelin adını ona ekliyordu.
+- İndirme penceresi seçilen arayüz dilini yok sayıyordu: arayüz İngilizceyken pencere hâlâ Lehçe görünüyordu. Sistem pencerelerinin içindeki metinlere uygulamada seçilen dilin açıkça verilmesi gerekir; bu pencere bunu yapmıyordu.
+- İndirme koduna sabit yazılmış Lehçe metinler (bellek yetersiz, yer yetersiz, sunucu hatası) kaldırıldı — seçilen dilden bağımsız olarak Lehçe görünürlerdi.
+- Süresi dolmuş SMS kodu artık kendi mesajına sahip. „Bu, gönderdiğimiz koda benzemiyor" hem yazım hatası hem de süresi dolmuş kod anlamına geliyordu; oysa bu iki durum tamamen farklı tepki gerektirir.
+- Kodu girme süresi 60 saniyeden 120 saniyeye çıkarıldı. SMS daha yavaş ulaştığında eski 60 saniye kod yazılamadan doluyor ve tamamen doğru bir kod reddediliyordu.
+
 ## v1.0.63 (2026-09-10) — versionCode 63
 
 **Düzeltildi: uygulama açılışta çöküyordu.**

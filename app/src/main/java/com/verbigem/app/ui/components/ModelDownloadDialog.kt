@@ -14,7 +14,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import com.verbigem.app.R
 import com.verbigem.app.data.model.ModelDownloadState
 import com.verbigem.app.data.model.ModelTier
+import com.verbigem.app.data.model.tierOrNull
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -47,40 +50,64 @@ fun ModelDownloadDialog(
      */
     onConfirmMetered: () -> Unit = onStartDownload
 ) {
+    // Capture the screen's localized context. Inside a Compose Dialog, LocalContext
+    // reverts to the base Activity (device locale), so every stringResource() below
+    // would ignore the in-app interface language — on a Polish phone this dialog
+    // stayed Polish even with the interface set to English. Same fix as HelpWindow.
+    val localizedContext = LocalContext.current
+
+    // Stan pobierania jest wspólny dla wszystkich modeli (jeden ModelDownloader),
+    // więc po pobraniu Szybkiego zostaje w Ready. Bez tego filtra okno Dokładnego
+    // łączyłoby świeży `tier` z tym starym stanem i ogłaszało
+    // „✓ Model Dokładny jest gotowy do użycia!", choć pliku nie ma na dysku.
+    val state: ModelDownloadState =
+        if (downloadState is ModelDownloadState.Idle || downloadState.tierOrNull == tier) {
+            downloadState
+        } else {
+            ModelDownloadState.Idle
+        }
+
+    // W stanie Ready tytuł „Pobierz model X" i opis pobierania są już nieprawdą —
+    // zostaje samo potwierdzenie.
+    val isReady = state is ModelDownloadState.Ready
+
     Dialog(onDismissRequest = {
-        if (downloadState !is ModelDownloadState.Downloading) {
+        if (state !is ModelDownloadState.Downloading) {
             onDismiss()
         }
     }) {
+        CompositionLocalProvider(LocalContext provides localizedContext) {
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = VerbigemTheme.colors.surface,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = stringResource(R.string.model_download_title, stringResource(tier.displayNameResId)),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = VerbigemTheme.colors.ink
-                )
+                if (!isReady) {
+                    Text(
+                        text = stringResource(R.string.model_download_title, stringResource(tier.displayNameResId)),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerbigemTheme.colors.ink
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = stringResource(
-                        R.string.model_download_body,
-                        stringResource(tier.displayNameResId),
-                        tier.sizeLabel,
-                    ),
-                    fontSize = 14.sp,
-                    color = VerbigemTheme.colors.muted,
-                    lineHeight = 20.sp
-                )
+                    Text(
+                        text = stringResource(
+                            R.string.model_download_body,
+                            stringResource(tier.displayNameResId),
+                            tier.sizeLabel,
+                        ),
+                        fontSize = 14.sp,
+                        color = VerbigemTheme.colors.muted,
+                        lineHeight = 20.sp
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-                when (downloadState) {
+                when (state) {
                     is ModelDownloadState.Idle -> {
                         Button(
                             onClick = onStartDownload,
@@ -99,7 +126,7 @@ fun ModelDownloadDialog(
                             text = stringResource(
                                 R.string.downloading_model,
                                 stringResource(tier.displayNameResId),
-                                downloadState.progressPercent,
+                                state.progressPercent,
                             ),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -107,7 +134,7 @@ fun ModelDownloadDialog(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
-                            progress = { downloadState.progressPercent / 100f },
+                            progress = { state.progressPercent / 100f },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp),
@@ -148,7 +175,7 @@ fun ModelDownloadDialog(
                         Text(
                             text = stringResource(
                                 R.string.download_metered_warning,
-                                downloadState.tier.sizeLabel
+                                state.tier.sizeLabel
                             ),
                             fontSize = 13.sp,
                             color = VerbigemTheme.colors.danger,
@@ -173,7 +200,7 @@ fun ModelDownloadDialog(
                     }
                     is ModelDownloadState.Error -> {
                         Text(
-                            text = stringResource(R.string.error_with_message, downloadState.message),
+                            text = stringResource(R.string.error_with_message, state.message),
                             fontSize = 13.sp,
                             color = VerbigemTheme.colors.danger
                         )
@@ -189,6 +216,7 @@ fun ModelDownloadDialog(
                     }
                 }
             }
+        }
         }
     }
 }

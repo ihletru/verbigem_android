@@ -290,6 +290,7 @@
     <string name="phone_verify_error_bad_number">Bu numarayı okuyamadım. Ülke koduyla birlikte yaz, örn. +90 532 123 45 67.</string>
     <string name="phone_verify_error_send">Şu anda yapılamadı. %1$s</string>
     <string name="phone_verify_error_code">Bu, gönderdiğimiz koda benzemiyor.</string>
+    <string name="phone_verify_error_code_expired">Bu kodun süresi doldu. Yeni bir kod için “Tekrar gönder”e dokun.</string>
     <string name="phone_verify_error_region">Bu ülkeye SMS gönderimi kapalı. (Firebase: Authentication -> Settings -> SMS region policy altında bölgeyi etkinleştirin.)</string>
     <string name="phone_verify_error_provider_off">Firebase\'de telefonla giriş kapalı. (Authentication -> Sign-in method -> Phone.)</string>
     <string name="phone_verify_error_app_not_authorized">Bu sürüm Firebase\'e kayıtlı değil. Project settings -> Your apps altında SHA-1 ve SHA-256 ekleyin.</string>
@@ -496,6 +497,15 @@
     <!-- v1.0.52 itibarıyla kullanılmıyor -->
     <string name="download_metered_warning">Bu model %1$s boyutunda. Mobil veri kullanıyorsunuz — Wi-Fi önerilir.</string>
     <string name="download_anyway">Yine de indir</string>
+
+    <!-- Model indirme hataları — ModelDownloader bunları doğrudan
+         ModelDownloadState.Error içine koyar; koddaki bir metin, arayüz dili ne
+         olursa olsun bu dilde görünürdü. -->
+    <string name="model_error_low_ram">Bu model için yeterli RAM yok.</string>
+    <string name="model_error_no_space">Bu telefonda yeterli boş alan yok.</string>
+    <string name="model_error_no_gpu">Bu model, bu telefonda bulunmayan GPU desteği gerektiriyor.</string>
+    <string name="model_error_http">Model indirilemedi (sunucu %1$d döndürdü).</string>
+    <string name="model_error_generic">İndirme başarısız oldu.</string>
 
     <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
     <string name="glossary_title">Sözlük</string>

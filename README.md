@@ -7,9 +7,9 @@
 
 > ℹ️ Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
 > Tagi `v1.0.1`–`v1.0.3` to wczesne buildy historyczne (versionCode 2–3).
-> 🔢 **Konwencja od 2026-09-10: `versionCode` = patch w `versionName`** (63 → `1.0.63`).
+> 🔢 **Konwencja od 2026-09-10: `versionCode` = patch w `versionName`** (64 → `1.0.64`).
 > Wcześniej było `1.0.(code-1)` (61 → `1.0.60`) — rozjeżdżało numerki, porzucone.
-> 🏪 **Google Play (flavor `play`):** wgrany AAB to **1.0.63 (versionCode 63)** — test wewnętrzny.
+> 🏪 **Google Play (flavor `play`):** wgrany AAB to **1.0.64 (versionCode 64)** — test wewnętrzny.
 > `versionCode` w Play **musi rosnąć** — nie da się nadpisać już opublikowanej wersji.
 
 Natywna aplikacja na system Android stworzona w **100% w języku Kotlin** z wykorzystaniem **Jetpack Compose** oraz dedykowanego, natywnego silnika wnioskowania **Hy-MT2-1.8B** (Tencent Hunyuan) w formacie **GGUF** przez mostek **C++/JNI (llama.cpp NDK)** z akceleracją sprzętową ARM NEON oraz Vulkan GPU.
@@ -765,9 +765,66 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
    python -c "import re,os;base={m for m in re.findall(r'<string name=\"([^\"]+)\"',open('app/src/main/res/values/strings.xml',encoding='utf-8').read())};[print(d,sorted(base-set(re.findall(r'<string name=\"([^\"]+)\"',open(f'app/src/main/res/{d}/strings.xml',encoding=\"utf-8\").read())))) for d in ['values-pl','values-de','values-es','values-zh','values-tr']]"
    ```
 8. **Komunikaty błędów z ViewModeli też podlegają zakazowi** — `_errorMessage.value = "Błąd logowania"` to ten sam grzech co `Text("Błąd logowania")`. Bierzemy `getApplication<Application>().getString(R.string.xxx)` (albo `appContext.getString(...)`). Audyt: `grep -rn '_errorMessage.value = .*"' --include=*.kt app/src/main/java` — wszystkie trafienia muszą mieć `getString`.
-   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków** (po v1.0.56, która dodała `voice_permission_denied` i `voice_recognition_error`: **492**; po v1.0.58, która dodała `hide_conversation_failed` i `contacts_search_failed`: **494**).
+   ⚠️ Przejrzane 2026-09-10: 15 takich komunikatów siedziało w `AuthViewModel`, `ConversationViewModel`, `OcrViewModel` i `TranslatorViewModel` — po polsku i po angielsku na mieszance. Zastąpione kluczami `auth_error_*`, `conv_error_translation`, `ocr_error_recognition`, `translation_error_generic`, `read_pro_not_configured`, `read_pro_failed`. Stan po poprawce: **482 klucze × 6 locale, 0 braków** (po v1.0.56, która dodała `voice_permission_denied` i `voice_recognition_error`: **492**; po v1.0.58, która dodała `hide_conversation_failed` i `contacts_search_failed`: **494**; po v1.0.64, która dodała 5 × `model_error_*` + `phone_verify_error_code_expired`: **497** — sprawdzone, 0 braków w każdym z 6 locale).
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
+
+⚠️ **Reguła dla `Dialog` w Compose:** wnętrze `Dialog { }` to **osobna kompozycja**, której `LocalContext` wraca do bazowego Activity (locale urządzenia), a nie do `LocalizedContext`. Każdy `Dialog` z tekstami musi więc złapać kontekst **przed** `Dialog` i podać go dalej:
+
+```kotlin
+val localizedContext = LocalContext.current          // złapane na poziomie ekranu
+Dialog(onDismissRequest = { ... }) {
+    CompositionLocalProvider(LocalContext provides localizedContext) { ... }
+}
+```
+
+Bez tego okno jest w języku telefonu, a nie w języku wybranym w aplikacji. Wzorzec jest w `HelpDialog.kt` (`HelpWindow`) i `ModelDownloadDialog.kt`. **Objaw w v1.0.63:** okno pobierania modelu było po polsku przy interfejsie ustawionym na angielski.
+
+---
+
+## 🧩 AAB (Google Play) vs APK (sideload) — co naprawdę się różni
+
+Gdy coś „w APK działało, a w AAB nie", to nie magia — różnic jest skończona lista. Sprawdzać w tej kolejności:
+
+| # | Różnica | Sideload APK (`standalone`, debug) | Play AAB (`play`, release) |
+|---|---|---|---|
+| 1 | **Podział po języku** | jeden uniwersalny plik, **wszystkie 6 języków** | Play dzieli AAB i domyślnie **też po języku** — telefon dostaje tylko swój język + angielski |
+| 2 | R8 / minifikacja | **wyłączona** (`assembleDebug`) | **włączona** (`isMinifyEnabled = true`) — refleksja może zniknąć, jeśli zabraknie reguły w `proguard-rules.pro` |
+| 3 | Podpis | debug keystore (`ec9deb58…`) | Play App Signing (`b09748e2…`) — inny certyfikat widzi Firebase, Play Integrity i OAuth |
+| 4 | App Check | provider `debug` | provider Play Integrity |
+| 5 | `applicationId` | `com.verbigem.app.sideload` | `com.verbigem.app` — **osobne aplikacje**, osobne dane, osobne wpisy w Firebase |
+| 6 | Auto-aktualizacja APK | działa (`StartupGate`, `REQUEST_INSTALL_PACKAGES`) | wycięta (`PLAY_BUILD = true`, uprawnienie usunięte w `src/play/AndroidManifest.xml`) |
+| 7 | Dostarczanie | jeden plik APK | zestaw splitów (base + ABI + gęstość) |
+
+**Punkt 1 jest najczęstszym zaskoczeniem** i to on odpowiada za „w AAB są tylko polski i angielski". Naprawione w `app/build.gradle.kts`:
+
+```kotlin
+bundle {
+    language {
+        enableSplit = false   // wszystkie języki na każdym urządzeniu
+    }
+}
+```
+
+Podział po gęstości i po ABI zostaje włączony — tam oszczędności są realne i nic nie psują.
+
+**Weryfikacja, czy dzielenie po języku jest wyłączone** (nie zgadywać po rozmiarze AAB — AAB zawsze zawiera wszystkie języki, decyzja siedzi w `BundleConfig.pb`):
+
+```bash
+python -c "
+import zipfile
+b=zipfile.ZipFile('app/build/outputs/bundle/playRelease/app-play-release.aab').read('BundleConfig.pb')
+print('LANGUAGE negate=true:', b.count(b'\x08\x03\x10\x01'))"
+```
+
+`1` = dzielenie po języku wyłączone. `0` = włączone (domyślne) i wracamy do problemu.
+
+`bundletool` leży w cache Gradle i **nie ma `Main-Class` w manifeście** — uruchamiać przez klasę główną, jak wrapper Gradle:
+
+```bash
+java -classpath "<gradle-cache>/bundletool-1.18.3.jar" \
+  com.android.tools.build.bundletool.BundleToolMain build-apks --bundle=… --output=… --output-format=DIR
+```
 
 ---
 
@@ -951,7 +1008,7 @@ Uprawnienie `POST_NOTIFICATIONS` (Android 13+) jest proszone **raz, przy pierwsz
 
 Poniższa lista to **JEDYNE źródło prawdy** dla wypuszczania wersji (wcześniejsza wersja skrótu błędnie kazała edytować `dist/android/version.json` ręcznie, co rozjeżdżało się z generowaniem pliku przez Vite). **Zanim wykonasz kroki, przeczytaj pułapki wyżej:** „⚠️ Źródło pliku update — DWA pliki, nie pomyl", „⚠️ Pułapka: `immutable` cache na `/android/**`", „⚠️ `mini.verbigem.com` to TA SAMA webapp".
 
-1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`. **Konwencja (zmieniona 2026-09-10): `versionCode` = numer patch w `versionName`** — code 63 → name `1.0.63`. (Stara, porzucona konwencja `1.0.(code-1)` rozjeżdżała numerki i została odrzucona.)
+1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`. **Konwencja (zmieniona 2026-09-10): `versionCode` = numer patch w `versionName`** — code 64 → name `1.0.64`. (Stara, porzucona konwencja `1.0.(code-1)` rozjeżdżała numerki i została odrzucona.)
 2. Build APK → `app/build/outputs/apk/debug/app-debug.apk`. Preferowana komenda (bezpośrednio przez wrapper Javy — w niektórych środowiskach `cmd.exe` jest blokowany i `gradlew.bat` nie przejdzie):
    ```bash
    JAVA_HOME="C:/Users/milo/.jdks/jbr-21.0.11" ANDROID_HOME="C:/Users/milo/AppData/Local/Android/Sdk" \

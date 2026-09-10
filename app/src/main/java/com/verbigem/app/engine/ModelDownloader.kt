@@ -46,14 +46,17 @@ class ModelDownloader(private val context: Context) {
     ): Boolean = withContext(Dispatchers.IO) {
         val blockReason = blockReason(context, tier)
         if (blockReason != ModelTierBlockReason.NONE) {
-            val msg = when (blockReason) {
-                ModelTierBlockReason.LOW_RAM -> "Za mało pamięci RAM na ten model"
-                ModelTierBlockReason.NO_SPACE -> "Za mało miejsca na dysku"
-                ModelTierBlockReason.NO_GPU -> "Ten model wymaga obsługi GPU, której to urządzenie nie ma"
-                ModelTierBlockReason.NONE -> ""
+            // Komunikat idzie prosto do ModelDownloadState.Error i wyświetla się
+            // w dialogu — musi być stringiem, nie literałem (patrz model_error_*
+            // w strings.xml).
+            val msgRes = when (blockReason) {
+                ModelTierBlockReason.LOW_RAM -> R.string.model_error_low_ram
+                ModelTierBlockReason.NO_SPACE -> R.string.model_error_no_space
+                ModelTierBlockReason.NO_GPU -> R.string.model_error_no_gpu
+                ModelTierBlockReason.NONE -> R.string.model_error_generic
             }
             Log.w(TAG, "Refusing download of ${tier.id}: $blockReason")
-            _downloadState.value = ModelDownloadState.Error(msg)
+            _downloadState.value = ModelDownloadState.Error(context.getString(msgRes), tier)
             return@withContext false
         }
 
@@ -75,7 +78,7 @@ class ModelDownloader(private val context: Context) {
         Log.i(TAG, "Starting download [${tier.id}] from $downloadUrl -> ${targetFile.absolutePath}")
 
         val resumeFrom = if (tempFile.exists()) tempFile.length() else 0L
-        _downloadState.value = ModelDownloadState.Downloading(0, resumeFrom, tier.approxBytes)
+        _downloadState.value = ModelDownloadState.Downloading(0, resumeFrom, tier.approxBytes, tier)
 
         try {
             val requestBuilder = Request.Builder().url(downloadUrl)
@@ -102,8 +105,10 @@ class ModelDownloader(private val context: Context) {
                 tempFile.delete()
             } else if (!response.isSuccessful) {
                 response.close()
-                val errorMsg = "Błąd pobierania modelu (HTTP ${response.code})"
-                _downloadState.value = ModelDownloadState.Error(errorMsg)
+                _downloadState.value = ModelDownloadState.Error(
+                    context.getString(R.string.model_error_http, response.code),
+                    tier,
+                )
                 return@withContext false
             }
 
@@ -131,7 +136,8 @@ class ModelDownloader(private val context: Context) {
                                 _downloadState.value = ModelDownloadState.Downloading(
                                     progressPercent = percent,
                                     bytesDownloaded = downloadedBytes,
-                                    totalBytes = totalBytes
+                                    totalBytes = totalBytes,
+                                    tier = tier,
                                 )
                             }
                         }
@@ -147,7 +153,10 @@ class ModelDownloader(private val context: Context) {
             // Deliberately KEEP the .tmp file so the next attempt resumes instead
             // of re-downloading several gigabytes. It is only ever removed on
             // success (rename) or via [cancelPartial].
-            _downloadState.value = ModelDownloadState.Error(e.localizedMessage ?: "Błąd pobierania")
+            _downloadState.value = ModelDownloadState.Error(
+                e.localizedMessage ?: context.getString(R.string.model_error_generic),
+                tier,
+            )
             false
         }
     }
@@ -185,7 +194,7 @@ class ModelDownloader(private val context: Context) {
                 Log.e(TAG, "renameTo failed: ${tempFile.absolutePath}")
             }
         }
-        _downloadState.value = ModelDownloadState.Ready
+        _downloadState.value = ModelDownloadState.Ready(tier)
         Log.i(TAG, "Model ${tier.id} ready: ${targetFile.length()} bytes at ${targetFile.absolutePath}")
     }
 

@@ -16,8 +16,8 @@ android {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 63
-        versionName = "1.0.63"
+        versionCode = 64
+        versionName = "1.0.64"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -128,6 +128,26 @@ android {
             dimension = "distribution"
             applicationId = "com.verbigem.app.sideload"
             buildConfigField("Boolean", "PLAY_BUILD", "false")
+        }
+    }
+
+    // ⚠️ Play dzieli AAB na zestaw splitów i **domyślnie dzieli też po języku**.
+    // Na polskim telefonie instalowały się wtedy wyłącznie zasoby `values-pl`
+    // i `values` (angielski jest językiem domyślnym), a `values-de/es/tr/zh`
+    // w ogóle nie trafiały na urządzenie. Sideload APK tego problemu nie ma,
+    // bo to jeden uniwersalny plik ze wszystkimi językami — stąd „w APK
+    // działało, w AAB nie".
+    //
+    // Aplikacja ma WŁASNY przełącznik języka interfejsu, więc użytkownik może
+    // wybrać język, którego nie ma na dysku, i dostaje po cichu angielski.
+    // Wyłączenie podziału po języku kosztuje kilkaset KB (6 × ~500 stringów)
+    // i jest jedynym sposobem, żeby wszystkie sześć języków działały z Play.
+    //
+    // Podział po gęstości i po ABI zostaje włączony — tam oszczędności są
+    // realne, a użytkownik nic nie traci.
+    bundle {
+        language {
+            enableSplit = false
         }
     }
 

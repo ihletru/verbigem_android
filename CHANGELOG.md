@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.64 (2026-09-10) — versionCode 64
+
+**Naprawione: w wersji z Google Play były tylko dwa języki interfejsu.**
+
+- Z Play instalowały się wyłącznie polski i angielski — niemieckiego, hiszpańskiego, tureckiego i chińskiego nie było w ogóle, mimo że w wersji pobieranej z naszej strony działały wszystkie sześć.
+- Przyczyna: Google Play dzieli paczkę AAB na mniejsze części i domyślnie dzieli ją także **po języku** — telefon dostawał tylko zasoby swojego języka plus angielski jako zapasowy. Plik APK z naszej strony jest jeden i zawiera wszystko, dlatego tam problemu nie było.
+- Dzielenie po języku zostało wyłączone dla wersji z Play. Kosztuje to kilkaset kilobajtów, ale każdy język działa na każdym telefonie.
+
+**Naprawione: okno pobierania modelu kłamało i mówiło po polsku.**
+
+- Po pobraniu modelu Szybkiego przełączenie na Dokładny pokazywało zielony komunikat „Model Dokładny jest gotowy do użycia", choć tego modelu wcale nie było na telefonie. Aplikacja brała stan ostatniego pobrania i doklejała do niego nazwę nowego modelu.
+- Okno pobierania nie reagowało na wybrany język interfejsu — przy angielskim nadal pisało po polsku. Komunikaty w oknach systemowych trzeba było jawnie przekazać z języka wybranego w aplikacji, czego to jedno okno nie robiło.
+- Usunięte zostały też polskie teksty wpisane na sztywno w kodzie pobierania (brak pamięci, brak miejsca, błąd serwera) — te pokazywałyby się po polsku niezależnie od języka.
+- Wygasły kod SMS dostał osobny komunikat: wcześniej „to nie wygląda na kod, który wysłaliśmy" znaczyło zarówno literówkę, jak i to, że kod zdążył wygasnąć — a to wymaga zupełnie innej reakcji.
+- Czas na wpisanie kodu wydłużony z 60 do 120 sekund. Przy wolniejszym doręczeniu SMS-a poprzednie 60 sekund mijało, zanim użytkownik zdążył przepisać kod, i wtedy poprawny kod był odrzucany.
+
 ## v1.0.63 (2026-09-10) — versionCode 63
 
 **Naprawione: aplikacja nie chciała się uruchomić na nowszych telefonach.**

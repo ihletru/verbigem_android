@@ -299,6 +299,10 @@
     <string name="phone_verify_error_bad_number">I cannot read that number. Enter it with the country code, e.g. +595 981 123 456.</string>
     <string name="phone_verify_error_send">That did not work just now. %1$s</string>
     <string name="phone_verify_error_code">That does not look like the code we sent.</string>
+    <!-- Distinct from the line above on purpose: an expired session and a mistyped
+         code need different actions, and Firebase reports them as different codes
+         (ERROR_SESSION_EXPIRED vs ERROR_INVALID_VERIFICATION_CODE). -->
+    <string name="phone_verify_error_code_expired">That code has expired. Tap “Send again” to get a new one.</string>
     <string name="phone_verify_error_region">Text messages to this country are switched off. (Firebase: enable the region under Authentication -> Settings -> SMS region policy.)</string>
     <string name="phone_verify_error_provider_off">Phone sign-in is switched off in Firebase. (Authentication -> Sign-in method -> Phone.)</string>
     <string name="phone_verify_error_app_not_authorized">This build is not registered in Firebase. Add its SHA-1 and SHA-256 under Project settings -> Your apps.</string>
@@ -518,6 +522,15 @@
     <!-- unused since v1.0.52 — size is now in body and on button -->
     <string name="download_metered_warning">This model is %1$s. You are on mobile data and Wi-Fi is recommended.</string>
     <string name="download_anyway">Download anyway</string>
+
+    <!-- Model download failures. Keep these in resources: ModelDownloader puts them
+         straight into ModelDownloadState.Error, so a hardcoded string would show up
+         in that language no matter which interface language the user picked. -->
+    <string name="model_error_low_ram">Not enough RAM for this model.</string>
+    <string name="model_error_no_space">Not enough free space on this phone.</string>
+    <string name="model_error_no_gpu">This model needs GPU support, which this phone does not have.</string>
+    <string name="model_error_http">Could not download the model (server returned %1$d).</string>
+    <string name="model_error_generic">The download failed.</string>
 
     <!-- Glossary: user termbase injected into the Hy-MT2 prompt -->
     <string name="glossary_title">Glossary</string>
