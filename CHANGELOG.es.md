@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.62 (2026-09-10) — versionCode 62
+
+**Corregido: la aplicación se cerraba al iniciar.**
+
+- En Android 14 y posteriores, la aplicación se cerraba a los pocos instantes de arrancar: pantalla en negro y un mensaje de error, sin forma de entrar.
+- Causa: un campo de la pantalla principal se creaba demasiado pronto, antes de que el sistema terminara de conectar la aplicación. Las versiones antiguas de Android lo toleraban; las nuevas lanzan un error.
+- Ahora ese campo se crea solo cuando realmente se necesita. En la compilación de Google Play no se crea en absoluto, porque allí no se usa.
+- Nota: desde esta versión el número de versión coincide con el número de compilación (62 = 1.0.62). Antes diferían en uno.
+
 ## v1.0.60 (2026-09-10) — versionCode 61
 
 **Build: SDK de compilación y destino subido a API 36 (Android 16).**
