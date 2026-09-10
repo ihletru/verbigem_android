@@ -11,7 +11,9 @@ Release details → Release notes (język: English). Źródło: `CHANGELOG.en.md
 Verbigem 1.0.65 — messages that ignored the interface language you picked
 now follow it: sign-in, translation, speech and text recognition, top-up and the
 update window. Speech errors alone had eleven Polish texts hardcoded in the
-source. Technical library errors (like "HTTP 402") stay in the log, not on screen.
+source. Technical library errors (like "HTTP 402") stay in the log, not on
+screen. The same fix now covers dates and numbers: weekday names and the
+detected country follow your chosen language, not your phone's.
 ```
 
 ---
@@ -39,6 +41,11 @@ Speech-recognition errors had eleven Polish texts hardcoded in the source,
 including "Network error" and "No speech detected". They now come from the
 translations and follow the interface language.
 
+The same mistake reached dates and numbers: the weekday abbreviations in the
+chat list and the detected-country name on the phone screen used the phone's
+language, not the one you picked. The model size now uses your language's
+decimal separator too.
+
 Wrong password, an e-mail already in use and no internet during sign-in finally
 have their own messages instead of English text from Firebase. Update download
 errors (incomplete file, server error, installer error) are in your language too.
@@ -50,7 +57,8 @@ errors (incomplete file, server error, installer error) are in your language too
 
 - **1.0.65** — Fixed: messages that ignored the chosen interface language
   (sign-in, translation, OCR, speech, top-up, app update) now follow it; library
-  errors stay in the log instead of the screen.
+  errors stay in the log instead of the screen; dates, weekday names and the
+  detected country follow the chosen language too.
 - **1.0.64** — Fixed: the model-download window lied about a model being ready,
   and all nine windows now follow the chosen interface language; expired SMS
   codes have their own message and 120 s to be entered.

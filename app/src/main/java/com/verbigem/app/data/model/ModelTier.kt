@@ -1,5 +1,7 @@
 package com.verbigem.app.data.model
 
+import com.verbigem.app.util.uiLocale
+
 /**
  * Which GGUF weights the local Hy-MT2 engine should load.
  *
@@ -102,7 +104,7 @@ enum class ModelTier(
 
     /** Przybliżony rozmiar do pokazania w UI, np. `~2.9 GB`. */
     val sizeLabel: String
-        get() = "~${"%.1f".format(approxBytes / 1024.0 / 1024.0 / 1024.0)} GB"
+        get() = "~${String.format(uiLocale, "%.1f", approxBytes / 1024.0 / 1024.0 / 1024.0)} GB"
 
     /**
      * String-resource id z lokalizowaną nazwą tierem. UI dostaje

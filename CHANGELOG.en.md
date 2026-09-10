@@ -13,6 +13,7 @@
 - Speech-recognition errors had **eleven** Polish texts hardcoded in the source (including "Network error" and "No speech detected"). They now all come from the translations and follow the interface language.
 - Wrong password, e-mail already in use and no internet during sign-in finally have their own messages instead of English text from Firebase.
 - Update download errors (incomplete file, server error, installer error) are in the chosen language too.
+- The same mistake reached **date and number formatting**: the weekday abbreviations in the chat list ("Mon", "Tue") and the detected-country name on the phone-verification screen ("Poland" instead of "Polska") took the phone's language, not the interface language. The model size used the phone's decimal separator ("2.9 GB" instead of "2,9 GB").
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

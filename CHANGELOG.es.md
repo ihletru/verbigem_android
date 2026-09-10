@@ -13,6 +13,7 @@
 - Los errores de reconocimiento de voz tenían **once** textos en polaco escritos directamente en el código (entre ellos «Error de red» y «No se detectó voz»). Ahora todos vienen de las traducciones y siguen el idioma de la interfaz.
 - Contraseña incorrecta, correo ya en uso y falta de internet al iniciar sesión tienen por fin sus propios mensajes en lugar del texto en inglés de Firebase.
 - Los errores al descargar actualizaciones (archivo incompleto, error del servidor, error del instalador) también están ya en el idioma elegido.
+- El mismo error llegaba al **formato de fechas y números**: las abreviaturas de los días de la semana en la lista de chats («lun», «mar») y el nombre del país detectado en la pantalla de confirmación del número («Poland» en vez de «Polska») tomaban el idioma del teléfono, no el de la interfaz. El tamaño del modelo usaba el separador decimal del teléfono («2.9 GB» en vez de «2,9 GB»).
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

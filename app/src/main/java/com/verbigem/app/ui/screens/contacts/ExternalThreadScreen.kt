@@ -51,6 +51,7 @@ import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.theme.VerbigemTheme
 import kotlinx.coroutines.launch
+import com.verbigem.app.util.uiLocale
 
 /**
  * One-way thread with someone who does not have Verbigem (3.6).
@@ -422,7 +423,7 @@ private fun HistoryCard(entry: ExternalOutboxEntity, channelLabel: String) {
 /** Today → HH:mm, else day.month. */
 private fun formatExternalTimestamp(millis: Long): String {
     if (millis <= 0L) return ""
-    val fmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+    val fmt = java.text.SimpleDateFormat("HH:mm", uiLocale)
     val startOfToday = java.util.Calendar.getInstance().apply {
         set(java.util.Calendar.HOUR_OF_DAY, 0)
         set(java.util.Calendar.MINUTE, 0)
@@ -432,7 +433,7 @@ private fun formatExternalTimestamp(millis: Long): String {
     return if (millis >= startOfToday) {
         fmt.format(java.util.Date(millis))
     } else {
-        java.text.SimpleDateFormat("dd.MM", java.util.Locale.getDefault())
+        java.text.SimpleDateFormat("dd.MM", uiLocale)
             .format(java.util.Date(millis))
     }
 }

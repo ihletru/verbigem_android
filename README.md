@@ -784,6 +784,16 @@ context.uiString(R.string.x)    // w silniku, ekranie, Toast
 
 Wyjątkiem jest **tekst techniczny do logów** — `Log.e(TAG, "HTTP ${code}", e)` zostaje po angielsku, bo nie jest komunikatem dla użytkownika. Wzorzec: powód do logu, `uiString(...)` na ekran.
 
+⚠️ **Reguła `uiLocale` — to samo dotyczy DAT i LICZB, nie tylko tekstów.** Nic w aplikacji nie woła `Locale.setDefault()`, więc `Locale.getDefault()` zwraca język **telefonu**. Skutek był identyczny jak przy tekstach: interfejs po polsku na hiszpańskim telefonie pokazywał skróty dni tygodnia po hiszpańsku („lun" zamiast „pon") w liście czatów, nazwę wykrytego kraju po angielsku („Poland" zamiast „Polska") na ekranie potwierdzania numeru, a rozmiar modelu z separatorem dziesiętnym telefonu („2.9 GB" zamiast „2,9 GB"). Wszędzie, gdzie wynik zobaczy człowiek, bierzemy `uiLocale` (z tego samego `UiStrings.kt`) zamiast `Locale.getDefault()`:
+
+```kotlin
+SimpleDateFormat("EEE", uiLocale)             // nie Locale.getDefault()
+String.format(uiLocale, "%.1f", gigabytes)    // nie "%.1f".format(gigabytes)
+Locale("", iso).getDisplayCountry(uiLocale)   // nie getDisplayCountry(Locale.getDefault())
+```
+
+Audyt: `grep -rn "Locale.getDefault()" --include=*.kt app/src/main/java` — jedyne dozwolone trafienie to `data/PhoneNumbers.kt` (zgadywanie kraju numeru wpisanego bez kierunkowego; tam język telefonu jest właściwym źródłem, bo to nie tekst dla użytkownika, tylko dane wejściowe do parsera).
+
 Audyt: `grep -rn "getApplication<Application>().getString\|appContext.getString\|localizedMessage" --include=*.kt app/src/main/java` — poza `util/UiStrings.kt` (opis problemu w KDoc) i wywołaniami `Log.*` nie powinno nic zwracać.
 
 ⚠️ **Język musi być znany, ZANIM cokolwiek rozwiąże tekst.** `VerbigemApplication.onCreate()` ustawia `UiLangState.code` z DataStore (blokująco, z limitem 2 s) **przed** `VerbigemNotifications.ensureChannel(this)`. Bez tego nazwa kanału powiadomień, jego opis i etykiety akcji („Odpowiedz", „Oznacz jako przeczytane") powstawały w języku telefonu — usługa FCM działa bez kompozycji i bez `LocalContext`, więc nie ma skąd wziąć wybranego języka. Ten sam odczyt usuwa mignięcie polskiego w pierwszej klatce UI (wcześniej `collectAsState(initial = "pl")` dawało jedną klatkę po polsku).

@@ -66,6 +66,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.verbigem.app.util.uiLocale
 
 /**
  * Inbox: one row per conversation, newest first.
@@ -492,9 +493,9 @@ internal fun formatListTimestamp(millis: Long): String {
         set(Calendar.MILLISECOND, 0)
     }.timeInMillis
     return when {
-        millis >= startOfToday -> SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
+        millis >= startOfToday -> SimpleDateFormat("HH:mm", uiLocale).format(date)
         millis >= startOfToday - 6 * 24 * 3600 * 1000L ->
-            SimpleDateFormat("EEE", Locale.getDefault()).format(date)
-        else -> SimpleDateFormat("dd.MM", Locale.getDefault()).format(date)
+            SimpleDateFormat("EEE", uiLocale).format(date)
+        else -> SimpleDateFormat("dd.MM", uiLocale).format(date)
     }
 }

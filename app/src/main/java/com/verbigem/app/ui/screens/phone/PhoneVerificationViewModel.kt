@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
+import com.verbigem.app.util.uiLocale
 
 /** Where the user is in the flow. */
 enum class PhoneVerificationStep { NUMBER, CODE, DONE }
@@ -63,7 +64,7 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
      */
     val detectedCountry: String = run {
         val iso = PhoneNumbers.defaultCountryIsos(application).firstOrNull()
-        if (iso == null) "" else Locale("", iso).getDisplayCountry(Locale.getDefault())
+        if (iso == null) "" else Locale("", iso).getDisplayCountry(uiLocale)
     }
 
     /** True once the account itself reports a verified number. */

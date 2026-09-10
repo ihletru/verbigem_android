@@ -13,6 +13,7 @@
 - Konuşma tanıma hatalarında kodun içine gömülü **on bir** Lehçe metin vardı (örn. "Ağ hatası", "Ses algılanmadı"). Artık hepsi çevirilerden geliyor ve arayüz dilini izliyor.
 - Oturum açmada yanlış parola, kullanımda olan e-posta ve internet yokluğu artık Firebase'in İngilizce metni yerine kendi mesajlarına sahip.
 - Güncelleme indirme hataları (eksik dosya, sunucu hatası, yükleyici hatası) da artık seçilen dilde.
+- Aynı hata **tarih ve sayı biçimlendirmesine** de uzanıyordu: sohbet listesindeki gün kısaltmaları ("Pzt", "Sal") ve numara doğrulama ekranındaki algılanan ülke adı ("Poland" yerine "Polska") telefonun dilini alıyordu, arayüz dilini değil. Model boyutu telefonun ondalık ayırıcısını kullanıyordu ("2.9 GB" yerine "2,9 GB").
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

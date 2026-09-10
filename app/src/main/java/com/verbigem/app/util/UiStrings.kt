@@ -51,6 +51,16 @@ object UiLangState {
     @Volatile
     var code: String = "pl"
 
+    /**
+     * Ten sam język jako [Locale] — do formatowania **dat i liczb**, nie tylko tekstów.
+     *
+     * Nic w aplikacji nie woła `Locale.setDefault()`, więc `Locale.getDefault()` to język
+     * TELEFONU. Skutek był dokładnie taki jak przy tekstach: interfejs po polsku na
+     * hiszpańskim telefonie pokazywał skróty dni tygodnia po hiszpańsku („lun" zamiast
+     * „pon") i nazwę kraju po angielsku („Poland" zamiast „Polska").
+     */
+    val locale: Locale get() = Locale.forLanguageTag(code)
+
     // Resources dla bieżącego języka. `Application` jest singletonem, więc jeden cache
     // wystarcza — trzymamy go razem z językiem, dla którego powstał.
     @Volatile
@@ -99,3 +109,11 @@ fun AndroidViewModel.uiString(@StringRes resId: Int): String =
 fun AndroidViewModel.uiString(@StringRes resId: Int, vararg formatArgs: Any): String =
     UiLangState.resourcesOf(getApplication<Application>().applicationContext)
         .getString(resId, *formatArgs)
+
+/**
+ * `Locale` języka interfejsu — do `SimpleDateFormat`, `String.format` i `getDisplayCountry`.
+ *
+ * Używaj tego **zamiast** `Locale.getDefault()` wszędzie, gdzie wynik zobaczy człowiek:
+ * `Locale.getDefault()` to język telefonu, a ten bywa inny niż wybrany język interfejsu.
+ */
+val uiLocale: Locale get() = UiLangState.locale

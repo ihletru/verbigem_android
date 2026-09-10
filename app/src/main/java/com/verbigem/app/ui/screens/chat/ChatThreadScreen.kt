@@ -92,6 +92,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.verbigem.app.util.uiLocale
 
 /**
  * A 1:1 thread.
@@ -702,7 +703,7 @@ private fun MessageBubble(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(bubble.createdAt)),
+                    text = SimpleDateFormat("HH:mm", uiLocale).format(Date(bubble.createdAt)),
                     fontSize = 10.sp,
                     color = if (bubble.isMine) Color.White.copy(alpha = 0.75f) else VerbigemTheme.colors.muted
                 )
@@ -842,6 +843,6 @@ private fun dayLabel(millis: Long, today: String, yesterday: String): String {
     return when {
         millis >= startOfToday -> today
         millis >= startOfToday - 24 * 3600 * 1000L -> yesterday
-        else -> SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(millis))
+        else -> SimpleDateFormat("dd.MM.yyyy", uiLocale).format(Date(millis))
     }
 }
