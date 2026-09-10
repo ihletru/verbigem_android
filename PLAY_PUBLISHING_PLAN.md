@@ -58,7 +58,7 @@ play.google.com/developer-content-policy (sierpień 2026).
 ### 1.3 Wymogi techniczne (co już mamy, a czego brakuje)
 | Wymóg (2026) | Stan w repo | Uwaga |
 |---|---|---|
-| Target API 35 (od 31.08.2026 istniejące appki; nowe appki później 36) | `targetSdk = 35` ✅ | Już OK. Google sygnalizuje przejście **nowych apek na API 36** (prawd. jesień 2026 / 2027) — trzymaj w planie bump do 36 przed wgraniem. |
+| Target API 36 (od 31.08.2026 nowe appki MUSZĄ targetować API 36 / Android 16) | `targetSdk = 36` ✅ | **Bump 35→36 zrobiony 2026-09-10** — Play Console odmawiał wgrania AAB z targetSdk 35. Wymaga też `compileSdk = 36` (platforma + build-tools 36.0.0 są w SDK). |
 | 16 KB page size (nowe urządzenia Android 15+) | `-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` ✅ | Native lib `libverbigem_llama.so` już buduje się z elastycznymi stronami. Sprawdzić APK Analyzerem po buildzie AAB. |
 | Format **AAB** (nowe appki) | repo buduje `assembleDebug` (APK) ❌ | Play wymaga **Android App Bundle** → `bundleRelease` / `bundlePlayRelease`. |
 | **Play App Signing** | brak (debug key) ❌ | Wymagane. Inny klucz niż sideload. |
@@ -196,7 +196,7 @@ polityki. (sekcja 6)
   `buildTypes.release.signingConfig`. Klucz uploadu `app/release-keystore.jks` (RSA 2048,
   alias `verbigem`). Play App Signing do zrobienia w konsoli (Faza 3/5).
 - [x] **2.3** `bundlePlayRelease` buduje AAB (`app/build/outputs/bundle/playRelease/...aab`).
-  `minSdk=26`, `targetSdk=35` — OK.
+  `minSdk=26`, `targetSdk=36` — OK (bump 35→36: 2026-09-10, Play wymaga API 36 od 31.08.2026).
 - [x] **Usunięcie `REQUEST_INSTALL_PACKAGES` w `play`**: `app/src/play/AndroidManifest.xml`
   z `tools:node="remove"`. Zweryfikowane przez `aapt2 dump permissions` na
   `assemblePlayDebug.apk` → uprawnienie **BRAK**. Standalone zachowuje uprawnienie

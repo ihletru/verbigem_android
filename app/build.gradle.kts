@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.verbigem.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.verbigem.app"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 60
         versionName = "1.0.59"
 
