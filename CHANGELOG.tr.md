@@ -14,6 +14,7 @@
 
 - Hızlı modeli indirdikten sonra Kesin modeline geçildiğinde, o model telefonda hiç olmadığı hâlde yeşil „Kesin modeli kullanıma hazır!" mesajı çıkıyordu. Uygulama son indirmenin durumunu alıp yeni modelin adını ona ekliyordu.
 - İndirme penceresi seçilen arayüz dilini yok sayıyordu: arayüz İngilizceyken pencere hâlâ Lehçe görünüyordu. Sistem pencerelerinin içindeki metinlere uygulamada seçilen dilin açıkça verilmesi gerekir; bu pencere bunu yapmıyordu.
+- Uygulamadaki **sekiz pencere daha** aynı hataya sahipti (Profıl'deki onaylar, Kişiler'deki kanal seçimi, sohbetteki fotoğraf önizlemesi, güncelleme pencereleri). Hepsi seçilen dil yerine telefonun dilinde açılıyordu; artık ortak ve doğru bir sarmalayıcı kullanıyorlar.
 - İndirme koduna sabit yazılmış Lehçe metinler (bellek yetersiz, yer yetersiz, sunucu hatası) kaldırıldı — seçilen dilden bağımsız olarak Lehçe görünürlerdi.
 - Süresi dolmuş SMS kodu artık kendi mesajına sahip. „Bu, gönderdiğimiz koda benzemiyor" hem yazım hatası hem de süresi dolmuş kod anlamına geliyordu; oysa bu iki durum tamamen farklı tepki gerektirir.
 - Kodu girme süresi 60 saniyeden 120 saniyeye çıkarıldı. SMS daha yavaş ulaştığında eski 60 saniye kod yazılamadan doluyor ve tamamen doğru bir kod reddediliyordu.

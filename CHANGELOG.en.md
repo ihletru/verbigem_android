@@ -14,6 +14,7 @@
 
 - After downloading the Fast model, switching to Accurate showed a green "The Accurate model is ready to use!" — even though that model was not on the phone at all. The app took the state of the last download and stuck the new model's name on it.
 - The download window ignored the chosen interface language: with English selected it still read in Polish. Strings shown inside system windows have to be handed the in-app language explicitly, and this one window did not.
+- **Eight other windows** in the app had the same fault (confirmations in Profile, the channel picker in Contacts, the photo preview in chat, the update dialogs). They all came up in the phone's language instead of the chosen one — they now share one correct wrapper.
 - Polish texts hardcoded in the download code (out of memory, out of space, server error) are gone — they would have shown in Polish no matter which language was selected.
 - An expired SMS code now has its own message. "That does not look like the code we sent" used to mean both a typo and a code that had already expired, and those two need completely different reactions.
 - The window for entering the code went from 60 to 120 seconds. With a slower SMS delivery the old 60 seconds ran out before the code could be typed, and a perfectly correct code was then rejected.

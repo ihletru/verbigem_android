@@ -14,6 +14,7 @@
 
 - Tras descargar el modelo Rápido, al cambiar a Preciso aparecía el mensaje verde «¡El modelo Preciso está listo para usar!», aunque ese modelo no estaba en el teléfono. La aplicación tomaba el estado de la última descarga y le pegaba el nombre del nuevo modelo.
 - La ventana de descarga ignoraba el idioma de interfaz elegido: con inglés seguía mostrándose en polaco. Los textos que aparecen dentro de ventanas del sistema tienen que recibir explícitamente el idioma elegido en la aplicación, y esta ventana no lo hacía.
+- **Otras ocho ventanas** de la aplicación tenían el mismo fallo (confirmaciones en Perfil, el selector de canal en Contactos, la vista previa de foto en el chat, los avisos de actualización). Todas aparecían en el idioma del teléfono en lugar del elegido; ahora comparten un envoltorio correcto.
 - Se han eliminado los textos polacos escritos directamente en el código de descarga (sin memoria, sin espacio, error del servidor): aparecían en polaco sin importar el idioma seleccionado.
 - Un código SMS caducado tiene ahora su propio mensaje. «Ese no parece el código que enviamos» servía tanto para un error al escribir como para un código ya caducado, y esos dos casos requieren reacciones completamente distintas.
 - El tiempo para introducir el código pasa de 60 a 120 segundos. Con una entrega del SMS más lenta, los 60 segundos antiguos se agotaban antes de poder escribirlo y un código totalmente correcto era rechazado.

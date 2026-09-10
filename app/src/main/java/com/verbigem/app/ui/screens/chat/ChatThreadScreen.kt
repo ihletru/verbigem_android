@@ -68,7 +68,6 @@ import coil.compose.SubcomposeAsyncImage
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.stringResource
@@ -87,6 +86,7 @@ import com.verbigem.app.ui.components.ProFeatureButton
 import com.verbigem.app.ui.components.helpClickable
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
+import com.verbigem.app.ui.components.LocalizedDialog
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -467,7 +467,7 @@ fun ChatThreadScreen(
 
             // Faza 5.4: podgląd zdjęcia na pełnym ekranie.
             if (previewImageUrl != null) {
-                Dialog(
+                LocalizedDialog(
                     onDismissRequest = { previewImageUrl = null },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {

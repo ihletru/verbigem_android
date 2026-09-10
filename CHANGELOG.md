@@ -14,6 +14,7 @@
 
 - Po pobraniu modelu Szybkiego przełączenie na Dokładny pokazywało zielony komunikat „Model Dokładny jest gotowy do użycia", choć tego modelu wcale nie było na telefonie. Aplikacja brała stan ostatniego pobrania i doklejała do niego nazwę nowego modelu.
 - Okno pobierania nie reagowało na wybrany język interfejsu — przy angielskim nadal pisało po polsku. Komunikaty w oknach systemowych trzeba było jawnie przekazać z języka wybranego w aplikacji, czego to jedno okno nie robiło.
+- Ten sam błąd miało **osiem innych okien** w aplikacji (m.in. potwierdzenia w Profilu, wybór kanału w Kontaktach, podgląd zdjęcia w czacie, okna aktualizacji). Wszystkie pokazywały się w języku telefonu zamiast w wybranym — teraz mają wspólne, poprawne opakowanie.
 - Usunięte zostały też polskie teksty wpisane na sztywno w kodzie pobierania (brak pamięci, brak miejsca, błąd serwera) — te pokazywałyby się po polsku niezależnie od języka.
 - Wygasły kod SMS dostał osobny komunikat: wcześniej „to nie wygląda na kod, który wysłaliśmy" znaczyło zarówno literówkę, jak i to, że kod zdążył wygasnąć — a to wymaga zupełnie innej reakcji.
 - Czas na wpisanie kodu wydłużony z 60 do 120 sekund. Przy wolniejszym doręczeniu SMS-a poprzednie 60 sekund mijało, zanim użytkownik zdążył przepisać kod, i wtedy poprawny kod był odrzucany.

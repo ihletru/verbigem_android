@@ -61,7 +61,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.verbigem.app.R
 import com.verbigem.app.data.local.ExternalContactEntity
 import com.verbigem.app.data.model.Friendship
@@ -83,6 +82,7 @@ import com.verbigem.app.ui.components.helpClickable
 import com.verbigem.app.ui.components.HelpWindowState
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
+import com.verbigem.app.ui.components.LocalizedDialog
 import kotlinx.coroutines.launch
 
 @Composable
@@ -938,7 +938,7 @@ private fun ChannelPickerDialog(
     onPick: (OutboundChannel) -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    LocalizedDialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = VerbigemTheme.colors.surface,

@@ -26,7 +26,6 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -62,6 +61,7 @@ import com.verbigem.app.ui.components.QuestionMarkButton
 import com.verbigem.app.ui.components.helpClickable
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
+import com.verbigem.app.ui.components.LocalizedAlertDialog
 
 /**
  * The contact card — per-conversation settings for one person.
@@ -340,7 +340,7 @@ fun ContactCardScreen(
     }
 
     if (confirmDelete) {
-        AlertDialog(
+        LocalizedAlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text(stringResource(R.string.contact_card_delete_title)) },
             text = { Text(stringResource(R.string.contact_card_delete_body)) },

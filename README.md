@@ -203,8 +203,8 @@ drugi raz obok — każda nowa ikona bierze stąd komponent.
    preferencję użytkownika i przycisk „Rozumiem" zawsze wyświetlał się po polsku — nawet przy
    angielskim UI. Naprawa: `HelpWindow` przechwytuje `LocalContext.current` PRZED otwarciem
    `Dialog{}` i odtwarza go przez `CompositionLocalProvider(LocalContext provides localizedContext)`
-   wewnątrz. Nie używaj `stringResource` bezpośrednio w `Dialog` bez tego opakowania — dotyczy
-   też własnych dialogów, nie tylko `HelpWindow`.
+   wewnątrz. Dla **nowych** okien używaj gotowych `LocalizedDialog` / `LocalizedAlertDialog`
+   z `ui/components/LocalizedDialog.kt` — opis w sekcji *Wielojęzyczność*.
 7. **`WindowInsets.isImeVisible` wymaga własnego importu.** To extension property:
    `import androidx.compose.foundation.layout.isImeVisible` (obok `...layout.WindowInsets`).
    Bez tego importu kompilator zgłasza `Unresolved reference 'isImeVisible'`, mimo że
@@ -769,7 +769,13 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 
-⚠️ **Reguła dla `Dialog` w Compose:** wnętrze `Dialog { }` to **osobna kompozycja**, której `LocalContext` wraca do bazowego Activity (locale urządzenia), a nie do `LocalizedContext`. Każdy `Dialog` z tekstami musi więc złapać kontekst **przed** `Dialog` i podać go dalej:
+⚠️ **Reguła dla okien w Compose:** wnętrze `Dialog { }` to **osobna kompozycja**, której `LocalContext` wraca do bazowego Activity (locale urządzenia), a nie do `LocalizedContext`. Okno jest wtedy w języku telefonu, a nie w języku wybranym w aplikacji.
+
+**Dlatego nie używaj `Dialog` / `AlertDialog` bezpośrednio — używaj `LocalizedDialog` / `LocalizedAlertDialog`** z `ui/components/LocalizedDialog.kt`. Te dwa komponenty łapią kontekst przed otwarciem okna i przepisują go do treści (a `LocalizedAlertDialog` do każdej lambdy osobno, bo `AlertDialog` renderuje `title`/`text`/`confirmButton` wewnątrz własnego okna). Przepisanie kontekstu, który i tak był poprawny, nic nie zmienia — więc użycie opakowania jest bezpieczne zawsze.
+
+Wyjątki (opakowanie wpisane ręcznie, świadomie nie migrowane): `HelpDialog.kt` (`HelpWindow`) i `ModelDownloadDialog.kt`. Reszta okien w aplikacji przeszła na opakowania w v1.0.64 — wcześniej **osiem** z nich (`MainActivity` ×2, `ProfileScreen` ×3, `ContactCardScreen`, `ContactsScreen`, `ChatThreadScreen`) było w języku telefonu. Kontrola: `grep -rn "^\s*\(Dialog\|AlertDialog\)(" --include=*.kt app/src/main/java` — poza `LocalizedDialog.kt`, `HelpDialog.kt` i `ModelDownloadDialog.kt` nie powinno nic zwracać.
+
+Jeśli kiedyś musisz użyć surowego `Dialog`:
 
 ```kotlin
 val localizedContext = LocalContext.current          // złapane na poziomie ekranu
@@ -778,7 +784,7 @@ Dialog(onDismissRequest = { ... }) {
 }
 ```
 
-Bez tego okno jest w języku telefonu, a nie w języku wybranym w aplikacji. Wzorzec jest w `HelpDialog.kt` (`HelpWindow`) i `ModelDownloadDialog.kt`. **Objaw w v1.0.63:** okno pobierania modelu było po polsku przy interfejsie ustawionym na angielski.
+**Objaw w v1.0.63:** okno pobierania modelu było po polsku przy interfejsie ustawionym na angielski.
 
 ---
 

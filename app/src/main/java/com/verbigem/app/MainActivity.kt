@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -53,6 +52,7 @@ import com.verbigem.app.ads.AdsConsent
 import com.verbigem.app.data.ProfileLinks
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.engine.UpdateManager
+import com.verbigem.app.ui.components.LocalizedAlertDialog
 import com.verbigem.app.ui.navigation.AppNavigation
 import com.verbigem.app.ui.theme.VerbigemAppTheme
 import com.verbigem.app.ui.theme.VerbigemTheme
@@ -330,7 +330,7 @@ private fun StartupGate(
                         onDismiss = { updateGateController.proceed() }
                     )
                 } else {
-                    AlertDialog(
+                    LocalizedAlertDialog(
                         onDismissRequest = { updateGateController.proceed() },
                         title = { Text(stringResource(R.string.update_available_title)) },
                         text = {
@@ -392,7 +392,7 @@ private fun UpdateDownloadDialog(
     onDismiss: () -> Unit
 ) {
     val indeterminate = progress.fraction < 0f
-    AlertDialog(
+    LocalizedAlertDialog(
         onDismissRequest = { if (failure != null) onDismiss() },
         title = {
             Text(

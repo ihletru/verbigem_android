@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -78,6 +77,7 @@ import com.verbigem.app.ui.components.UiLangSelect
 import com.verbigem.app.ui.components.helpClickable
 import com.verbigem.app.ui.components.rememberHelpWindowState
 import com.verbigem.app.ui.theme.VerbigemTheme
+import com.verbigem.app.ui.components.LocalizedAlertDialog
 
 @Composable
 fun ProfileScreen(
@@ -927,7 +927,7 @@ fun ProfileScreen(
     // Potwierdzenie usunięcia pobranego modelu.
     if (pendingDelete != null) {
         val tier = pendingDelete!!
-        AlertDialog(
+        LocalizedAlertDialog(
             onDismissRequest = { pendingDelete = null },
             confirmButton = {
                 Button(
@@ -959,7 +959,7 @@ fun ProfileScreen(
     if (showTopUp) {
         val dialogLoading by viewModel.topUpLoading.collectAsState(initial = false)
         val dialogError by viewModel.topUpError.collectAsState(initial = null)
-        AlertDialog(
+        LocalizedAlertDialog(
             onDismissRequest = { showTopUp = false; viewModel.clearTopUpError() },
             confirmButton = {},
             dismissButton = {
@@ -1007,7 +1007,7 @@ fun ProfileScreen(
     if (showNoAds) {
         val dialogLoading by viewModel.topUpLoading.collectAsState(initial = false)
         val dialogError by viewModel.topUpError.collectAsState(initial = null)
-        AlertDialog(
+        LocalizedAlertDialog(
             onDismissRequest = { showNoAds = false; viewModel.clearTopUpError() },
             confirmButton = {},
             dismissButton = {
