@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.50`** (versionCode 51) — naprawione logowanie PRO (noAdsUntil) —
+> 📦 **Aktualna wersja: `v1.0.52`** (versionCode 53) — naprawione banery reklamowe na kontach darmowych + dialogi i przycisk tłumacza z nazwą modelu —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -524,12 +524,26 @@ testowe do końca świata. Przełącznik jest ręczny: obie stałe w `build.grad
 Testowe ID Google'a (`ca-app-pub-3940256099942544/…`) działają z dowolnym App ID i nie
 łamią polityk — można ich używać, póki nie ma prawdziwej jednostki banera.
 
-### Status: wypuszczone w v1.0.49 (versionCode 50)
+### Status: wypuszczone w v1.0.52 (versionCode 53)
 
 ID produkcyjne w `build.gradle.kts` od 2026-09-09. SDK domergował do manifestu dwa
 uprawnienia: `com.google.android.gms.permission.AD_ID` i
 `android.permission.ACCESS_ADSERVICES_AD_ID` — to one wymuszają deklarację Data Safety
 poniżej.
+
+### Awaryjna inicjalizacja SDK po 3 s (dodane w v1.0.52)
+
+UMP potrafi odpowiedzieć `canRequestAds() == false` **mimo że zgoda nie jest wymagana**
+— typowa przyczyna: świeżo zatwierdzone konto AdMob bez skonfigurowanego „Privacy &
+messaging" / Funding Choices. Wtedy UMP nie ma skąd wziąć formularza i oddaje `false`
+w każdym kraju, więc baner wisiałby na placeholderze do końca świata.
+
+`AdsConsent.refresh()` wykrywa tę sytuację i po 3 sekundach odpala
+`MobileAds.initialize()` mimo wszystko. **Strażnik EOG**: jeśli użytkownik jest w
+EOG/UK i zgoda nie jest uzyskana (`consentStatus == REQUIRED` albo
+`privacyOptionsRequirementStatus == REQUIRED`), fallback **nie zadziała** — bez zgody
+reklamy nie lecą, zgodnie z zasadami Google (w tym wypadku inicjalizacja SDK
+byłaby drogą do zamknięcia konta AdMob).
 
 ### ⚠️ Do domknięcia (tylko w konsolach, nic w kodzie)
 

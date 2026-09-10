@@ -22,7 +22,7 @@
     <string name="ocr_shortcut">Aus Foto (OCR)</string>
     <string name="translate_hint">Text zum Übersetzen eingeben…</string>
     <string name="translate_hint_speech">Text eingeben, sprechen oder Foto in Text umwandeln zum Übersetzen…</string>
-    <string name="translate_button">Übersetzen (Schnell)</string>
+    <string name="translate_button_engine">Übersetzen (%1$s)</string>
     <string name="accurate_label">Langsam aber genau ~1.1 GB</string>
     <string name="copied_clipboard">In Zwischenablage kopiert</string>
     <string name="recent_translations">LETZTE ÜBERSETZUNGEN</string>
@@ -144,12 +144,12 @@
     <string name="ocr_pro_coming_soon">OCR Pro bald verfügbar</string>
 
     <!-- Model download dialog -->
-    <string name="model_download_title">Schnelles Modell herunterladen</string>
-    <string name="model_download_body">Laden Sie für die native Offline-Übersetzung auf Ihrem Telefon das schnelle Modell-Paket einmal herunter (~440 MB). Danach funktioniert es zu 100%% ohne Internet.</string>
-    <string name="download_now">Jetzt herunterladen (~440 MB)</string>
-    <string name="downloading_model">Schnelles Modell wird heruntergeladen: %1$d%%</string>
+    <string name="model_download_title">Modell %1$s herunterladen</string>
+    <string name="model_download_body">Laden Sie für die native Offline-Übersetzung auf Ihrem Telefon das Modell %1$s einmal herunter (%2$s). Danach funktioniert es zu 100%% ohne Internet.</string>
+    <string name="download_now">Jetzt herunterladen (%1$s)</string>
+    <string name="downloading_model">Modell %1$s wird heruntergeladen: %2$d%%</string>
     <string name="loading_model_memory">Modell wird in den Speicher geladen…</string>
-    <string name="model_ready">✓ Das schnelle Modell ist bereit!</string>
+    <string name="model_ready">✓ Das Modell %1$s ist bereit!</string>
     <string name="retry">Erneut versuchen</string>
     <string name="error_with_message">Fehler: %1$s</string>
     <string name="model_not_loaded">Modell ist nicht geladen. Laden Sie das Modell in der App herunter.</string>
@@ -475,7 +475,7 @@
     <string name="engine_caption_pro7b">pro 7B</string>
     <string name="help_engine_pro7b_title">Pro-7B-Engine</string>
     <string name="help_engine_pro7b">Das Schwergewicht. Ein Modell mit 7 Milliarden Parametern (etwa 2,9 GB), rund viermal so groß wie die genaue Engine und deshalb deutlich langsamer: ein langer Satz dauert auch auf einem schnellen Telefon mehrere Sekunden. Dafür kommt es besser mit Redewendungen, Satzstellung und seltenen Sprachen zurecht als beide 1.8B-Modelle. Läuft offline. Pro-Funktion und erfordert ein Telefon mit mindestens 6 GB RAM und 3,5 GB freiem Speicher; auf schwächeren Geräten bleibt das Symbol ausgeblendet. Am besten einmal über WLAN laden.</string>
-    <string name="model_download_size">Downloadgröße: %1$s</string>
+    <!-- unbenutzt seit v1.0.52 -->
     <string name="download_metered_warning">Dieses Modell ist %1$s groß. Du nutzt mobile Daten — WLAN wird empfohlen.</string>
     <string name="download_anyway">Trotzdem herunterladen</string>
 

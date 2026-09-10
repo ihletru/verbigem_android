@@ -24,7 +24,7 @@
     <string name="ocr_shortcut">Ze zdjęcia (OCR)</string>
     <string name="translate_hint">Wpisz tekst do przetłumaczenia…</string>
     <string name="translate_hint_speech">Wpisz lub zamień mowę albo zdjęcie na tekst do przetłumaczenia…</string>
-    <string name="translate_button">Tłumacz (Szybki)</string>
+    <string name="translate_button_engine">Tłumacz (%1$s)</string>
     <string name="accurate_label">Wolny ale dokładny ~1.1 GB</string>
     <string name="copied_clipboard">Skopiowano do schowka</string>
     <string name="recent_translations">OSTATNIE TŁUMACZENIA</string>
@@ -151,12 +151,12 @@
     <string name="ocr_pro_coming_soon">OCR Pro wkrótce</string>
 
     <!-- Model download dialog -->
-    <string name="model_download_title">Pobierz model Szybki</string>
-    <string name="model_download_body">Do natywnego tłumaczenia offline na Twoim telefonie pobierz raz pakiet modelu Szybki (~440 MB). Po pobraniu działa w 100%% bez internetu.</string>
-    <string name="download_now">Pobierz teraz (~440 MB)</string>
-    <string name="downloading_model">Pobieranie modelu Szybki: %1$d%%</string>
+    <string name="model_download_title">Pobierz model %1$s</string>
+    <string name="model_download_body">Do natywnego tłumaczenia offline na Twoim telefonie pobierz raz pakiet modelu %1$s (%2$s). Po pobraniu działa w 100%% bez internetu.</string>
+    <string name="download_now">Pobierz teraz (%1$s)</string>
+    <string name="downloading_model">Pobieranie modelu %1$s: %2$d%%</string>
     <string name="loading_model_memory">Ładowanie modelu do pamięci…</string>
-    <string name="model_ready">✓ Model Szybki jest gotowy do użycia!</string>
+    <string name="model_ready">✓ Model %1$s jest gotowy do użycia!</string>
     <string name="retry">Spróbuj ponownie</string>
     <string name="error_with_message">Błąd: %1$s</string>
     <string name="model_not_loaded">Model nie jest załadowany. Pobierz model w aplikacji.</string>
@@ -494,7 +494,7 @@
     <string name="engine_caption_pro7b">pro 7B</string>
     <string name="help_engine_pro7b_title">Silnik Pro 7B</string>
     <string name="help_engine_pro7b">Ciężki zawodnik. Model o 7 miliardach parametrów (ok. 2,9 GB), mniej więcej czterokrotnie większy od Dokładnego, więc wyraźnie wolniejszy: długie zdanie potrwa kilka sekund nawet na szybkim telefonie. W zamian lepiej radzi sobie z idiomami, szykiem zdania i rzadszymi językami niż oba modele 1.8B. Działa offline. Funkcja Pro; wymaga telefonu z co najmniej 6 GB RAM i 3,5 GB wolnego miejsca — na słabszych urządzeniach ikona jest ukryta. Pobierz raz przez Wi-Fi.</string>
-    <string name="model_download_size">Rozmiar do pobrania: %1$s</string>
+    <!-- nieużywane od v1.0.52 — rozmiar jest teraz w body i na przycisku -->
     <string name="download_metered_warning">Ten model waży %1$s. Jesteś na danych mobilnych — zalecane Wi-Fi.</string>
     <string name="download_anyway">Pobierz mimo to</string>
 

@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.52 (2026-09-09) — versionCode 53
+
+**Fixed: ads never showed on free accounts.**
+
+- For accounts where Google does not require consent (outside the EEA and the UK), the consent flow could report „cannot request ads" — typically on a freshly approved AdMob account with no „Privacy & messaging" set up. The ads SDK then waited for a consent that was never coming, and the banner stayed empty forever. The app now initialises ads on its own after 3 seconds.
+- Nothing changes in the EEA and the UK: without your consent ads stay off — we do not break Google's rules.
+- Logs now include the full consent state and the error code when an ad fails to load, so an empty banner is easier to diagnose.
+
+**Fixed: the model-download dialog and the Translate button talked about the Fast model no matter which tier was picked.**
+
+- The „Download model" dialog was hardcoded for the Fast model (~440 MB). When downloading the Accurate (~1.1 GB) one it showed „Fast" in the title and „~1.1 GB" underneath — contradictory information.
+- The title, body, download button, progress label and ready label are now parameterised, so they always match the tier you are actually downloading.
+- The **Translate (X)** button in the main translator now shows the engine you actually picked — Fast, Accurate, Both or Online — not always „Fast".
+
 ## v1.0.50 (2026-09-09) — versionCode 51
 
 **Fixed: PRO accounts can sign in again.**

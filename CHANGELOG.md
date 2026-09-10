@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.52 (2026-09-09) — versionCode 53
+
+**Naprawione: reklamy w ogóle się nie pojawiały na kontach darmowych.**
+
+- Na kontach, dla których Google nie wymaga zgody (czyli poza EOG i Wielką Brytanią), formularz zgód potrafił odpowiedzieć „nie można wczytać reklam" — najczęściej na świeżo zatwierdzonym koncie AdMob bez skonfigurowanego „Privacy & messaging". SDK reklamowe czekało wtedy na zgodę, która nigdy nie nadejdzie, i baner zostawał pusty na zawsze. Teraz po 3 sekundach aplikacja inicjuje reklamy sama.
+- W EOG i Wielkiej Brytanii bez zmian: bez Twojej zgody reklamy nie ruszają — nie łamiemy zasad Google.
+- W logach jest teraz pełny stan zgód i kod błędu, gdy reklama się nie wczyta — łatwiej dojść, dlaczego baner jest pusty.
+
+**Naprawione: dialog pobierania i przycisk tłumacza mówiły o modelu Szybkim bez względu na wybór.**
+
+- Okno „Pobierz model" było sztywno napisane pod model Szybki (~440 MB). Przy pobieraniu Dokładnego (~1,1 GB) widziało się jednocześnie „Szybki" w tytule i „~1,1 GB" pod spodem — sprzeczne informacje.
+- Tytuł, treść, etykieta pobierania, etykieta postępu i etykieta „model gotowy" są teraz zparametryzowane i same podstawiają właściwy model z jego rozmiarem.
+- Przycisk **Tłumacz (X)** w głównym ekranie tłumacza mówi teraz o aktualnie wybranym silniku — Szybki, Dokładny, Oba albo Online — a nie zawsze „Szybki".
+
 ## v1.0.50 (2026-09-09) — versionCode 51
 
 **Naprawione: konta PRO znowu się logują.**

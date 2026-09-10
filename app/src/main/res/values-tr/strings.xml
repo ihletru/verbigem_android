@@ -22,7 +22,7 @@
     <string name="ocr_shortcut">Fotoğraftan (OCR)</string>
     <string name="translate_hint">Çevrilecek metni gir…</string>
     <string name="translate_hint_speech">Metin girişi yap, konuş veya fotoğrafı metne çevirerek çevir…</string>
-    <string name="translate_button">Çevir (Hızlı)</string>
+    <string name="translate_button_engine">Çevir (%1$s)</string>
     <string name="accurate_label">Yavaş ama doğru ~1.1 GB</string>
     <string name="copied_clipboard">Panoya kopyalandı</string>
     <string name="recent_translations">SON ÇEVİRİLER</string>
@@ -144,12 +144,12 @@
     <string name="ocr_pro_coming_soon">OCR Pro yakında</string>
 
     <!-- Model download dialog -->
-    <string name="model_download_title">Hızlı modeli indir</string>
-    <string name="model_download_body">Telefonunuzda yerel çevrimdışı çeviri için Hızlı model paketini bir kez indirin (~440 MB). İndirildikten sonra internet olmadan %100 çalışır.</string>
-    <string name="download_now">Şimdi indir (~440 MB)</string>
-    <string name="downloading_model">Hızlı model indiriliyor: %1$d%%</string>
+    <string name="model_download_title">%1$s modelini indir</string>
+    <string name="model_download_body">Telefonunuzda yerel çevrimdışı çeviri için %1$s model paketini bir kez indirin (%2$s). İndirildikten sonra internet olmadan %%100 çalışır.</string>
+    <string name="download_now">Şimdi indir (%1$s)</string>
+    <string name="downloading_model">%1$s modeli indiriliyor: %2$d%%</string>
     <string name="loading_model_memory">Model belleğe yükleniyor…</string>
-    <string name="model_ready">✓ Hızlı model kullanıma hazır!</string>
+    <string name="model_ready">✓ %1$s modeli kullanıma hazır!</string>
     <string name="retry">Tekrar dene</string>
     <string name="error_with_message">Hata: %1$s</string>
     <string name="model_not_loaded">Model yüklenmedi. Modeli uygulamadan indirin.</string>
@@ -475,7 +475,7 @@
     <string name="engine_caption_pro7b">pro 7B</string>
     <string name="help_engine_pro7b_title">Pro 7B motoru</string>
     <string name="help_engine_pro7b">Ağır sıklet. 7 milyar parametreli bir model (yaklaşık 2,9 GB), Doğru motordan yaklaşık dört kat büyük, bu yüzden belirgin şekilde daha yavaş: hızlı bir telefonda bile uzun bir cümle birkaç saniye sürer. Karşılığında deyimleri, sözcük dizilişini ve nadir dilleri iki 1.8B modelden de daha iyi işler. Çevrimdışı çalışır. Pro özelliğidir ve en az 6 GB RAM ile 3,5 GB boş alan gerektirir; daha zayıf cihazlarda simge gizli kalır. Bir kez Wi-Fi üzerinden indirin.</string>
-    <string name="model_download_size">İndirme boyutu: %1$s</string>
+    <!-- v1.0.52 itibarıyla kullanılmıyor -->
     <string name="download_metered_warning">Bu model %1$s boyutunda. Mobil veri kullanıyorsunuz — Wi-Fi önerilir.</string>
     <string name="download_anyway">Yine de indir</string>
 

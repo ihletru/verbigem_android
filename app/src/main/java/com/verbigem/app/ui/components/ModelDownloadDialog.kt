@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.verbigem.app.R
 import com.verbigem.app.data.model.ModelDownloadState
+import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.ui.theme.VerbigemTheme
 
 @Composable
@@ -30,14 +31,14 @@ fun ModelDownloadDialog(
     onStartDownload: () -> Unit,
     onDismiss: () -> Unit,
     /**
-     * Rozmiar pakietu do pobrania, np. "~2.9 GB". Gdy `null`, pokazywany jest
-     * tylko domyślny tekst (który opisuje model Szybki ~440 MB).
+     * Który model pobieramy. Nazwa i rozmiar idą z niego, więc dialog przy
+     * modelu Dokładnym mówi o Dokładnym, a nie o Szybkim.
      *
-     * ⚠️ Bez tego parametr dialog Professional 7B (2.9 GB) informowałby
-     * użytkownika o "~440 MB" — tekst `model_download_body` jest na sztywno
-     * napisany pod model Szybki.
+     * ⚠️ Historycznie `sizeLabel` był osobnym parametrem i tekst
+     * `model_download_body` miał sztywno wpisane „Szybki / ~440 MB" — przy
+     * pobieraniu Dokładnego okno wciąż informowało o Szybkim.
      */
-    sizeLabel: String? = null,
+    tier: ModelTier = ModelTier.FAST,
     /**
      * „Pobierz mimo to" z ekranu [ModelDownloadState.MeteredWarning]. Musi
      * przekazywać `allowMetered = true` do `ModelDownloader`, inaczej
@@ -58,7 +59,7 @@ fun ModelDownloadDialog(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = stringResource(R.string.model_download_title),
+                    text = stringResource(R.string.model_download_title, stringResource(tier.displayNameResId)),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = VerbigemTheme.colors.ink
@@ -67,22 +68,15 @@ fun ModelDownloadDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = stringResource(R.string.model_download_body),
+                    text = stringResource(
+                        R.string.model_download_body,
+                        stringResource(tier.displayNameResId),
+                        tier.sizeLabel,
+                    ),
                     fontSize = 14.sp,
                     color = VerbigemTheme.colors.muted,
                     lineHeight = 20.sp
                 )
-
-                if (sizeLabel != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.model_download_size, sizeLabel),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = VerbigemTheme.colors.ink,
-                        lineHeight = 20.sp
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -94,12 +88,19 @@ fun ModelDownloadDialog(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(stringResource(R.string.download_now), fontWeight = FontWeight.Bold)
+                            Text(
+                                text = stringResource(R.string.download_now, tier.sizeLabel),
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
                     }
                     is ModelDownloadState.Downloading -> {
                         Text(
-                            text = stringResource(R.string.downloading_model, downloadState.progressPercent),
+                            text = stringResource(
+                                R.string.downloading_model,
+                                stringResource(tier.displayNameResId),
+                                downloadState.progressPercent,
+                            ),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = VerbigemTheme.colors.accent
@@ -128,7 +129,7 @@ fun ModelDownloadDialog(
                     }
                     is ModelDownloadState.Ready -> {
                         Text(
-                            text = stringResource(R.string.model_ready),
+                            text = stringResource(R.string.model_ready, stringResource(tier.displayNameResId)),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = VerbigemTheme.colors.success

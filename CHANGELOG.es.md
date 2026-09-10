@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.52 (2026-09-09) — versionCode 53
+
+**Corregido: en las cuentas gratuitas no se mostraban anuncios.**
+
+- En las cuentas para las que Google no exige consentimiento (fuera del EEE y del Reino Unido), el formulario de consentimiento podía responder „no se pueden solicitar anuncios" — lo más habitual en una cuenta de AdMob recién aprobada sin „Privacy & messaging" configurado. El SDK de anuncios esperaba entonces un consentimiento que nunca llegaría y el banner se quedaba vacío para siempre. Ahora, tras 3 segundos, la app inicializa los anuncios por su cuenta.
+- En el EEE y el Reino Unido no cambia nada: sin tu consentimiento no se cargan anuncios — no incumplimos las normas de Google.
+- Además, los registros incluyen ahora el estado completo del consentimiento y el código de error cuando un anuncio no carga, así es más fácil saber por qué el banner está vacío.
+
+**Corregido: el diálogo de descarga y el botón Traducir hablaban del modelo Rápido sin importar qué tier se hubiera elegido.**
+
+- La ventana „Descargar modelo" estaba escrita para el modelo Rápido (~440 MB). Al descargar el Preciso (~1,1 GB) se veía „Rápido" en el título y „~1,1 GB" debajo — información contradictoria.
+- El título, el cuerpo, el botón de descarga, la etiqueta de progreso y la de „modelo listo" ahora son paramétricos y muestran el modelo que realmente estás descargando.
+- El botón **Traducir (X)** de la pantalla del traductor muestra ahora el motor realmente elegido — Rápido, Preciso, Ambos o En línea — y no siempre „Rápido".
+
 ## v1.0.50 (2026-09-09) — versionCode 51
 
 **Arreglado: las cuentas PRO vuelven a poder iniciar sesión.**

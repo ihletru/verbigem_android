@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.52 (2026-09-09) — versionCode 53
+
+**Düzeltildi: ücretsiz hesaplarda reklamlar hiç görünmüyordu.**
+
+- Google'ın onay istemediği hesaplarda (AEA ve Birleşik Krallık dışı), onay akışı „reklam istenemiyor" diyebiliyordu — genelde „Privacy & messaging" yapılandırılmamış, yeni onaylanmış bir AdMob hesabında. Reklam SDK'sı o zaman hiç gelmeyecek bir onayı bekliyor ve banner sonsuza kadar boş kalıyordu. Artık uygulama 3 saniye sonra reklamları kendisi başlatıyor.
+- AEA ve Birleşik Krallık'ta bir şey değişmiyor: onayın olmadan reklam yüklenmez — Google'ın kurallarını ihlal etmiyoruz.
+- Ayrıca loglarda artık onay durumunun tamamı ve reklam yüklenmezse hata kodu var — boş bir banner'ın nedeni daha kolay anlaşılır.
+
+**Düzeltildi: model indirme diyaloğu ve Çevir düğmesi, hangi model seçilirse seçilsin „Hızlı" diyordu.**
+
+- „Modeli indir" penceresi Hızlı modele (~440 MB) göre yazılmıştı. Doğru modeli (~1,1 GB) indirirken başlıkta „Hızlı", altında „~1,1 GB" görünüyordu — çelişkili bilgi.
+- Başlık, gövde, indirme düğmesi, ilerleme etiketi ve „model hazır" etiketi artık parametrik ve gerçekten indirdiğiniz modeli yansıtıyor.
+- Ana çeviri ekranındaki **Çevir (X)** düğmesi artık gerçekten seçtiğiniz motoru gösteriyor — Hızlı, Doğru, İkisi veya Çevrimiçi — ve her zaman „Hızlı" değil.
+
 ## v1.0.50 (2026-09-09) — versionCode 51
 
 **Düzeltildi: PRO hesapları tekrar giriş yapabiliyor.**

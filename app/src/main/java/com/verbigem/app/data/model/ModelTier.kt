@@ -104,6 +104,24 @@ enum class ModelTier(
     val sizeLabel: String
         get() = "~${"%.1f".format(approxBytes / 1024.0 / 1024.0 / 1024.0)} GB"
 
+    /**
+     * String-resource id z lokalizowaną nazwą tierem. UI dostaje
+     * `stringResource(tier.displayNameResId)` zamiast trzymać nazwy na sztywno
+     * w treści komunikatów — w przeciwnym razie dialog pobierania przy modelu
+     * Dokładnym wciąż informowałby o modelu Szybkim.
+     *
+     * ⚠️ PRO_7B jest **porzucony** (1.64 tok/s na CPU, wymaga GPU, nie ma
+     * wsparcia) — używamy istniejącego `engine_pro7b_label`, żeby nie mnożyć
+     * stringów dla martwej gałęzi. I tak nigdy nie wywoła pobierania na
+     * procesorze (EngineChoice.LOCAL_PRO_7B wymaga GPU).
+     */
+    val displayNameResId: Int
+        get() = when (this) {
+            FAST -> com.verbigem.app.R.string.model_name_fast
+            ACCURATE -> com.verbigem.app.R.string.model_name_accurate
+            PRO_7B -> com.verbigem.app.R.string.engine_pro7b_label
+        }
+
     companion object {
         fun fromId(id: String): ModelTier = entries.find { it.id == id } ?: FAST
 

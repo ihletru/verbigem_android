@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.52 (2026-09-09) — versionCode 53
+
+**Behoben: Auf kostenlosen Konten wurden gar keine Anzeigen geladen.**
+
+- Bei Konten, für die Google keine Einwilligung verlangt (also außerhalb von EWR und Großbritannien), meldete die Einwilligungsabfrage mitunter „Anzeigen können nicht geladen werden" — meist bei einem frisch freigegebenen AdMob-Konto ohne konfiguriertes „Privacy & messaging". Das Anzeigen-SDK wartete dann auf eine Einwilligung, die nie kommt, und das Banner blieb für immer leer. Jetzt initialisiert die App Anzeigen nach 3 Sekunden selbst.
+- Im EWR und in Großbritannien bleibt alles gleich: Ohne deine Einwilligung laufen keine Anzeigen — wir verstoßen nicht gegen die Regeln von Google.
+- Außerdem stehen jetzt der vollständige Einwilligungsstatus und der Fehlercode in den Logs, wenn eine Anzeige nicht lädt — so lässt sich ein leeres Banner leichter erklären.
+
+**Behoben: Download-Dialog und „Übersetzen"-Button waren unabhängig vom Modell immer auf „Schnell" festgelegt.**
+
+- Das Dialogfenster „Modell herunterladen" war fest auf das Schnellmodell (~440 MB) geschrieben. Beim Genauen (~1,1 GB) stand gleichzeitig „Schnell" im Titel und „~1,1 GB" darunter — widersprüchlich.
+- Titel, Beschreibung, Download-Schaltfläche, Fortschritt und „Modell bereit" sind jetzt parametrisiert und spiegeln das tatsächlich gewählte Modell mit seiner Größe wider.
+- Der Button **Übersetzen (X)** im Hauptbildschirm zeigt jetzt die tatsächlich gewählte Engine an — Schnell, Genau, Beide oder Online — und nicht mehr nur „Schnell".
+
 ## v1.0.50 (2026-09-09) — versionCode 51
 
 **Behoben: PRO-Konten können sich wieder anmelden.**

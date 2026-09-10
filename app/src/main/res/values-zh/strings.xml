@@ -22,7 +22,7 @@
     <string name="ocr_shortcut">从照片（OCR）</string>
     <string name="translate_hint">输入要翻译的文本…</string>
     <string name="translate_hint_speech">输入、语音或将照片转换为文本以翻译…</string>
-    <string name="translate_button">翻译（快速）</string>
+    <string name="translate_button_engine">翻译（%1$s）</string>
     <string name="accurate_label">慢但准确 ~1.1 GB</string>
     <string name="copied_clipboard">已复制到剪贴板</string>
     <string name="recent_translations">最近翻译</string>
@@ -144,12 +144,12 @@
     <string name="ocr_pro_coming_soon">OCR Pro 即将推出</string>
 
     <!-- Model download dialog -->
-    <string name="model_download_title">下载快速模型</string>
-    <string name="model_download_body">要在手机上进行原生离线翻译，请下载一次快速模型包（约 440 MB）。下载后无需联网即可 100%% 使用。</string>
-    <string name="download_now">立即下载（约 440 MB）</string>
-    <string name="downloading_model">正在下载快速模型：%1$d%%</string>
+    <string name="model_download_title">下载 %1$s 模型</string>
+    <string name="model_download_body">要在手机上进行原生离线翻译，请下载一次 %1$s 模型包（约 %2$s）。下载后无需联网即可 100%% 使用。</string>
+    <string name="download_now">立即下载（约 %1$s）</string>
+    <string name="downloading_model">正在下载 %1$s 模型：%2$d%%</string>
     <string name="loading_model_memory">正在将模型载入内存…</string>
-    <string name="model_ready">✓ 快速模型已就绪！</string>
+    <string name="model_ready">✓ %1$s 模型已就绪！</string>
     <string name="retry">重试</string>
     <string name="error_with_message">错误：%1$s</string>
     <string name="model_not_loaded">模型未加载。请在应用中下载模型。</string>
@@ -475,7 +475,7 @@
     <string name="engine_caption_pro7b">pro 7B</string>
     <string name="help_engine_pro7b_title">Pro 7B 引擎</string>
     <string name="help_engine_pro7b">重量级选手。70 亿参数的模型（约 2.9 GB），体积约为精确引擎的四倍，因此明显更慢：即使在较快的手机上，长句也要花几秒钟。作为回报，它对习语、语序和稀有语言的处理都优于两个 1.8B 模型。可离线运行。这是 Pro 功能，并且需要至少 6 GB 内存和 3.5 GB 可用空间的手机；在较弱的设备上该图标会保持隐藏。建议通过 Wi-Fi 下载一次。</string>
-    <string name="model_download_size">下载大小：%1$s</string>
+    <!-- 自 v1.0.52 起不再使用 -->
     <string name="download_metered_warning">该模型大小为 %1$s。您正在使用移动数据，建议使用 Wi-Fi。</string>
     <string name="download_anyway">仍然下载</string>
 

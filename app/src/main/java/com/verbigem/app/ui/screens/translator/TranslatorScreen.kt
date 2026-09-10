@@ -374,7 +374,14 @@ fun TranslatorScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
                     } else {
                         Text(
-                            stringResource(R.string.translate_button),
+                            // Nazwa silnika z `engineChoice.labelResId` (Szybki /
+                            // Dokładny / Pro 7B / Oba / Online) — wariant
+                            // %1$s = nazwa silnika. Bez tego przycisk zawsze
+                            // mówił „Tłumacz (Szybki)", niezależnie od wyboru.
+                            stringResource(
+                                R.string.translate_button_engine,
+                                stringResource(engineChoice.labelResId),
+                            ),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
@@ -512,9 +519,8 @@ fun TranslatorScreen(
     if (showDownloadDialog) {
         ModelDownloadDialog(
             downloadState = downloadState,
-            sizeLabel = engineChoice.modelTier
-                ?.takeIf { it != ModelTier.FAST } // Szybki: tekst dialogu już mówi "~440 MB"
-                ?.sizeLabel,
+            tier = engineChoice.modelTier
+                ?: ModelTier.fromAccurate(engineChoice == EngineChoice.LOCAL_ACCURATE),
             onStartDownload = {
                 val tier = engineChoice.modelTier ?: ModelTier.fromAccurate(engineChoice == EngineChoice.LOCAL_ACCURATE)
                 viewModel.startModelDownload(tier)

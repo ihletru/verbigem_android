@@ -89,25 +89,39 @@ private fun RealBanner(modifier: Modifier = Modifier) {
     val adSize = remember(context, screenWidthDp) {
         AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, screenWidthDp)
     }
-
+    // ⚠️ AndroidView MUSI być komponowany zawsze — `loadAd` jest wołane w środku
+    // factory, więc każde sterowanie widocznością „z zewnątrz" (np. `if (loaded)`)
+    // odcina request i baner nigdy nie dostaje odpowiedzi. Stan „wczytano" jest
+    // tylko w logach: AdView bez reklamy nie ma treści, więc nie ma co ukrywać.
     AndroidView(
         modifier = modifier
             .fillMaxWidth()
             .height(adSize.height.dp),
         factory = { ctx ->
             AdView(ctx).apply {
-                val request = BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_UNIT_ID, adSize).build()
+                val request = BannerAdRequest.Builder(
+                    BuildConfig.ADMOB_BANNER_UNIT_ID, adSize
+                ).build()
+                Log.i(
+                    TAG,
+                    "loadAd: unit=${BuildConfig.ADMOB_BANNER_UNIT_ID} " +
+                        "size=${adSize.width}x${adSize.height}",
+                )
                 loadAd(
                     request,
                     object : AdLoadCallback<BannerAd> {
                         override fun onAdLoaded(ad: BannerAd) {
-                            Log.d(TAG, "Banner loaded")
+                            Log.i(TAG, "Banner loaded ${adSize.width}x${adSize.height}")
                         }
 
                         override fun onAdFailedToLoad(error: LoadAdError) {
-                            // Ciche logi, nie crash: brak sieci albo pusty slot
-                            // reklamowy to normalny stan, nie błąd aplikacji.
-                            Log.w(TAG, "Banner failed to load: ${error.message}")
+                            // Ciche logi, nie crash: brak sieci, no-fill (kod 3) albo
+                            // świeży slot bez kampanii to normalny stan, nie błąd.
+                            Log.w(
+                                TAG,
+                                "Banner failed: code=${error.code} " +
+                                    "msg=${error.message}",
+                            )
                         }
                     }
                 )

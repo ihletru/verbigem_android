@@ -24,7 +24,7 @@
     <string name="ocr_shortcut">From photo (OCR)</string>
     <string name="translate_hint">Enter text to translate…</string>
     <string name="translate_hint_speech">Enter or speak or turn photo into text to translate…</string>
-    <string name="translate_button">Translate (Fast)</string>
+    <string name="translate_button_engine">Translate (%1$s)</string>
     <string name="accurate_label">Slow but accurate ~1.1 GB</string>
     <string name="copied_clipboard">Copied to clipboard</string>
     <string name="recent_translations">RECENT TRANSLATIONS</string>
@@ -153,12 +153,12 @@
     <string name="ocr_pro_coming_soon">OCR Pro coming soon</string>
 
     <!-- Model download dialog -->
-    <string name="model_download_title">Download the Fast model</string>
-    <string name="model_download_body">For native offline translation on your phone, download the Fast model package once (~440 MB). Once downloaded it works 100%% without internet.</string>
-    <string name="download_now">Download now (~440 MB)</string>
-    <string name="downloading_model">Downloading the Fast model: %1$d%%</string>
+    <string name="model_download_title">Download the %1$s model</string>
+    <string name="model_download_body">For native offline translation on your phone, download the %1$s model package once (%2$s). Once downloaded it works 100%% without internet.</string>
+    <string name="download_now">Download now (%1$s)</string>
+    <string name="downloading_model">Downloading the %1$s model: %2$d%%</string>
     <string name="loading_model_memory">Loading model into memory…</string>
-    <string name="model_ready">✓ The Fast model is ready to use!</string>
+    <string name="model_ready">✓ The %1$s model is ready to use!</string>
     <string name="retry">Try again</string>
     <string name="error_with_message">Error: %1$s</string>
     <string name="model_not_loaded">Model is not loaded. Download the model in the app.</string>
@@ -497,7 +497,7 @@
     <string name="engine_caption_pro7b">pro 7B</string>
     <string name="help_engine_pro7b_title">Pro 7B engine</string>
     <string name="help_engine_pro7b">The heavyweight. A 7-billion-parameter model (about 2.9 GB), roughly four times the size of Accurate, so it is clearly slower: a long sentence takes several seconds even on a fast phone. In exchange it handles idioms, word order and rare languages better than either 1.8B model. Runs offline. Pro feature, and it needs a phone with at least 6 GB of RAM and 3.5 GB of free space; on weaker devices the icon stays hidden. Download it once over Wi-Fi.</string>
-    <string name="model_download_size">Download size: %1$s</string>
+    <!-- unused since v1.0.52 — size is now in body and on button -->
     <string name="download_metered_warning">This model is %1$s. You are on mobile data and Wi-Fi is recommended.</string>
     <string name="download_anyway">Download anyway</string>
 

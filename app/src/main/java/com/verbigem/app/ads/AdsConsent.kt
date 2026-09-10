@@ -9,9 +9,13 @@ import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.verbigem.app.BuildConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,6 +33,15 @@ import kotlin.coroutines.resume
  * Kolejność jest więc wymuszona kodem, nie konwencją: `refresh()` woła formularz,
  * dopiero potem sprawdza `canRequestAds()` i dopiero wtedy odpala SDK. Baner
  * (AdBannerView) czyta [adsReady] i nie zrobi nic, póki to nie nastąpi.
+ *
+ * ⚠️ Fallback inicjalizacji po 3s: jeśli UMP nadal zwraca `canRequestAds() == false`
+ * **mimo że zgoda nie jest wymagana** (użytkownik poza EOG), inicjalizujemy SDK mimo
+ * wszystko. Typowa przyczyna: nowe konto AdMob bez skonfigurowanego „Privacy &
+ * messaging" — UMP nie ma skąd wziąć formularza i oddaje `false` w każdym kraju, więc
+ * baner wisiałby na placeholderze na zawsze.
+ *
+ * Fallback NIE dotyczy EOG/UK: tam `consentStatus == REQUIRED` oznacza brak zgody i
+ * inicjalizacja byłaby złamaniem zasad (→ utrata konta AdMob). Baner zostaje pusty.
  */
 object AdsConsent {
 
@@ -55,6 +68,12 @@ object AdsConsent {
     @Volatile private var consentInfo: ConsentInformation? = null
 
     /**
+     * Własny scope na fallback init (3s po refresh), żeby nie blokować wywołującego
+     * i nie trzymać referencji do Activity po jego zniszczeniu.
+     */
+    private val initScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /**
      * Odśwież stan zgód — wołaj raz na start aplikacji z aktywnym Activity.
      *
      * Formularz UMP pokazuje się **tylko gdy jest wymagany** (EOG / UK / CH albo brak
@@ -76,16 +95,57 @@ object AdsConsent {
         // ⚠️ `canRequestAds()` zwraca false ZAWSZE, dopóki nie wywoła się
         // `requestConsentInfoUpdate()` — nawet gdy zgoda z poprzedniej sesji jest
         // wciąż ważna. Dlatego sprawdzamy je dopiero tutaj, po odświeżeniu.
-        // Błąd odświeżenia nie jest blokadą: SDK UMP używa wtedy stanu z poprzedniej
-        // sesji i to on decyduje.
         _privacyOptionsRequired.value =
             info.privacyOptionsRequirementStatus ==
                 ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
 
+        // Szczegółowy dump stanu UMP — ułatwia diagnostykę, kiedy baner nie chce
+        // się pokazać. grep `AdsConsent` w logcat wystarczy.
+        Log.i(
+            TAG,
+            "UMP status: canRequestAds=${info.canRequestAds()}, " +
+                "consentStatus=${info.consentStatus}, " +
+                "privacyOptionsRequirementStatus=${info.privacyOptionsRequirementStatus}, " +
+                "isConsentFormAvailable=${info.isConsentFormAvailable}",
+        )
+
         if (info.canRequestAds()) {
             initializeSdk(activity.applicationContext)
-        } else {
-            Log.i(TAG, "Ads not allowed yet (consent required or missing)")
+            return
+        }
+
+        // `canRequestAds() == false` ma dwie zupełnie różne przyczyny i tylko jedną
+        // wolno obejść:
+        //
+        // 1. Użytkownik EOG/UK bez zgody (consentStatus == REQUIRED) — TU NIE WOLNO
+        //    inicjalizować SDK. Zostaje placeholder; to jedyny legalny wariant.
+        // 2. Nowe konto AdMob bez skonfigurowanego „Privacy & messaging" / Funding
+        //    Choices — UMP nie ma skąd wziąć formularza, więc zgłasza błąd i
+        //    `canRequestAds()` zostaje false NA ZAWSZE, w każdym kraju. Baner wisiałby
+        //    na placeholderze do końca świata. Tu awaryjna inicjalizacja jest właściwa.
+        val needsRealConsent =
+            info.consentStatus == ConsentInformation.ConsentStatus.REQUIRED ||
+                info.privacyOptionsRequirementStatus ==
+                ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+
+        if (needsRealConsent) {
+            Log.w(TAG, "Brak zgody w EOG/UK — nie inicjalizuję SDK, baner zostaje pusty.")
+            return
+        }
+
+        val appCtx = activity.applicationContext
+        Log.w(
+            TAG,
+            "UMP canRequestAds() == false mimo że zgoda nie jest wymagana — " +
+                "czekam 3s, potem inicjalizuję SDK awaryjnie (typowa przyczyna: " +
+                "brak konfiguracji 'Privacy & messaging' w AdMob dla tej aplikacji).",
+        )
+        initScope.launch {
+            delay(3_000)
+            if (!sdkInitialized) {
+                Log.w(TAG, "UMP nadal zablokowane po 3s — inicjalizuję SDK mimo wszystko.")
+                initializeSdk(appCtx)
+            }
         }
     }
 
@@ -153,3 +213,4 @@ object AdsConsent {
         }
     }
 }
+
