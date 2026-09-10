@@ -90,7 +90,10 @@
     <string name="add_friend">+ Añadir</string>
     <string name="dismiss">Descartar</string>
     <string name="people_you_may_know">Puede que conozcas a</string>
-    <string name="people_you_may_know_mutual">%1$d amigos en común</string>
+    <plurals name="people_you_may_know_mutual">
+        <item quantity="one">%1$d amigo en común</item>
+        <item quantity="other">%1$d amigos en común</item>
+    </plurals>
     <string name="accept">Aceptar</string>
     <string name="decline">Rechazar</string>
 
@@ -107,7 +110,10 @@
     <string name="contacts_perm_cta">Continuar</string>
     <string name="contacts_perm_later">Ahora no</string>
     <string name="contacts_perm_denied">Sin acceso a los contactos. Puedes activarlo en los ajustes de Android.</string>
-    <string name="contacts_perm_found">Se encontraron %1$d contactos con número de teléfono.</string>
+    <plurals name="contacts_perm_found">
+        <item quantity="one">Se encontró %1$d contacto con número de teléfono.</item>
+        <item quantity="other">Se encontraron %1$d contactos con número de teléfono.</item>
+    </plurals>
     <string name="contacts_perm_invite">Invitar</string>
 
     <string name="ocr_title">OCR de cámara</string>
@@ -304,7 +310,10 @@
     <string name="external_sent_via">Enviado por %1$s</string>
     <string name="contacts_import_vcf">Importar .vcf</string>
     <string name="contacts_imported_title">Tarjetas importadas</string>
-    <string name="contacts_import_vcf_done">Importado %1$d contacto</string>
+    <plurals name="contacts_import_vcf_done">
+        <item quantity="one">Importado %1$d contacto</item>
+        <item quantity="other">Importados %1$d contactos</item>
+    </plurals>
     <string name="contacts_import_vcf_none">El archivo no contenía contactos.</string>
     <string name="contacts_import_vcf_failed">No se pudo leer el archivo.</string>
 

@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.59 (2026-09-10) — versionCode 60
+
+**Corregido: «Imported 5 contact», «1 mutual friends».**
+
+- Tres mensajes con un número decían siempre lo mismo, fuera cual fuese la cifra: al importar un archivo con cinco contactos salía «Imported 5 contact», y un amigo en común aparecía como «1 mutual friends».
+- Ahora esos tres mensajes siguen las reglas de plural de cada idioma. El polaco tiene formas propias para 1, 2–4 y 5 o más («1 kontakt», «3 kontakty», «10 kontaktów»); el turco y el chino conservan una sola forma, porque esos idiomas no flexionan el sustantivo tras un número.
+- Se ha hecho con los recursos de plural de Android, no con un «si es 1 … si no» escrito a mano, así que añadir un idioma más adelante no exige tocar el código.
+
+
 ## v1.0.58 (2026-09-10) — versionCode 59
 
 **Corregido: dos sitios que fingían que todo había ido bien.**

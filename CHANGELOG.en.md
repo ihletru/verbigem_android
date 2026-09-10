@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.59 (2026-09-10) — versionCode 60
+
+**Fixed: "1 contacts", "1 mutual friends".**
+
+- Three messages with a count always said the same thing whatever the number: importing a file with five contacts produced "Imported 5 contact", and one shared friend showed as "1 mutual friends".
+- Those three messages now follow each language's plural rules. Polish gets separate forms for 1, 2-4 and 5+ ("1 kontakt", "3 kontakty", "10 kontaktów"); Turkish and Chinese keep a single form, because those languages do not inflect the noun after a number.
+- Built on Android's plural resources rather than a hand-written "if 1 … else", so adding a language later does not require code changes.
+
+
 ## v1.0.58 (2026-09-10) — versionCode 59
 
 **Fixed: two places that pretended everything worked.**

@@ -96,7 +96,12 @@
     <string name="add_friend">+ Dodaj</string>
     <string name="dismiss">Odrzuć</string>
     <string name="people_you_may_know">Możesz znać</string>
-    <string name="people_you_may_know_mutual">%1$d wspólnych znajomych</string>
+    <plurals name="people_you_may_know_mutual">
+        <item quantity="one">%1$d wspólny znajomy</item>
+        <item quantity="few">%1$d wspólnych znajomych</item>
+        <item quantity="many">%1$d wspólnych znajomych</item>
+        <item quantity="other">%1$d wspólnych znajomych</item>
+    </plurals>
     <string name="accept">Przyjmij</string>
     <string name="decline">Odrzuć</string>
 
@@ -113,7 +118,12 @@
     <string name="contacts_perm_cta">Kontynuuj</string>
     <string name="contacts_perm_later">Nie teraz</string>
     <string name="contacts_perm_denied">Brak dostępu do kontaktów. Możesz włączyć go w ustawieniach Androida.</string>
-    <string name="contacts_perm_found">Znalazłem %1$d kontaktów z numerem telefonu.</string>
+    <plurals name="contacts_perm_found">
+        <item quantity="one">Znalazłem %1$d kontakt z numerem telefonu.</item>
+        <item quantity="few">Znalazłem %1$d kontakty z numerem telefonu.</item>
+        <item quantity="many">Znalazłem %1$d kontaktów z numerem telefonu.</item>
+        <item quantity="other">Znalazłem %1$d kontaktów z numerem telefonu.</item>
+    </plurals>
     <string name="contacts_perm_invite">Zaproś</string>
 
     <!-- OCR -->
@@ -311,7 +321,12 @@
     <string name="external_sent_via">Wysłane przez %1$s</string>
     <string name="contacts_import_vcf">Importuj .vcf</string>
     <string name="contacts_imported_title">Zaimportowane wizytówki</string>
-    <string name="contacts_import_vcf_done">Zaimportowano %1$d kontakt</string>
+    <plurals name="contacts_import_vcf_done">
+        <item quantity="one">Zaimportowano %1$d kontakt</item>
+        <item quantity="few">Zaimportowano %1$d kontakty</item>
+        <item quantity="many">Zaimportowano %1$d kontaktów</item>
+        <item quantity="other">Zaimportowano %1$d kontaktów</item>
+    </plurals>
     <string name="contacts_import_vcf_none">Plik nie zawierał żadnych kontaktów.</string>
     <string name="contacts_import_vcf_failed">Nie udało się odczytać pliku.</string>
 

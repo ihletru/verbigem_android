@@ -98,7 +98,10 @@
     <string name="add_friend">+ Add</string>
     <string name="dismiss">Dismiss</string>
     <string name="people_you_may_know">People you may know</string>
-    <string name="people_you_may_know_mutual">%1$d mutual friends</string>
+    <plurals name="people_you_may_know_mutual">
+        <item quantity="one">%1$d mutual friend</item>
+        <item quantity="other">%1$d mutual friends</item>
+    </plurals>
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
 
@@ -115,7 +118,10 @@
     <string name="contacts_perm_cta">Continue</string>
     <string name="contacts_perm_later">Not now</string>
     <string name="contacts_perm_denied">No access to contacts. You can turn it on in Android settings.</string>
-    <string name="contacts_perm_found">Found %1$d contacts with a phone number.</string>
+    <plurals name="contacts_perm_found">
+        <item quantity="one">Found %1$d contact with a phone number.</item>
+        <item quantity="other">Found %1$d contacts with a phone number.</item>
+    </plurals>
     <string name="contacts_perm_invite">Invite</string>
 
     <!-- OCR -->
@@ -313,7 +319,10 @@
     <string name="external_sent_via">Sent via %1$s</string>
     <string name="contacts_import_vcf">Import .vcf</string>
     <string name="contacts_imported_title">Imported cards</string>
-    <string name="contacts_import_vcf_done">Imported %1$d contact</string>
+    <plurals name="contacts_import_vcf_done">
+        <item quantity="one">Imported %1$d contact</item>
+        <item quantity="other">Imported %1$d contacts</item>
+    </plurals>
     <string name="contacts_import_vcf_none">The file had no contacts.</string>
     <string name="contacts_import_vcf_failed">Could not read the file.</string>
 

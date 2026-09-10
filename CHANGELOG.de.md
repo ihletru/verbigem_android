@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.59 (2026-09-10) — versionCode 60
+
+**Behoben: „1 Kontakt importiert" bei fünf Kontakten.**
+
+- Drei Meldungen mit einer Zahl sagten immer dasselbe, egal wie hoch sie war: Beim Import einer Datei mit fünf Kontakten stand „Imported 5 contact", und ein gemeinsamer Freund erschien als „1 mutual friends".
+- Diese drei Meldungen richten sich jetzt nach den Pluralregeln der jeweiligen Sprache. Polnisch erhält eigene Formen für 1, 2–4 und 5+ („1 kontakt", „3 kontakty", „10 kontaktów"); Türkisch und Chinesisch behalten eine Form, weil diese Sprachen das Substantiv nach einer Zahl nicht beugen.
+- Umsetzung mit den Plural-Ressourcen von Android statt eines handgeschriebenen „wenn 1 … sonst", damit eine neue Sprache später keine Code-Änderung braucht.
+
+
 ## v1.0.58 (2026-09-10) — versionCode 59
 
 **Behoben: zwei Stellen, die so taten, als hätte alles geklappt.**

@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -449,7 +450,11 @@ private fun FriendsTab(
                                 )
                                 if (s.mutualCount > 0) {
                                     Text(
-                                        text = stringResource(R.string.people_you_may_know_mutual, s.mutualCount),
+                                        text = pluralStringResource(
+                                            R.plurals.people_you_may_know_mutual,
+                                            s.mutualCount,
+                                            s.mutualCount
+                                        ),
                                         fontSize = 12.sp,
                                         color = VerbigemTheme.colors.muted,
                                         maxLines = 1
@@ -729,7 +734,7 @@ private fun PhoneTab(
                         fontSize = 12.sp, color = VerbigemTheme.colors.muted
                     )
                     imported != null -> Text(
-                        stringResource(R.string.contacts_import_vcf_done, imported),
+                        pluralStringResource(R.plurals.contacts_import_vcf_done, imported, imported),
                         fontSize = 12.sp, color = VerbigemTheme.colors.accent
                     )
                 }
@@ -747,7 +752,11 @@ private fun PhoneTab(
         if (phoneContacts.isNotEmpty()) {
             item {
                 Text(
-                    text = stringResource(R.string.contacts_perm_found, phoneContacts.size),
+                    text = pluralStringResource(
+                        R.plurals.contacts_perm_found,
+                        phoneContacts.size,
+                        phoneContacts.size
+                    ),
                     fontSize = 12.sp,
                     color = VerbigemTheme.colors.muted
                 )

@@ -90,7 +90,10 @@
     <string name="add_friend">+ Ekle</string>
     <string name="dismiss">Yok say</string>
     <string name="people_you_may_know">Tanıyor olabileceğin kişiler</string>
-    <string name="people_you_may_know_mutual">%1$d ortak arkadaş</string>
+    <plurals name="people_you_may_know_mutual">
+        <item quantity="one">%1$d ortak arkadaş</item>
+        <item quantity="other">%1$d ortak arkadaş</item>
+    </plurals>
     <string name="accept">Kabul et</string>
     <string name="decline">Reddet</string>
 
@@ -107,7 +110,10 @@
     <string name="contacts_perm_cta">Devam</string>
     <string name="contacts_perm_later">Şimdi değil</string>
     <string name="contacts_perm_denied">Kişilere erişim yok. Android ayarlarından etkinleştirebilirsiniz.</string>
-    <string name="contacts_perm_found">%1$d kişide telefon numarası bulundu.</string>
+    <plurals name="contacts_perm_found">
+        <item quantity="one">%1$d kişide telefon numarası bulundu.</item>
+        <item quantity="other">%1$d kişide telefon numarası bulundu.</item>
+    </plurals>
     <string name="contacts_perm_invite">Davet et</string>
 
     <string name="ocr_title">Kamera OCR</string>
@@ -304,7 +310,10 @@
     <string name="external_sent_via">%1$s ile gönderildi</string>
     <string name="contacts_import_vcf">.vcf içe aktar</string>
     <string name="contacts_imported_title">İçe aktarılan kartlar</string>
-    <string name="contacts_import_vcf_done">%1$d kişi içe aktarıldı</string>
+    <plurals name="contacts_import_vcf_done">
+        <item quantity="one">%1$d kişi içe aktarıldı</item>
+        <item quantity="other">%1$d kişi içe aktarıldı</item>
+    </plurals>
     <string name="contacts_import_vcf_none">Dosyada hiç kişi yoktu.</string>
     <string name="contacts_import_vcf_failed">Dosya okunamadı.</string>
 

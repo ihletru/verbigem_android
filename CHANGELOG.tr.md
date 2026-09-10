@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.59 (2026-09-10) — versionCode 60
+
+**Düzeltildi: «Imported 5 contact», «1 mutual friends».**
+
+- Sayı içeren üç mesaj, sayı kaç olursa olsun aynı şeyi söylüyordu: beş kişilik bir dosya içe aktarıldığında «Imported 5 contact», tek ortak arkadaşta ise «1 mutual friends» yazıyordu.
+- Bu üç mesaj artık her dilin çoğul kurallarına uyuyor. Lehçe 1, 2–4 ve 5+ için ayrı biçimler kullanıyor («1 kontakt», «3 kontakty», «10 kontaktów»); Türkçe ve Çince tek biçimde kalıyor, çünkü bu diller sayıdan sonra ismi çekimlemiyor.
+- Elle yazılmış bir «1 ise … değilse» yerine Android'in çoğul kaynakları kullanıldı; böylece ileride yeni bir dil eklemek kod değişikliği gerektirmiyor.
+
+
 ## v1.0.58 (2026-09-10) — versionCode 59
 
 **Düzeltildi: her şey yolunda gibi davranan iki yer.**

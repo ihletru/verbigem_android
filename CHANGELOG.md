@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.59 (2026-09-10) — versionCode 60
+
+**Naprawione: „1 kontaktów", „1 mutual friends".**
+
+- Trzy komunikaty z liczbą mówiły zawsze to samo, niezależnie od wyniku: po imporcie pliku z pięcioma kontaktami aplikacja pisała „Imported 5 contact", a przy jednym wspólnym znajomym — „1 mutual friends".
+- Teraz te trzy komunikaty odmieniają się przez liczbę, zgodnie z zasadami każdego języka. Po polsku to osobne formy dla 1, 2–4 i 5+ („1 kontakt", „3 kontakty", „10 kontaktów"); po turecku i chińsku jedna, bo te języki nie odmieniają rzeczownika po liczebniku.
+- Zrobione mechanizmem Androida do liczby mnogiej, nie ręcznym „jeśli 1 to…", żeby nowe języki nie wymagały poprawek w kodzie.
+
+
 ## v1.0.58 (2026-09-10) — versionCode 59
 
 **Naprawione: dwa miejsca, które udawały, że się udało.**

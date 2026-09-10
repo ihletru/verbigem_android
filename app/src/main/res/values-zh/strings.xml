@@ -90,7 +90,9 @@
     <string name="add_friend">+ 添加</string>
     <string name="dismiss">忽略</string>
     <string name="people_you_may_know">你可能认识的人</string>
-    <string name="people_you_may_know_mutual">%1$d 位共同好友</string>
+    <plurals name="people_you_may_know_mutual">
+        <item quantity="other">%1$d 位共同好友</item>
+    </plurals>
     <string name="accept">接受</string>
     <string name="decline">拒绝</string>
 
@@ -107,7 +109,9 @@
     <string name="contacts_perm_cta">继续</string>
     <string name="contacts_perm_later">暂不</string>
     <string name="contacts_perm_denied">未获得通讯录访问权限。您可以在 Android 设置中启用。</string>
-    <string name="contacts_perm_found">找到 %1$d 个含电话号码的联系人。</string>
+    <plurals name="contacts_perm_found">
+        <item quantity="other">找到 %1$d 个含电话号码的联系人。</item>
+    </plurals>
     <string name="contacts_perm_invite">邀请</string>
 
     <string name="ocr_title">相机 OCR</string>
@@ -304,7 +308,9 @@
     <string name="external_sent_via">通过 %1$s 发送</string>
     <string name="contacts_import_vcf">导入 .vcf</string>
     <string name="contacts_imported_title">已导入名片</string>
-    <string name="contacts_import_vcf_done">已导入 %1$d 个联系人</string>
+    <plurals name="contacts_import_vcf_done">
+        <item quantity="other">已导入 %1$d 个联系人</item>
+    </plurals>
     <string name="contacts_import_vcf_none">文件中没有联系人。</string>
     <string name="contacts_import_vcf_failed">无法读取文件。</string>
 
