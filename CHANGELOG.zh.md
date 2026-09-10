@@ -2,6 +2,12 @@
 
 ---
 
+## v1.0.50（2026-09-09）— versionCode 51
+
+**修复：PRO 账户现在可以登录了。**
+
+- Cloud Function 把 `noAdsUntil` 字段存成 `Firestore Timestamp`，但 Android 期望的是普通数字（毫秒）。读取个人资料时，应用因为 „Failed to convert a value of type com.google.firebase.Timestamp to long" 而崩溃，**PRO 账户无法登录**。现在 `UserProfile` 同时接受两种格式，新的写入使用 `number`。
+
 ## v1.0.49（2026-09-09）— versionCode 50
 
 **免费版展示广告，并把同意权完全交给你。**

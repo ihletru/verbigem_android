@@ -2,6 +2,12 @@
 
 ---
 
+## v1.0.50 (2026-09-09) — versionCode 51
+
+**Naprawione: konta PRO znowu się logują.**
+
+- Cloud Function zapisywał pole `noAdsUntil` w profilu jako `Firestore Timestamp`, a Android oczekiwał zwykłej liczby (ms). Przy odczycie profilu konto wybuchało z błędem „Failed to convert a value of type com.google.firebase.Timestamp to long" i **nie dało się zalogować na konto PRO**. Teraz `UserProfile` akceptuje oba formaty, a nowe wpisy idą już jako `number`.
+
 ## v1.0.49 (2026-09-09) — versionCode 50
 
 **Reklamy w wersji darmowej i pełna kontrola zgód.**

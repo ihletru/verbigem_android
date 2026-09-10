@@ -2,6 +2,12 @@
 
 ---
 
+## v1.0.50 (2026-09-09) — versionCode 51
+
+**Arreglado: las cuentas PRO vuelven a poder iniciar sesión.**
+
+- La Cloud Function guardaba `noAdsUntil` como `Firestore Timestamp`, pero Android esperaba un número plano (ms). Al leer el perfil la app reventaba con „Failed to convert a value of type com.google.firebase.Timestamp to long" y **las cuentas PRO no podían iniciar sesión**. `UserProfile` ahora acepta ambos formatos y las escrituras nuevas se guardan como `number`.
+
 ## v1.0.49 (2026-09-09) — versionCode 50
 
 **Anuncios en la versión gratuita, con control total del consentimiento.**

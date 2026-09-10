@@ -2,6 +2,12 @@
 
 ---
 
+## v1.0.50 (2026-09-09) — versionCode 51
+
+**Düzeltildi: PRO hesapları tekrar giriş yapabiliyor.**
+
+- Cloud Function, `noAdsUntil` alanını `Firestore Timestamp` olarak yazıyordu, Android ise düz bir sayı (ms) bekliyordu. Profil okunurken uygulama „Failed to convert a value of type com.google.firebase.Timestamp to long" hatasıyla çöküyor ve **PRO hesapları giriş yapamıyordu**. `UserProfile` artık iki biçimi de kabul ediyor; yeni yazımlar `number` olarak yapılıyor.
+
 ## v1.0.49 (2026-09-09) — versionCode 50
 
 **Ücretsiz sürümde reklamlar ve izinler üzerinde tam kontrol.**

@@ -353,7 +353,7 @@ fun ProfileScreen(
                     color = if (profile?.isPro == true) VerbigemTheme.colors.accent else VerbigemTheme.colors.ink
                 )
                 // Licznik czasu do wznowienia reklam (dni, zaokrąglane w górę — min. 1).
-                val noAdsUntilMs = profile?.noAdsUntil ?: 0L
+                val noAdsUntilMs = profile?.noAdsUntilMs ?: 0L
                 if (noAdsUntilMs > System.currentTimeMillis()) {
                     val daysLeft = maxOf(
                         1,
