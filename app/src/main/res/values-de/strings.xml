@@ -118,7 +118,7 @@
     <string name="ocr_photo">OCR-Foto</string>
     <string name="remove">Entfernen</string>
     <string name="recognized_text">ERKANNTER TEXT:</string>
-    <string name="ocr_translation">ÜBERSETZUNG (Szybki):</string>
+    <string name="ocr_translation">ÜBERSETZUNG (%1$s):</string>
     <string name="ocr_translate_button">Übersetzen</string>
     <string name="ocr_read_selected">Ausgewählten Bereich lesen</string>
     <string name="ocr_crop_hint">Rahmen über den Text legen und dann „Ausgewählten Bereich lesen” antippen.</string>
@@ -134,6 +134,11 @@
     <string name="engine_accurate_label">Langsam, aber genau ~1,1 GB</string>
     <string name="engine_both_label">Beide (vergleichen)</string>
     <string name="engine_online_label">Online-API</string>
+    <string name="engine_name_fast">Schnell</string>
+    <string name="engine_name_accurate">Genau</string>
+    <string name="engine_name_both">Beide</string>
+    <string name="engine_name_online">Online</string>
+    <string name="engine_name_pro7b">Pro 7B</string>
     <string name="engine_fast_desc">Kostenloser Offline-Übersetzer — nutzt das schnelle Modell lokal, keine Internetverbindung nötig.</string>
     <string name="engine_accurate_desc">Langsam, aber genau ~1,1 GB — besseres lokales Modell für schwierige Texte.</string>
     <string name="engine_both_desc">Vergleiche beide lokalen Modelle nebeneinander (schnell vs. genau).</string>

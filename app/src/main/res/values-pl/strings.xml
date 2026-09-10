@@ -125,7 +125,7 @@
     <string name="ocr_photo">Zdjęcie OCR</string>
     <string name="remove">Usuń</string>
     <string name="recognized_text">ROZPOZNANY TEKST:</string>
-    <string name="ocr_translation">TŁUMACZENIE (Szybki):</string>
+    <string name="ocr_translation">TŁUMACZENIE (%1$s):</string>
     <string name="copied">Skopiowano</string>
     <string name="ocr_permission_denied">Brak dostępu do aparatu. Włącz go w ustawieniach aplikacji.</string>
     <string name="ocr_camera_cancelled">Robienie zdjęcia anulowane.</string>
@@ -141,6 +141,11 @@
     <string name="engine_accurate_label">Wolny ale dokładny ~1.1 GB</string>
     <string name="engine_both_label">Oba (porównaj)</string>
     <string name="engine_online_label">API online</string>
+    <string name="engine_name_fast">Szybki</string>
+    <string name="engine_name_accurate">Dokładny</string>
+    <string name="engine_name_both">Oba</string>
+    <string name="engine_name_online">Online</string>
+    <string name="engine_name_pro7b">Pro 7B</string>
     <string name="engine_fast_desc">Darmowy tłumacz offline — uruchamia szybki model lokalnie, bez internetu.</string>
     <string name="engine_accurate_desc">Wolny ale dokładny ~1.1 GB — lepszy lokalny model dla trudnych tekstów.</string>
     <string name="engine_both_desc">Porównaj oba lokalne modele obok siebie (szybki vs dokładny).</string>

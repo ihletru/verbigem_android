@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.53 (2026-09-09) — versionCode 54
+
+**New: the scanner (OCR) screen has its own engine picker.**
+
+- Until now the scanner always translated with the Fast model, no matter what you picked on the translator screen. There is now the same picker above the text field: ⚡ Fast, 🎯 Accurate, ⚖️ Both, ☁️ Online.
+- The choice is shared with the translator screen — set it once and it applies to both.
+- ⚖️ Both shows the two results one under the other, each with its own label (⚡ Fast / 🎯 Accurate).
+- When the weights for the selected model aren't downloaded, the scanner shows the same download dialog as the translator — no need to go back to the main screen.
+
+**Fixed: the scanner result header said "(Fast)" in every language.**
+
+- The label above the result had "Fast" hardcoded — including the English, German, Spanish, Turkish and Chinese versions, where a Polish word was left in place. It now shows the name of the selected engine.
+- The **Translate (X)** button on the translator screen now shows the short engine name (Fast / Accurate / Both / Online) instead of the long description with the model size.
+
 ## v1.0.52 (2026-09-09) — versionCode 53
 
 **Fixed: ads never showed on free accounts.**

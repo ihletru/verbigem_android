@@ -1,7 +1,6 @@
 package com.verbigem.app.ui.screens.translator
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.verbigem.app.data.local.AppDatabase
@@ -10,7 +9,7 @@ import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelDownloadState
 import com.verbigem.app.data.model.ModelTier
-import com.verbigem.app.data.model.ModelTierBlockReason
+import com.verbigem.app.data.model.availableEngines
 import com.verbigem.app.R
 import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.data.model.TtsConfig
@@ -77,31 +76,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     companion object {
-        private const val TAG = "TranslatorVM"
         private const val HISTORY_PAGE_SIZE = 20
-
-        /**
-         * Silniki, dla których urządzenie spełnia wymagania RAM, miejsca na dysku
-         * i (dla tierów GPU) ma działający backend.
-         *
-         * Logujemy werdykt — to jedyny sposób, żeby na żywym telefonie sprawdzić,
-         * dlaczego 🧠 Pro 7B jest widoczny albo nie, bez zgadywania.
-         */
-        private fun computeAvailableEngines(app: Application): List<EngineChoice> =
-            EngineChoice.entries.filter { engine ->
-                // Pro 7B temporarily disabled (2026-09): on a CPU-only build it
-                // decodes at ~1.6 tok/s, i.e. unusable. Keep the enum + dispatch
-                // branch so it can be re-enabled later, but never offer it.
-                if (engine == EngineChoice.LOCAL_PRO_7B) {
-                    Log.i(TAG, "engine ${engine.id} -> DISABLED (Pro 7B paused)")
-                    return@filter false
-                }
-                val tier = engine.modelTier
-                if (tier == null) return@filter true
-                val reason = ModelDownloader.blockReason(app, tier)
-                Log.i(TAG, "engine ${engine.id} (tier ${tier.id}) -> $reason")
-                reason == ModelTierBlockReason.NONE
-            }
     }
 
     val downloadState: StateFlow<ModelDownloadState> = modelDownloader.downloadState
@@ -122,7 +97,7 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
      * na dysku — decyduje [ModelDownloader.blockReason]. Bez tego użytkownik
      * zobaczyłby ikonę, pobrał 2.9 GB, a potem dostał cichego OOM-a przy ładowaniu.
      */
-    private val _availableEngines = MutableStateFlow(computeAvailableEngines(application))
+    private val _availableEngines = MutableStateFlow(availableEngines(application))
     val availableEngines: StateFlow<List<EngineChoice>> = _availableEngines.asStateFlow()
 
     // Online model selection (OpenRouter). Paid (curated) models are billed to

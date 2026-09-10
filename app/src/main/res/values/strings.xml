@@ -127,7 +127,7 @@
     <string name="ocr_photo">OCR photo</string>
     <string name="remove">Remove</string>
     <string name="recognized_text">RECOGNIZED TEXT:</string>
-    <string name="ocr_translation">TRANSLATION (Szybki):</string>
+    <string name="ocr_translation">TRANSLATION (%1$s):</string>
     <string name="copied">Copied</string>
     <string name="ocr_permission_denied">Camera permission denied. Enable it in app settings.</string>
     <string name="ocr_camera_cancelled">Photo capture cancelled.</string>
@@ -143,6 +143,11 @@
     <string name="engine_accurate_label">Slow but accurate ~1.1 GB</string>
     <string name="engine_both_label">Both (compare)</string>
     <string name="engine_online_label">Online API</string>
+    <string name="engine_name_fast">Fast</string>
+    <string name="engine_name_accurate">Accurate</string>
+    <string name="engine_name_both">Both</string>
+    <string name="engine_name_online">Online</string>
+    <string name="engine_name_pro7b">Pro 7B</string>
     <string name="engine_fast_desc">Free offline translator — runs the fast model locally, no internet needed.</string>
     <string name="engine_accurate_desc">Slow but accurate ~1.1 GB — higher-quality local model for difficult texts.</string>
     <string name="engine_both_desc">Compare both local models side by side (fast vs accurate).</string>

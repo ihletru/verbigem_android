@@ -118,7 +118,7 @@
     <string name="ocr_photo">OCR fotoğrafı</string>
     <string name="remove">Kaldır</string>
     <string name="recognized_text">TANINAN METİN:</string>
-    <string name="ocr_translation">ÇEVİRİ (Szybki):</string>
+    <string name="ocr_translation">ÇEVİRİ (%1$s):</string>
     <string name="ocr_translate_button">Çevir</string>
     <string name="ocr_read_selected">Seçili alanı oku</string>
     <string name="ocr_crop_hint">Çerçeveyi metnin üzerine getir, ardından “Seçili alanı oku”ya dokun.</string>
@@ -134,6 +134,11 @@
     <string name="engine_accurate_label">Yavaş ama daha doğru ~1,1 GB</string>
     <string name="engine_both_label">İkisi birlikte (karşılaştır)</string>
     <string name="engine_online_label">Çevrimiçi API</string>
+    <string name="engine_name_fast">Hızlı</string>
+    <string name="engine_name_accurate">Doğru</string>
+    <string name="engine_name_both">İkisi</string>
+    <string name="engine_name_online">Çevrimiçi</string>
+    <string name="engine_name_pro7b">Pro 7B</string>
     <string name="engine_fast_desc">Ücretsiz çevrimdışı çeviri — hızlı modeli yerelde çalıştırır, internet gerekmez.</string>
     <string name="engine_accurate_desc">Yavaş ama daha doğru ~1,1 GB — zor metinler için daha kaliteli yerel model.</string>
     <string name="engine_both_desc">Her iki yerel modeli yan yana karşılaştırın (hızlı ve doğru).</string>

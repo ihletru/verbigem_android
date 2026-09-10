@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.53 (2026-09-09) — versionCode 54
+
+**Neu: der Scanner-Bildschirm (OCR) hat eine eigene Motor-Auswahl.**
+
+- Bisher übersetzte der Scanner immer mit dem schnellen Modell, egal was du im Übersetzer gewählt hattest. Über dem Textfeld gibt es jetzt dieselbe Auswahlleiste: ⚡ Schnell, 🎯 Genau, ⚖️ Beide, ☁️ Online.
+- Die Auswahl ist mit dem Übersetzer-Bildschirm geteilt — einmal eingestellt, gilt sie für beide.
+- ⚖️ Beide zeigt die zwei Ergebnisse untereinander, jedes mit eigener Beschriftung (⚡ Schnell / 🎯 Genau).
+- Fehlen die Gewichte des gewählten Modells, zeigt der Scanner denselben Download-Dialog wie der Übersetzer — ohne Rücksprung zum Hauptbildschirm.
+
+**Behoben: die Ergebnisüberschrift des Scanners sagte in jeder Sprache „(Schnell)".**
+
+- Über dem Ergebnis stand „Schnell" fest eingebaut — auch in der englischen, spanischen, türkischen und chinesischen Fassung, wo ein polnisches Wort stehen blieb. Jetzt steht dort der Name des gewählten Motors.
+- Die Schaltfläche **Übersetzen (X)** zeigt jetzt den kurzen Namen des Motors (Schnell / Genau / Beide / Online) statt der langen Beschreibung mit der Modellgröße.
+
 ## v1.0.52 (2026-09-09) — versionCode 53
 
 **Behoben: Auf kostenlosen Konten wurden gar keine Anzeigen geladen.**

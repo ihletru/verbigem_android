@@ -374,13 +374,17 @@ fun TranslatorScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
                     } else {
                         Text(
-                            // Nazwa silnika z `engineChoice.labelResId` (Szybki /
-                            // Dokładny / Pro 7B / Oba / Online) — wariant
-                            // %1$s = nazwa silnika. Bez tego przycisk zawsze
-                            // mówił „Tłumacz (Szybki)", niezależnie od wyboru.
+                            // Krótka nazwa silnika (Szybki / Dokładny / Pro 7B /
+                            // Oba / Online) — wariant %1$s = nazwa silnika. Bez
+                            // tego przycisk zawsze mówił „Tłumacz (Szybki)",
+                            // niezależnie od wyboru.
+                            //
+                            // ⚠️ Nie `labelResId` — tam są pełne opisy z
+                            // rozmiarem („Wolny ale dokładny ~1.1 GB"), które
+                            // nie mieszczą się na przycisku.
                             stringResource(
                                 R.string.translate_button_engine,
-                                stringResource(engineChoice.labelResId),
+                                stringResource(engineChoice.shortNameResId),
                             ),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,

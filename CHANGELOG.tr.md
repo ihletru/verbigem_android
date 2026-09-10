@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.53 (2026-09-09) — versionCode 54
+
+**Yeni: tarayıcı (OCR) ekranında artık motor seçimi var.**
+
+- Şimdiye kadar tarayıcı, çeviri ekranında ne seçersen seç, her zaman Hızlı modeliyle çeviriyordu. Metin alanının üstünde artık aynı seçim çubuğu var: ⚡ Hızlı, 🎯 Doğru, ⚖️ İkisi, ☁️ Çevrimiçi.
+- Seçim çeviri ekranıyla ortak: bir kez ayarlıyorsun, ikisinde de geçerli oluyor.
+- ⚖️ İkisi, iki sonucu alt alta gösterir ve her biri kendi etiketini taşır (⚡ Hızlı / 🎯 Doğru).
+- Seçilen modelin ağırlıkları indirilmemişse tarayıcı, çeviri ekranındaki indirme penceresini gösterir — ana ekrana dönmen gerekmez.
+
+**Düzeltildi: tarayıcı sonuç başlığı her dilde «(Hızlı)» diyordu.**
+
+- Sonucun üstündeki etikete «Hızlı» sabit yazılmıştı; İngilizce, Almanca, İspanyolca ve Çince sürümlerde bile Lehçe bir sözcük kalıyordu. Artık seçilen motorun adı yazılıyor.
+- Çeviri ekranındaki **Çevir (X)** düğmesi artık model boyutunu içeren uzun açıklama yerine motorun kısa adını gösteriyor (Hızlı / Doğru / İkisi / Çevrimiçi).
+
 ## v1.0.52 (2026-09-09) — versionCode 53
 
 **Düzeltildi: ücretsiz hesaplarda reklamlar hiç görünmüyordu.**

@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.53 (2026-09-09) — versionCode 54
+
+**Nuevo: la pantalla del escáner (OCR) tiene su propio selector de motor.**
+
+- Hasta ahora el escáner traducía siempre con el modelo Rápido, sin importar lo que eligieras en el traductor. Ahora hay la misma barra de selección sobre el campo de texto: ⚡ Rápido, 🎯 Preciso, ⚖️ Ambos, ☁️ En línea.
+- La elección se comparte con la pantalla del traductor: la ajustas una vez y vale para ambas.
+- ⚖️ Ambos muestra los dos resultados uno bajo el otro, cada uno con su etiqueta (⚡ Rápido / 🎯 Preciso).
+- Si los pesos del modelo elegido no están descargados, el escáner muestra el mismo diálogo de descarga que el traductor, sin volver a la pantalla principal.
+
+**Corregido: el encabezado del resultado del escáner decía «(Rápido)» en todos los idiomas.**
+
+- Sobre el resultado estaba escrito «Rápido» de forma fija, también en las versiones inglesa, alemana, turca y china, donde quedaba una palabra polaca. Ahora aparece el nombre del motor elegido.
+- El botón **Traducir (X)** muestra ahora el nombre corto del motor (Rápido / Preciso / Ambos / En línea) en lugar de la descripción larga con el tamaño del modelo.
+
 ## v1.0.52 (2026-09-09) — versionCode 53
 
 **Corregido: en las cuentas gratuitas no se mostraban anuncios.**

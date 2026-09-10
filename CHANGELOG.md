@@ -2,6 +2,20 @@
 
 ---
 
+## v1.0.53 (2026-09-09) — versionCode 54
+
+**Nowe: ekran skanera (OCR) ma własny wybór silnika.**
+
+- Do tej pory skaner zawsze tłumaczył modelem Szybkim, bez względu na to, co wybrałeś na ekranie tłumacza. Teraz nad polem tekstu jest ten sam pasek wyboru: ⚡ Szybki, 🎯 Dokładny, ⚖️ Oba, ☁️ Online.
+- Wybór jest wspólny z ekranem tłumacza — ustawiasz raz i działa w obu miejscach.
+- Tryb ⚖️ Oba pokazuje dwa wyniki jeden pod drugim, każdy z własną etykietą (⚡ Szybki / 🎯 Dokładny).
+- Gdy wagi wybranego modelu nie są pobrane, skaner pokazuje to samo okno pobierania co tłumacz — nie trzeba wracać do głównego ekranu.
+
+**Naprawione: nagłówek wyniku skanera mówił „(Szybki)" w każdym języku.**
+
+- Etykieta nad wynikiem miała na sztywno wpisane „Szybki" — także w wersjach angielskiej, niemieckiej, hiszpańskiej, tureckiej i chińskiej, gdzie zostawało polskie słowo. Teraz wpisuje się tam nazwa wybranego silnika.
+- Przycisk **Tłumacz (X)** na ekranie tłumacza pokazuje teraz krótką nazwę silnika (Szybki / Dokładny / Oba / Online) zamiast długiego opisu z rozmiarem modelu.
+
 ## v1.0.52 (2026-09-09) — versionCode 53
 
 **Naprawione: reklamy w ogóle się nie pojawiały na kontach darmowych.**

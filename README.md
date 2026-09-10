@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.52`** (versionCode 53) — naprawione banery reklamowe na kontach darmowych + dialogi i przycisk tłumacza z nazwą modelu —
+> 📦 **Aktualna wersja: `v1.0.53`** (versionCode 54) — skaner (OCR) ma własny wybór silnika + nagłówek wyniku bez polskiego „Szybki" w obcych locale —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -94,6 +94,7 @@ Pełna, historyczna wersja tego dokumentu (przed kondensacją): **`docs/README_A
 - ⚠️ **Zachowanie gestów weryfikuje się TYLKO na telefonie po zainstalowaniu APK** — build to nie to samo co działający UX.
 - **OCR Pro (💎)** — przycisk obok Aparat/Galeria, dla free wyszarzony z tooltipem `ocr_pro_coming_soon`. Komponent `ProFeatureButton` (współdzielony z głośnikiem Pro).
 - **Streaming:** `OcrViewModel.translateText()` woła `translateSegmented(..., onPartial = { ... })` — wypisuje wynik przyrostowo, tak jak Translator.
+- **Wybór silnika (od v1.0.53):** OCR ma ten sam `EnginePicker` co Translator (⚡ Szybki / 🎯 Dokładny / ⚖️ Oba / ☁️ Online). Do v1.0.52 był na sztywno na Szybkim (`isAccurate = false`) i nagłówek wyniku miał twardo wpisane „Szybki" — również w locale EN/DE/ES/TR/ZH, gdzie zostawało polskie słowo. Wybór jest **wspólny z Tłumaczem** (ten sam klucz `engine_choice` w DataStore), a lista dostępnych silników idzie z jednej funkcji `availableEngines(context)` (`data/model/EngineChoice.kt`) — nie z dwóch kopii. Brak wag → ten sam `ModelDownloadDialog` co w Tłumaczu. ⚖️ Oba daje dwa wyniki (`translatedText` + `secondaryTranslatedText`), każdy z etykietą.
 - **Własna historia OCR** — osobna tabela `ocr_history` i osobna kolekcja Firestore `users/{uid}/ocr_history/{syncId}`; te same zasady last-write-wins + tombstone, ale listy nigdy się nie mieszają. `SyncManager.syncCollection(...)` wołany dla `"history"` i `"ocr_history"`. Karty mają pełen zestaw akcji jak w Translatorze.
 - **Ekran OCR nadal pokazuje BottomNav** (jest w `AppNavigation.showBottomNav`), ale **ikona OCR NIE jest w pasku** — dolny pasek ma **zawsze MAX 5 ikon** (Translator, Rozmowa, Czat, Kontakty, Profil). Wcześniej (v41) OCR dostał szóstą pozycję, ale to zapychało pasek i nie skracało drogi do OCR — wejście do niego i tak jest jednym tapem z Tłumacza (ikona aparatu w `HelpFramedIconButton`). Patrz sekcja *„Dolny pasek — zasady"*.
 - ⚠️ **Znany brak, wciąż otwarty (§5.4):** błąd wysyłki zdjęcia / głosówki **nie jest obsługiwany**. `ChatThreadViewModel.sendImage()` i `ChatThreadViewModel.sendVoice()` mają `// TODO 5.4: obsługa błędu (retry) — na razie tylko log.` (ok. linii 391 i 469). Nie ma ani ponawiania, ani komunikatu dla użytkownika — nieudana wysyłka znika bez śladu w logcat. Do domknięcia przed premierą.

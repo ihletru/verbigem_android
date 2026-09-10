@@ -14,14 +14,21 @@ import com.verbigem.app.R
 import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.local.PendingDeleteEntity
 import com.verbigem.app.data.local.PreferencesManager
+import com.verbigem.app.data.model.EngineChoice
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.model.ModelDownloadState
+import com.verbigem.app.data.model.ModelTier
+import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.data.model.TtsConfig
 import com.verbigem.app.data.model.TranslationHistory
+import com.verbigem.app.data.model.availableEngines
 import com.verbigem.app.data.repository.OcrHistoryRepository
 import com.verbigem.app.data.repository.ProTtsRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.engine.HyMt2NativeEngine
+import com.verbigem.app.engine.ModelDownloader
 import com.verbigem.app.engine.OcrManager
+import com.verbigem.app.engine.OnlineApiEngine
 import com.verbigem.app.engine.ProTtsEngine
 import com.verbigem.app.engine.SpeechManager
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +50,37 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     )
     private val proTtsRepository = ProTtsRepository(application)
     private val preferencesManager = PreferencesManager(application)
+    private val modelDownloader = ModelDownloader(application)
+    private val onlineEngine = OnlineApiEngine()
+
+    /** Postęp pobierania wag — OCR pokazuje ten sam dialog co Tłumacz. */
+    val downloadState: StateFlow<ModelDownloadState> = modelDownloader.downloadState
+
+    /**
+     * Silnik tłumaczenia — ten sam wybór co w Tłumaczu (wspólny klucz
+     * `engine_choice` w DataStore), żeby użytkownik nie ustawiał go dwa razy.
+     * Do v1.0.52 OCR był na sztywno na modelu Szybkim (`isAccurate = false`).
+     */
+    private val _engineChoice = MutableStateFlow(EngineChoice.LOCAL_FAST)
+    val engineChoice: StateFlow<EngineChoice> = _engineChoice.asStateFlow()
+
+    /** Silniki, które to urządzenie faktycznie uruchomi (RAM / miejsce / GPU). */
+    private val _availableEngines = MutableStateFlow(availableEngines(application))
+    val availableEngines: StateFlow<List<EngineChoice>> = _availableEngines.asStateFlow()
+
+    private val _showDownloadDialog = MutableStateFlow(false)
+    val showDownloadDialog: StateFlow<Boolean> = _showDownloadDialog.asStateFlow()
+
+    /** Drugi wynik — wypełniany tylko przez silnik BOTH (⚖️ porównanie). */
+    private val _secondaryTranslatedText = MutableStateFlow<String?>(null)
+    val secondaryTranslatedText: StateFlow<String?> = _secondaryTranslatedText.asStateFlow()
+
+    // Online (OpenRouter): model, własny klucz i stan portfela — to samo co w
+    // Tłumaczu, bo OCR korzysta z tego samego silnika online.
+    private val _onlineModelId = MutableStateFlow(OnlineModels.DEFAULT_ID)
+    private val _openRouterKey = MutableStateFlow("")
+    val openRouterKey: StateFlow<String> = _openRouterKey.asStateFlow()
+    private val _walletCents = MutableStateFlow(0L)
 
     // Infinite-scroll history (newest-first, offset-paged from Room so we never
     // load the whole table). loadMoreHistory() appends the next page.
@@ -100,6 +138,23 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             preferencesManager.dstLangFlow.collect { _targetLang.value = LangCode.fromCode(it) }
         }
+        // Silnik jest wspólny z Tłumaczem: zapisany wybór wraca tu po restarcie.
+        viewModelScope.launch {
+            preferencesManager.engineFlow.collect { saved ->
+                val restored = EngineChoice.fromId(saved)
+                _engineChoice.value =
+                    if (restored in _availableEngines.value) restored else EngineChoice.LOCAL_FAST
+            }
+        }
+        viewModelScope.launch {
+            preferencesManager.onlineModelFlow.collect { _onlineModelId.value = it }
+        }
+        viewModelScope.launch {
+            preferencesManager.openRouterKeyFlow.collect { _openRouterKey.value = it }
+        }
+        viewModelScope.launch {
+            preferencesManager.walletCentsFlow.collect { _walletCents.value = it }
+        }
     }
 
     // Holds the FULL original bitmap (used for cropping + OCR, never the preview-scaled one)
@@ -149,6 +204,22 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _isPro.value = isPro
     }
 
+    /** Wybór silnika — zapisuje się do DataStore, więc Tłumacz widzi to samo. */
+    fun setEngine(choice: EngineChoice) {
+        _engineChoice.value = choice
+        viewModelScope.launch { preferencesManager.setEngine(choice.id) }
+    }
+
+    fun setShowDownloadDialog(show: Boolean) {
+        _showDownloadDialog.value = show
+    }
+
+    fun startModelDownload(tier: ModelTier, allowMetered: Boolean = false) {
+        viewModelScope.launch {
+            modelDownloader.downloadModel(tier, allowMetered)
+        }
+    }
+
     companion object {
         private const val HISTORY_PAGE_SIZE = 20
     }
@@ -167,6 +238,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _cropRect.value = null
         _recognizedText.value = ""
         _translatedText.value = null
+        _secondaryTranslatedText.value = null
         _errorMessage.value = null
         // Load the bitmap so the crop frame + "Read selected area" OCR work on gallery images too.
         // OCR is NOT run automatically — the user triggers it with the button.
@@ -187,6 +259,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _cropRect.value = defaultCropRect()
         _recognizedText.value = ""
         _translatedText.value = null
+        _secondaryTranslatedText.value = null
         _errorMessage.value = null
         // OCR is NOT run automatically — the user triggers it with the button.
     }
@@ -198,6 +271,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _errorMessage.value = null
         _recognizedText.value = ""
         _translatedText.value = null
+        _secondaryTranslatedText.value = null
 
         viewModelScope.launch {
             try {
@@ -228,18 +302,78 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
             _errorMessage.value = appContext.getString(R.string.ocr_no_text)
             return
         }
+        val engine = _engineChoice.value
+
+        // Brak wag na dysku → dialog pobierania (jak w Tłumaczu). Bez tego
+        // użytkownik klikałby „Tłumacz" i dostawał cichego null-a.
+        val tier = engine.modelTier
+        if (tier != null && !HyMt2NativeEngine.isModelDownloaded(appContext, tier)) {
+            _showDownloadDialog.value = true
+            return
+        }
+        // BOTH ładuje dwa modele naraz — oba muszą być na dysku.
+        if (engine == EngineChoice.BOTH && (
+                !HyMt2NativeEngine.isModelDownloaded(appContext, ModelTier.FAST) ||
+                    !HyMt2NativeEngine.isModelDownloaded(appContext, ModelTier.ACCURATE))
+        ) {
+            _showDownloadDialog.value = true
+            return
+        }
+
         _isProcessing.value = true
         _errorMessage.value = null
         _translatedText.value = null
+        _secondaryTranslatedText.value = null
 
         viewModelScope.launch {
             try {
-                val result = hyMt2Engine.translateSegmented(text, _sourceLang.value, _targetLang.value, isAccurate = false) { partial ->
-                    // Streaming: show each completed segment as it arrives.
-                    _translatedText.value = partial
+                when (engine) {
+                    // Silniki jedno-modelowe różnią się wyłącznie wagami.
+                    EngineChoice.LOCAL_FAST,
+                    EngineChoice.LOCAL_ACCURATE,
+                    EngineChoice.LOCAL_PRO_7B -> {
+                        val modelTier = engine.modelTier ?: ModelTier.FAST
+                        val result = hyMt2Engine.translateSegmented(
+                            text, _sourceLang.value, _targetLang.value, modelTier
+                        ) { partial ->
+                            // Streaming: show each completed segment as it arrives.
+                            _translatedText.value = partial
+                        }
+                        _translatedText.value = result
+                        addHistory(text, result)
+                    }
+                    EngineChoice.BOTH -> {
+                        val resFast = hyMt2Engine.translateSegmented(
+                            text, _sourceLang.value, _targetLang.value, ModelTier.FAST
+                        ) { partial -> _translatedText.value = partial }
+                        val resAcc = hyMt2Engine.translateSegmented(
+                            text, _sourceLang.value, _targetLang.value, ModelTier.ACCURATE
+                        ) { partial -> _secondaryTranslatedText.value = partial }
+                        _translatedText.value = resFast
+                        _secondaryTranslatedText.value = resAcc
+                        addHistory(text, resFast)
+                    }
+                    EngineChoice.ONLINE -> {
+                        val modelId = _onlineModelId.value
+                        val isFree = modelId.endsWith(":free")
+                        // Modele płatne idą z portfela — bez środków zostają
+                        // nieaktywne (ta sama reguła co w Tłumaczu).
+                        if (!isFree && _walletCents.value <= 0) {
+                            _isProcessing.value = false
+                            _errorMessage.value = appContext.getString(R.string.online_no_credits)
+                            return@launch
+                        }
+                        // ":free" idą bezpośrednio na klucz użytkownika;
+                        // kuratorskie przez proxy Verbigema (apiKey = null).
+                        val apiKey = if (isFree) _openRouterKey.value.takeIf { it.isNotBlank() } else null
+                        val result = onlineEngine.translate(
+                            text, _sourceLang.value, _targetLang.value,
+                            model = modelId, apiKey = apiKey
+                        )
+                        _translatedText.value = result
+                        addHistory(text, result)
+                    }
                 }
-                _translatedText.value = result
-                addHistory(text, result)
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Translation error"
             } finally {
@@ -334,6 +468,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
         _originalBitmap = null
         _recognizedText.value = ""
         _translatedText.value = null
+        _secondaryTranslatedText.value = null
         _errorMessage.value = null
         _cropRect.value = null
         _resultSpeaking.value = false

@@ -45,10 +45,14 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.lazy.rememberLazyListState
+import com.verbigem.app.data.model.EngineChoice
+import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.data.model.TranslationHistory
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.ui.components.EnginePicker
 import com.verbigem.app.ui.components.FlagIcon
 import com.verbigem.app.ui.components.HelpIconButton
+import com.verbigem.app.ui.components.ModelDownloadDialog
 import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.HelpWindowState
 import com.verbigem.app.ui.components.ProFeatureButton
@@ -105,6 +109,13 @@ fun OcrScreen(
     val speakingProSyncId by viewModel.speakingProSyncId.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
     val targetLang by viewModel.targetLang.collectAsState()
+    val engineChoice by viewModel.engineChoice.collectAsState()
+    val availableEngines by viewModel.availableEngines.collectAsState()
+    val openRouterKey by viewModel.openRouterKey.collectAsState()
+    val hasOwnKey = openRouterKey.isNotBlank()
+    val secondaryTranslatedText by viewModel.secondaryTranslatedText.collectAsState()
+    val downloadState by viewModel.downloadState.collectAsState()
+    val showDownloadDialog by viewModel.showDownloadDialog.collectAsState()
     val cropRect by viewModel.cropRectFlow.collectAsState()
     val historyItems by viewModel.historyItems.collectAsState()
     val historyListState = rememberLazyListState()
@@ -313,6 +324,18 @@ fun OcrScreen(
             keyboardActions = KeyboardActions(onDone = { viewModel.translateText() })
         )
 
+        // Wybór silnika — ten sam komponent i ten sam zapis w DataStore co w
+        // Tłumaczu. Do v1.0.52 OCR był na sztywno na modelu Szybkim, więc
+        // nagłówek wyniku zawsze mówił „(Szybki)" w każdym języku.
+        EnginePicker(
+            selectedEngine = engineChoice,
+            onEngineSelected = { viewModel.setEngine(it) },
+            isPro = isPro,
+            hasOwnKey = hasOwnKey,
+            helpState = help,
+            availableEngines = availableEngines
+        )
+
         HelpActionBox(
             onClick = { viewModel.translateText() },
             enabled = !isProcessing && recognizedText.isNotBlank(),
@@ -337,18 +360,54 @@ fun OcrScreen(
                     .padding(14.dp)
             ) {
                 Text(
-                    stringResource(R.string.ocr_translation),
+                    // %1$s = nazwa wybranego silnika (Szybki / Dokładny / Oba /
+                    // Online). Wcześniej była tu twardo wpisana nazwa „Szybki" —
+                    // również w locale EN/DE/ES/TR/ZH, gdzie zostawało polskie
+                    // słowo.
+                    stringResource(
+                        R.string.ocr_translation,
+                        stringResource(engineChoice.shortNameResId)
+                    ),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = VerbigemTheme.colors.accent
                 )
                 Spacer(modifier = Modifier.height(6.dp))
+                // ⚖️ BOTH: każdy wynik ma własną etykietę, bo inaczej nie
+                // wiadomo, który jest który.
+                if (engineChoice == EngineChoice.BOTH) {
+                    Text(
+                        text = "${EngineChoice.LOCAL_FAST.icon} ${
+                            stringResource(EngineChoice.LOCAL_FAST.shortNameResId)
+                        }",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerbigemTheme.colors.muted
+                    )
+                }
                 Text(
                     text = translatedText ?: "",
                     color = VerbigemTheme.colors.ink,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
+                if (engineChoice == EngineChoice.BOTH && secondaryTranslatedText != null) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "${EngineChoice.LOCAL_ACCURATE.icon} ${
+                            stringResource(EngineChoice.LOCAL_ACCURATE.shortNameResId)
+                        }",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerbigemTheme.colors.muted
+                    )
+                    Text(
+                        text = secondaryTranslatedText ?: "",
+                        color = VerbigemTheme.colors.ink,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -443,6 +502,19 @@ fun OcrScreen(
                 }
             }
         }
+    }
+
+    // Brak wag dla wybranego silnika → ten sam dialog pobierania co w Tłumaczu.
+    if (showDownloadDialog) {
+        val tier = engineChoice.modelTier
+            ?: ModelTier.fromAccurate(engineChoice == EngineChoice.LOCAL_ACCURATE)
+        ModelDownloadDialog(
+            downloadState = downloadState,
+            tier = tier,
+            onStartDownload = { viewModel.startModelDownload(tier) },
+            onConfirmMetered = { viewModel.startModelDownload(tier, allowMetered = true) },
+            onDismiss = { viewModel.setShowDownloadDialog(false) }
+        )
     }
 
     HelpWindow(help)
