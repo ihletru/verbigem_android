@@ -187,6 +187,35 @@ polityki. (sekcja 6)
 6. Build `play` + ręczny test na telefonie (logcat `UpdateManager`: przy `onPlayStore`
    otwiera Sklep, NIE pobiera APK).
 
+**Stan: Faza 2 — ZROBIONE (2026-09-10)** ✅
+- [x] **2.1** Flavory `play` / `standalone` w `app/build.gradle.kts` (`flavorDimensions += "distribution"`,
+  dwa `productFlavors`). `play` → `applicationId = com.verbigem.app`, `PLAY_BUILD=true`;
+  `standalone` → `applicationId = com.verbigem.app.sideload`, `PLAY_BUILD=false`.
+- [x] **2.2** Release signing: `signingConfigs.create("release")` czyta `keystore.properties`
+  (ścieżka wzgl. roota: `app/release-keystore.jks` → `rootProject.file(...)`), przypięty do
+  `buildTypes.release.signingConfig`. Klucz uploadu `app/release-keystore.jks` (RSA 2048,
+  alias `verbigem`). Play App Signing do zrobienia w konsoli (Faza 3/5).
+- [x] **2.3** `bundlePlayRelease` buduje AAB (`app/build/outputs/bundle/playRelease/...aab`).
+  `minSdk=26`, `targetSdk=35` — OK.
+- [x] **Usunięcie `REQUEST_INSTALL_PACKAGES` w `play`**: `app/src/play/AndroidManifest.xml`
+  z `tools:node="remove"`. Zweryfikowane przez `aapt2 dump permissions` na
+  `assemblePlayDebug.apk` → uprawnienie **BRAK**. Standalone zachowuje uprawnienie
+  (do zweryfikowania na `assembleStandaloneDebug` po buildzie).
+- [x] **Gate startowy** (`StartupGate` / sprawdzanie aktualizacji): przeniesiony stan z
+  `remember{}` do procesowego `UpdateGateController` (idempotentny `AtomicBoolean`) —
+  usuwa bug zamrożonego ekranu przy obrocie/minimalizacji. W `play` gate jest całkowicie
+  pomijany (`if (BuildConfig.PLAY_BUILD) AppNavigation(...) else StartupGate(...)`), więc
+  problem nie występuje w Sklepie; w `standalone` działa poprawnie po fixie.
+- [x] **README** zaktualizowane (sekcja Auto-aktualizacja: kanały `play`/`standalone`).
+- [~] **2.4/2.5** Wersjonowanie wspólne (`versionCode=60`, `versionName=1.0.59`) — OK, ale
+  brak nowych stringów (gate skip nie wymagał etykiet). Do sprawdzenia przy zmianach UI.
+- [ ] **2.6 ręczny test na telefonie** — zostaje u Milosza (logcat `UpdateManager`).
+
+**Uwaga budowania (brak `./gradlew` na Windows):** wrapper przez
+`java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain …`
+(z `JAVA_HOME`=jbr-21.0.11, `ANDROID_HOME`=SDK). `signingConfigs` MUSI być zdefiniowane
+PRZED `buildTypes` (błąd "SigningConfig not found" w innym układzie).
+
 **Faza 3 — Polityka + Data Safety**
 1. Napisać politykę prywatności, wrzucić na `mini.verbigem.com/privacy`.
 2. Wgrać AAB do **Internal / Closed testing** track.

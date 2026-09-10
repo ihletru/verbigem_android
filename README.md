@@ -684,6 +684,27 @@ Katalog `dist/` w `verbigem/mini`, deployowany przez `firebase deploy --only hos
 
 **Wymagane w manifeście:** `REQUEST_INSTALL_PACKAGES`, `<provider>` FileProvider z `android:authorities="${applicationId}.fileprovider"`.
 
+### Kanały dystrybucji: `play` vs `standalone` (od 2026-09-10)
+
+Appka budowana jest w dwóch smakach (`flavorDimensions "distribution"` w `app/build.gradle.kts`):
+
+- **`play`** — wersja do Google Play. `applicationId = com.verbigem.app`,
+  `BuildConfig.PLAY_BUILD = true`. W tym smaku `MainActivity` **pomija `StartupGate`**
+  (Play sam dostarcza aktualizacje), a `app/src/play/AndroidManifest.xml` usuwa
+  uprawnienie `REQUEST_INSTALL_PACKAGES` (`tools:node="remove"`) — inaczej recenzja
+  Play odrzuca appkę za samodzielny update. Weryfikacja: `aapt2 dump permissions
+  app-play-debug.apk` nie zawiera `REQUEST_INSTALL_PACKAGES`.
+- **`standalone`** — sideload z Firebase Hosting. `applicationId =
+  com.verbigem.app.sideload`, `BuildConfig.PLAY_BUILD = false`. Zachowuje
+  `REQUEST_INSTALL_PACKAGES` i pełny `StartupGate` (pobieranie APK z
+  `mini.verbigem.com`). Istniejące instalacje sideload mają `com.verbigem.app`
+  (stary package) i po zmianie suffixu `.sideload` **nie dostaną auto-updatu** —
+  trzeba ogłosić reinstall z nowym linkiem.
+
+AAB dla Play: `bundlePlayRelease` (podpis przez `signingConfigs.release`, klucz z
+`app/release-keystore.jks`, dane w gitignorowanym `keystore.properties`). Play App
+Signing przejmuje klucz podpisujący w Sklepie.
+
 **Filter logcat:** `UpdateManager` (`Starting APK download`, `Download started/finished`, `Download error`, `Install launch failed`).
 
 ### ⚠️ Pułapka: `immutable` cache na `/android/**` — NIGDY nie nadpisuj istniejącej nazwy APK

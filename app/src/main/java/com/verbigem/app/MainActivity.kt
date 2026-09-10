@@ -33,11 +33,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicBoolean
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -57,19 +61,10 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesManager: PreferencesManager
-    private val updateManager = UpdateManager(this)
+    private val updateManager = UpdateManager(applicationContext)
 
-    /**
-     * Download progress lives in the Activity, NOT in a composable `remember`.
-     *
-     * Reason: the progress dialog is a separate Compose subcomposition (AlertDialog renders
-     * into its own window). If the state is only ever read inside that subcomposition, the
-     * parent never recomposes and the dialog keeps re-showing the value it was first composed
-     * with — the "bar frozen at 0%" symptom. Holding the flow here and reading it in the
-     * parent scope (see [StartupGate]) sidesteps the whole class of problem, and the state
-     * also survives a configuration change mid-download.
-     */
-    private val downloadProgress = MutableStateFlow(UpdateManager.DownloadProgress())
+    // Update-check gate state now lives in [updateGateController] (process-wide) so a
+    // configuration change (e.g. rotation) does not restart the check — see StartupGate.
 
     /**
      * The conversation a notification tap wants to open, or null.
@@ -116,11 +111,16 @@ class MainActivity : ComponentActivity() {
                         // The update gate runs BEFORE the rest of the app. A broken/old
                         // install can therefore always self-heal by downloading a fixed APK,
                         // even if the rest of the app (DB, UI) would otherwise crash on launch.
-                        StartupGate(
-                            updateManager = updateManager,
-                            progressState = downloadProgress
-                        ) {
+                        // W wersji Play (BuildConfig.PLAY_BUILD) gate jest pomijany — Play sam
+                        // dostarcza aktualizacje, a samodzielne pobieranie APK łamie politykę.
+                        if (BuildConfig.PLAY_BUILD) {
                             AppNavigation(openChatUid = chatUid, openProfileUid = profileUid)
+                        } else {
+                            StartupGate(
+                                updateManager = updateManager
+                            ) {
+                                AppNavigation(openChatUid = chatUid, openProfileUid = profileUid)
+                            }
                         }
                     }
                 }
@@ -194,6 +194,85 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
+ * Process-wide gate state.
+ *
+ * The gate used to keep its state inside [StartupGate]'s `remember {}`, so every configuration
+ * change (screen rotation) and every activity recreation (app backgrounded, killed by the
+ * system, then reopened) rebuilt the composable from scratch and **re-ran the update check**.
+ * That re-entry is what produced the frozen "Sprawdzanie aktualizacji…" screen: the spinner
+ * came back on rotation / restore, and because the check could be triggered again while a
+ * previous run was still in flight, it could get stuck until the app was force-restarted.
+ *
+ * Hoisting the state here — a single instance for the whole process — means the check runs
+ * **exactly once per process**. A recreated activity just re-reads the already-decided phase
+ * from these flows, so the spinner never reappears and there is nothing left to get stuck on.
+ */
+private val updateGateController = UpdateGateController()
+
+private class UpdateGateController {
+    val phase = MutableStateFlow(GatePhase.Checking)
+    val updateInfo = MutableStateFlow<UpdateManager.UpdateInfo?>(null)
+    val downloading = MutableStateFlow(false)
+    val failure = MutableStateFlow<String?>(null)
+    val downloadProgress = MutableStateFlow(UpdateManager.DownloadProgress())
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val started = AtomicBoolean(false)
+
+    /**
+     * Kicks off the one-time update check. Safe to call from every composition — it only
+     * ever performs the work once per process.
+     */
+    fun ensureCheckStarted(updateManager: UpdateManager) {
+        if (!started.compareAndSet(false, true)) return
+        scope.launch {
+            var newer: UpdateManager.UpdateInfo? = null
+            // Hard cap: never block the app longer than this even if the network hangs.
+            withTimeoutOrNull(6000) {
+                val online =
+                    runCatching { updateManager.hasInternet(5000) }.getOrDefault(false)
+                if (online) {
+                    val current = updateManager.currentVersionCode()
+                    val info = updateManager.fetchUpdateInfo()
+                    if (info != null && info.isNewerThan(current)) {
+                        newer = info
+                    }
+                }
+            }
+            if (newer != null) {
+                updateInfo.value = newer
+                phase.value = GatePhase.Prompt
+            } else {
+                phase.value = GatePhase.Ready
+            }
+        }
+    }
+
+    fun startDownload(info: UpdateManager.UpdateInfo, updateManager: UpdateManager) {
+        failure.value = null
+        downloading.value = true
+        downloadProgress.value = UpdateManager.DownloadProgress()
+        updateManager.downloadAndInstall(
+            info,
+            progressState = downloadProgress,
+            onComplete = {
+                // Install intent already fired; let the system complete the flow — do NOT
+                // proceed() here, otherwise the Activity re-creates in the old version.
+                Log.i("UpdateGate", "Download/Install complete; install intent launched.")
+            },
+            onError = { error ->
+                Log.e("UpdateGate", "Update failed: $error")
+                failure.value = error
+            }
+        )
+    }
+
+    fun proceed() {
+        phase.value = GatePhase.Ready
+    }
+}
+
+/**
  * Startup gate: checks for an update *before* the main UI is shown.
  *
  * Flow:
@@ -205,67 +284,27 @@ class MainActivity : ComponentActivity() {
  *
  * The gate deliberately does NOT touch the Room database — that's the thing most likely to
  * crash on a bad migration, and we want the update check to succeed even then.
+ *
+ * All state lives in [updateGateController] (process-wide), so a configuration change such as
+ * rotating the screen does NOT restart the check and cannot re-show the "checking" spinner.
  */
 @Composable
 private fun StartupGate(
     updateManager: UpdateManager,
-    progressState: MutableStateFlow<UpdateManager.DownloadProgress>,
     content: @Composable () -> Unit
 ) {
-    var phase by remember { mutableStateOf<GatePhase>(GatePhase.Checking) }
-    var updateInfo by remember { mutableStateOf<UpdateManager.UpdateInfo?>(null) }
-    var downloading by remember { mutableStateOf(false) }
-    var failure by remember { mutableStateOf<String?>(null) }
+    val phase by updateGateController.phase.collectAsState()
+    val updateInfo by updateGateController.updateInfo.collectAsState()
+    val downloading by updateGateController.downloading.collectAsState()
+    val failure by updateGateController.failure.collectAsState()
+    // Collected here, in StartupGate's own scope — not inside the AlertDialog's content
+    // lambda — so every emission recomposes StartupGate and pushes a fresh value down into
+    // the dialog. The bar therefore cannot freeze on the value it was first composed with.
+    val progress by updateGateController.downloadProgress.collectAsState()
 
-    // IMPORTANT: `progress` is collected here, in StartupGate's own scope — not inside the
-    // AlertDialog's content lambda. Every emission therefore recomposes StartupGate and
-    // pushes a fresh value down into the dialog, so the bar cannot freeze on the value it
-    // was first composed with.
-    val progress by progressState.collectAsState()
-
-    val proceed = { phase = GatePhase.Ready }
-
-    val startDownload = { info: UpdateManager.UpdateInfo ->
-        failure = null
-        downloading = true
-        progressState.value = UpdateManager.DownloadProgress()
-        updateManager.downloadAndInstall(
-            info,
-            progressState = progressState,
-            onComplete = {
-                // Install intent already fired; let the system complete the flow — do NOT
-                // proceed() here, otherwise the Activity re-creates in the old version.
-                Log.i("StartupGate", "Download/Install complete; install intent launched.")
-            },
-            onError = { error ->
-                // Show it. Previously a failed download left the dialog sitting at 0%
-                // with no explanation and no way out.
-                Log.e("StartupGate", "Update failed: $error")
-                failure = error
-            }
-        )
-    }
-
-    LaunchedEffect(Unit) {
-        var newer: UpdateManager.UpdateInfo? = null
-        // Hard cap: never block the app longer than this even if the network hangs.
-        kotlinx.coroutines.withTimeoutOrNull(6000) {
-            val online = runCatching { updateManager.hasInternet(5000) }.getOrDefault(false)
-            if (online) {
-                val current = updateManager.currentVersionCode()
-                val info = updateManager.fetchUpdateInfo()
-                if (info != null && info.isNewerThan(current)) {
-                    newer = info
-                }
-            }
-        }
-        if (newer != null) {
-            updateInfo = newer
-            phase = GatePhase.Prompt
-        } else {
-            proceed()
-        }
-    }
+    // Idempotent across recompositions and activity recreations: only ever starts the
+    // one-time check. Calling it on every composition is intentional and cheap.
+    LaunchedEffect(Unit) { updateGateController.ensureCheckStarted(updateManager) }
 
     when (phase) {
         GatePhase.Checking -> {
@@ -287,12 +326,12 @@ private fun StartupGate(
                     UpdateDownloadDialog(
                         progress = progress,
                         failure = failure,
-                        onRetry = { startDownload(info) },
-                        onDismiss = { proceed() }
+                        onRetry = { updateGateController.startDownload(info, updateManager) },
+                        onDismiss = { updateGateController.proceed() }
                     )
                 } else {
                     AlertDialog(
-                        onDismissRequest = { proceed() },
+                        onDismissRequest = { updateGateController.proceed() },
                         title = { Text(stringResource(R.string.update_available_title)) },
                         text = {
                             Text(
@@ -308,7 +347,7 @@ private fun StartupGate(
                                     if (info.onPlayStore) {
                                         updateManager.openPlayStore(info)
                                     } else {
-                                        startDownload(info)
+                                        updateGateController.startDownload(info, updateManager)
                                     }
                                 }
                             ) {
@@ -316,13 +355,13 @@ private fun StartupGate(
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { proceed() }) {
+                            TextButton(onClick = { updateGateController.proceed() }) {
                                 Text(stringResource(R.string.update_later))
                             }
                         }
                     )
                 }
-            } ?: proceed()
+            } ?: updateGateController.proceed()
         }
         GatePhase.Ready -> {
             content()

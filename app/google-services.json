@@ -41,6 +41,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064156518963:android:8a774c89fc79996aeea146",
+        "android_client_info": {
+          "package_name": "com.verbigem.app.sideload"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1064156518963-mi47hcntbfc14270n1dkjr0ssfrgrj1r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXpE19wr9jUu69oe5yhgYQFfDOEKrgKqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1064156518963-mi47hcntbfc14270n1dkjr0ssfrgrj1r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

@@ -80,13 +80,54 @@ android {
         }
     }
 
+    // Podpis release — klucz z app/release-keystore.jks (gitignorowany), dane z
+    // keystore.properties (też gitignorowane). Play App Signing przejmuje klucz
+    // podpisujący w Sklepie; tu tylko klucz uploadu (można zresetować w konsoli).
+    signingConfigs {
+        create("release") {
+            val propsFile = rootProject.file("keystore.properties")
+            if (propsFile.exists()) {
+                val map = propsFile.readLines()
+                    .filter { it.isNotBlank() && "=" in it }
+                    .associate { line ->
+                        val (k, v) = line.split("=", limit = 2)
+                        k.trim() to v.trim()
+                    }
+                storeFile = rootProject.file(map["storeFile"]!!)
+                storePassword = map["storePassword"]!!
+                keyAlias = map["keyAlias"]!!
+                keyPassword = map["keyPassword"]!!
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    // Dwa kanały dystrybucji (patrz PLAY_PUBLISHING_PLAN.md):
+    //  - play:      wersja do Google Play (bez samodzielnej aktualizacji APK),
+    //               package com.verbigem.app, BuildConfig.PLAY_BUILD = true.
+    //  - standalone: sideload z Firebase Hosting, package com.verbigem.app.sideload,
+    //               BuildConfig.PLAY_BUILD = false (zachowuje REQUEST_INSTALL_PACKAGES).
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("play") {
+            dimension = "distribution"
+            applicationId = "com.verbigem.app"
+            buildConfigField("Boolean", "PLAY_BUILD", "true")
+        }
+        create("standalone") {
+            dimension = "distribution"
+            applicationId = "com.verbigem.app.sideload"
+            buildConfigField("Boolean", "PLAY_BUILD", "false")
         }
     }
 
