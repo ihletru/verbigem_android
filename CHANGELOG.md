@@ -2,14 +2,14 @@
 
 ---
 
-## v1.0.62 (2026-09-10) — versionCode 62
+## v1.0.63 (2026-09-10) — versionCode 63
 
 **Naprawione: aplikacja nie chciała się uruchomić na nowszych telefonach.**
 
 - Na Androidzie 14 i nowszych apka wywalała się w ułamku sekundy po starcie — czarny ekran i komunikat o błędzie, bez szansy na wejście do środka.
 - Przyczyna: jedno pole w głównym ekranie było tworzone zbyt wcześnie, jeszcze zanim system zdążył podpiąć aplikację. Starsze Androidy to wybaczały, nowsze rzucają błąd.
 - Teraz to pole powstaje dopiero wtedy, gdy jest naprawdę potrzebne. Dla wersji z Google Play nie powstaje w ogóle, bo nie jest tam używane.
-- Uwaga: od tej wersji numer wersji zgadza się z numerem kompilacji (62 = 1.0.62). Wcześniej były rozjechane o jeden.
+- Uwaga: od tej wersji numer wersji zgadza się z numerem kompilacji (63 = 1.0.63). Wcześniej były rozjechane o jeden.
 
 ## v1.0.60 (2026-09-10) — versionCode 61
 

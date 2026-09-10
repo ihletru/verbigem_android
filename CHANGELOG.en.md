@@ -2,14 +2,14 @@
 
 ---
 
-## v1.0.62 (2026-09-10) — versionCode 62
+## v1.0.63 (2026-09-10) — versionCode 63
 
 **Fixed: the app crashed on launch on newer phones.**
 
 - On Android 14 and above the app crashed within a fraction of a second of starting — a black screen and an error, with no way to get in.
 - Cause: a field on the main screen was being created too early, before the system had finished attaching the application. Older Android versions tolerated this; newer ones throw an error.
 - The field is now created only when it is actually needed. On the Google Play build it is not created at all, since it is unused there.
-- Note: from this version the version name matches the build number (62 = 1.0.62). They used to be off by one.
+- Note: from this version the version name matches the build number (63 = 1.0.63). They used to be off by one.
 
 ## v1.0.60 (2026-09-10) — versionCode 61
 

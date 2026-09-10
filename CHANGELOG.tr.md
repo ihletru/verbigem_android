@@ -2,14 +2,14 @@
 
 ---
 
-## v1.0.62 (2026-09-10) — versionCode 62
+## v1.0.63 (2026-09-10) — versionCode 63
 
 **Düzeltildi: uygulama açılışta çöküyordu.**
 
 - Android 14 ve üzerinde uygulama, açılıştan hemen sonra çöküyordu: siyah ekran ve hata mesajı, içeri girmek mümkün değildi.
 - Sebep: ana ekrandaki bir alan, sistem uygulamayı bağlamayı bitirmeden çok erken oluşturuluyordu. Eski Android sürümleri buna izin veriyordu; yenileri hata veriyor.
 - Artık bu alan yalnızca gerçekten gerektiğinde oluşturuluyor. Google Play derlemesinde hiç oluşturulmuyor, çünkü orada kullanılmıyor.
-- Not: bu sürümden itibaren sürüm numarası derleme numarasıyla aynı (62 = 1.0.62). Önceden bir fark vardı.
+- Not: bu sürümden itibaren sürüm numarası derleme numarasıyla aynı (63 = 1.0.63). Önceden bir fark vardı.
 
 ## v1.0.60 (2026-09-10) — versionCode 61
 

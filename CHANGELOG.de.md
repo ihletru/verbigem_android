@@ -2,14 +2,14 @@
 
 ---
 
-## v1.0.62 (2026-09-10) — versionCode 62
+## v1.0.63 (2026-09-10) — versionCode 63
 
 **Behoben: Die App stürzte beim Start ab.**
 
 - Auf Android 14 und neuer stürzte die App im Bruchteil einer Sekunde nach dem Start ab — schwarzer Bildschirm und eine Fehlermeldung, ohne dass man hineinkam.
 - Ursache: Ein Feld auf dem Hauptbildschirm wurde zu früh erzeugt, bevor das System die Anwendung eingehängt hatte. Ältere Android-Versionen haben das toleriert, neuere werfen einen Fehler.
 - Das Feld wird jetzt erst erzeugt, wenn es wirklich gebraucht wird. Im Google-Play-Build wird es gar nicht erzeugt, weil es dort nicht verwendet wird.
-- Hinweis: Ab dieser Version stimmt die Versionsnummer mit der Build-Nummer überein (62 = 1.0.62). Früher lagen sie um eins auseinander.
+- Hinweis: Ab dieser Version stimmt die Versionsnummer mit der Build-Nummer überein (63 = 1.0.63). Früher lagen sie um eins auseinander.
 
 ## v1.0.60 (2026-09-10) — versionCode 61
 

@@ -28,7 +28,7 @@ wyjściem do produkcji** — to osobny krok, nie teraz.
 |---|---|
 | Pakiet | `com.verbigem.app` (flavor `play`) |
 | Sideload | osobny pakiet `com.verbigem.app.sideload` (flavor `standalone`) — **nie instaluje się obok wersji Play** |
-| Wersja | `versionCode` = `versionName` patch: **62 / `1.0.62`** (w `app/build.gradle.kts`). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
+| Wersja | `versionCode` = `versionName` patch: **63 / `1.0.63`** (w `app/build.gradle.kts`). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
 | `minSdk` / `targetSdk` | 26 / 36 (wymóg Google od 31.08.2026 dla nowych aplikacji — spełniony) |
 | Klucz uploadu | `app/release-keystore.jks`, alias `verbigem` |
 | SHA-1 klucza uploadu | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
@@ -96,7 +96,7 @@ testerem" albo otworzył link na innym koncie Google niż zaproszony.
 | „Aplikacja nie istnieje" | tester nie zaakceptował linku / inne konto Google | wysłać link ponownie, sprawdzić konto Google na telefonie |
 | „Pobrało się 8 MB, a APK ma 30 MB" | **to normalne.** Play pokazuje rozmiar skompresowanego modułu `base` AAB (~8,3 MB). Debug-sideload APK (~30 MB) ma nieskompresowane `.so`. | nic — nie jest to objaw błędu |
 | Instalacja kończy się błędem od razu | stara wersja sideload `com.verbigem.app` jest zainstalowana i ma **inny podpis** → `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | odinstalować starą wersję przed instalacją z Play |
-| Apka się instaluje, ale wywala się przy starcie; w logu `NullPointerException` w `ActivityThread.performLaunchActivity:4324` | pole Activity zainicjowane `applicationContext` **w deklaracji** — `applicationContext` jest `null` przed `attachBaseContext`. Android 14+ rzuca NPE (starsze wersje zwracały `sEmptyContext`). | `by lazy { ... }` albo inicjalizacja w `onCreate` po `super.onCreate()`. **Naprawione w v1.0.62** (`MainActivity.updateManager`) |
+| Apka się instaluje, ale wywala się przy starcie; w logu `NullPointerException` w `ActivityThread.performLaunchActivity:4324` | pole Activity zainicjowane `applicationContext` **w deklaracji** — `applicationContext` jest `null` przed `attachBaseContext`. Android 14+ rzuca NPE (starsze wersje zwracały `sEmptyContext`). | `by lazy { ... }` albo inicjalizacja w `onCreate` po `super.onCreate()`. **Naprawione w v1.0.63** (`MainActivity.updateManager`) |
 
 ---
 
