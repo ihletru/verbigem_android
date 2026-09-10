@@ -556,20 +556,24 @@ Stringi: `privacy_ad_settings` / `privacy_ad_settings_desc` × 6 języków.
 **AdMob obsługuje wyłącznie aplikacje mobilne.** Na stronę potrzebny jest osobny produkt:
 **Google AdSense** (osobna rejestracja + weryfikacja domeny). Checklista:
 
-1. Zgłosić `mini.verbigem.com` do AdSense i przejść weryfikację domeny.
+1. Zgłosić `mini.verbigem.com` do AdSense i przejść weryfikację domeny. **← tu jesteśmy**
 2. **`mini/public/ads.txt`** → `google.com, pub-<TWOJE-ID>, DIRECT, f08c47fec0942fa0`
-   (Vite kopiuje `public/` → `dist/`).
-3. ☠️ **Polityka prywatności kłamie.** `mini/scripts/build_privacy.py` (wszystkie 6 języków)
-   ma zdanie *„Nie używamy zestawów SDK reklamowych ani narzędzi analitycznych"* — przed
-   wstawieniem reklam **musi** tam pojawić się sekcja o cookies i Google jako dostawcy
-   reklam (wymóg AdSense). Regeneracja: `python scripts/build_privacy.py` + deploy hostingu.
-4. ☠️ **`index.html` obiecuje „bez reklam"** — meta `description`, `og:description`
-   i JSON-LD. Trzy miejsca do poprawki.
-5. **SPA:** mini to `react-router` — zwykły `<ins class="adsbygoogle">` nie odświeża się
-   przy zmianie trasy. Albo Auto Ads (sam nasłuchuje), albo ręczne
-   `(adsbygoogle = window.adsbygoogle || []).push({})` w `AdBanner.tsx` przy zmianie
-   lokalizacji.
+   (Vite kopiuje `public/` → `dist/`). Czeka na `pub-ID`.
+3. ~~**Polityka prywatności kłamie.**~~ — ✅ **zrobione 2026-09-09**, wdrożone na produkcję:
+   `mini/scripts/build_privacy.py` ma teraz we wszystkich 6 językach uczciwą sekcję o
+   reklamach Google (cookies, `google.com/settings/ads`, treść tłumaczeń nie trafia do
+   sieci reklamowej) + Google (AdSense/AdMob) w tabeli podmiotów trzecich.
+4. ~~**`index.html` obiecuje „bez reklam"**~~ — ✅ **zrobione** (meta `description`,
+   `og:description`, JSON-LD).
+5. ~~**SPA**~~ — ✅ **zrobione**: `mini/src/billing/AdBanner.tsx` ma realny
+   `<ins className="adsbygoogle">` z `push()` per montowanie (obejście dla
+   `react-router`). Włącznik to **zmienne środowiskowe** `VITE_ADSENSE_CLIENT` /
+   `VITE_ADSENSE_SLOT` (patrz `mini/.env.example`) — bez nich baner zostaje
+   placeholderem, więc kod na produkcji jest całkowicie inertny.
+   ⚠️ Na localhost realne jednostki NIE są w ogóle renderowane (`import.meta.env.DEV`)
+   — tu, w przeciwieństwie do Androida, przełącznik po DEV jest poprawny.
 6. **Zgody (CMP)** — jak UMP w Androidzie: AdSense wymaga certyfikowanego CMP dla EOG.
+   Bez CMP Google serwuje w EOG reklamy niedopasowane (legalne, ale mniej płatne).
    ⚠️ Deploy: procedura z sekcji *„mini.verbigem.com to TA SAMA webapp"* — `npm run build`
    przebudowuje całą stronę, nie tylko reklamy.
 
