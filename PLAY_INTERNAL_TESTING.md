@@ -49,6 +49,20 @@ wyjściem do produkcji** — to osobny krok, nie teraz.
 - [ ] **Dostęp do aplikacji / uprawnienia** — zadeklaruj kamerę, mikrofon i
       kontakty z uzasadnieniem (OCR, STT, wyszukiwanie znajomych).
 
+### Firebase — odcisk podpisu (bez tego Google Sign-In nie działa w wersji z Play)
+
+Google Play podpisuje aplikację **własnym kluczem** (Play App Signing) — innym niż klucz uploadu i innym niż debug. Firebase musi znać ten odcisk; bez niego logowanie przez Google w wersji z Play kończy się błędem „No credentials available", choć w APK sideload działa bez zarzutu.
+
+| Klucz | SHA-1 |
+|---|---|
+| **Play App Signing** — tym podpisany jest APK, który dostaje telefon | `b09748e2d639f0e28f89b013f5b6f983d70babc7` |
+| Klucz uploadu — tym podpisujesz AAB | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
+| Debug — sideload z naszej strony | `ec9deb58cdf2483a7efe2b73c2c7901b9d6d3ccc` |
+
+**Do zrobienia:** Firebase Console → ⚙️ Project settings → **Your apps** → `com.verbigem.app` → **Add fingerprint** → wklej SHA-1 Play App Signing. Dodaj też SHA-256: `c92aba6c54cfe933cd411eca8d1138f8ed9795058190345fe4ce424ba88033b7`. Propagacja zajmuje kilka minut i **nie wymaga przebudowy AAB**.
+
+Uwaga: `app/google-services.json` ma w polu `certificate_hash` odcisk **debug**. To pole czyta tylko plugin Gradle (kontrola spójności) — nie bierze udziału w autoryzacji. O autoryzacji rozstrzyga wyłącznie rejestracja w konsoli Firebase, dlatego sama podmiana pliku niczego nie naprawi.
+
 ### Zasady → Zawartość aplikacji (Policy → App content)
 - [ ] **Bezpieczeństwo danych (Data safety)** — wg `PLAY_PUBLISHING_PLAN.md` §3.1:
       e-mail, historia tłumaczeń i OCR, zdjęcia (OCR lokalnie), audio (STT
