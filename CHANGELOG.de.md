@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.49 (2026-09-09) — versionCode 50
+
+**Werbung in der kostenlosen Version — mit voller Kontrolle über die Einwilligung.**
+
+- Auf dem Übersetzungsbildschirm wird jetzt ein **Google-Werbebanner** angezeigt. PRO 💎-Konten (gekaufte Werbefreiheit oder Guthaben > 0) sehen keine Werbung — für sie ändert sich nichts.
+- Im EWR, im Vereinigten Königreich und in der Schweiz zeigen wir beim ersten Start ein **Einwilligungsformular von Google**. Anzeigen werden erst nach Deiner Entscheidung geladen — keinen Moment früher.
+- In der Karte **Datenschutz** in Deinem Profil gibt es neu die **Datenschutzeinstellungen für Werbung** — Du kannst Deine Einwilligung jederzeit ändern oder widerrufen.
+- Die Anzeigen liefert Google. Der Text Deiner Übersetzungen gelangt nie ins Werbenetzwerk — übersetzt wird auf Deinem Gerät.
+
 ## v1.0.48 (2026-09-08) — versionCode 49
 
 **PRO-Status wird jetzt berechnet, nicht dauerhaft gespeichert.**

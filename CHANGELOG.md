@@ -2,6 +2,22 @@
 
 ---
 
+## v1.0.49 (2026-09-09) — versionCode 50
+
+**Reklamy w wersji darmowej i pełna kontrola zgód.**
+
+- Na ekranie tłumaczenia pojawia się **baner reklamowy Google**. Konta PRO 💎 (wykupione „Usuń reklamy" albo saldo portfela > 0) nie widzą reklam — dla nich nic się nie zmienia.
+- W krajach EOG, Wielkiej Brytanii i Szwajcarii przy pierwszym uruchomieniu pokazujemy **formularz zgód Google**. Reklamy ładujemy dopiero po Twojej decyzji — ani chwili wcześniej.
+- W profilu, w karcie **Prywatność**, dodałem **Ustawienia prywatności reklam** — możesz w każdej chwili zmienić albo wycofać zgody.
+- Reklamy dobiera Google. Treść Twoich tłumaczeń nigdy do nich nie trafia, bo tłumaczenie dzieje się na Twoim urządzeniu.
+
+## v1.0.48 (2026-09-08) — versionCode 49
+
+**Status PRO jest teraz wyliczany, a nie zapisany na stałe.**
+
+- Konto jest PRO tylko wtedy, gdy masz aktywny zakup „Usuń reklamy" (`noAdsUntil` w przyszłości) albo saldo portfela > 0.
+- Po wygaśnięciu `noAdsUntil` przy pustym portfelu konto wraca do Free. Zapisane pole `plan` jest tylko informacyjne.
+
 ## v1.0.47 (2026-09-08) — versionCode 48
 
 **Status konta po wykupieniu „Bez reklam".**

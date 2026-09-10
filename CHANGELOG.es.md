@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.49 (2026-09-09) — versionCode 50
+
+**Anuncios en la versión gratuita, con control total del consentimiento.**
+
+- En la pantalla de traducción aparece ahora un **banner publicitario de Google**. Las cuentas PRO 💎 (compra de eliminación de anuncios o saldo > 0) no ven anuncios: nada cambia para ellas.
+- En el EEE, el Reino Unido y Suiza mostramos un **formulario de consentimiento de Google** en el primer arranque. Los anuncios solo se cargan después de tu decisión, nunca antes.
+- En la tarjeta **Privacidad** de tu perfil añadí **Ajustes de privacidad de anuncios**: puedes cambiar o retirar tu consentimiento en cualquier momento.
+- Los anuncios los sirve Google. El texto de tus traducciones nunca llega a la red publicitaria: la traducción se hace en tu dispositivo.
+
 ## v1.0.48 (2026-09-08) — versionCode 49
 
 **El estado PRO ahora se calcula, no se guarda de forma permanente.**

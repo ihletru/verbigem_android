@@ -1,6 +1,6 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
-> 📦 **Aktualna wersja: `v1.0.47`** (versionCode 48) —
+> 📦 **Aktualna wersja: `v1.0.49`** (versionCode 50) — reklamy banerowe AdMob + zgody UMP —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
 > [Co nowego na stronie (6 języków)](https://mini.verbigem.com/android/changelog.html)
@@ -524,12 +524,21 @@ testowe do końca świata. Przełącznik jest ręczny: obie stałe w `build.grad
 Testowe ID Google'a (`ca-app-pub-3940256099942544/…`) działają z dowolnym App ID i nie
 łamią polityk — można ich używać, póki nie ma prawdziwej jednostki banera.
 
-### ✅ Do domknięcia przed premierą
+### Status: wypuszczone w v1.0.49 (versionCode 50)
 
-1. **Jednostka banera** — AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner;
-   ID wstawić do `admobBannerUnitId`.
-2. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
-   (`AD_ID`) i danych o użytkowaniu. Tylko w konsoli, nic w kodzie.
+ID produkcyjne w `build.gradle.kts` od 2026-09-09. SDK domergował do manifestu dwa
+uprawnienia: `com.google.android.gms.permission.AD_ID` i
+`android.permission.ACCESS_ADSERVICES_AD_ID` — to one wymuszają deklarację Data Safety
+poniżej.
+
+### ⚠️ Do domknięcia (tylko w konsolach, nic w kodzie)
+
+1. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
+   (`AD_ID`) i danych o użytkowaniu. Bez tego kolejne wydanie na produkcję dostanie
+   ostrzeżenie/blokadę.
+2. **AdMob → Aplikacje → Verbigem** — sprawdzić, czy aplikacja jest „gotowa do
+   wyświetlania reklam" (nowa jednostka potrzebuje zwykle kilku godzin, zanim zacznie
+   serwować).
 
 ### Wejście do ustawień prywatności (wymóg dla EOG) — zrobione
 

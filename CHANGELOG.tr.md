@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.49 (2026-09-09) — versionCode 50
+
+**Ücretsiz sürümde reklamlar ve izinler üzerinde tam kontrol.**
+
+- Çeviri ekranında artık bir **Google reklam banner'ı** gösteriliyor. PRO 💎 hesaplar (reklam kaldırma satın alımı veya cüzdan bakiyesi > 0) reklam görmez — onlar için hiçbir şey değişmiyor.
+- AEA, Birleşik Krallık ve İsviçre'de ilk açılışta bir **Google izin formu** gösteriyoruz. Reklamlar yalnızca sen karar verdikten sonra yüklenir, asla önce değil.
+- Profilindeki **Gizlilik** kartına **Reklam gizliliği ayarları** ekledim — iznini istediğin zaman değiştirebilir ya da geri çekebilirsin.
+- Reklamları Google sunar. Çevirdiğin metinler reklam ağına hiç ulaşmaz: çeviri cihazında yapılır.
+
 ## v1.0.48 (2026-09-08) — versionCode 49
 
 **PRO durumu artık sabit kaydedilmiyor, hesaplanıyor.**

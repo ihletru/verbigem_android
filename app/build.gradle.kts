@@ -16,8 +16,8 @@ android {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 49
-        versionName = "1.0.48"
+        versionCode = 50
+        versionName = "1.0.49"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -36,8 +36,7 @@ android {
         // ⚠️ APK dystrybuowany auto-update'm jest buildem DEBUGOWYM, więc NIE WOLNO
         // przełączać tych ID po `BuildConfig.DEBUG` — realni użytkownicy dostawaliby
         // reklamy testowe do końca świata. JEDYNE miejsce do zmiany to dwie stałe
-        // poniżej. `3940256099942544` to testowe ID Google'a: bezpieczne, nie łamią
-        // polityk, nie zarabiają. Podmień oba na ID z konsoli AdMob i tyle.
+        // poniżej. Poniżej są już ID PRODUKCYJNE (od 2026-09-09).
         // App ID Verbigema (AdMob → Aplikacje → identyfikator aplikacji).
         val admobAppId = "ca-app-pub-7473087307651079~4666239941"
         // Jednostka banera (AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner).

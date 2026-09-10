@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.49 (2026-09-09) — versionCode 50
+
+**Ads on the free plan, with full control over consent.**
+
+- A **Google banner ad** now shows on the translation screen. PRO 💎 accounts (ad-removal purchase or wallet balance > 0) see no ads — nothing changes for them.
+- In the EEA, the UK and Switzerland you get a **Google consent form** on first launch. Ads load only after you decide — never before.
+- **Ad privacy settings** were added to the **Privacy** card in your profile, so you can change or withdraw consent at any time.
+- Ads are served by Google. The text you translate never reaches the ad network — translation happens on your device.
+
 ## v1.0.48 (2026-09-08) — versionCode 49
 
 **PRO status is now derived, not stored permanently.**
