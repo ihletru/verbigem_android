@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.57 (2026-09-10) — versionCode 58
+
+**Corregido: el segundo mensaje podía quedarse atascado en «enviando».**
+
+- Si enviabas algo mientras el mensaje anterior todavía se estaba enviando (típico con dos fotos seguidas), el nuevo esperaba al siguiente disparo: que volviera la red o que enviaras otra cosa. Ahora la cola se vacía otra vez justo después, de inmediato.
+- Cuando Leer Pro no podía generar la voz, no hacía nada: ni sonido ni explicación. Ahora dice claramente que ha fallado.
+
+
 ## v1.0.56 (2026-09-10) — versionCode 57
 
 **Corregido: el micrófono se quedaba callado cuando algo fallaba.**

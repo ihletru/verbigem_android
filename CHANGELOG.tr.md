@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.57 (2026-09-10) — versionCode 58
+
+**Düzeltildi: ikinci mesaj «gönderiliyor» durumunda takılı kalabiliyordu.**
+
+- Önceki mesaj hâlâ gönderilirken yeni bir şey gönderdiğinde (art arda iki fotoğrafta tipik), yeni mesaj bir sonraki tetikleyiciyi bekliyordu — ağın dönmesini ya da yeni bir gönderimi. Artık kuyruk hemen ardından kendini bir kez daha boşaltıyor.
+- Read Pro ses üretemediğinde hiçbir şey yapmıyordu: ne ses ne açıklama. Artık başarısız olduğunu açıkça söylüyor.
+
+
 ## v1.0.56 (2026-09-10) — versionCode 57
 
 **Düzeltildi: bir şey ters gittiğinde mikrofon sessiz kalıyordu.**

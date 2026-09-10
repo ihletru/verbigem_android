@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.57 (2026-09-10) — versionCode 58
+
+**Fixed: the second message could get stuck on "sending".**
+
+- When you sent something while a previous message was still on its way (typical with two photos in a row), the new one waited for the next trigger — the network coming back, or another send. Now the queue drains itself again right after, immediately.
+- When Read Pro could not generate speech, it did nothing at all: no sound and no explanation. Now it says plainly that it failed.
+
+
 ## v1.0.56 (2026-09-10) — versionCode 57
 
 **Fixed: the microphone stayed silent when something went wrong.**

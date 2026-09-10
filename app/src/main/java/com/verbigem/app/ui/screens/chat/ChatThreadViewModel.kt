@@ -95,6 +95,13 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private var lastTypingWrite = 0L
     private var typingStopJob: Job? = null
     private var flushing = false
+    /**
+     * Ktoś dodał wiersz w trakcie opróżniania kolejki. Bez tego znacznika taki
+     * wiersz (drugie zdjęcie wysłane, gdy pierwsze się jeszcze uploaduje) zostaje
+     * na „🕓 wysyłanie" do następnego wyzwalacza — powrotu sieci albo kolejnej
+     * wysyłki. Z nim: opróżnianie dopina kolejkę raz jeszcze, od razu.
+     */
+    private var reflush = false
     private var olderExhausted = false
 
     /**
@@ -483,7 +490,12 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
      */
     fun flushOutbox() {
         val id = chatId ?: return
-        if (flushing) return
+        // Trwa już opróżnianie: nie dokładamy się do niego (to by mogło wysłać dwa
+        // razy to samo), tylko zaznaczamy, że po nim trzeba przejść kolejkę jeszcze raz.
+        if (flushing) {
+            reflush = true
+            return
+        }
         flushing = true
         viewModelScope.launch {
             try {
@@ -499,6 +511,12 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 }
             } finally {
                 flushing = false
+                // Wiersze dodane w trakcie (np. drugie zdjęcie) — dopinamy od razu,
+                // zamiast czekać na powrót sieci albo następną wysyłkę.
+                if (reflush) {
+                    reflush = false
+                    flushOutbox()
+                }
             }
         }
     }
@@ -722,6 +740,8 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 proTtsEngine.speak(text, LangCode.fromCode(langCode), config)
             } catch (e: Exception) {
                 Log.w(TAG, "Pro TTS failed", e)
+                // Płatna funkcja, która po cichu nic nie robi, wygląda na oszustwo.
+                showMessage(R.string.read_pro_failed)
             }
         }
     }

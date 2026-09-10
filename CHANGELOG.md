@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.57 (2026-09-10) — versionCode 58
+
+**Naprawione: druga wiadomość potrafiła utknąć na „wysyłanie".**
+
+- Kiedy wysyłałeś coś, a poprzednia wiadomość jeszcze się wysyłała (typowe przy dwóch zdjęciach pod rząd), nowa czekała na następny impuls — powrót sieci albo kolejną wysyłkę. Teraz kolejka dopina się sama, od razu po tamtej.
+- Czytaj Pro, gdy nie udało się wygenerować mowy, nie robiło nic — ani dźwięku, ani słowa wyjaśnienia. Teraz mówi wprost, że się nie udało.
+
+
 ## v1.0.56 (2026-09-10) — versionCode 57
 
 **Naprawione: mikrofon milczał, gdy coś nie działało.**

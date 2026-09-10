@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.57 (2026-09-10) — versionCode 58
+
+**Behoben: Die zweite Nachricht konnte auf „wird gesendet" hängen bleiben.**
+
+- Wenn du etwas gesendet hast, während die vorherige Nachricht noch unterwegs war (typisch bei zwei Fotos hintereinander), wartete die neue auf den nächsten Auslöser — auf das Netz oder auf das nächste Senden. Jetzt leert sich die Warteschlange direkt danach noch einmal von selbst.
+- Wenn „Vorlesen Pro" keine Sprache erzeugen konnte, passierte gar nichts: kein Ton und keine Erklärung. Jetzt sagt die App direkt, dass es nicht geklappt hat.
+
+
 ## v1.0.56 (2026-09-10) — versionCode 57
 
 **Behoben: Das Mikrofon schwieg, wenn etwas schiefging.**
