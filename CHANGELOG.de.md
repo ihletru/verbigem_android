@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.55 (2026-09-10) — versionCode 56
+
+**Behoben: Ein Foto oder eine Sprachnachricht, die nicht gesendet werden konnte, verschwand spurlos.**
+
+- Eine normale Textnachricht landet in einer lokalen Warteschlange: Fällt das Netz aus, bekommst du eine rote Sprechblase „nicht gesendet" mit einem Wiederholen-Button. Fotos und Sprachnachrichten liefen bisher an dieser Warteschlange vorbei — bei einem Fehler gab es weder Sprechblase noch Hinweis. Die Nachricht war einfach weg, und der einzige Rest stand im Systemprotokoll.
+- Fotos und Sprachnachrichten gehen jetzt durch dieselbe Warteschlange wie Text: Die Sprechblase erscheint sofort (mit einer Miniatur direkt aus dem Telefonspeicher oder mit der Transkription), und nach einem Fehlversuch erscheinen „nicht gesendet" und „wiederholen" — genau wie bei einer Textnachricht. Beim Wiederholen musst du das Foto nicht erneut auswählen.
+- Erfordert eine einmalige Migration der lokalen Datenbank (v9 → v10). Es geht nichts verloren.
+
+
 ## v1.0.54 (2026-09-10) — versionCode 55
 
 **Behoben: Fehlermeldungen waren unabhängig von der App-Sprache polnisch (oder englisch).**

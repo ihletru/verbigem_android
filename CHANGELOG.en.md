@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.55 (2026-09-10) — versionCode 56
+
+**Fixed: a photo or voice message that failed to send used to disappear without a trace.**
+
+- A plain text message goes into a local queue: when the network drops you get a red "not sent" bubble with a retry button. Photos and voice messages used to bypass that queue — on failure there was no bubble and no message of any kind. It simply vanished, and the only trace was a line in the system log.
+- Photos and voice messages now go through the same queue as text: the bubble appears immediately (with a thumbnail straight from the phone, or with the transcript), and after a failed send it gets "not sent" and "retry" — exactly like a text message. Retrying does not ask you to pick the photo again.
+- Requires a one-off local database migration (v9 → v10). Nothing is lost.
+
+
 ## v1.0.54 (2026-09-10) — versionCode 55
 
 **Fixed: error messages were in Polish (or English) regardless of the app language.**

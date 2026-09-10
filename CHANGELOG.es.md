@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.55 (2026-09-10) — versionCode 56
+
+**Corregido: una foto o un mensaje de voz que no se enviaba desaparecía sin dejar rastro.**
+
+- Un mensaje de texto normal entra en una cola local: si falla la red, aparece un globo rojo «no enviado» con un botón de reintento. Las fotos y los mensajes de voz iban antes por fuera de esa cola: si fallaban no había globo ni aviso de ningún tipo. El mensaje simplemente desaparecía y lo único que quedaba era una línea en el registro del sistema.
+- Ahora las fotos y los mensajes de voz pasan por la misma cola que el texto: el globo aparece de inmediato (con una miniatura directamente del teléfono o con la transcripción) y, si el envío falla, muestra «no enviado» y «reintentar», igual que un mensaje de texto. Al reintentar no hace falta volver a elegir la foto.
+- Requiere una migración única de la base de datos local (v9 → v10). No se pierde nada.
+
+
 ## v1.0.54 (2026-09-10) — versionCode 55
 
 **Corregido: los mensajes de error salían en polaco (o en inglés) sin importar el idioma de la aplicación.**

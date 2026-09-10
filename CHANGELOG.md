@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.55 (2026-09-10) — versionCode 56
+
+**Naprawione: nieudane wysłanie zdjęcia albo głosówki znikało bez śladu.**
+
+- Zwykła wiadomość tekstowa trafia do lokalnej kolejki: gdy padnie sieć, dostajesz czerwony dymek „nie wysłano" z przyciskiem ponawiania. Zdjęcie i głosówka szły dotąd obok tej kolejki — przy błędzie nie było ani dymka, ani komunikatu. Wiadomość po prostu znikała, a jedyny ślad zostawał w logu systemowym.
+- Teraz zdjęcie i głosówka idą przez tę samą kolejkę co tekst: dymek pojawia się od razu (z miniaturą z pamięci telefonu albo z transkrypcją), a po nieudanej wysyłce dostaje „nie wysłano" i „ponów" — dokładnie tak jak wiadomość tekstowa. Ponawianie nie prosi o wybranie zdjęcia jeszcze raz.
+- Wymaga jednorazowej migracji lokalnej bazy (v9 → v10). Nic nie ginie.
+
+
 ## v1.0.54 (2026-09-10) — versionCode 55
 
 **Naprawione: komunikaty błędów były po polsku (albo po angielsku) bez względu na język aplikacji.**

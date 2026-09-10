@@ -23,7 +23,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ExternalOutboxEntity::class,
         GlossaryEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -281,6 +281,50 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v9 -> v10: the outbox stops being text-only (README §5.4).
+        //
+        // Until now a photo or a voice message was uploaded OUTSIDE the outbox, in a
+        // bare try/catch: when it failed, the only trace was a line in logcat and the
+        // message vanished from the user's thread. Queuing them gives them the same
+        // fate as a text message — a red bubble and "retry" instead of silence.
+        //
+        // ⚠️ SQLite cannot ADD COLUMN as NOT NULL without a DEFAULT, hence the defaults
+        // below. Room tolerates a DEFAULT clause it does not expect: it only compares
+        // defaultValue when the ENTITY declares one via @ColumnInfo, and here the
+        // Kotlin `= ""` / `= "text"` initialisers are NOT column defaults, so the
+        // generated column carries `null` (see MIGRATION_7_8, same pattern shipped).
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // `hasColumn` guard: an interrupted v8->v9 run can leave a device that
+                // already got part of this. ALTER TABLE has no IF NOT EXISTS.
+                if (!hasColumn(db, "chat_outbox", "type")) {
+                    db.execSQL(
+                        "ALTER TABLE chat_outbox ADD COLUMN type TEXT NOT NULL DEFAULT 'text'"
+                    )
+                }
+                if (!hasColumn(db, "chat_outbox", "attachmentUrl")) {
+                    db.execSQL(
+                        "ALTER TABLE chat_outbox ADD COLUMN attachmentUrl TEXT NOT NULL DEFAULT ''"
+                    )
+                }
+                if (!hasColumn(db, "chat_outbox", "localUri")) {
+                    db.execSQL(
+                        "ALTER TABLE chat_outbox ADD COLUMN localUri TEXT NOT NULL DEFAULT ''"
+                    )
+                }
+                if (!hasColumn(db, "chat_outbox", "transcript")) {
+                    db.execSQL(
+                        "ALTER TABLE chat_outbox ADD COLUMN transcript TEXT NOT NULL DEFAULT ''"
+                    )
+                }
+                if (!hasColumn(db, "chat_outbox", "ocrText")) {
+                    db.execSQL(
+                        "ALTER TABLE chat_outbox ADD COLUMN ocrText TEXT NOT NULL DEFAULT ''"
+                    )
+                }
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -295,7 +339,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6,
                     MIGRATION_6_7,
                     MIGRATION_7_8,
-                    MIGRATION_8_9
+                    MIGRATION_8_9,
+                    MIGRATION_9_10
                 ).build().also { instance = it }
             }
         }

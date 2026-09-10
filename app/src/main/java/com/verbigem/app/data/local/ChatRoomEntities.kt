@@ -27,6 +27,18 @@ data class ChatTranslationEntity(
  * flushes the queue when the network is available. `clientMsgId` doubles as the
  * Firestore document id, so a flush that runs twice (network flap, reconnect while
  * the thread is open) can never create a duplicate message.
+ *
+ * Since v10 the queue is not text-only: a photo or a voice message is queued the
+ * same way, so a failed upload gets the same red "failed / retry" bubble instead of
+ * disappearing into logcat (README §5.4). `type` decides what the flush has to do
+ * before it can write the Firestore document:
+ *
+ *   text  — translate the hint and send. `text` is the message body.
+ *   image — upload `localUri` to Storage first, run OCR on the device, then send
+ *           with `attachmentUrl` + `ocrText`. `attachmentUrl` stays empty until the
+ *           upload succeeds; the pending bubble shows `localUri` instead.
+ *   audio — `transcript` is the body (STT runs live, there is no audio file to
+ *           upload — see `sendVoice`).
  */
 @Entity(tableName = "chat_outbox", primaryKeys = ["clientMsgId"])
 data class ChatOutboxEntity(
@@ -37,7 +49,22 @@ data class ChatOutboxEntity(
     val createdAt: Long = System.currentTimeMillis(),
     /** pending | failed — successfully sent rows are deleted from the table. */
     val status: String = "pending",
-    val attempts: Int = 0
+    val attempts: Int = 0,
+    /** text | image | audio */
+    val type: String = "text",
+    /** Remote https URL after upload. Empty while pending — see `localUri`. */
+    val attachmentUrl: String = "",
+    /**
+     * `content://` URI picked from the gallery (type = "image" only).
+     * Kept so a retry after a failed upload does not have to ask the user to
+     * pick the photo again. The read grant dies with the process, so a retry
+     * after a restart can still fail — that is a "failed" bubble, not a crash.
+     */
+    val localUri: String = "",
+    /** Live STT result (type = "audio"). */
+    val transcript: String = "",
+    /** Text recognised in the photo on the sender's device (type = "image"). */
+    val ocrText: String = ""
 )
 
 /**

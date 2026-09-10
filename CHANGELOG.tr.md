@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.55 (2026-09-10) — versionCode 56
+
+**Düzeltildi: gönderilemeyen fotoğraf ya da sesli mesaf iz bırakmadan kayboluyordu.**
+
+- Normal bir metin mesajı yerel kuyruğa girer: ağ düştüğünde kırmızı bir «gönderilmedi» balonu ve yanında yeniden dene düğmesi görürsün. Fotoğraflar ve sesli mesaf bu kuyruğun dışından gidiyordu; hata olduğunda ne balon ne de uyarı vardı. Mesaf sadece kayboluyor, geriye sistem günlüğünde tek bir satır kalıyordu.
+- Artık fotoğraflar ve sesli mesaf metinle aynı kuyruktan gidiyor: balon hemen görünüyor (telefonun hafızasındaki küçük resimle ya da transkriptle) ve gönderim başarısız olursa tıpkı metin mesafında olduğu gibi «gönderilmedi» ve «yeniden dene» çıkıyor. Yeniden denemek fotoğrafı tekrar seçmeni istemiyor.
+- Tek seferlik yerel veritabanı geçişi gerektirir (v9 → v10). Hiçbir şey kaybolmaz.
+
+
 ## v1.0.54 (2026-09-10) — versionCode 55
 
 **Düzeltildi: hata mesajları uygulama diline bakılmadan Lehçe (veya İngilizce) çıkıyordu.**

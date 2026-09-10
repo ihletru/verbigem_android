@@ -344,52 +344,29 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     /**
-     * Faza 5.2: wysyła zdjęcie. Kolejność: upload do Storage → OCR na urządzeniu
-     * nadawcy (wynik idzie do `ocrText`, by odbiorca mógł go przetłumaczyć) →
-     * wysyłka dokumentu wiadomości z `type = "image"`, `attachmentUrl` i `ocrText`.
-     * `msgId` to `clientMsgId`, więc ścieżka Storage i dokument wiadomości się zgadzają.
+     * Faza 5.2 (+ 5.4): kolejkuje zdjęcie — nie wysyła go tu.
+     *
+     * Do v1.0.54 upload szedł w gołym try/catch obok kolejki: jak sieć padła, jedynym
+     * śladem była linia w logcat, a zdjęcie znikało z wątku. Teraz wstawiamy wiersz
+     * z `type = "image"` i `localUri`, więc dymek pojawia się od razu z miniaturą z
+     * pamięci telefonu, a [flushOutbox] robi upload → OCR → wysyłkę. Nieudany upload
+     * dostaje czerwony dymek „nie wysłano / ponów" dokładnie jak zwykły tekst.
      */
     fun sendImage(uri: Uri) {
         val id = chatId ?: return
         if (currentUid.isBlank()) return
         val clientMsgId = UUID.randomUUID().toString()
         viewModelScope.launch {
-            try {
-                val url = storageRepository.uploadAttachment(id, clientMsgId, uri, "image/*")
-                // OCR jest opcjonalny — nieudany OCR nie blokuje wysyłki zdjęcia.
-                val ocr = try {
-                    ocrManager.recognizeText(uri)
-                } catch (e: Exception) {
-                    Log.w(TAG, "OCR rozpoznawania tekstu nie powiodło się", e)
-                    ""
-                }
-                val target = _otherLang.value
-                val hint = if (ocr.isNotBlank()) {
-                    try {
-                        translationMutex.withLock {
-                            hyMt2Engine.translateSegmented(ocr, LangCode.fromCode(_myLang.value.code), target)
-                        }
-                    } catch (e: Exception) {
-                        Log.w(TAG, "OCR hint translation failed", e)
-                        ""
-                    }
-                } else ""
-                chatRepository.sendMessage(
-                    chatId = id,
-                    authorId = currentUid,
-                    text = "",
-                    sourceLang = _myLang.value.code,
-                    hintLang = target.code,
-                    hintText = hint,
+            outboxDao.insert(
+                ChatOutboxEntity(
                     clientMsgId = clientMsgId,
+                    chatId = id,
+                    sourceLang = _myLang.value.code,
                     type = "image",
-                    attachmentUrl = url,
-                    ocrText = ocr
+                    localUri = uri.toString()
                 )
-            } catch (e: Exception) {
-                Log.w(TAG, "sendImage failed for $clientMsgId", e)
-                // TODO 5.4: obsługa błędu (retry) — na razie tylko log.
-            }
+            )
+            flushOutbox()
         }
     }
 
@@ -434,40 +411,25 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     /**
-     * Faza 5.3: wysyła głosówkę. `transcript` to przetranskrybowany tekst (w języku
-     * nadawcy); liczymy też podpowiedź w języku odbiorcy (jak przy zwykłym tekście),
-     * by odbiorca widział coś zanim jego model przetłumaczy `transcript`.
+     * Faza 5.3 (+ 5.4): kolejkuje głosówkę. `transcript` to przetranskrybowany tekst
+     * (w języku nadawcy); podpowiedź w języku odbiorcy liczy [flushOutbox], by
+     * odbiorca widział coś zanim jego model przetłumaczy `transcript`.
      */
     private fun sendVoice(transcript: String) {
         val id = chatId ?: return
         if (currentUid.isBlank()) return
         val clientMsgId = UUID.randomUUID().toString()
         viewModelScope.launch {
-            try {
-                val target = _otherLang.value
-                val hint = try {
-                    translationMutex.withLock {
-                        hyMt2Engine.translateSegmented(transcript, LangCode.fromCode(_myLang.value.code), target)
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Voice hint translation failed", e)
-                    ""
-                }
-                chatRepository.sendMessage(
-                    chatId = id,
-                    authorId = currentUid,
-                    text = "",
-                    sourceLang = _myLang.value.code,
-                    hintLang = target.code,
-                    hintText = hint,
+            outboxDao.insert(
+                ChatOutboxEntity(
                     clientMsgId = clientMsgId,
+                    chatId = id,
+                    sourceLang = _myLang.value.code,
                     type = "audio",
                     transcript = transcript
                 )
-            } catch (e: Exception) {
-                Log.w(TAG, "sendVoice failed for $clientMsgId", e)
-                // TODO 5.4: obsługa błędu (retry) — na razie tylko log.
-            }
+            )
+            flushOutbox()
         }
     }
 
@@ -485,6 +447,10 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * Drains the local outbox. Uses `set()` on a client-generated document id, so
      * running it twice (reconnect while the thread is open) cannot duplicate anything.
+     *
+     * Every kind of row ends in the same two outcomes: deleted on success, marked
+     * `failed` on error. That is what gives a photo the same red "retry" bubble as a
+     * text message instead of the silence of pre-1.0.55 builds (README §5.4).
      */
     fun flushOutbox() {
         val id = chatId ?: return
@@ -495,40 +461,102 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 val rows = outboxDao.all().filter { it.chatId == id }
                 for (row in rows) {
                     try {
-                        val source = LangCode.fromCode(row.sourceLang)
-                        val target = _otherLang.value
-                        val hint = if (source == target) {
-                            row.text
-                        } else {
-                            try {
-                                translationMutex.withLock {
-                                    hyMt2Engine.translateSegmented(row.text, source, target)
-                                }
-                            } catch (e: Exception) {
-                                // No model (or it failed): send the original alone.
-                                // The receiver translates it on their own device anyway.
-                                Log.w(TAG, "Sender hint translation failed", e)
-                                ""
-                            }
-                        }
-                        chatRepository.sendMessage(
-                            chatId = id,
-                            authorId = currentUid,
-                            text = row.text,
-                            sourceLang = row.sourceLang,
-                            hintLang = target.code,
-                            hintText = hint,
-                            clientMsgId = row.clientMsgId
-                        )
+                        flushRow(id, row)
                         outboxDao.delete(row.clientMsgId)
                     } catch (e: Exception) {
-                        Log.w(TAG, "Send failed for ${row.clientMsgId}", e)
+                        Log.w(TAG, "Send failed for ${row.clientMsgId} (${row.type})", e)
                         outboxDao.updateStatus(row.clientMsgId, "failed", row.attempts + 1)
                     }
                 }
             } finally {
                 flushing = false
             }
+        }
+    }
+
+    /** Wysyła jeden wiersz kolejki; rzuca, gdy się nie uda — patrz [flushOutbox]. */
+    private suspend fun flushRow(chatId: String, row: ChatOutboxEntity) {
+        val source = LangCode.fromCode(row.sourceLang)
+        val target = _otherLang.value
+        when (row.type) {
+            "image" -> sendImageRow(chatId, row, source, target)
+            "audio" -> sendAudioRow(chatId, row, source, target)
+            else -> chatRepository.sendMessage(
+                chatId = chatId,
+                authorId = currentUid,
+                text = row.text,
+                sourceLang = row.sourceLang,
+                hintLang = target.code,
+                hintText = translateHint(row.text, source, target),
+                clientMsgId = row.clientMsgId
+            )
+        }
+    }
+
+    /** Upload do Storage → OCR na urządzeniu → wysyłka dokumentu `type = "image"`. */
+    private suspend fun sendImageRow(
+        chatId: String,
+        row: ChatOutboxEntity,
+        source: LangCode,
+        target: LangCode
+    ) {
+        val uri = Uri.parse(row.localUri)
+        // clientMsgId jako nazwa pliku → ponowiona wysyłka nadpisuje tę samą ścieżkę,
+        // więc retry nie mnoży zdjęć w Storage.
+        val url = storageRepository.uploadAttachment(chatId, row.clientMsgId, uri, "image/*")
+        // OCR jest opcjonalny — nieudany OCR nie blokuje wysyłki zdjęcia.
+        val ocr = try {
+            ocrManager.recognizeText(uri)
+        } catch (e: Exception) {
+            Log.w(TAG, "OCR rozpoznawania tekstu nie powiodło się", e)
+            ""
+        }
+        chatRepository.sendMessage(
+            chatId = chatId,
+            authorId = currentUid,
+            text = "",
+            sourceLang = row.sourceLang,
+            hintLang = target.code,
+            hintText = translateHint(ocr, source, target),
+            clientMsgId = row.clientMsgId,
+            type = "image",
+            attachmentUrl = url,
+            ocrText = ocr
+        )
+    }
+
+    /** Głosówka: pliku audio nie ma (STT biegnie na żywo), więc leci sam `transcript`. */
+    private suspend fun sendAudioRow(
+        chatId: String,
+        row: ChatOutboxEntity,
+        source: LangCode,
+        target: LangCode
+    ) {
+        chatRepository.sendMessage(
+            chatId = chatId,
+            authorId = currentUid,
+            text = "",
+            sourceLang = row.sourceLang,
+            hintLang = target.code,
+            hintText = translateHint(row.transcript, source, target),
+            clientMsgId = row.clientMsgId,
+            type = "audio",
+            transcript = row.transcript
+        )
+    }
+
+    /**
+     * Podpowiedź w języku odbiorcy, liczona na urządzeniu nadawcy (Hy-MT2).
+     * Czystsza wersja „przetłumacz albo odpuść": brak modelu nie blokuje wysyłki,
+     * bo odbiorca i tak tłumaczy u siebie.
+     */
+    private suspend fun translateHint(text: String, source: LangCode, target: LangCode): String {
+        if (text.isBlank() || source == target) return text
+        return try {
+            translationMutex.withLock { hyMt2Engine.translateSegmented(text, source, target) }
+        } catch (e: Exception) {
+            Log.w(TAG, "Sender hint translation failed", e)
+            ""
         }
     }
 
@@ -702,11 +730,23 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         val pendingBubbles = _pendingRows.value.map { row ->
             ChatBubble(
                 id = row.clientMsgId,
-                text = row.text,
+                // Ten sam wybór co przy wiadomościach z Firestore: głosówka niesie
+                // transkrypcję, zdjęcie — OCR. Dzięki temu dymek w kolejce wygląda
+                // i tłumaczy się identycznie jak ten już wysłany.
+                text = when {
+                    row.type == "audio" -> row.transcript
+                    row.type == "image" -> row.ocrText
+                    else -> row.text
+                },
                 sourceLang = row.sourceLang,
                 isMine = true,
                 createdAt = row.createdAt,
-                status = if (row.attempts > 0) BubbleStatus.FAILED else BubbleStatus.SENDING
+                status = if (row.attempts > 0) BubbleStatus.FAILED else BubbleStatus.SENDING,
+                // Zdjęcie w kolejce nie ma jeszcze URL-a ze Storage — pokazujemy
+                // miniaturę prosto z pamięci telefonu (Coil ładuje content://).
+                attachmentUrl = row.localUri.ifBlank { row.attachmentUrl },
+                ocrText = row.ocrText,
+                type = row.type
             )
         }
         _bubbles.value = (remoteBubbles + pendingBubbles).sortedBy { it.createdAt }
