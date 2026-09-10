@@ -1,6 +1,6 @@
 # Verbigem — English release notes (What's new) for Google Play
 
-Wersja: **1.0.60** (versionCode 61). Tekst do wklejenia w Play Console →
+Wersja: **1.0.62** (versionCode 62). Tekst do wklejenia w Play Console →
 Release details → Release notes (język: English). Źródło: `CHANGELOG.en.md`.
 
 ---
@@ -8,8 +8,8 @@ Release details → Release notes (język: English). Źródło: `CHANGELOG.en.md
 ## Short (recommended for the "What's new" box, ≤ 500 characters)
 
 ```
-Verbigem 1.0.60 — build updated to target Android 16 (API 36) for Google Play.
-No user-visible changes.
+Verbigem 1.0.62 — fixes a crash on launch that affected Android 14 and newer
+devices. The app now starts normally.
 ```
 
 ---
@@ -17,19 +17,23 @@ No user-visible changes.
 ## Extended (gdy chcesz dać szerszy kontekst)
 
 ```
-Verbigem 1.0.60
+Verbigem 1.0.62
 
-This release updates the build target to Android 16 (API 36), as required by
-Google Play for new apps since 2026-08-31. There are no code changes and no
-behavioural differences for end users — the app keeps its previous features
-(offline translation & OCR with on-device AI, optional online mode, chats,
-contacts, etc.). This is a build-config-only release.
+Fixed: the app crashed immediately on launch on Android 14 and above.
+
+A field on the main screen was being initialised before Android had finished
+attaching the application, so the app had no context to work with. Older
+Android versions tolerated it; Android 14+ throws an error and the app closes
+before showing anything.
+
+The field is now created only when it is actually needed.
 ```
 
 ---
 
 ## Per-version (dokładnie z CHANGELOG.en.md, gdybyś chciał wypisać historię)
 
+- **1.0.62** — Fixed: the app crashed on launch on newer phones (Android 14+).
 - **1.0.60** — Build: compile/target SDK raised to API 36 (Android 16).
   Google Play requires new apps to target API 36 since 2026-08-31; build target
   only, no code changes.

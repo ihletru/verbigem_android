@@ -61,7 +61,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesManager: PreferencesManager
-    private val updateManager = UpdateManager(applicationContext)
+    private val updateManager by lazy { UpdateManager(applicationContext) }
 
     // Update-check gate state now lives in [updateGateController] (process-wide) so a
     // configuration change (e.g. rotation) does not restart the check — see StartupGate.

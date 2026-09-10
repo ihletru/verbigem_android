@@ -7,6 +7,10 @@
 
 > ℹ️ Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
 > Tagi `v1.0.1`–`v1.0.3` to wczesne buildy historyczne (versionCode 2–3).
+> 🔢 **Konwencja od 2026-09-10: `versionCode` = patch w `versionName`** (62 → `1.0.62`).
+> Wcześniej było `1.0.(code-1)` (61 → `1.0.60`) — rozjeżdżało numerki, porzucone.
+> 🏪 **Google Play (flavor `play`):** wgrany AAB to **1.0.62 (versionCode 62)** — test wewnętrzny.
+> `versionCode` w Play **musi rosnąć** — nie da się nadpisać już opublikowanej wersji.
 
 Natywna aplikacja na system Android stworzona w **100% w języku Kotlin** z wykorzystaniem **Jetpack Compose** oraz dedykowanego, natywnego silnika wnioskowania **Hy-MT2-1.8B** (Tencent Hunyuan) w formacie **GGUF** przez mostek **C++/JNI (llama.cpp NDK)** z akceleracją sprzętową ARM NEON oraz Vulkan GPU.
 
@@ -947,7 +951,7 @@ Uprawnienie `POST_NOTIFICATIONS` (Android 13+) jest proszone **raz, przy pierwsz
 
 Poniższa lista to **JEDYNE źródło prawdy** dla wypuszczania wersji (wcześniejsza wersja skrótu błędnie kazała edytować `dist/android/version.json` ręcznie, co rozjeżdżało się z generowaniem pliku przez Vite). **Zanim wykonasz kroki, przeczytaj pułapki wyżej:** „⚠️ Źródło pliku update — DWA pliki, nie pomyl", „⚠️ Pułapka: `immutable` cache na `/android/**`", „⚠️ `mini.verbigem.com` to TA SAMA webapp".
 
-1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts` (konwencja: `versionName` = `1.0.(versionCode - 1)`, np. code 25 → name `1.0.24`).
+1. Podbić `versionCode`/`versionName` w `app/build.gradle.kts`. **Konwencja (zmieniona 2026-09-10): `versionCode` = numer patch w `versionName`** — code 62 → name `1.0.62`. (Stara, porzucona konwencja `1.0.(code-1)` rozjeżdżała numerki i została odrzucona.)
 2. Build APK → `app/build/outputs/apk/debug/app-debug.apk`. Preferowana komenda (bezpośrednio przez wrapper Javy — w niektórych środowiskach `cmd.exe` jest blokowany i `gradlew.bat` nie przejdzie):
    ```bash
    JAVA_HOME="C:/Users/milo/.jdks/jbr-21.0.11" ANDROID_HOME="C:/Users/milo/AppData/Local/Android/Sdk" \

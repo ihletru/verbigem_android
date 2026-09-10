@@ -1,5 +1,11 @@
 # Play Console — co wypełnić (gotowe do skopiowania)
 
+> ⚠️ **NIEAKTUALNY — nie używaj tego pliku.**
+> Pisałem go z głowy pod ścieżkę **Closed testing** (12 testerów × 14 dni), a
+> poszliśmy ścieżką **Test wewnętrzny (Internal testing)**. Nazwy menu i
+> wymagania okazały się niezgodne z rzeczywistością.
+> **Zamiast niego: `PLAY_INTERNAL_TESTING.md`.**
+
 Przewodnik krok po kroku do wypełnienia w Google Play Console. AAB jest już zbudowany
 (`app/build/outputs/bundle/playRelease/app-play-release.aab`, pakiet `com.verbigem.app`).
 
