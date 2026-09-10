@@ -53,7 +53,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         val em = _email.value.trim()
         val pass = _password.value.trim()
         if (em.isBlank() || pass.length < 6) {
-            _errorMessage.value = "Hasło musi mieć co najmniej 6 znaków"
+            _errorMessage.value = getApplication<Application>().getString(R.string.auth_error_password)
             return
         }
 
@@ -69,7 +69,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 onSuccess()
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "Błąd logowania"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.auth_error_login)
             } finally {
                 _isLoading.value = false
             }
@@ -103,11 +104,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     authRepository.signInWithGoogle(googleIdTokenCredential.idToken)
                     onSuccess()
                 } else {
-                    _errorMessage.value = "Nieobsługiwany typ poświadczenia"
+                    _errorMessage.value = getApplication<Application>()
+                        .getString(R.string.auth_error_unsupported_credential)
                 }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Google Sign-in failed", e)
-                _errorMessage.value = e.localizedMessage ?: "Błąd logowania przez Google"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.auth_error_google)
             } finally {
                 _isLoading.value = false
             }

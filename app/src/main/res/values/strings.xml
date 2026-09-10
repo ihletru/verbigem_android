@@ -573,4 +573,14 @@
     <string name="noads_10">$10 · 10 mo</string>
     <string name="noads_resume_in">Ads return in %1$d days</string>
     <string name="noads_resume_in_one">Ads return in %1$d day</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">Sign-in failed</string>
+    <string name="auth_error_unsupported_credential">Unsupported sign-in method</string>
+    <string name="auth_error_google">Google sign-in failed</string>
+    <string name="conv_error_translation">Translation failed in conversation mode</string>
+    <string name="ocr_error_recognition">Text recognition failed</string>
+    <string name="translation_error_generic">Translation failed</string>
+    <string name="read_pro_not_configured">Read Pro is not set up yet</string>
+    <string name="read_pro_failed">Read Pro failed</string>
 </resources>

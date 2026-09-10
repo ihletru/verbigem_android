@@ -550,4 +550,14 @@
     <string name="noads_10">$10 · 10 个月</string>
     <string name="noads_resume_in">广告将在 %1$d 天后恢复</string>
     <string name="noads_resume_in_one">广告将在 %1$d 天后恢复</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">登录失败</string>
+    <string name="auth_error_unsupported_credential">不支持的登录方式</string>
+    <string name="auth_error_google">Google 登录失败</string>
+    <string name="conv_error_translation">对话模式翻译失败</string>
+    <string name="ocr_error_recognition">文字识别失败</string>
+    <string name="translation_error_generic">翻译失败</string>
+    <string name="read_pro_not_configured">朗读 Pro 尚未配置</string>
+    <string name="read_pro_failed">朗读 Pro 失败</string>
 </resources>

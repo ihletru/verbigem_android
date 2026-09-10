@@ -3,6 +3,7 @@ package com.verbigem.app.ui.screens.conversation
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.verbigem.app.R
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.engine.HyMt2NativeEngine
@@ -138,7 +139,8 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
                 // Flip side
                 _currentSide.value = if (_currentSide.value == ConvSide.SIDE_A) ConvSide.SIDE_B else ConvSide.SIDE_A
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "Błąd tłumaczenia w trybie rozmowy"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.conv_error_translation)
             } finally {
                 _isTranslating.value = false
             }

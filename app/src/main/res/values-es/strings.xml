@@ -550,4 +550,14 @@
     <string name="noads_10">$10 · 10 meses</string>
     <string name="noads_resume_in">Los anuncios vuelven en %1$d días</string>
     <string name="noads_resume_in_one">Los anuncios vuelven en %1$d día</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">Error al iniciar sesión</string>
+    <string name="auth_error_unsupported_credential">Método de inicio de sesión no compatible</string>
+    <string name="auth_error_google">Error al iniciar sesión con Google</string>
+    <string name="conv_error_translation">Error de traducción en el modo conversación</string>
+    <string name="ocr_error_recognition">Error al reconocer el texto</string>
+    <string name="translation_error_generic">Error de traducción</string>
+    <string name="read_pro_not_configured">Lectura Pro todavía no está configurada</string>
+    <string name="read_pro_failed">La lectura Pro ha fallado</string>
 </resources>

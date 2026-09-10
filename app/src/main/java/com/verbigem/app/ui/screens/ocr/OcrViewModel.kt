@@ -282,7 +282,8 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 _recognizedText.value = extracted
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "OCR recognition error"
+                _errorMessage.value = e.localizedMessage
+                    ?: appContext.getString(R.string.ocr_error_recognition)
             } finally {
                 _isProcessing.value = false
             }
@@ -375,7 +376,8 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "Translation error"
+                _errorMessage.value = e.localizedMessage
+                    ?: appContext.getString(R.string.translation_error_generic)
             } finally {
                 _isProcessing.value = false
             }
@@ -414,7 +416,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun speakPro(text: String) {
         if (!_isPro.value || text.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = "Read Pro is not configured"
+            _errorMessage.value = appContext.getString(R.string.read_pro_not_configured)
             return
         }
         _resultSpeakingPro.value = true
@@ -427,7 +429,8 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                 proTtsEngine.speak(text, _targetLang.value, ttsConfig)
             } catch (e: Exception) {
                 _resultSpeakingPro.value = false
-                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+                _errorMessage.value = e.localizedMessage
+                    ?: appContext.getString(R.string.read_pro_failed)
             }
         }
     }
@@ -445,7 +448,7 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
     fun speakProHistory(item: TranslationHistory) {
         if (!_isPro.value || item.translatedText.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = "Read Pro is not configured"
+            _errorMessage.value = appContext.getString(R.string.read_pro_not_configured)
             return
         }
         _speakingProSyncId.value = item.syncId
@@ -457,7 +460,8 @@ class OcrViewModel(application: Application) : AndroidViewModel(application) {
                 proTtsEngine.speak(item.translatedText, LangCode.fromCode(item.targetLang), ttsConfig)
             } catch (e: Exception) {
                 _speakingProSyncId.value = null
-                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+                _errorMessage.value = e.localizedMessage
+                    ?: appContext.getString(R.string.read_pro_failed)
             }
         }
     }

@@ -550,4 +550,14 @@
     <string name="noads_10">$10 · 10 ay</string>
     <string name="noads_resume_in">Reklamlar %1$d gün sonra geri döner</string>
     <string name="noads_resume_in_one">Reklamlar %1$d gün sonra geri döner</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">Giriş başarısız</string>
+    <string name="auth_error_unsupported_credential">Desteklenmeyen giriş yöntemi</string>
+    <string name="auth_error_google">Google ile giriş başarısız</string>
+    <string name="conv_error_translation">Sohbet modunda çeviri hatası</string>
+    <string name="ocr_error_recognition">Metin tanıma başarısız</string>
+    <string name="translation_error_generic">Çeviri başarısız</string>
+    <string name="read_pro_not_configured">Pro Okuma henüz yapılandırılmadı</string>
+    <string name="read_pro_failed">Pro Okuma başarısız</string>
 </resources>

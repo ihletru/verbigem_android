@@ -569,4 +569,14 @@
     <string name="noads_10">$10 · 10 msc</string>
     <string name="noads_resume_in">Reklamy wrócą za %1$d dni</string>
     <string name="noads_resume_in_one">Reklamy wrócą za %1$d dzień</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">Błąd logowania</string>
+    <string name="auth_error_unsupported_credential">Nieobsługiwany typ poświadczenia</string>
+    <string name="auth_error_google">Błąd logowania przez Google</string>
+    <string name="conv_error_translation">Błąd tłumaczenia w trybie rozmowy</string>
+    <string name="ocr_error_recognition">Błąd rozpoznawania tekstu</string>
+    <string name="translation_error_generic">Wystąpił błąd podczas tłumaczenia</string>
+    <string name="read_pro_not_configured">Czytaj Pro nie jest jeszcze skonfigurowane</string>
+    <string name="read_pro_failed">Nie udało się odtworzyć Czytaj Pro</string>
 </resources>

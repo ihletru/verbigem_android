@@ -550,4 +550,14 @@
     <string name="noads_10">$10 · 10 Mon.</string>
     <string name="noads_resume_in">Werbung kehrt in %1$d Tagen zurück</string>
     <string name="noads_resume_in_one">Werbung kehrt in %1$d Tag zurück</string>
+
+    <!-- Komunikaty błędów z kodu (do v1.0.53 wpisane na sztywno) -->
+    <string name="auth_error_login">Anmeldung fehlgeschlagen</string>
+    <string name="auth_error_unsupported_credential">Nicht unterstützte Anmeldemethode</string>
+    <string name="auth_error_google">Google-Anmeldung fehlgeschlagen</string>
+    <string name="conv_error_translation">Übersetzung im Gesprächsmodus fehlgeschlagen</string>
+    <string name="ocr_error_recognition">Texterkennung fehlgeschlagen</string>
+    <string name="translation_error_generic">Übersetzung fehlgeschlagen</string>
+    <string name="read_pro_not_configured">Vorlesen Pro ist noch nicht eingerichtet</string>
+    <string name="read_pro_failed">Vorlesen Pro fehlgeschlagen</string>
 </resources>

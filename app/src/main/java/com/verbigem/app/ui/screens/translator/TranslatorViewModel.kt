@@ -384,7 +384,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                     }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "Wystąpił błąd podczas tłumaczenia"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.translation_error_generic)
             } finally {
                 _isLoading.value = false
             }
@@ -405,7 +406,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     fun speakPro(text: String, lang: LangCode) {
         if (!_isPro.value || text.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = "Read Pro is not configured"
+            _errorMessage.value = getApplication<Application>()
+                    .getString(R.string.read_pro_not_configured)
             return
         }
         _resultSpeakingPro.value = true
@@ -418,7 +420,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 proTtsEngine.speak(text, lang, ttsConfig)
             } catch (e: Exception) {
                 _resultSpeakingPro.value = false
-                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.read_pro_failed)
             }
         }
     }
@@ -436,7 +439,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
     fun speakProHistory(item: TranslationHistory) {
         if (!_isPro.value || item.translatedText.isBlank()) return
         if (!ttsConfig.isConfigured) {
-            _errorMessage.value = "Read Pro is not configured"
+            _errorMessage.value = getApplication<Application>()
+                    .getString(R.string.read_pro_not_configured)
             return
         }
         _speakingProSyncId.value = item.syncId
@@ -448,7 +452,8 @@ class TranslatorViewModel(application: Application) : AndroidViewModel(applicati
                 proTtsEngine.speak(item.translatedText, LangCode.fromCode(item.targetLang), ttsConfig)
             } catch (e: Exception) {
                 _speakingProSyncId.value = null
-                _errorMessage.value = e.localizedMessage ?: "Read Pro failed"
+                _errorMessage.value = e.localizedMessage
+                    ?: getApplication<Application>().getString(R.string.read_pro_failed)
             }
         }
     }
