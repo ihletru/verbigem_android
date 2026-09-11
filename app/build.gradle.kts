@@ -12,6 +12,24 @@ android {
     namespace = "com.verbigem.app"
     compileSdk = 36
 
+    // --- AdMob: identyfikatory PER SMAK -------------------------------------
+    // AdMob rozlicza żądania po **App ID podanym przy inicjalizacji SDK**, a nie
+    // po nazwie pakietu. Dopóki oba smaki używały jednego App ID, żądania
+    // sideloadu były przypisywane do aplikacji Play — dlatego w konsoli AdMob
+    // widać tylko `com.verbigem.app`, mimo że sideload też pyta o reklamy.
+    //
+    // Play: AdMob → Aplikacje → com.verbigem.app (ID PRODUKCYJNE, od 2026-09-09).
+    val admobAppIdPlay = "ca-app-pub-7473087307651079~4666239941"
+    val admobBannerUnitIdPlay = "ca-app-pub-7473087307651079/6237092472"
+
+    // Sideload: OSOBNA aplikacja w AdMob (Aplikacje → Dodaj aplikację → Android
+    // → „nie jest opublikowana w Google Play" → com.verbigem.app.sideload).
+    // AdMob wygeneruje dla niej WŁASNY App ID i własną jednostkę banera —
+    // wklej je tutaj. Do tego czasu oba smaki dzielą wartości z Play, więc
+    // build działa dokładnie tak jak dotąd (żadnej zmiany zachowania).
+    val admobAppIdSideload = admobAppIdPlay
+    val admobBannerUnitIdSideload = admobBannerUnitIdPlay
+
     defaultConfig {
         applicationId = "com.verbigem.app"
         minSdk = 26
@@ -35,17 +53,15 @@ android {
         // --- AdMob (GMA Next-Gen SDK) ---------------------------------------
         // ⚠️ APK dystrybuowany auto-update'm jest buildem DEBUGOWYM, więc NIE WOLNO
         // przełączać tych ID po `BuildConfig.DEBUG` — realni użytkownicy dostawaliby
-        // reklamy testowe do końca świata. JEDYNE miejsce do zmiany to dwie stałe
-        // poniżej. Poniżej są już ID PRODUKCYJNE (od 2026-09-09).
-        // App ID Verbigema (AdMob → Aplikacje → identyfikator aplikacji).
-        val admobAppId = "ca-app-pub-7473087307651079~4666239941"
-        // Jednostka banera (AdMob → Aplikacje → Verbigem → Jednostki reklamowe → Baner).
-        val admobBannerUnitId = "ca-app-pub-7473087307651079/6237092472"
-        buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppId\"")
-        buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$admobBannerUnitId\"")
+        // reklamy testowe do końca świata. JEDYNE miejsce do zmiany to stałe
+        // `admobAppId*` / `admobBannerUnitId*` na górze bloku `android {}`.
+        // Wartości poniżej to domyślne (Play) — smak `standalone` nadpisuje je
+        // własnymi w swoim bloku.
+        buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppIdPlay\"")
+        buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$admobBannerUnitIdPlay\"")
         // UMP (zgody RODO) czyta App ID z manifestu, nie z kodu — ten sam placeholder
         // ląduje w AndroidManifest.xml, żeby oba miejsca nigdy się nie rozjechały.
-        manifestPlaceholders["admobAppId"] = admobAppId
+        manifestPlaceholders["admobAppId"] = admobAppIdPlay
 
         // OpenCL: biała lista SoC (wartości `ro.soc.model`, np. "SM8650").
         // PUSTA = OpenCL wyłączone wszędzie. To nie jest ostrożność na wyrost:
@@ -128,6 +144,12 @@ android {
             dimension = "distribution"
             applicationId = "com.verbigem.app.sideload"
             buildConfigField("Boolean", "PLAY_BUILD", "false")
+            // Własne ID AdMoba dla sideloadu — patrz komentarz przy stałych
+            // `admobAppIdSideload` na górze `android {}`. Nadpisuje defaultConfig,
+            // więc App ID w manifeście i w BuildConfig zostają spójne per smak.
+            buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppIdSideload\"")
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$admobBannerUnitIdSideload\"")
+            manifestPlaceholders["admobAppId"] = admobAppIdSideload
         }
     }
 

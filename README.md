@@ -536,7 +536,7 @@ nie klasyczny `play-services-ads`.
 | Rzecz | Gdzie |
 |---|---|
 | Zależności | `libs.versions.toml` → `gma-ads` (`ads-mobile-sdk:1.2.1`) + `ump-user-messaging` (`user-messaging-platform:4.0.0`) |
-| **ID aplikacji i jednostki — JEDYNE miejsce** | `app/build.gradle.kts`, stałe `admobAppId` / `admobBannerUnitId` (→ `BuildConfig.ADMOB_APP_ID` / `ADMOB_BANNER_UNIT_ID`) |
+| **ID aplikacji i jednostki — JEDYNE miejsce** | `app/build.gradle.kts`, stałe na górze bloku `android {}`: `admobAppIdPlay` / `admobBannerUnitIdPlay` (defaultConfig) oraz `admobAppIdSideload` / `admobBannerUnitIdSideload` (nadpisanie w smaku `standalone`) → `BuildConfig.ADMOB_APP_ID` / `ADMOB_BANNER_UNIT_ID` |
 | App ID w manifeście | `AndroidManifest.xml` — `meta-data com.google.android.gms.ads.APPLICATION_ID` = `${admobAppId}` (**wymóg UMP**) |
 | Zgody + inicjalizacja | `ads/AdsConsent.kt` |
 | Baner (Compose) | `ui/components/AdBannerView.kt` (`AndroidView` + `AdView.loadAd`) |
@@ -621,6 +621,17 @@ w Play, więc AdMob pokaże tę samą pozycję „Nieukończona konfiguracja" al
 ograniczy serwowanie. Tymczasowe wyjścia: (a) dodać sideload ręcznie w AdMob jako
 app non-Play (akceptuje ograniczenie), (b) ukryć baner w smaku standalone przez
 `if (!BuildConfig.PLAY_BUILD) return` w `AdBannerView`. Do decyzji.
+
+⚠️ **AdMob rozlicza żądania po App ID z inicjalizacji, NIE po nazwie pakietu.**
+Dlatego oba smaki mają teraz własne stałe (`admobAppIdPlay` / `admobAppIdSideload`)
+— dopóki dzieliły jedno App ID, żądania sideloadu były przypisywane do aplikacji
+Play i w konsoli AdMob nie było osobnego wiersza dla `com.verbigem.app.sideload`.
+Po dodaniu sideloadu w AdMob (Aplikacje → Dodaj aplikację → Android → „nie jest
+opublikowana w Google Play") AdMob wygeneruje **nowy App ID i nową jednostkę** —
+wkleja się je wyłącznie w `admobAppIdSideload` / `admobBannerUnitIdSideload`.
+Weryfikacja, że nadpisanie per smak działa: `processPlayDebugMainManifest
+processStandaloneDebugMainManifest` + `grep APPLICATION_ID` w obu merged manifestach
+oraz `generate*BuildConfig` → `ADMOB_APP_ID` w `standalone/` i `play/`.
 2. **AdMob → Aplikacje → Verbigem** — sprawdzić, czy aplikacja jest „gotowa do
    wyświetlania reklam" (nowa jednostka potrzebuje zwykle kilku godzin, zanim zacznie
    serwować).
