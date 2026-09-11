@@ -14,6 +14,7 @@
 - Falsches Passwort, bereits verwendete E-Mail und fehlende Internetverbindung bei der Anmeldung haben endlich eigene Meldungen statt englischem Text von Firebase.
 - Fehler beim Herunterladen von Updates (unvollständige Datei, Serverfehler, Installer-Fehler) sind jetzt ebenfalls in der gewählten Sprache.
 - Derselbe Fehler reichte bis in die **Formatierung von Datum und Zahlen**: die Wochentagskürzel in der Chatliste („Mo", „Di") und der Name des erkannten Landes im Bildschirm zur Nummernbestätigung („Poland" statt „Polska") nahmen die Sprache des Telefons, nicht die Oberflächensprache. Die Modellgröße verwendete das Dezimaltrennzeichen des Telefons („2.9 GB" statt „2,9 GB").
+- Der Ersatztext der Benachrichtigung über eine neue Nachricht (verwendet, wenn ein Push keinen eigenen Text mitbringt) nahm ebenfalls die Sprache des Telefons — er läuft jetzt über denselben Weg wie alle anderen Meldungen.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

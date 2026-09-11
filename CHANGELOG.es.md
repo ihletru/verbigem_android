@@ -14,6 +14,7 @@
 - Contraseña incorrecta, correo ya en uso y falta de internet al iniciar sesión tienen por fin sus propios mensajes en lugar del texto en inglés de Firebase.
 - Los errores al descargar actualizaciones (archivo incompleto, error del servidor, error del instalador) también están ya en el idioma elegido.
 - El mismo error llegaba al **formato de fechas y números**: las abreviaturas de los días de la semana en la lista de chats («lun», «mar») y el nombre del país detectado en la pantalla de confirmación del número («Poland» en vez de «Polska») tomaban el idioma del teléfono, no el de la interfaz. El tamaño del modelo usaba el separador decimal del teléfono («2.9 GB» en vez de «2,9 GB»).
+- El texto de reserva de la notificación de mensaje nuevo (cuando el push no trae texto propio) también tomaba el idioma del teléfono; ahora pasa por la misma vía que los demás mensajes.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

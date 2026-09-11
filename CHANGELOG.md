@@ -14,6 +14,7 @@
 - Błędne hasło, zajęty e-mail i brak internetu przy logowaniu mają wreszcie własne komunikaty zamiast angielskiego tekstu z Firebase.
 - Błąd pobierania aktualizacji (niekompletny plik, błąd serwera, błąd instalatora) też jest w wybranym języku.
 - Ta sama pomyłka sięgała **formatowania dat i liczb**: skróty dni tygodnia na liście czatów („pon", „wt") i nazwa wykrytego kraju na ekranie potwierdzania numeru („Poland" zamiast „Polska") brały język telefonu, nie język interfejsu. Rozmiar modelu używał separatora dziesiętnego telefonu („2.9 GB" zamiast „2,9 GB").
+- Awaryjny tekst powiadomienia o nowej wiadomości (używany, gdy push nie przyniesie własnego tytułu i treści) też brał język telefonu — teraz idzie tą samą drogą co pozostałe komunikaty.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

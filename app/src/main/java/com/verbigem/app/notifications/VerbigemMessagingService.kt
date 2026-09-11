@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.verbigem.app.R
+import com.verbigem.app.util.uiString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,9 +58,9 @@ class VerbigemMessagingService : FirebaseMessagingService() {
         // Title and body are already localised by the Cloud Function (it knows the
         // recipient's uiLang); the device just renders them.
         val title = data["title"]?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.app_name)
+            ?: uiString(R.string.app_name)
         val body = data["body"]?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.notif_new_message)
+            ?: uiString(R.string.notif_new_message)
 
         VerbigemNotifications.showMessage(
             context = this,

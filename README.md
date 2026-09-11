@@ -769,7 +769,7 @@ Aplikacja jest wielojęzyczna (**PL, EN, DE, ES, ZH, TR**). **Pod karą nie woln
 
 ⚠️ **Reguła dla kontekstu:** każdy kontekst podmieniany w `LocalContext` **MUSI dziedziczyć po `ContextWrapper`** i mieć Activity u podstawy. `MainActivity.LocalizationWrapper` używał `createConfigurationContext(config)` — to goły `ContextImpl`, więc łańcuch `baseContext` się urywał i `findActivity()` zwracał `null` (objawy: „no activity" w Phone Auth, crash `rememberLauncherForActivityResult` w `OcrScreen`). Naprawione klasą `LocalizedContext(base, locale) : ContextWrapper(base)`, która nadpisuje tylko `getResources()`/`getAssets()`.
 
-⚠️ **Reguła `uiString` — tekst bierzemy z języka INTERFEJSU, nigdy z `Application`.** `Application` nie wie nic o języku wybranym w aplikacji, więc `getApplication<Application>().getString(...)`, `appContext.getString(...)` i `e.localizedMessage` zwracają **język telefonu** albo **angielski tekst z SDK**. To był systemowy powód zgłoszenia „ustawiłem angielski, a komunikat jest po polsku" w v1.0.65 — dotyczył logowania, tłumaczenia, OCR, rozpoznawania mowy, doładowania konta i okna aktualizacji.
+⚠️ **Reguła `uiString` — tekst bierzemy z języka INTERFEJSU, nigdy z `Application`.** `Application` nie wie nic o języku wybranym w aplikacji, więc `getApplication<Application>().getString(...)`, `appContext.getString(...)` i `e.localizedMessage` zwracają **język telefonu** albo **angielski tekst z SDK**. To był systemowy powód zgłoszenia „ustawiłem angielski, a komunikat jest po polsku" w v1.0.65 — dotyczył logowania, tłumaczenia, OCR, rozpoznawania mowy, doładowania konta i okna aktualizacji oraz awaryjnego tekstu powiadomienia w usłudze FCM.
 
 Rozwiązanie: `app/src/main/java/com/verbigem/app/util/UiStrings.kt`.
 
@@ -795,6 +795,8 @@ Locale("", iso).getDisplayCountry(uiLocale)   // nie getDisplayCountry(Locale.ge
 Audyt: `grep -rn "Locale.getDefault()" --include=*.kt app/src/main/java` — jedyne dozwolone trafienie to `data/PhoneNumbers.kt` (zgadywanie kraju numeru wpisanego bez kierunkowego; tam język telefonu jest właściwym źródłem, bo to nie tekst dla użytkownika, tylko dane wejściowe do parsera).
 
 Audyt: `grep -rn "getApplication<Application>().getString\|appContext.getString\|localizedMessage" --include=*.kt app/src/main/java` — poza `util/UiStrings.kt` (opis problemu w KDoc) i wywołaniami `Log.*` nie powinno nic zwracać.
+
+Drugi przebieg (2026-09-10): `grep -rn "getString(R\.string" --include=*.kt app/src/main/java` — każde trafienie musi być w composable, który ma `val context = LocalContext.current` (czyli kontekst z `LocalizationWrapper`), albo dotyczyć `default_web_client_id` (identyfikator OAuth, nie tekst dla użytkownika). Sprawdzone: `ContactsScreen`, `OcrScreen`, `MyQrScreen`, `TranslatorScreen` mają `LocalContext.current`, a `PhoneVerificationViewModel` dostaje ten kontekst parametrem z ekranu.
 
 ⚠️ **Język musi być znany, ZANIM cokolwiek rozwiąże tekst.** `VerbigemApplication.onCreate()` ustawia `UiLangState.code` z DataStore (blokująco, z limitem 2 s) **przed** `VerbigemNotifications.ensureChannel(this)`. Bez tego nazwa kanału powiadomień, jego opis i etykiety akcji („Odpowiedz", „Oznacz jako przeczytane") powstawały w języku telefonu — usługa FCM działa bez kompozycji i bez `LocalContext`, więc nie ma skąd wziąć wybranego języka. Ten sam odczyt usuwa mignięcie polskiego w pierwszej klatce UI (wcześniej `collectAsState(initial = "pl")` dawało jedną klatkę po polsku).
 

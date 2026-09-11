@@ -46,6 +46,10 @@ chat list and the detected-country name on the phone screen used the phone's
 language, not the one you picked. The model size now uses your language's
 decimal separator too.
 
+A notification that arrives without its own text — which happens when a push is
+delivered without a title — used the phone's language as well. It now follows the
+language you picked.
+
 Wrong password, an e-mail already in use and no internet during sign-in finally
 have their own messages instead of English text from Firebase. Update download
 errors (incomplete file, server error, installer error) are in your language too.
