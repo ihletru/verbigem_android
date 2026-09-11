@@ -90,15 +90,38 @@ Wszystko na prymitywach dostępnych w obu klientach bez dodatkowych bibliotek:
 | wymiana klucza | ECDH P-256 | `KeyAgreement` (JCA) | WebCrypto `ECDH` |
 | wyprowadzenie klucza | HKDF-SHA256 | `Mac` (ręczny HKDF) | WebCrypto `HKDF` |
 | szyfrowanie | AES-256-GCM | `Cipher` (JCA) | WebCrypto `AES-GCM` |
+| klucz z hasła | PBKDF2-HMAC-SHA256, 310 000 iteracji | `SecretKeyFactory` | WebCrypto `PBKDF2` |
 | losowość | `SecureRandom` | JCA | `crypto.getRandomValues` |
 
-**Klucz na urządzenie, nie na konto.** Każde urządzenie generuje raz parę
-tożsamościową (P-256) i publikuje tylko klucz publiczny. Prywatny nigdy nie
-opuszcza urządzenia — na Androidzie jest zapisany w Keystore, w webappie jako
-nieeksportowalny `CryptoKey` w IndexedDB.
+### Model klucza — decyzja Milosza (2026-09-11)
 
-Uzasadnienie: klucz wspólny dla konta musiałby leżeć na serwerze (bo nie mamy
-hasła — logowanie idzie przez Google), a wtedy nie ma czego chronić.
+**Jeden klucz tożsamości na KONTO** (nie na urządzenie), z kopią zapasową klucza
+prywatnego trzymaną na serwerze **zaszyfrowaną hasłem, którego serwer nie zna**.
+
+⚠️ **To rozróżnienie jest całym sensem tego punktu i nie wolno go zgubić przy
+implementacji.** „Klucz konta na serwerze" da się zrobić na dwa sposoby:
+
+| Wariant | Czy to nadal E2E? |
+|---|---|
+| Serwer trzyma klucz prywatny **jawnym tekstem** | **NIE.** Ktokolwiek z dostępem do bazy czyta wszystko. Punkt 4 przestaje istnieć. |
+| Serwer trzyma klucz **zaszyfrowany hasłem użytkownika** (`AES-GCM(PBKDF2(hasło, sól), klucz)`) | **TAK.** Bez hasła mamy losowy ciąg bajtów. |
+
+Implementujemy **wariant drugi**. Wariant pierwszy nie zostałby nawet zapisany
+w kodzie, bo dawałby użytkownikowi złudzenie bezpieczeństwa.
+
+Konsekwencje, które trzeba powiedzieć użytkownikowi wprost:
+* **Zapomniane hasło = utracona historia czatu.** Nie ma „przypomnij hasło" ani
+  „zresetuj" — reset oznacza nowy klucz i nową tożsamość, a stare wiadomości
+  zostają nieczytelne na zawsze. Serwer nie może pomóc, bo nie ma czym.
+* Hasło jest **osobne od logowania** (logowanie idzie przez Google — nie mamy
+  jego hasła i nie chcemy).
+* Konto bez ustawionego hasła działa jak dziś (jawny tekst), dopóki użytkownik go
+  nie ustawi. To jest cała migracja istniejących kont.
+
+Ustawienie hasła: losowa **fraza odzyskiwania** (np. 6 słów) generowana na
+urządzeniu i pokazana raz do zapisania — łatwiejsza do przepisania na nowy telefon
+niż wymyślone hasło i odporna na zapomnienie w większym stopniu. Użytkownik może
+też wpisać własne hasło, jeśli woli.
 
 ### Koperta wiadomości
 
@@ -107,7 +130,7 @@ Per wiadomość, nie per para urządzeń — dzięki temu mamy **forward secrecy
 
 ```
 1. Nadawca losuje klucz wiadomości MK (32 B) i parę efemeryczną (epk, esk).
-2. Dla KAŻDEGO urządzenia odbiorcy i KAŻDEGO swojego innego urządzenia:
+2. Dla KAŻDEGO odbiorcy tej wiadomości (rozmówca + moje pozostałe urządzenia):
      S_i      = ECDH(esk, pub_i)
      wrapKey_i= HKDF-SHA256(S_i, salt=iv_i, info="verbigem-chat-v1-wrap")
      wrapped_i= AES-256-GCM(wrapKey_i, MK, iv_i)
@@ -117,6 +140,11 @@ Per wiadomość, nie per para urządzeń — dzięki temu mamy **forward secrecy
 
 Koszt: jedno generowanie pary kluczy na wiadomość (~1 ms) i jedno ECDH na
 urządzenie odbiorcy. Przy czacie 1:1 i 2–3 urządzeniach to nieistotne.
+
+⚠️ Forward secrecy chroni **historię przed późniejszym wyciekiem klucza
+tożsamości**. Nie chroni przed kimś, kto zna hasło odzyskiwania — ten odszyfruje
+całą historię, bo po to jest kopia zapasowa. To jest cena wariantu wygodnego
+i musi być napisana w pomocy, a nie przemilczana.
 
 ### Format dokumentu w Firestore
 
@@ -174,16 +202,31 @@ Każda faza kończy się stanem, który da się zbudować i **nie psuje czatu**.
 | # | Faza | Efekt |
 |---|---|---|
 | 1 | `E2eCrypto` + test wektorowy | brak zmian w zachowaniu; dowód, że Android i webapp liczą to samo |
-| 2 | Rejestr kluczy urządzeń + reguły | klucze publikowane, nikt ich jeszcze nie używa |
-| 3 | Koperta w wysyłce/odbiorze (Android) | nowe wiadomości szyfrowane, stare czytane dalej |
+| 2 | Klucz konta: generowanie, publikacja klucza publicznego, kopia prywatnego zaszyfrowana hasłem + reguły Firestore | konto ma tożsamość, nikt jej jeszcze nie używa; konta bez hasła działają jak dziś |
+| 3 | Koperta w wysyłce/odbiorze (Android) + ekran ustawienia hasła odzyskiwania | nowe wiadomości szyfrowane, stare czytane dalej |
 | 4 | Koperta w webappie | parytet |
-| 5 | Usunięcie `onMessageSearchIndex` + push bez treści | serwer przestaje widzieć treść |
+| 5 | Usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd w skrzynce | serwer przestaje widzieć treść |
 | 6 | Wyszukiwanie lokalne + TOFU + ostrzeżenie o zmianie klucza | domknięcie funkcji |
 | 7 | Teksty: pomoc w czacie, polityka prywatności, layout | **dopiero teraz** — wcześniej byłyby nieprawdą |
 
 Punkt 7 jest celowo na końcu. Napisanie w UI „wiadomości są szyfrowane
 end-to-end", zanim szyfrowane są, to nie kosmetyka — to wprowadzanie
 użytkownika w błąd.
+
+### Stan realizacji
+
+| Faza | Stan |
+|---|---|
+| 1 — format i wektory | **zrobione**: `mini/scripts/e2e-vectors.mjs` (referencja na wbudowanym `crypto` Node, zero zależności) → `mini/scripts/e2e_vectors.json`. Generator sam sprawdza, że odbiorca odtworzy treść, i wypisuje „OK". Uruchomienie: `node scripts/e2e-vectors.mjs` |
+| 2–7 | **nie zaczęte** |
+
+⚠️ Wektory są **źródłem prawdy formatu**: stałe klucze, stałe IV-y, wynik
+bajt w bajt. Implementacja w Kotlinie i w webappie musi je odtworzyć — inaczej
+któraś z nich jest błędna i odbiorca zobaczy „nie można odszyfrować".
+⚠️ Referencja liczy HKDF **ręcznie** (extract + expand), a nie przez `hkdfSync`,
+bo JCA nie ma HKDF w API publicznym (jest dopiero od JDK 24) i Android zrobi to
+tak samo. Użycie `hkdfSync` dałoby zgodny wynik, ale nie sprawdziłoby ścieżki,
+która faktycznie pójdzie na produkcji.
 
 ---
 
@@ -211,11 +254,18 @@ użytkownika w błąd.
 
 ## 9. Czego ten dokument jeszcze nie rozstrzyga
 
-1. **Podgląd ostatniej wiadomości w skrzynce** — jawny placeholder czy
-   szyfrogram odszyfrowywany lokalnie (kosztuje wpis w kluczach koperty dla
-   każdego odbiorcy, ale zachowuje wygodę).
+1. **Fraza odzyskiwania czy własne hasło** — domyślnie proponujemy wygenerowaną
+   frazę (6 słów), ale ostateczny kształt ekranu ustalamy przy implementacji fazy 2.
 2. **Kopie zapasowe Androida** — czy blokować przenoszenie klucza przez
-   `allowBackup`, czy zostawić domyślne zachowanie.
+   `allowBackup`, czy zostawić domyślne zachowanie. Klucz i tak jest zaszyfrowany
+   hasłem, więc kopia zapasowa nie oddaje historii bez hasła.
 3. **Weryfikacja tożsamości później** — czy zostawiamy sobie furtkę na ekran
-   „numer bezpieczeństwa" w przyszłości (wpływa na to, czy klucz tożsamości
-   jest osobny od kluczy efemerycznych — w projekcie wyżej jest).
+   „numer bezpieczeństwa" w przyszłości. Klucz tożsamości jest osobny od kluczy
+   efemerycznych, więc da się to dołożyć bez zmiany formatu koperty.
+
+### Rozstrzygnięte
+
+* **Model klucza** — jeden klucz na konto, kopia na serwerze zaszyfrowana hasłem
+  (§5). Odrzucone: klucz per urządzenie (nowy telefon tracił historię).
+* **Podgląd w skrzynce** — szyfrowany, odszyfrowywany lokalnie (§6).
+* **Weryfikacja tożsamości** — brak, łagodzona przez TOFU (§4).
