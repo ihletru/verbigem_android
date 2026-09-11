@@ -15,6 +15,7 @@
 - Güncelleme indirme hataları (eksik dosya, sunucu hatası, yükleyici hatası) da artık seçilen dilde.
 - Aynı hata **tarih ve sayı biçimlendirmesine** de uzanıyordu: sohbet listesindeki gün kısaltmaları ("Pzt", "Sal") ve numara doğrulama ekranındaki algılanan ülke adı ("Poland" yerine "Polska") telefonun dilini alıyordu, arayüz dilini değil. Model boyutu telefonun ondalık ayırıcısını kullanıyordu ("2.9 GB" yerine "2,9 GB").
 - Yeni mesaj bildiriminin yedek metni (push kendi metnini getirmediğinde kullanılır) de telefonun dilini alıyordu; artık diğer tüm mesajlarla aynı yoldan geçiyor.
+- Firebase'den tanımadığımız bir hata kodu, kendi dilindeki mesaja kütüphaneden gelen İngilizce bir cümle ekliyordu. Artık bu ender durumda seçtiğin dilde bir cümle görüyorsun, teknik ayrıntı günlükte kalıyor.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

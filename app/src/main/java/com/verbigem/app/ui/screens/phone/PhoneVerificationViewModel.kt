@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -165,7 +166,13 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
                 context.getString(R.string.phone_verify_error_code_expired)
             "ERROR_NETWORK_REQUEST_FAILED", "ERROR_WEB_NETWORK_REQUEST_FAILED" ->
                 context.getString(R.string.phone_verify_error_network)
-            else -> context.getString(R.string.phone_verify_error_send, detail)
+            else -> {
+                // Nieznany kod błędu: angielski tekst z SDK zostaje w logu,
+                // a użytkownik dostaje zdanie w swoim języku. Wcześniej `detail`
+                // szedł wprost do UI i mieszał dwa języki w jednym zdaniu.
+                Log.w(TAG, "Unmapped phone-auth error [code=$errorCode] $detail")
+                context.getString(R.string.phone_verify_error_unknown)
+            }
         }
 
     fun confirm(context: Context) {
@@ -208,6 +215,10 @@ class PhoneVerificationViewModel(application: Application) : AndroidViewModel(ap
         val isos = PhoneNumbers.defaultCountryIsos(getApplication())
         return PhoneNumbers.e164Candidates(raw, isos).firstOrNull()
             ?: raw.trim().replace("\\s+".toRegex(), "").takeIf { it.startsWith("+") && it.length >= 8 }
+    }
+
+    private companion object {
+        private const val TAG = "PhoneVerificationVM"
     }
 }
 

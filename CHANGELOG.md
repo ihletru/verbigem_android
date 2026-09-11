@@ -15,6 +15,7 @@
 - Błąd pobierania aktualizacji (niekompletny plik, błąd serwera, błąd instalatora) też jest w wybranym języku.
 - Ta sama pomyłka sięgała **formatowania dat i liczb**: skróty dni tygodnia na liście czatów („pon", „wt") i nazwa wykrytego kraju na ekranie potwierdzania numeru („Poland" zamiast „Polska") brały język telefonu, nie język interfejsu. Rozmiar modelu używał separatora dziesiętnego telefonu („2.9 GB" zamiast „2,9 GB").
 - Awaryjny tekst powiadomienia o nowej wiadomości (używany, gdy push nie przyniesie własnego tytułu i treści) też brał język telefonu — teraz idzie tą samą drogą co pozostałe komunikaty.
+- Nieznany kod błędu z Firebase pokazywał użytkownikowi angielskie zdanie z biblioteki doklejone do polskiego („Nie udało się tego zrobić. This operation is not allowed."). Teraz w tym rzadkim przypadku pojawia się zdanie w wybranym języku, a techniczny szczegół zostaje w logu.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

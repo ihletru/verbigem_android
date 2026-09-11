@@ -600,4 +600,5 @@
     <string name="translation_error_generic">Çeviri başarısız</string>
     <string name="read_pro_not_configured">Pro Okuma henüz yapılandırılmadı</string>
     <string name="read_pro_failed">Pro Okuma başarısız</string>
+    <string name="phone_verify_error_unknown">Numara doğrulanamadı. Daha sonra tekrar dene.</string>
 </resources>

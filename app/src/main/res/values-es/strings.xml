@@ -600,4 +600,5 @@
     <string name="translation_error_generic">Error de traducción</string>
     <string name="read_pro_not_configured">Lectura Pro todavía no está configurada</string>
     <string name="read_pro_failed">La lectura Pro ha fallado</string>
+    <string name="phone_verify_error_unknown">No se pudo verificar el número. Inténtalo de nuevo más tarde.</string>
 </resources>

@@ -15,6 +15,7 @@
 - Update download errors (incomplete file, server error, installer error) are in the chosen language too.
 - The same mistake reached **date and number formatting**: the weekday abbreviations in the chat list ("Mon", "Tue") and the detected-country name on the phone-verification screen ("Poland" instead of "Polska") took the phone's language, not the interface language. The model size used the phone's decimal separator ("2.9 GB" instead of "2,9 GB").
 - The fallback title and body of a new-message notification (used when a push carries no text of its own) took the phone's language too — it now goes through the same path as every other message.
+- An error code from Firebase we do not recognise used to append an English sentence from the library to a message in your language. In that rare case you now get a sentence in the language you picked, and the technical detail stays in the log.
 
 ## v1.0.64 (2026-09-10) — versionCode 64
 

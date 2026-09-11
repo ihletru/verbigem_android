@@ -600,4 +600,5 @@
     <string name="translation_error_generic">Übersetzung fehlgeschlagen</string>
     <string name="read_pro_not_configured">Vorlesen Pro ist noch nicht eingerichtet</string>
     <string name="read_pro_failed">Vorlesen Pro fehlgeschlagen</string>
+    <string name="phone_verify_error_unknown">Die Nummer konnte nicht bestätigt werden. Versuche es später noch einmal.</string>
 </resources>

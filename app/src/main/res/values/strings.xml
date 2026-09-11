@@ -626,4 +626,5 @@
     <string name="translation_error_generic">Translation failed</string>
     <string name="read_pro_not_configured">Read Pro is not set up yet</string>
     <string name="read_pro_failed">Read Pro failed</string>
+    <string name="phone_verify_error_unknown">Nie udało się potwierdzić numeru. Spróbuj ponownie później.</string>
 </resources>
