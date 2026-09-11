@@ -594,7 +594,7 @@
     <string name="help_own_api">OpenRouter to usługa kierująca tłumaczenia do wielu modeli AI. Załóż darmowe konto na openrouter.ai, otwórz stronę Keys i kliknij „Create Key”. Skopiuj klucz i wklej go tutaj. Jest przechowywany tylko na tym telefonie. Po dodaniu w liście modeli online pojawią się darmowe modele „:free” i nic nie kosztują. Klucz wygenerujesz na openrouter.ai/keys.</string>
     <string name="topup_button">Doładuj portfel</string>
     <string name="topup_dialog_title">Doładuj portfel</string>
-    <string name="topup_dialog_subtitle">Saldo na płatne modele online · 1 USD = 1 USD salda</string>
+    <string name="topup_dialog_subtitle">Saldo na płatne modele online i głos Pro</string>
     <string name="topup_3">$3</string>
     <string name="topup_5">$5</string>
     <string name="topup_10">$10</string>

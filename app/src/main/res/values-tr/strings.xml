@@ -569,7 +569,7 @@
     <string name="help_own_api">OpenRouter, çevirileri birçok yapay zeka modeline yönlendiren bir hizmettir. openrouter.ai’de ücretsiz bir hesap oluştur, Anahtarlar sayfasını aç ve “Create Key”e tıkla. Anahtarı kopyalayıp buraya yapıştır. Yalnızca bu telefonda saklanır. Eklendikten sonra çevrimiçi model listesinde ücretsiz “:free” modelleri görünür ve hiçbir ücret istemez. Anahtarı openrouter.ai/keys adresinden oluştur.</string>
     <string name="topup_button">Cüzdanı doldur</string>
     <string name="topup_dialog_title">Cüzdanını doldur</string>
-    <string name="topup_dialog_subtitle">Ücretli çevrimiçi modeller için bakiye · 1 USD = 1 USD bakiye</string>
+    <string name="topup_dialog_subtitle">Ücretli çevrimiçi modeller ve Pro ses için bakiye</string>
     <string name="topup_3">$3</string>
     <string name="topup_5">$5</string>
     <string name="topup_10">$10</string>

@@ -569,7 +569,7 @@
     <string name="help_own_api">OpenRouter es un servicio que envía traducciones a muchos modelos de IA. Crea una cuenta gratuita en openrouter.ai, abre la página de claves y haz clic en «Create Key». Copia la clave y pégala aquí. Se guarda solo en este teléfono. Una vez añadida, los modelos gratuitos «:free» aparecen en la lista en línea y no cuestan nada. Crea tu clave en openrouter.ai/keys.</string>
     <string name="topup_button">Recargar monedero</string>
     <string name="topup_dialog_title">Recarga tu monedero</string>
-    <string name="topup_dialog_subtitle">Saldo para modelos online de pago · 1 USD = 1 USD de saldo</string>
+    <string name="topup_dialog_subtitle">Saldo para modelos online de pago y la voz Pro</string>
     <string name="topup_3">$3</string>
     <string name="topup_5">$5</string>
     <string name="topup_10">$10</string>

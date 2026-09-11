@@ -1067,8 +1067,10 @@ fun ProfileScreen(
                     Text(stringResource(R.string.topup_dialog_subtitle), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
                     Spacer(modifier = Modifier.height(10.dp))
                     // Kwoty to REALNE ceny z katalogu Paddle (Wallet top-up $3/$5/$10),
-                    // a nie „kredyty": 1 USD zapłaty = 1 USD salda, więc pokazujemy
-                    // po prostu cenę, tak samo jak w webappie.
+                    // tak samo jak w webappie. Celowo NIE obiecujemy przelicznika
+                    // „1 USD = 1 USD salda": Paddle jako Merchant of Record pobiera
+                    // swoją prowizję, a my mamy marżę na połączeniach z modelami
+                    // (do v1.0.67 ten napis był w subtitle — wprowadzał w błąd).
                     listOf(
                         "wallet3" to R.string.topup_3,
                         "wallet5" to R.string.topup_5,

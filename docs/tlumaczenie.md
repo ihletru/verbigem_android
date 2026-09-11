@@ -109,8 +109,11 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
 - **Doładowanie portfela w apce:** karta „Status konta" w `ProfileScreen` ma guzik
   **Doładuj portfel**, który otwiera dialog z 3 pakietami pokazującymi **realne ceny**
   `$3 / $5 / $10` (klucze `topup_3` / `topup_5` / `topup_10`, typy `wallet3/5/10`).
-  1 USD zapłaty = 1 USD salda, więc „kredyty" w starym dialogu były w istocie centami
-  (300/500/1000) i wprowadzały w błąd — od v1.0.66 pokazujemy po prostu cenę, jak na stronie.
+  ⚠️ **NIE wolno obiecywać „1 USD = 1 USD salda".** Webhook (`mini/functions/index.js`,
+  `wallet3: 300`) dopisuje nominalnie 300 centów, ale Paddle jako Merchant of Record
+  pobiera prowizję, a my mamy marżę na połączeniach — użytkownik realnie nie dostaje
+  3 USD wartości API. Do v1.0.67 `topup_dialog_subtitle` mówił wprost „1 USD = 1 USD
+  salda" — od v1.0.68 usunięte, pokazujemy tylko cenę, jak na stronie.
   `ProfileViewModel.topUp(type)` woła Cloud Function **`createCheckout`**
   (Paddle, LIVE), tworzącą transakcję z `customData.uid` i zwracającą
   `checkout.url`; apka otwiera go w przeglądarce. Po opłaceniu `paddleWebhook`
