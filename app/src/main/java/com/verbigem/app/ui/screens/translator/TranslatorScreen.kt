@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -53,6 +52,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.verbigem.app.R
 import androidx.compose.ui.Modifier
@@ -619,7 +619,7 @@ fun HistoryCard(
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
+                        Icon(painter = painterResource(R.drawable.ic_speaker_pro), contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
                     }
                 }
             } else {
@@ -731,7 +731,7 @@ fun ResultCard(
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
+                        Icon(painter = painterResource(R.drawable.ic_speaker_pro), contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
                     }
                 }
             } else {

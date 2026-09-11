@@ -2,6 +2,7 @@ package com.verbigem.app.ui.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -80,7 +81,12 @@ fun LocalizedAlertDialog(
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
     shape: Shape = AlertDialogDefaults.shape,
-    containerColor: Color = AlertDialogDefaults.containerColor,
+    // `AlertDialogDefaults.containerColor` to w M3 `colorScheme.surfaceContainerHigh` —
+    // VerbigemTheme ustawia tylko `surface`/`primary`, więc ten token zostaje domyślny
+    // (lawendowy z M3 light ≈ #E8DEF8), stąd "różowe tło" w light mode.
+    // Dajemy wprost `colorScheme.surface` (= brand surface), żeby dialogi pasowały
+    // do reszty aplikacji.
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     iconContentColor: Color = AlertDialogDefaults.iconContentColor,
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,

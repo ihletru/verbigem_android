@@ -42,7 +42,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.verbigem.app.data.model.EngineChoice
@@ -81,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -641,7 +641,7 @@ fun OcrHistoryItem(
                     if (isSpeakingPro) {
                         CircularProgressIndicator(color = VerbigemTheme.colors.accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Default.Star, contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
+                        Icon(painter = painterResource(R.drawable.ic_speaker_pro), contentDescription = stringResource(R.string.action_read_pro), tint = VerbigemTheme.colors.accent)
                     }
                 }
             } else {
