@@ -4,6 +4,13 @@
 
 ## v1.0.68 (2026-09-11) — versionCode 68
 
+**Translation history now belongs to the account, not to the phone.**
+
+- Until now every account on a phone saw the same translation and photo history — signing in with another account was enough to see someone else's entries. History is now separated: each account has its own and syncs only with itself.
+- The first account you sign in with after this update adopts the existing history. Nothing is lost.
+
+**Removed the "Ad diagnostics" card from Profile.** Ads will not serve until the app is published on Google Play anyway, so the diagnostics were premature and only took up space. It comes back once ads actually run.
+
 **The version downloaded from the website now has its own ad unit.**
 
 - The Google Play version and the website download are two separate apps in AdMob. Until now they shared a single identifier, so AdMob could not tell where an ad request actually came from.

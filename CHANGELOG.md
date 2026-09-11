@@ -4,6 +4,13 @@
 
 ## v1.0.68 (2026-09-11) — versionCode 68
 
+**Historia tłumaczeń należy teraz do konta, a nie do telefonu.**
+
+- Dotąd na jednym telefonie wszystkie konta widziały tę samą historię tłumaczeń i zdjęć — wystarczyło zalogować się na inne konto, żeby zobaczyć cudze wpisy. Historia jest teraz rozdzielona: każde konto ma własną i synchronizuje się wyłącznie ze swoim.
+- Pierwsze konto, na które zalogujesz się po tej aktualizacji, przejmie dotychczasową historię. Nic nie przepada.
+
+**Usunęliśmy kartę „Diagnostyka reklam" z Profilu.** Reklamy i tak nie włączą się przed publikacją w Google Play, więc diagnostyka była przedwczesna i tylko zajmowała miejsce. Wróci, gdy reklamy zaczną działać.
+
 **Wersja instalowana ze strony ma teraz własną jednostkę reklamową.**
 
 - Wersja z Google Play i wersja do pobrania ze strony to dwie osobne aplikacje w AdMobie. Dotąd dzieliły jeden identyfikator, więc AdMob nie wiedział, skąd naprawdę przyszło zapytanie o reklamę.

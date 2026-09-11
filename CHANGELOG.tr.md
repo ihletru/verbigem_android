@@ -4,6 +4,13 @@
 
 ## v1.0.68 (2026-09-11) — versionCode 68
 
+**Çeviri geçmişi artık telefonun değil, hesabın.**
+
+- Şimdiye kadar bir telefonda tüm hesaplar aynı çeviri ve fotoğraf geçmişini görüyordu; başka bir hesapla giriş yapmak başkasının kayıtlarını görmeye yetiyordu. Geçmiş artık ayrı: her hesabın kendi geçmişi var ve yalnızca kendisiyle eşitleniyor.
+- Bu güncellemeden sonra ilk giriş yaptığın hesap mevcut geçmişi devralır. Hiçbir şey kaybolmaz.
+
+**Profil'deki «Reklam tanılama» kartını kaldırdık.** Reklamlar zaten Google Play'de yayınlanana kadar gösterilmeyecek, bu yüzden tanılama erkendi ve yalnızca yer kaplıyordu. Reklamlar gerçekten çalışmaya başlayınca geri dönecek.
+
 **Web sitesinden indirilen sürümün artık kendi reklam birimi var.**
 
 - Google Play sürümü ile web sitesinden indirilen sürüm AdMob'da iki ayrı uygulamadır. Şimdiye kadar tek bir kimlik paylaşıyorlardı, bu yüzden AdMob bir reklam isteğinin gerçekte nereden geldiğini bilemiyordu.

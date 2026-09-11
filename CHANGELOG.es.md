@@ -4,6 +4,13 @@
 
 ## v1.0.68 (2026-09-11) — versionCode 68
 
+**El historial de traducciones ahora pertenece a la cuenta, no al teléfono.**
+
+- Hasta ahora, en un mismo teléfono todas las cuentas veían el mismo historial de traducciones y fotos: bastaba con iniciar sesión con otra cuenta para ver entradas ajenas. El historial está ahora separado: cada cuenta tiene el suyo y se sincroniza solo con ella.
+- La primera cuenta con la que inicies sesión tras esta actualización adoptará el historial existente. No se pierde nada.
+
+**Hemos eliminado la tarjeta «Diagnóstico de anuncios» del Perfil.** Los anuncios no se mostrarán hasta la publicación en Google Play, así que el diagnóstico era prematuro y solo ocupaba espacio. Volverá cuando los anuncios funcionen de verdad.
+
 **La versión descargada desde la web ya tiene su propia unidad de anuncios.**
 
 - La versión de Google Play y la descarga desde la web son dos aplicaciones distintas en AdMob. Hasta ahora compartían un único identificador, así que AdMob no podía saber de dónde venía realmente una solicitud de anuncio.

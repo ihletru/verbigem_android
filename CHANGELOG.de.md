@@ -4,6 +4,13 @@
 
 ## v1.0.68 (2026-09-11) — versionCode 68
 
+**Der Übersetzungsverlauf gehört jetzt zum Konto, nicht zum Telefon.**
+
+- Bisher sahen auf einem Telefon alle Konten denselben Verlauf von Übersetzungen und Fotos — es genügte, sich mit einem anderen Konto anzumelden, um fremde Einträge zu sehen. Der Verlauf ist jetzt getrennt: jedes Konto hat seinen eigenen und synchronisiert nur mit sich selbst.
+- Das erste Konto, mit dem du dich nach diesem Update anmeldest, übernimmt den bisherigen Verlauf. Nichts geht verloren.
+
+**Die Karte „Werbe-Diagnose" wurde aus dem Profil entfernt.** Werbung wird ohnehin erst nach der Veröffentlichung bei Google Play ausgeliefert, die Diagnose war also verfrüht und nahm nur Platz weg. Sie kommt zurück, sobald Werbung tatsächlich läuft.
+
 **Die Version von der Website hat jetzt eine eigene Anzeigeneinheit.**
 
 - Die Google-Play-Version und der Download von der Website sind zwei getrennte Apps in AdMob. Bisher teilten sie eine Kennung, sodass AdMob nicht erkennen konnte, woher eine Anzeigenanfrage wirklich kam.
