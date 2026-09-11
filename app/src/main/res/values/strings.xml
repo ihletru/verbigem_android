@@ -626,4 +626,20 @@
     <string name="read_pro_not_configured">Read Pro is not set up yet</string>
     <string name="read_pro_failed">Read Pro failed</string>
     <string name="phone_verify_error_unknown">Nie udało się potwierdzić numeru. Spróbuj ponownie później.</string>
+
+    <string name="ads_diag_title">Ad diagnostics</string>
+    <string name="ads_diag_sdk">Ads SDK</string>
+    <string name="ads_diag_consent">Consent granted</string>
+    <string name="ads_diag_status">Consent status</string>
+    <string name="ads_diag_unit">Ad unit</string>
+    <string name="ads_diag_unit_live">production</string>
+    <string name="ads_diag_unit_test">Google test</string>
+    <string name="ads_diag_error">Last error</string>
+    <string name="ads_diag_error_none">none</string>
+    <string name="ads_diag_error_value">code %1$s - %2$s</string>
+    <string name="ads_diag_yes">yes</string>
+    <string name="ads_diag_no">no</string>
+    <string name="ads_diag_test_title">Google test ads</string>
+    <string name="ads_diag_test_desc">Turn on when the banner stays empty. Googles test unit always fills - if it loads and ours does not, the ad slot or the AdMob account is the problem.</string>
+    <string name="ads_diag_debug_menu">AdMob debug menu</string>
 </resources>

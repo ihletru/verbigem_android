@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.67 (2026-09-10) — versionCode 67
+
+**Neu: Karte „Anzeigen-Diagnose" im Profil.**
+
+- Ein Banner, der sich nicht füllt, sagt nichts über die Ursache — das SDK kann nicht gestartet sein, die Einwilligung fehlen oder der Slot einfach keine Kampagne haben. Die Karte zeigt direkt auf dem Bildschirm: ob das Anzeigen-SDK läuft, ob die Einwilligung vorliegt, welche Einheit geladen wird und den Namen des letzten Fehlers (z. B. „keine Füllung").
+- Schalter für **Google-Testanzeigen**. Die Test-Einheit von Google füllt sich immer, unabhängig von unserem Konto — lädt sie, unsere aber nicht, liegt das Problem am Slot oder am AdMob-Konto.
+- Schaltfläche **AdMob-Debugmenü** — ansehen, was das SDK über die Einheit sagt, ohne das Telefon an den Computer anzuschließen.
+
 ## v1.0.66 (2026-09-10) — versionCode 66
 
 **Behoben: die Zahlung öffnete unsere Website statt der Paddle-Kasse.**

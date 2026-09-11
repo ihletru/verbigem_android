@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.67 (2026-09-10) — versionCode 67
+
+**Nuevo: tarjeta „Diagnóstico de anuncios" en el perfil.**
+
+- Un banner que nunca se rellena no dice nada sobre la causa: puede que el SDK no arrancara, que falte el consentimiento o que el slot simplemente no tenga campaña. La tarjeta lo muestra en pantalla: si el SDK de anuncios funciona, si hay consentimiento, qué unidad se carga y el nombre del último error (por ejemplo „sin relleno").
+- Interruptor de **anuncios de prueba de Google**. La unidad de prueba de Google siempre se rellena, sin depender de la configuración de nuestra cuenta: si carga y la nuestra no, el problema es el slot o la cuenta de AdMob.
+- Botón **menú de depuración de AdMob** — ver qué dice el SDK de la unidad sin conectar el teléfono al ordenador.
+
 ## v1.0.66 (2026-09-10) — versionCode 66
 
 **Corregido: el pago abría nuestra web en lugar de la caja de Paddle.**

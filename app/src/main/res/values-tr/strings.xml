@@ -600,4 +600,20 @@
     <string name="read_pro_not_configured">Pro Okuma henüz yapılandırılmadı</string>
     <string name="read_pro_failed">Pro Okuma başarısız</string>
     <string name="phone_verify_error_unknown">Numara doğrulanamadı. Daha sonra tekrar dene.</string>
+
+    <string name="ads_diag_title">Reklam teshisi</string>
+    <string name="ads_diag_sdk">Reklam SDK</string>
+    <string name="ads_diag_consent">Reklam izni</string>
+    <string name="ads_diag_status">Izın durumu</string>
+    <string name="ads_diag_unit">Reklam birimi</string>
+    <string name="ads_diag_unit_live">canli</string>
+    <string name="ads_diag_unit_test">Google testi</string>
+    <string name="ads_diag_error">Son hata</string>
+    <string name="ads_diag_error_none">yok</string>
+    <string name="ads_diag_error_value">kod %1$s - %2$s</string>
+    <string name="ads_diag_yes">evet</string>
+    <string name="ads_diag_no">hayir</string>
+    <string name="ads_diag_test_title">Google test reklamlari</string>
+    <string name="ads_diag_test_desc">Banner bos kaliyorsa ac. Googlenin test birimi her zaman dolar - o yuklenir de bizimki yuklenmezse sorun slotta veya AdMob hesabindadir.</string>
+    <string name="ads_diag_debug_menu">AdMob hata ayiklama menusu</string>
 </resources>

@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.67 (2026-09-10) — versionCode 67
+
+**Nowe: karta „Diagnostyka reklam" w Profilu.**
+
+- Baner, który się nie wypełnia, nie mówi nic o przyczynie — mógł nie wstać SDK, mogła nie przyjść zgoda, a może po prostu brakuje kampanii dla tego slotu. Karta wypisuje wprost na ekranie: czy SDK reklam działa, czy zgoda jest udzielona, którą jednostkę ładujemy i nazwę ostatniego błędu (na przykład „brak wypełnienia").
+- Przełącznik **reklam testowych Google**. Testowa jednostka Google wypełnia się zawsze, niezależnie od konfiguracji naszego konta — jeśli ona się wczyta, a nasza nie, wiadomo, że problem jest po stronie slotu albo konta AdMob.
+- Guzik **menu debugowania AdMob** — podgląd tego, co SDK mówi o jednostce, bez podłączania telefonu do komputera.
+
 ## v1.0.66 (2026-09-10) — versionCode 66
 
 **Naprawione: płatność otwierała naszą stronę zamiast kasy Paddle.**

@@ -2,6 +2,7 @@ package com.verbigem.app.ads
 
 import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
@@ -62,6 +63,64 @@ object AdsConsent {
     private val _privacyOptionsRequired = MutableStateFlow(false)
     val privacyOptionsRequired: StateFlow<Boolean> get() = _privacyOptionsRequired
 
+    /**
+     * Ostatni błąd ładowania banera (`null` = wczytał się albo jeszcze nie próbował).
+     * `code` to **nazwa** enumu błędu (`ERROR_CODE_NO_FILL` itd.), nie liczba —
+     * nazwa mówi od razu, o co chodzi, bez wertowania dokumentacji Google.
+     */
+    data class AdFailure(val code: String, val message: String)
+
+    /** Migawka stanu zgód UMP do pokazania w Profilu. */
+    data class UmpSnapshot(
+        val canRequestAds: Boolean,
+        val consentStatus: Int,
+        val privacyRequired: Boolean,
+        val formAvailable: Boolean,
+    )
+
+    /**
+     * ⚠️ Testowa jednostka banera Google — **zawsze się wypełnia**, niezależnie od
+     * tego, czy konto AdMob jest w pełni aktywne. To jedyny sposób, żeby odróżnić
+     * „nie działa nasz kod / SDK" od „nie działa konfiguracja w konsoli AdMob":
+     * testowa się wczyta, a produkcyjna nie → winny jest SLOT albo konto.
+     */
+    const val TEST_BANNER_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+
+    private val _lastBannerError = MutableStateFlow<AdFailure?>(null)
+    val lastBannerError: StateFlow<AdFailure?> get() = _lastBannerError
+
+    /** Czy baner ma ładować testowe reklamy Google zamiast naszej jednostki. */
+    private val _testAdsEnabled = MutableStateFlow(false)
+    val testAdsEnabled: StateFlow<Boolean> get() = _testAdsEnabled
+
+    private val _ump = MutableStateFlow(UmpSnapshot(false, 0, false, false))
+    val ump: StateFlow<UmpSnapshot> get() = _ump
+
+    @Volatile private var appContext: Context? = null
+
+    private fun diagPrefs(): SharedPreferences? =
+        runCatching {
+            appContext?.getSharedPreferences("ads_diagnostics", Context.MODE_PRIVATE)
+        }.getOrNull()
+
+    /** Przełącznik testowych reklam — przetrwa restart aplikacji. */
+    fun setTestAdsEnabled(enabled: Boolean) {
+        _testAdsEnabled.value = enabled
+        diagPrefs()?.edit()?.putBoolean("test_ads", enabled)?.apply()
+    }
+
+    /** Jednostka banera w zależności od przełącznika reklam testowych. */
+    fun bannerUnitId(testAds: Boolean): String =
+        if (testAds) TEST_BANNER_UNIT_ID else BuildConfig.ADMOB_BANNER_UNIT_ID
+
+    fun reportBannerLoaded() {
+        _lastBannerError.value = null
+    }
+
+    fun reportBannerError(code: String, message: String?) {
+        _lastBannerError.value = AdFailure(code, message.orEmpty())
+    }
+
     private val sdkInitializing = AtomicBoolean(false)
     @Volatile private var sdkInitialized = false
 
@@ -83,6 +142,8 @@ object AdsConsent {
     suspend fun refresh(activity: Activity) {
         val info = UserMessagingPlatform.getConsentInformation(activity)
         consentInfo = info
+        appContext = activity.applicationContext
+        _testAdsEnabled.value = diagPrefs()?.getBoolean("test_ads", false) ?: false
 
         withContext(Dispatchers.Main) {
             runCatching { updateConsentInfo(activity, info) }
@@ -107,6 +168,13 @@ object AdsConsent {
                 "consentStatus=${info.consentStatus}, " +
                 "privacyOptionsRequirementStatus=${info.privacyOptionsRequirementStatus}, " +
                 "isConsentFormAvailable=${info.isConsentFormAvailable}",
+        )
+        _ump.value = UmpSnapshot(
+            canRequestAds = info.canRequestAds(),
+            consentStatus = info.consentStatus,
+            privacyRequired = info.privacyOptionsRequirementStatus ==
+                ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED,
+            formAvailable = info.isConsentFormAvailable,
         )
 
         if (info.canRequestAds()) {

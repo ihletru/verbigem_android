@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,46 +90,58 @@ private fun RealBanner(modifier: Modifier = Modifier) {
     val adSize = remember(context, screenWidthDp) {
         AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, screenWidthDp)
     }
+    // Przełącznik z Profilu → „Diagnostyka reklam". Testowa jednostka Google
+    // wypełnia się zawsze, więc jeśli zadziała ona, a nasza nie — winny jest slot
+    // albo konto AdMob, nie kod aplikacji.
+    val testAds by AdsConsent.testAdsEnabled.collectAsState()
+    val unitId = remember(testAds) {
+        if (testAds) AdsConsent.TEST_BANNER_UNIT_ID else BuildConfig.ADMOB_BANNER_UNIT_ID
+    }
     // ⚠️ AndroidView MUSI być komponowany zawsze — `loadAd` jest wołane w środku
     // factory, więc każde sterowanie widocznością „z zewnątrz" (np. `if (loaded)`)
     // odcina request i baner nigdy nie dostaje odpowiedzi. Stan „wczytano" jest
     // tylko w logach: AdView bez reklamy nie ma treści, więc nie ma co ukrywać.
-    AndroidView(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(adSize.height.dp),
-        factory = { ctx ->
-            AdView(ctx).apply {
-                val request = BannerAdRequest.Builder(
-                    BuildConfig.ADMOB_BANNER_UNIT_ID, adSize
-                ).build()
-                Log.i(
-                    TAG,
-                    "loadAd: unit=${BuildConfig.ADMOB_BANNER_UNIT_ID} " +
-                        "size=${adSize.width}x${adSize.height}",
-                )
-                loadAd(
-                    request,
-                    object : AdLoadCallback<BannerAd> {
-                        override fun onAdLoaded(ad: BannerAd) {
-                            Log.i(TAG, "Banner loaded ${adSize.width}x${adSize.height}")
-                        }
+    // `key(unitId)` — po przełączeniu na reklamy testowe AdView musi powstać
+    // OD NOWA, inaczej `factory` nie odpali się ponownie i zobaczymy starą
+    // jednostkę (albo pustkę) do końca sesji.
+    key(unitId) {
+        AndroidView(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(adSize.height.dp),
+            factory = { ctx ->
+                AdView(ctx).apply {
+                    val request = BannerAdRequest.Builder(unitId, adSize).build()
+                    Log.i(TAG, "loadAd: unit=$unitId size=${adSize.width}x${adSize.height}")
+                    loadAd(
+                        request,
+                        object : AdLoadCallback<BannerAd> {
+                            override fun onAdLoaded(ad: BannerAd) {
+                                Log.i(TAG, "Banner loaded $unitId ${adSize.width}x${adSize.height}")
+                                AdsConsent.reportBannerLoaded()
+                            }
 
-                        override fun onAdFailedToLoad(error: LoadAdError) {
-                            // Ciche logi, nie crash: brak sieci, no-fill (kod 3) albo
-                            // świeży slot bez kampanii to normalny stan, nie błąd.
-                            Log.w(
-                                TAG,
-                                "Banner failed: code=${error.code} " +
-                                    "msg=${error.message}",
-                            )
+                            override fun onAdFailedToLoad(error: LoadAdError) {
+                                // Ciche logi, nie crash: brak sieci, no-fill (kod 3) albo
+                                // świeży slot bez kampanii to normalny stan, nie błąd.
+                                // Kod trafia do karty „Diagnostyka reklam" w Profilu.
+                                Log.w(
+                                    TAG,
+                                    "Banner failed: code=${error.code} " +
+                                        "msg=${error.message}",
+                                )
+                                AdsConsent.reportBannerError(
+                                    error.code.toString(),
+                                    error.message
+                                )
+                            }
                         }
-                    }
-                )
-            }
-        },
-        onRelease = { it.destroy() }
-    )
+                    )
+                }
+            },
+            onRelease = { it.destroy() }
+        )
+    }
 }
 
 /** Placeholder sprzed wczytania (i po błędzie) — ten sam wygląd co stara atrapa. */

@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.67 (2026-09-10) — versionCode 67
+
+**New: “Ad diagnostics" card in Profile.**
+
+- A banner that never fills tells you nothing about the reason — the SDK may not have started, consent may be missing, or the slot may simply have no campaign. The card shows it on screen: whether the ads SDK is running, whether consent was granted, which ad unit is being loaded, and the name of the last error (for example “no fill").
+- **Google test ads** toggle. Google's test unit always fills, regardless of our account setup — if it loads and ours does not, the problem is the slot or the AdMob account.
+- **AdMob debug menu** button — inspect what the SDK says about the unit, without plugging the phone into a computer.
+
 ## v1.0.66 (2026-09-10) — versionCode 66
 
 **Fixed: the payment opened our website instead of the Paddle checkout.**

@@ -593,6 +593,34 @@ byłaby drogą do zamknięcia konta AdMob).
 1. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
    (`AD_ID`) i danych o użytkowaniu. Bez tego kolejne wydanie na produkcję dostanie
    ostrzeżenie/blokadę.
+2. **AdMob → Aplikacje do zatwierdzenia** — `com.verbigem.app` jest na liście ze
+   statusem „Nieukończona konfiguracja" i zero wyświetleń mimo rosnących żądań.
+   „Dokończ konfigurację" → weryfikacja właściciela (link do Play Store). Bez tego
+   serwowanie reklam jest zablokowane niezależnie od kodu.
+
+### Diagnostyka reklam w aplikacji (v1.0.67, karta w Profilu)
+
+Baner, który się nie wypełnia, nie mówi nic o przyczynie — dlatego od v1.0.67 w
+Profilu jest karta **„Diagnostyka reklam"**, pokazująca na żywo:
+
+- `MobileAds.isInitialized` (właściwość, **nie** metoda — pułapka w SDK nowej generacji),
+- `canRequestAds` i `consentStatus` z UMP,
+- która jednostka banera jest ładowana (produkcyjna vs testowa Google),
+- **nazwę** ostatniego błędu (`LoadAdError.ErrorCode.name`, np. `ERROR_CODE_NO_FILL`).
+
+Przełącznik **„Reklamy testowe Google"** podmienia jednostkę na
+`ca-app-pub-3940256099942544/6300978111` (zawsze się wypełnia). To rozstrzyga, czy
+winny jest kod/SDK, czy konto/slot: testowa działa + produkcyjna nie → konsola.
+Persystowane w `SharedPreferences("ads_diagnostics")`. Guzik **„Menu debugowania
+AdMob"** otwiera `MobileAds.openDebugMenu(activity, unitId)` — podgląd stanu slotu
+bez logcata.
+
+⚠️ **Sideload (`com.verbigem.app.sideload`) ma osobny problem:** AdMob weryfikuje
+aplikacje per pakiet, a weryfikacja wymaga wpisu w Play Store. Sideload nie ma wpisu
+w Play, więc AdMob pokaże tę samą pozycję „Nieukończona konfiguracja" albo
+ograniczy serwowanie. Tymczasowe wyjścia: (a) dodać sideload ręcznie w AdMob jako
+app non-Play (akceptuje ograniczenie), (b) ukryć baner w smaku standalone przez
+`if (!BuildConfig.PLAY_BUILD) return` w `AdBannerView`. Do decyzji.
 2. **AdMob → Aplikacje → Verbigem** — sprawdzić, czy aplikacja jest „gotowa do
    wyświetlania reklam" (nowa jednostka potrzebuje zwykle kilku godzin, zanim zacznie
    serwować).

@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.verbigem.app.ui.components.buildOpenRouterLinkedText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.verbigem.app.BuildConfig
 import com.verbigem.app.ads.AdsConsent
 import com.verbigem.app.ui.screens.phone.findActivity
@@ -825,6 +827,97 @@ fun ProfileScreen(
             }
         }
 
+        // Diagnostyka reklam — baner, który się nie wypełnia, nie mówi NIC o
+        // przyczynie: może nie wstać SDK, może UMP nie wydać zgody, a może slot
+        // nie mieć kampanii (kod 3 = no fill). Bez logcata to czarna skrzynka,
+        // więc stan zgód i ostatni błąd są wypisane wprost w Profilu.
+        item {
+            val testAds by AdsConsent.testAdsEnabled.collectAsState()
+            val ump by AdsConsent.ump.collectAsState()
+            val lastError by AdsConsent.lastBannerError.collectAsState()
+            val activity = context.findActivity()
+            val yes = stringResource(R.string.ads_diag_yes)
+            val no = stringResource(R.string.ads_diag_no)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    stringResource(R.string.ads_diag_title),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.muted
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                AdsDiagLine(
+                    stringResource(R.string.ads_diag_sdk),
+                    if (MobileAds.isInitialized) yes else no
+                )
+                AdsDiagLine(
+                    stringResource(R.string.ads_diag_consent),
+                    if (ump.canRequestAds) yes else no
+                )
+                AdsDiagLine(
+                    stringResource(R.string.ads_diag_status),
+                    ump.consentStatus.toString()
+                )
+                AdsDiagLine(
+                    stringResource(R.string.ads_diag_unit),
+                    stringResource(
+                        if (testAds) R.string.ads_diag_unit_test else R.string.ads_diag_unit_live
+                    )
+                )
+                AdsDiagLine(
+                    stringResource(R.string.ads_diag_error),
+                    lastError?.let { stringResource(R.string.ads_diag_error_value, it.code, it.message) }
+                        ?: stringResource(R.string.ads_diag_error_none)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.ads_diag_test_title),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.ink
+                        )
+                        Text(
+                            stringResource(R.string.ads_diag_test_desc),
+                            fontSize = 11.sp,
+                            color = VerbigemTheme.colors.muted
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(checked = testAds, onCheckedChange = { AdsConsent.setTestAdsEnabled(it) })
+                }
+                // Menu udostępniane przez samo SDK — pozwala podejrzeć, co AdMob
+                // mówi o tej jednostce, bez grzebania w logcat.
+                if (activity != null && MobileAds.isInitialized) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Button(
+                        onClick = {
+                            runCatching {
+                                MobileAds.openDebugMenu(activity, AdsConsent.bannerUnitId(testAds))
+                            }.onFailure {
+                                Log.e("ProfileScreen", "Ad debug menu failed", it)
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                    ) {
+                        Text(stringResource(R.string.ads_diag_debug_menu), fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+
         // O aplikacji — wersja + link do „co nowego".
         item {
             // `stringResource` musi być wywołane w composable scope — lambdy
@@ -1107,4 +1200,24 @@ private fun OnlineModelRow(
         }
     }
     Spacer(modifier = Modifier.height(6.dp))
+}
+
+/** Wiersz „etykieta → wartość" w karcie diagnostyki reklam. */
+@Composable
+private fun AdsDiagLine(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+        Text(
+            label,
+            fontSize = 12.sp,
+            color = VerbigemTheme.colors.muted,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            value,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = VerbigemTheme.colors.ink
+        )
+    }
 }

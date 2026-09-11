@@ -625,4 +625,20 @@
     <string name="read_pro_not_configured">Czytaj Pro nie jest jeszcze skonfigurowane</string>
     <string name="read_pro_failed">Nie udało się odtworzyć Czytaj Pro</string>
     <string name="phone_verify_error_unknown">Could not verify the number. Try again later.</string>
+
+    <string name="ads_diag_title">Diagnostyka reklam</string>
+    <string name="ads_diag_sdk">SDK reklam</string>
+    <string name="ads_diag_consent">Zgoda na reklamy</string>
+    <string name="ads_diag_status">Status zgody</string>
+    <string name="ads_diag_unit">Jednostka</string>
+    <string name="ads_diag_unit_live">produkcyjna</string>
+    <string name="ads_diag_unit_test">testowa Google</string>
+    <string name="ads_diag_error">Ostatni blad</string>
+    <string name="ads_diag_error_none">brak</string>
+    <string name="ads_diag_error_value">kod %1$s - %2$s</string>
+    <string name="ads_diag_yes">tak</string>
+    <string name="ads_diag_no">nie</string>
+    <string name="ads_diag_test_title">Reklamy testowe Google</string>
+    <string name="ads_diag_test_desc">Wlacz, gdy baner jest pusty. Testowa jednostka Google wypelnia sie zawsze - jesli ona sie wczyta, a nasza nie, winny jest slot albo konto AdMob.</string>
+    <string name="ads_diag_debug_menu">Menu debugowania AdMob</string>
 </resources>

@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.67 (2026-09-10) — versionCode 67
+
+**Yeni: Profilde „Reklam teşhisi" kartı.**
+
+- Hiç dolmayan bir banner sebep hakkında hiçbir şey söylemez: SDK başlamamış olabilir, izin verilmemiş olabilir ya da slotta kampanya yoktur. Kart bunu doğrudan ekranda gösterir: reklam SDK'sı çalışıyor mu, izin verildi mi, hangi birim yükleniyor ve son hatanın adı (örneğin „dolmama").
+- **Google test reklamları** anahtarı. Google test birimi, hesap ayarımızdan bağımsız olarak her zaman dolar — o yüklenir de bizimki yüklenmezse sorun slotta veya AdMob hesabındadır.
+- **AdMob hata ayıklama menüsü** düğmesi — telefonu bilgisayara bağlamadan SDK'nın birim hakkında ne dediğini görün.
+
 ## v1.0.66 (2026-09-10) — versionCode 66
 
 **Düzeltildi: ödeme Paddle kasası yerine web sitemizi açıyordu.**
