@@ -2,14 +2,26 @@
 
 ---
 
-## v1.0.68 (2026-09-11) — versionCode 68
+## v1.0.69 (2026-09-11) — versionCode 69
 
 **Çeviri geçmişi artık telefonun değil, hesabın.**
 
 - Şimdiye kadar bir telefonda tüm hesaplar aynı çeviri ve fotoğraf geçmişini görüyordu; başka bir hesapla giriş yapmak başkasının kayıtlarını görmeye yetiyordu. Geçmiş artık ayrı: her hesabın kendi geçmişi var ve yalnızca kendisiyle eşitleniyor.
 - Bu güncellemeden sonra ilk giriş yaptığın hesap mevcut geçmişi devralır. Hiçbir şey kaybolmaz.
 
-**Profil'deki «Reklam tanılama» kartını kaldırdık.** Reklamlar zaten Google Play'de yayınlanana kadar gösterilmeyecek, bu yüzden tanılama erkendi ve yalnızca yer kaplıyordu. Reklamlar gerçekten çalışmaya başlayınca geri dönecek.
+**Pro'daki sesli okuma simgesi sonunda ne yaptığını söylüyor.**
+
+- «Oku (Pro)» düğmesinde okumayla ilgisi olmayan bir yıldız vardı. Artık üç dalgalı bir hoparlör var — ücretsiz sürümden bir fazla, yani Pro olduğu hemen belli.
+
+**Düzeltildi: cüzdan yükleme açıklaması fazla söz veriyordu.**
+
+- İletişim kutusu «1 USD = 1 USD bakiye» diyordu. Ödeme sağlayıcısının komisyonunu ve kendi marjımızı hesaba katmıyordu, yani vaat gerçek değildi. Bakiyenin ne için olduğu açıklaması kaldı, tutarlar düğmelerde.
+
+**Profil'deki «Reklam tanılama» kartını kaldırdık.** Reklamlar Google Play'de yayınlanana kadar gösterilmeyecek, bu yüzden tanılama erkendi ve yalnızca yer kaplıyordu. Reklamlar gerçekten çalışmaya başlayınca geri dönecek.
+
+**İletişim kutuları artık lavanta rengi değil.** Açık temada, uygulamanın geri kalanıyla uyuşmayan Material varsayılanı bir arka plan kullanıyorlardı.
+
+## v1.0.68 (2026-09-11) — versionCode 68
 
 **Web sitesinden indirilen sürümün artık kendi reklam birimi var.**
 

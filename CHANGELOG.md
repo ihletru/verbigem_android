@@ -2,14 +2,26 @@
 
 ---
 
-## v1.0.68 (2026-09-11) — versionCode 68
+## v1.0.69 (2026-09-11) — versionCode 69
 
 **Historia tłumaczeń należy teraz do konta, a nie do telefonu.**
 
 - Dotąd na jednym telefonie wszystkie konta widziały tę samą historię tłumaczeń i zdjęć — wystarczyło zalogować się na inne konto, żeby zobaczyć cudze wpisy. Historia jest teraz rozdzielona: każde konto ma własną i synchronizuje się wyłącznie ze swoim.
 - Pierwsze konto, na które zalogujesz się po tej aktualizacji, przejmie dotychczasową historię. Nic nie przepada.
 
-**Usunęliśmy kartę „Diagnostyka reklam" z Profilu.** Reklamy i tak nie włączą się przed publikacją w Google Play, więc diagnostyka była przedwczesna i tylko zajmowała miejsce. Wróci, gdy reklamy zaczną działać.
+**Ikona czytania na głos w wersji Pro wreszcie mówi, co robi.**
+
+- Przycisk „Przeczytaj (Pro)" miał gwiazdkę, która nie miała nic wspólnego z czytaniem. Jest na nim głośnik z trzema falami — o jedną więcej niż w wersji darmowej, więc od razu widać, że to Pro.
+
+**Poprawione: opis doładowania portfela obiecywał za dużo.**
+
+- Dialog twierdził „1 USD = 1 USD salda". Nie uwzględniał prowizji operatora płatności ani naszej marży, więc obietnica była po prostu nieprawdziwa. Został opis, do czego saldo służy, a kwoty są na przyciskach.
+
+**Usunęliśmy kartę „Diagnostyka reklam" z Profilu.** Reklamy nie włączą się przed publikacją w Google Play, więc diagnostyka była przedwczesna i tylko zajmowała miejsce. Wróci, gdy reklamy zaczną działać.
+
+**Okna dialogowe przestały być lawendowe.** W jasnym motywie miały tło z domyślnych ustawień Material, które nie pasowało do reszty aplikacji.
+
+## v1.0.68 (2026-09-11) — versionCode 68
 
 **Wersja instalowana ze strony ma teraz własną jednostkę reklamową.**
 

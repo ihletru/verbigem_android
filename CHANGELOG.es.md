@@ -2,14 +2,26 @@
 
 ---
 
-## v1.0.68 (2026-09-11) — versionCode 68
+## v1.0.69 (2026-09-11) — versionCode 69
 
 **El historial de traducciones ahora pertenece a la cuenta, no al teléfono.**
 
 - Hasta ahora, en un mismo teléfono todas las cuentas veían el mismo historial de traducciones y fotos: bastaba con iniciar sesión con otra cuenta para ver entradas ajenas. El historial está ahora separado: cada cuenta tiene el suyo y se sincroniza solo con ella.
 - La primera cuenta con la que inicies sesión tras esta actualización adoptará el historial existente. No se pierde nada.
 
+**El icono de lectura en voz alta de Pro por fin dice qué hace.**
+
+- El botón «Leer (Pro)» llevaba una estrella que no tenía nada que ver con leer. Ahora muestra un altavoz con tres ondas — una más que la versión gratuita, así que se ve de inmediato que es Pro.
+
+**Corregido: la descripción de la recarga del monedero prometía demasiado.**
+
+- El diálogo afirmaba «1 USD = 1 USD de saldo». No tenía en cuenta la comisión del proveedor de pagos ni nuestro margen, así que la promesa era sencillamente falsa. Queda la descripción de para qué sirve el saldo, con los importes en los botones.
+
 **Hemos eliminado la tarjeta «Diagnóstico de anuncios» del Perfil.** Los anuncios no se mostrarán hasta la publicación en Google Play, así que el diagnóstico era prematuro y solo ocupaba espacio. Volverá cuando los anuncios funcionen de verdad.
+
+**Los diálogos ya no son de color lavanda.** En el tema claro usaban un fondo de los valores por defecto de Material que no encajaba con el resto de la aplicación.
+
+## v1.0.68 (2026-09-11) — versionCode 68
 
 **La versión descargada desde la web ya tiene su propia unidad de anuncios.**
 

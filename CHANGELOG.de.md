@@ -2,14 +2,26 @@
 
 ---
 
-## v1.0.68 (2026-09-11) — versionCode 68
+## v1.0.69 (2026-09-11) — versionCode 69
 
 **Der Übersetzungsverlauf gehört jetzt zum Konto, nicht zum Telefon.**
 
 - Bisher sahen auf einem Telefon alle Konten denselben Verlauf von Übersetzungen und Fotos — es genügte, sich mit einem anderen Konto anzumelden, um fremde Einträge zu sehen. Der Verlauf ist jetzt getrennt: jedes Konto hat seinen eigenen und synchronisiert nur mit sich selbst.
 - Das erste Konto, mit dem du dich nach diesem Update anmeldest, übernimmt den bisherigen Verlauf. Nichts geht verloren.
 
-**Die Karte „Werbe-Diagnose" wurde aus dem Profil entfernt.** Werbung wird ohnehin erst nach der Veröffentlichung bei Google Play ausgeliefert, die Diagnose war also verfrüht und nahm nur Platz weg. Sie kommt zurück, sobald Werbung tatsächlich läuft.
+**Das Vorlesen-Symbol in der Pro-Version sagt endlich, was es tut.**
+
+- Der Knopf „Vorlesen (Pro)" trug einen Stern, der nichts mit Vorlesen zu tun hatte. Jetzt zeigt er einen Lautsprecher mit drei Wellen — eine mehr als in der kostenlosen Version, also ist sofort klar: das ist Pro.
+
+**Behoben: die Beschreibung der Wallet-Aufladung hat zu viel versprochen.**
+
+- Der Dialog behauptete „1 USD = 1 USD Guthaben". Er ließ die Gebühr des Zahlungsanbieters und unsere Marge außer Acht, die Zusage war also schlicht unwahr. Geblieben ist die Beschreibung, wofür das Guthaben ist, die Beträge stehen auf den Knöpfen.
+
+**Die Karte „Werbe-Diagnose" wurde aus dem Profil entfernt.** Werbung wird erst nach der Veröffentlichung bei Google Play ausgeliefert, die Diagnose war also verfrüht und nahm nur Platz weg. Sie kommt zurück, sobald Werbung tatsächlich läuft.
+
+**Dialoge sind nicht mehr lavendelfarben.** Im hellen Design nutzten sie einen Hintergrund aus den Material-Standardwerten, der nicht zum Rest der App passte.
+
+## v1.0.68 (2026-09-11) — versionCode 68
 
 **Die Version von der Website hat jetzt eine eigene Anzeigeneinheit.**
 

@@ -2,14 +2,26 @@
 
 ---
 
-## v1.0.68 (2026-09-11) — versionCode 68
+## v1.0.69 (2026-09-11) — versionCode 69
 
 **Translation history now belongs to the account, not to the phone.**
 
 - Until now every account on a phone saw the same translation and photo history — signing in with another account was enough to see someone else's entries. History is now separated: each account has its own and syncs only with itself.
 - The first account you sign in with after this update adopts the existing history. Nothing is lost.
 
-**Removed the "Ad diagnostics" card from Profile.** Ads will not serve until the app is published on Google Play anyway, so the diagnostics were premature and only took up space. It comes back once ads actually run.
+**The Pro read-aloud icon finally says what it does.**
+
+- The "Read (Pro)" button carried a star that had nothing to do with reading. It now shows a speaker with three waves — one more than the free version, so it is obvious this is Pro.
+
+**Fixed: the wallet top-up description promised too much.**
+
+- The dialog claimed "1 USD = 1 USD credit". It ignored the payment provider's fee and our own margin, so the promise was simply untrue. What remains is a description of what the balance is for, with the amounts on the buttons.
+
+**Removed the "Ad diagnostics" card from Profile.** Ads will not serve until the app is published on Google Play, so the diagnostics were premature and only took up space. It comes back once ads actually run.
+
+**Dialogs are no longer lavender.** In the light theme they used a background from Material's defaults that did not match the rest of the app.
+
+## v1.0.68 (2026-09-11) — versionCode 68
 
 **The version downloaded from the website now has its own ad unit.**
 
