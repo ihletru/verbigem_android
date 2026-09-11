@@ -39,6 +39,7 @@ Dawniej cała dokumentacja żyła tutaj — 1190 linii, 111 kB, cztery różne d
 | [`docs/ikony-i-pomoc.md`](docs/ikony-i-pomoc.md) | klik = akcja, długie kliknięcie = pomoc; bottom nav | Gdy dodajesz ikonę |
 | [`docs/reklamy.md`](docs/reklamy.md) | AdMob (apka) + AdSense (webapp) | Gdy ruszasz reklamy |
 | [`docs/dystrybucja.md`](docs/dystrybucja.md) | AAB vs APK, auto-update APK, branding | Gdy wypuszczasz wersję |
+| [`docs/dystrybucja-kanaly.md`](docs/dystrybucja-kanaly.md) | Własna strona vs Google Play vs App Store (iPhone, DMA) | Gdy wybierasz kanał publikacji |
 | [`docs/firebase.md`](docs/firebase.md) | Projekt Firebase, App Check, push, Phone Auth | Gdy ruszasz Firebase |
 | [`docs/functions.md`](docs/functions.md) | Cloud Functions, sekrety, webhook Paddle | Gdy deployujesz funkcje |
 | [`docs/uruchomienie.md`](docs/uruchomienie.md) | Build, flow wydania, zasady repo | Gdy stawiasz środowisko / wydajesz |

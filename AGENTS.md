@@ -31,6 +31,7 @@
 | **Reklamy AdMob w aplikacji** | [`docs/reklamy.md`](docs/reklamy.md) |
 | **Reklamy AdSense na stronie** | [`docs/reklamy.md`](docs/reklamy.md) + repo `verbigem-mini` |
 | **Wydanie wersji, AAB, APK, auto-update** | [`docs/dystrybucja.md`](docs/dystrybucja.md) + [`docs/uruchomienie.md`](docs/uruchomienie.md) |
+| **Gdzie publikować: własna strona vs Google Play vs App Store (iPhone)** | [`docs/dystrybucja-kanaly.md`](docs/dystrybucja-kanaly.md) |
 | **Firebase, Firestore, App Check, push, Phone Auth** | [`docs/firebase.md`](docs/firebase.md) |
 | **Cloud Functions, sekrety, deploy funkcji** | [`docs/functions.md`](docs/functions.md) |
 | **Prywatność, dane użytkownika, usunięcie konta** | [`docs/prywatnosc.md`](docs/prywatnosc.md) |
