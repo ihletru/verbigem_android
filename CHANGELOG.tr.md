@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.68 (2026-09-11) — versionCode 68
+
+**Web sitesinden indirilen sürümün artık kendi reklam birimi var.**
+
+- Google Play sürümü ile web sitesinden indirilen sürüm AdMob'da iki ayrı uygulamadır. Şimdiye kadar tek bir kimlik paylaşıyorlardı, bu yüzden AdMob bir reklam isteğinin gerçekte nereden geldiğini bilemiyordu.
+- Artık web sürümünün kendi uygulama kimliği ve kendi banner birimi var; böylece her iki sürümdeki reklamlar bağımsız olarak ölçülüp incelenebilir.
+
 ## v1.0.67 (2026-09-10) — versionCode 67
 
 **Yeni: Profilde „Reklam teşhisi" kartı.**

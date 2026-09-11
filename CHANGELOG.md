@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.68 (2026-09-11) — versionCode 68
+
+**Wersja instalowana ze strony ma teraz własną jednostkę reklamową.**
+
+- Wersja z Google Play i wersja do pobrania ze strony to dwie osobne aplikacje w AdMobie. Dotąd dzieliły jeden identyfikator, więc AdMob nie wiedział, skąd naprawdę przyszło zapytanie o reklamę.
+- Teraz wersja ze strony ma własny identyfikator aplikacji i własną jednostkę banera. Reklamy w obu wersjach można rozliczać i diagnozować niezależnie.
+
 ## v1.0.67 (2026-09-10) — versionCode 67
 
 **Nowe: karta „Diagnostyka reklam" w Profilu.**

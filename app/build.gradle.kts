@@ -22,20 +22,21 @@ android {
     val admobAppIdPlay = "ca-app-pub-7473087307651079~4666239941"
     val admobBannerUnitIdPlay = "ca-app-pub-7473087307651079/6237092472"
 
-    // Sideload: OSOBNA aplikacja w AdMob (Aplikacje → Dodaj aplikację → Android
-    // → „nie jest opublikowana w Google Play" → com.verbigem.app.sideload).
-    // AdMob wygeneruje dla niej WŁASNY App ID i własną jednostkę banera —
-    // wklej je tutaj. Do tego czasu oba smaki dzielą wartości z Play, więc
-    // build działa dokładnie tak jak dotąd (żadnej zmiany zachowania).
-    val admobAppIdSideload = admobAppIdPlay
-    val admobBannerUnitIdSideload = admobBannerUnitIdPlay
+    // Sideload: OSOBNA aplikacja w AdMob (dodana 2026-09-10 jako „nie jest
+    // opublikowana w Google Play", pakiet com.verbigem.app.sideload).
+    // ⚠️ Te ID są INNE niż w wersji Play i muszą takie zostać — dzięki temu
+    // AdMob rozlicza żądania sideloadu pod jego własną aplikacją, a nie pod
+    // aplikacją Play. Podmiana na wartości z Play z powrotem zepsułaby
+    // przypisanie i diagnostykę.
+    val admobAppIdSideload = "ca-app-pub-7473087307651079~5056279267"
+    val admobBannerUnitIdSideload = "ca-app-pub-7473087307651079/8245549385"
 
     defaultConfig {
         applicationId = "com.verbigem.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 67
-        versionName = "1.0.67"
+        versionCode = 68
+        versionName = "1.0.68"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

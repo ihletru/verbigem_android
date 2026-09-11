@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.68 (2026-09-11) — versionCode 68
+
+**Die Version von der Website hat jetzt eine eigene Anzeigeneinheit.**
+
+- Die Google-Play-Version und der Download von der Website sind zwei getrennte Apps in AdMob. Bisher teilten sie eine Kennung, sodass AdMob nicht erkennen konnte, woher eine Anzeigenanfrage wirklich kam.
+- Die Website-Version hat jetzt eine eigene App-Kennung und eine eigene Banner-Einheit, sodass Anzeigen in beiden Versionen unabhängig gemessen und geprüft werden können.
+
 ## v1.0.67 (2026-09-10) — versionCode 67
 
 **Neu: Karte „Anzeigen-Diagnose" im Profil.**

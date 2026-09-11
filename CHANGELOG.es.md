@@ -2,6 +2,13 @@
 
 ---
 
+## v1.0.68 (2026-09-11) — versionCode 68
+
+**La versión descargada desde la web ya tiene su propia unidad de anuncios.**
+
+- La versión de Google Play y la descarga desde la web son dos aplicaciones distintas en AdMob. Hasta ahora compartían un único identificador, así que AdMob no podía saber de dónde venía realmente una solicitud de anuncio.
+- Ahora la versión de la web tiene su propio identificador de aplicación y su propia unidad de banner, de modo que los anuncios de ambas versiones se pueden medir y diagnosticar por separado.
+
 ## v1.0.67 (2026-09-10) — versionCode 67
 
 **Nuevo: tarjeta „Diagnóstico de anuncios" en el perfil.**
