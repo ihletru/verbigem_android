@@ -2,6 +2,7 @@ package com.verbigem.app.ui.screens.profile
 
 import kotlin.math.ceil
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
@@ -70,6 +72,7 @@ import com.verbigem.app.data.openUrl
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.model.ModelTier
 import com.verbigem.app.data.model.OnlineModels
+import com.verbigem.app.data.repository.NicknameClaim
 import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.LangSelect
 import com.verbigem.app.ui.components.ScreenHeader
@@ -90,6 +93,7 @@ fun ProfileScreen(
     val profile by viewModel.userProfile.collectAsState()
     val phoneVerified by viewModel.phoneVerified.collectAsState()
     val nicknameInput by viewModel.nicknameInput.collectAsState()
+    val nicknameClaim by viewModel.nicknameClaim.collectAsState()
     val currentTheme by viewModel.currentTheme.collectAsState(initial = "calm")
     val currentMode by viewModel.currentMode.collectAsState(initial = "day")
     val currentUiLang by viewModel.currentUiLang.collectAsState(initial = "pl")
@@ -213,6 +217,22 @@ fun ProfileScreen(
                     ) {
                         Text(stringResource(R.string.save))
                     }
+                }
+                // Komunikat o nicku siedzi WEWNĄTRZ karty nicku, a nie nad listą:
+                // dotyczy konkretnego pola, więc ma być przy nim, także po przewinięciu.
+                if (nicknameClaim != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(
+                            if (nicknameClaim == NicknameClaim.TAKEN) {
+                                R.string.profile_nickname_taken
+                            } else {
+                                R.string.profile_nickname_error
+                            }
+                        ),
+                        fontSize = 12.sp,
+                        color = VerbigemTheme.colors.danger
+                    )
                 }
             }
         }
@@ -392,10 +412,19 @@ fun ProfileScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
+                // „Usuń reklamy" — akcja DRUGORZĘDNA, więc nie może wyglądać jak
+                // tło strony. Wcześniej miała `containerColor = colors.bg`, przez co
+                // na karcie (`surface`) była ledwo widoczną plamą w innym odcieniu.
+                // Teraz: powierzchnia karty + obramowanie w kolorze akcentu, czyli
+                // ten sam język wizualny co reszta kart i wybrany layout.
                 Button(
                     onClick = { showNoAds = true },
                     enabled = !topUpLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.bg),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = VerbigemTheme.colors.surface,
+                        contentColor = VerbigemTheme.colors.accent
+                    ),
+                    border = BorderStroke(1.dp, VerbigemTheme.colors.accent),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(stringResource(R.string.noads_title), fontSize = 13.sp)
@@ -892,6 +921,49 @@ fun ProfileScreen(
                         tint = VerbigemTheme.colors.muted,
                         modifier = Modifier.size(18.dp)
                     )
+                }
+            }
+        }
+
+        // Kontakt — formularz na mini.verbigem.com/contact/<uiLang>/.
+        // Tap = akcja (otwiera formularz), długie przytrzymanie = pomoc,
+        // zgodnie z globalną regułą gestów.
+        item {
+            val contactTitle = stringResource(R.string.profile_contact_label)
+            val contactHelp = stringResource(R.string.help_profile_contact)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(VerbigemTheme.colors.surface)
+                    .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(20.dp))
+                    .helpClickable(
+                        onClick = {},
+                        onLongClick = { help.show(contactTitle, contactHelp) }
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(
+                    stringResource(R.string.profile_contact_label),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = VerbigemTheme.colors.muted
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.profile_contact_text),
+                    fontSize = 13.sp,
+                    color = VerbigemTheme.colors.ink
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Button(
+                    onClick = { context.openUrl(AppLinks.contact(currentUiLang)) },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = VerbigemTheme.colors.accent)
+                ) {
+                    Icon(Icons.Default.MailOutline, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.profile_contact_cta), fontSize = 13.sp)
                 }
             }
         }

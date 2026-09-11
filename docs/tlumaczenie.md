@@ -73,7 +73,7 @@ Silnik `ONLINE` w `EngineChoice` (ikona ☁️). Tłumaczy przez chmurę, gdy br
 lokalnego lub dla lepszej jakości. Dwa niezależne źródła:
 
 1. **3 modele kuratorskie (płatne, rozliczane z portfela)** — `OnlineModels.CURATED`
-   w `data/model/OnlineModel.kt`: `deepseek/deepseek-v4-flash-latest` (domyślny,
+   w `data/model/OnlineModel.kt`: `deepseek/deepseek-v4.1-flash` (domyślny,
    oznaczony „polecany"), `google/gemini-3.8-flash`, `anthropic/claude-opus-5`. Idą przez
    proxy Cloud Function **`deepseekProxy`** (trzyma klucz Verbigema, OpenRouter), które
    przekazuje wybrany `model` **1:1** do OpenRouter. ⚠️ Proxy **musi** czytać pole `model`

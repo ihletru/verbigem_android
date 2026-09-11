@@ -56,6 +56,18 @@ object AppLinks {
     private const val WHATSNEW_BASE = "https://mini.verbigem.com/android/changelog"
     private const val WHATSNEW_SUFFIX = ".html"
 
+    private const val CONTACT_BASE = "https://mini.verbigem.com/contact/"
+
+    /**
+     * URL formularza kontaktowego w jezyku interfejsu. Strona jest statyczna
+     * (generuje ja `mini/scripts/gen-legal.mjs`), wiec zmiana tresci formularza
+     * nie wymaga nowego wydania APK. Ten sam zestaw jezykow co polityka prywatnosci.
+     */
+    fun contact(uiLang: String?): String {
+        val code = uiLang?.lowercase()?.substringBefore("-")
+        return if (code in PRIVACY_LANGS) "$CONTACT_BASE$code/" else CONTACT_BASE
+    }
+
     /** Where the user creates their own OpenRouter API key (free account). */
     fun openRouterKeys(): String = "https://openrouter.ai/keys"
 

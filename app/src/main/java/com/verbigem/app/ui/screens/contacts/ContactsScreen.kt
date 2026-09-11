@@ -31,7 +31,8 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -92,6 +93,12 @@ fun ContactsScreen(
     onOpenContactCard: (String) -> Unit,
     /** Skaner kodów QR (Faza 4.2) — otwiera kartę kontaktu ze skanu. */
     onOpenScan: () -> Unit,
+    /**
+     * „Mój kod QR" — pokazuje własny kod do zeskanowania przez drugą osobę.
+     * Ta sama trasa co karta w Profilu (`Screen.MyQr`); wejście jest też tutaj,
+     * bo to najkrótsza droga: jesteś w Kontaktach, chcesz dodać kogoś.
+     */
+    onOpenMyQr: () -> Unit,
     /** Numer z książki, dla którego otwieramy wątek jednokierunkowy (3.6). */
     onOpenExternalThread: (String) -> Unit
 ) {
@@ -180,19 +187,38 @@ fun ContactsScreen(
             helpTitle = stringResource(R.string.help_intro_contacts_title),
             helpText = stringResource(R.string.help_intro_contacts),
             trailing = {
-                HelpIconButton(
-                    onClick = onOpenScan,
-                    helpState = help,
-                    helpTitle = stringResource(R.string.help_contacts_qr_title),
-                    helpText = stringResource(R.string.help_contacts_qr),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        Icons.Default.QrCode,
-                        contentDescription = stringResource(R.string.qr_scan),
-                        tint = VerbigemTheme.colors.ink,
-                        modifier = Modifier.size(22.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // „Mój kod QR" — własny kod do pokazania drugiej osobie.
+                    // Kolor AKCENTU, żeby nie mylił się ze skanerem obok
+                    // (ten zostaje w kolorze `ink`, jak dotychczas).
+                    HelpIconButton(
+                        onClick = onOpenMyQr,
+                        helpState = help,
+                        helpTitle = stringResource(R.string.qr_my_code),
+                        helpText = stringResource(R.string.help_profile_qr),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.QrCode2,
+                            contentDescription = stringResource(R.string.qr_my_code),
+                            tint = VerbigemTheme.colors.accent,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    HelpIconButton(
+                        onClick = onOpenScan,
+                        helpState = help,
+                        helpTitle = stringResource(R.string.help_contacts_qr_title),
+                        helpText = stringResource(R.string.help_contacts_qr),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.QrCodeScanner,
+                            contentDescription = stringResource(R.string.qr_scan),
+                            tint = VerbigemTheme.colors.ink,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         )

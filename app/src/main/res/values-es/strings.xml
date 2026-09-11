@@ -547,8 +547,8 @@
     <string name="online_recommended">recomendado</string>
     <string name="online_paid_no_credits">Sin saldo — recarga tu monedero para usar modelos de pago</string>
     <string name="help_online_model">Qué modelo traduce tu texto cuando usas el motor en línea. Los tres modelos listados están alojados por Verbigem y se cobran de tu monedero (primero el de mejor relación calidad-precio). Si pegas tu propia clave de OpenRouter abajo, aparecen los modelos gratuitos «:free» y traducen sin coste.</string>
-    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
-    <string name="online_model_deepseek_desc">La mejor opción — rápido y de alta calidad (~0,14 $ / 1 M tokens).</string>
+    <string name="online_model_deepseek_label">DeepSeek V4.1 Flash</string>
+    <string name="online_model_deepseek_desc">La mejor opción — rápido y de alta calidad (~0,15 $ / 1 M tokens).</string>
     <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
     <string name="online_model_gemini_desc">Buen modelo polivalente, gran contexto (~0,75 $ / 1 M tokens).</string>
     <string name="online_model_claude_label">Claude Opus 5</string>
@@ -560,13 +560,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Tu propia clave de OpenRouter</string>
-    <string name="own_api_explainer">Usa los modelos gratuitos «:free» de OpenRouter con tu propia clave — las traducciones te cuestan 0 $. Crea tu clave en openrouter.ai/keys.</string>
+    <string name="own_api_explainer">Usa los modelos gratuitos «:free» de OpenRouter con tu propia clave — las traducciones te cuestan 0 $. Crea tu clave gratuita en openrouter.ai/keys.</string>
     <string name="own_api_status_on">Activa — modelos gratuitos desbloqueados</string>
     <string name="own_api_clear">Quitar clave</string>
     <string name="own_api_placeholder">Pega tu clave de API de OpenRouter</string>
     <string name="own_api_save">Guardar clave</string>
     <string name="own_api_howto">Cómo obtener una clave</string>
-    <string name="help_own_api">OpenRouter es un servicio que envía traducciones a muchos modelos de IA. Crea una cuenta gratuita en openrouter.ai, abre la página de claves y haz clic en «Create Key». Copia la clave y pégala aquí. Se guarda solo en este teléfono. Una vez añadida, los modelos gratuitos «:free» aparecen en la lista en línea y no cuestan nada. Crea tu clave en openrouter.ai/keys.</string>
+    <string name="help_own_api">OpenRouter es un servicio que envía traducciones a muchos modelos de IA. Crea una cuenta gratuita en openrouter.ai, abre la página de claves y haz clic en «Create Key». Copia la clave y pégala aquí. Se guarda solo en este teléfono. Una vez añadida, los modelos gratuitos «:free» aparecen en la lista en línea y no cuestan nada. Crea tu clave gratuita en openrouter.ai/keys.</string>
     <string name="topup_button">Recargar monedero</string>
     <string name="topup_dialog_title">Recarga tu monedero</string>
     <string name="topup_dialog_subtitle">Saldo para modelos online de pago y la voz Pro</string>
@@ -601,4 +601,10 @@
     <string name="read_pro_failed">La lectura Pro ha fallado</string>
     <string name="phone_verify_error_unknown">No se pudo verificar el número. Inténtalo de nuevo más tarde.</string>
 
+    <string name="profile_contact_label">CONTACTO</string>
+    <string name="profile_contact_text">¿Preguntas, comentarios o ideas sobre la aplicación? Compártelas con nosotros - nos encantará escucharte.</string>
+    <string name="profile_contact_cta">Escríbenos</string>
+    <string name="help_profile_contact">¿Una pregunta, un error o una función que falta? El formulario de contacto se abre en el navegador - no necesitas iniciar sesión. Respondemos a la dirección de correo que indiques en el formulario.</string>
+    <string name="profile_nickname_taken">Ese apodo ya está en uso. Elige otro.</string>
+    <string name="profile_nickname_error">No se pudo guardar el apodo. Comprueba la conexión e inténtalo de nuevo.</string>
 </resources>

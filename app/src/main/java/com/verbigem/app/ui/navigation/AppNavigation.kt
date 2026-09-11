@@ -284,7 +284,8 @@ fun AppNavigation(
                         onOpenExternalThread = { phone ->
                             navController.navigate(Screen.ExternalThread.createRoute(phone))
                         },
-                        onOpenScan = { navController.navigate(Screen.Scan.route) }
+                        onOpenScan = { navController.navigate(Screen.Scan.route) },
+                        onOpenMyQr = { navController.navigate(Screen.MyQr.route) }
                     )
                 }
 

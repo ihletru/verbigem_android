@@ -108,9 +108,7 @@ Podpisy ikon są zawsze **11.sp** — ta sama wielkość co w menu dolnym. Tam, 
 Milosz nie podał treści okna, treść jest wygenerowana i trzyma się schematu:
 *czym jest → co robi → jak używać → co się dzieje z danymi*.
 
-## 📱 Dolny pasek — zawsze MAX 5 ikon
-
-`BottomNav` renderuje pasek współdzielony przez `AppNavigation` (`showBottomNav`).
+## 📱 Dolny pasek — zawsze MAX 5 ikon`BottomNav` renderuje pasek współdzielony przez `AppNavigation` (`showBottomNav`).
 **Twarda reguła: pasek ma dokładnie 5 pozycji** — Tłumacz, Rozmowa, Czat, Kontakty,
 Profil. Nie dodawaj szóstej ikony „bo ekran X nie ma nawigacji".
 
@@ -120,5 +118,26 @@ Profil. Nie dodawaj szóstej ikony „bo ekran X nie ma nawigacji".
   ekranu (wzorzec: OCR z Tłumacza przez `HelpFramedIconButton`).
 - v41 dodało OCR jako szóstą pozycję. Cofnięte — pasek wizualnie się rozjeżdżał,
   a wejście do OCR nie było krótsze niż przez Tłumacza.
+
+---
+
+## 🔳 Dwie ikony QR w nagłówku Kontaktów (od v1.0.72)
+
+Nagłówek Kontaktów ma dwie akcje QR i **muszą się różnić kolorem**, inaczej
+użytkownik czyta je jako jedną funkcję:
+
+| Ikona | Kolor | Akcja | Pomoc (długie przytrzymanie) |
+|---|---|---|---|
+| `Icons.Default.QrCode2` | `accent` | „Mój kod QR" → `Screen.MyQr` | `qr_my_code` (tytuł) + `help_profile_qr` |
+| `Icons.Default.QrCodeScanner` | `ink` | skaner → `Screen.Scan` | bez zmian |
+
+Zasada „kolor = znaczenie" jest tu jedynym rozróżnieniem, bo obie ikony są
+wariantami tej samej rodziny (`QrCode*`). Jeśli kiedyś dojdzie trzecia akcja QR,
+najpierw znajdź dla niej inny kolor, a nie inną ikonę z tej samej rodziny.
+
+⚠️ `ScreenHeader.trailing` przyjmuje jeden komponent — dla dwóch ikon pakujemy je
+w `Row` (wzorzec z `ContactsScreen.kt`). Nie dokładaj ikon do nagłówka bez
+sprawdzenia, czy nadal mieszczą się na wąskim ekranie: nagłówek nie przewija się
+w poziomie.
 
 ---

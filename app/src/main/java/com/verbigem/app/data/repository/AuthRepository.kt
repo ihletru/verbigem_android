@@ -28,6 +28,7 @@ class AuthRepository {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val nicknameRepository = NicknameRepository()
 
     val currentUser: FirebaseUser?
         get() = auth.currentUser
@@ -87,21 +88,30 @@ class AuthRepository {
                     "updatedAt" to FieldValue.serverTimestamp()
                 )
                 docRef.set(profile).await()
-                syncPublicProfile(
-                    UserProfile(
-                        uid = user.uid,
-                        nickname = profile["nickname"] as String,
-                        email = profile["email"] as String,
-                        photoURL = profile["photoURL"] as String,
-                        uiLang = "pl",
-                        speakLangSource = "pl",
-                        speakLangTarget = "en"
-                    )
+                val created = UserProfile(
+                    uid = user.uid,
+                    nickname = profile["nickname"] as String,
+                    email = profile["email"] as String,
+                    photoURL = profile["photoURL"] as String,
+                    uiLang = "pl",
+                    speakLangSource = "pl",
+                    speakLangTarget = "en"
                 )
+                syncPublicProfile(created)
+                // Nowe konto od razu rezerwuje swój nick — inaczej pierwszy tydzień
+                // istnienia konta to okno, w którym ktoś inny może zająć ten sam nick.
+                nicknameRepository.claimQuietly(created.nickname, user.uid)
             } else {
                 // Self-healing backfill: accounts created before `usersPublic` existed
                 // get their public projection on the next sign-in, no script needed.
-                snap.toObject(UserProfile::class.java)?.let { syncPublicProfile(it) }
+                snap.toObject(UserProfile::class.java)?.let {
+                    syncPublicProfile(it)
+                    // Doszczelnienie rezerwacji nicku dla kont założonych przed
+                    // wprowadzeniem unikalności. `claimQuietly` nigdy nie rzuca i nie
+                    // przemianowuje użytkownika, gdy nick należy już do kogoś innego —
+                    // taki konflikt rozwiązuje osobny skrypt migracyjny.
+                    nicknameRepository.claimQuietly(it.nickname, user.uid)
+                }
             }
         } catch (e: Exception) {
             android.util.Log.e("AuthRepository", "Error ensuring profile", e)

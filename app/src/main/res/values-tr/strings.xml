@@ -547,8 +547,8 @@
     <string name="online_recommended">önerilen</string>
     <string name="online_paid_no_credits">Bakiye yok — ücretli modeller için cüzdanını doldur</string>
     <string name="help_online_model">Çevrimiçi motoru kullanırken metnini hangi modelin çevireceği. Listelenen üç model Verbigem tarafından barındırılır ve cüzdanından ücretlendirilir (önce en iyi fiyat/kalite oranı). Aşağıya kendi OpenRouter anahtarını yapıştırırsan, ücretsiz “:free” modelleri görünür ve senin için ücretsiz çevirir.</string>
-    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
-    <string name="online_model_deepseek_desc">En iyi değer — hızlı ve yüksek kaliteli (~0,14 $ / 1M token).</string>
+    <string name="online_model_deepseek_label">DeepSeek V4.1 Flash</string>
+    <string name="online_model_deepseek_desc">En iyi değer — hızlı ve yüksek kaliteli (~0,15 $ / 1M token).</string>
     <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
     <string name="online_model_gemini_desc">Güçlü çok yönlü model, geniş bağlam (~0,75 $ / 1M token).</string>
     <string name="online_model_claude_label">Claude Opus 5</string>
@@ -560,13 +560,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Kendi OpenRouter anahtarın</string>
-    <string name="own_api_explainer">Kendi anahtarınla OpenRouter’ın ücretsiz “:free” modellerini kullan — çeviriler sana 0 $’a mal olur. Anahtarı openrouter.ai/keys adresinden alabilirsin.</string>
+    <string name="own_api_explainer">Kendi anahtarınla OpenRouter’ın ücretsiz “:free” modellerini kullan — çeviriler sana 0 $’a mal olur. Ücretsiz anahtarı openrouter.ai/keys adresinden alabilirsin.</string>
     <string name="own_api_status_on">Aktif — ücretsiz modeller açıldı</string>
     <string name="own_api_clear">Anahtarı kaldır</string>
     <string name="own_api_placeholder">OpenRouter API anahtarını yapıştır</string>
     <string name="own_api_save">Anahtarı kaydet</string>
     <string name="own_api_howto">Anahtar nasıl alınır</string>
-    <string name="help_own_api">OpenRouter, çevirileri birçok yapay zeka modeline yönlendiren bir hizmettir. openrouter.ai’de ücretsiz bir hesap oluştur, Anahtarlar sayfasını aç ve “Create Key”e tıkla. Anahtarı kopyalayıp buraya yapıştır. Yalnızca bu telefonda saklanır. Eklendikten sonra çevrimiçi model listesinde ücretsiz “:free” modelleri görünür ve hiçbir ücret istemez. Anahtarı openrouter.ai/keys adresinden oluştur.</string>
+    <string name="help_own_api">OpenRouter, çevirileri birçok yapay zeka modeline yönlendiren bir hizmettir. openrouter.ai’de ücretsiz bir hesap oluştur, Anahtarlar sayfasını aç ve “Create Key”e tıkla. Anahtarı kopyalayıp buraya yapıştır. Yalnızca bu telefonda saklanır. Eklendikten sonra çevrimiçi model listesinde ücretsiz “:free” modelleri görünür ve hiçbir ücret istemez. Ücretsiz anahtarı openrouter.ai/keys adresinden oluştur.</string>
     <string name="topup_button">Cüzdanı doldur</string>
     <string name="topup_dialog_title">Cüzdanını doldur</string>
     <string name="topup_dialog_subtitle">Ücretli çevrimiçi modeller ve Pro ses için bakiye</string>
@@ -601,4 +601,10 @@
     <string name="read_pro_failed">Pro Okuma başarısız</string>
     <string name="phone_verify_error_unknown">Numara doğrulanamadı. Daha sonra tekrar dene.</string>
 
+    <string name="profile_contact_label">İLETİŞİM</string>
+    <string name="profile_contact_text">Uygulamayla ilgili sorunuz, geri bildiriminiz veya fikriniz mi var? Bizimle paylaşın - dinlemekten mutluluk duyarız.</string>
+    <string name="profile_contact_cta">Bize yazın</string>
+    <string name="help_profile_contact">Bir soru, bir hata veya eksik bir özellik mi? İletişim formu tarayıcıda açılır - oturum açmanız gerekmez. Formda girdiğiniz e-posta adresine yanıt veririz.</string>
+    <string name="profile_nickname_taken">Bu takma ad zaten alınmış. Başka bir tane seç.</string>
+    <string name="profile_nickname_error">Takma ad kaydedilemedi. Bağlantını kontrol edip tekrar dene.</string>
 </resources>

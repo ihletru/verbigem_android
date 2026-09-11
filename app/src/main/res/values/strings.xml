@@ -573,8 +573,8 @@
     <string name="online_recommended">recommended</string>
     <string name="online_paid_no_credits">No credits — top up your wallet to use paid models</string>
     <string name="help_online_model">Which model translates your text when you use the Online engine. The three listed models are hosted by Verbigem and billed to your wallet (best value first). If you paste your own OpenRouter key below, the free “:free” models appear here and translate at no cost to you.</string>
-    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
-    <string name="online_model_deepseek_desc">Best value — fast and high quality (~$0.14 / 1M tokens).</string>
+    <string name="online_model_deepseek_label">DeepSeek V4.1 Flash</string>
+    <string name="online_model_deepseek_desc">Best value — fast and high quality (~$0.15 / 1M tokens).</string>
     <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
     <string name="online_model_gemini_desc">Strong all-rounder, large context (~$0.75 / 1M tokens).</string>
     <string name="online_model_claude_label">Claude Opus 5</string>
@@ -586,13 +586,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Your own OpenRouter key</string>
-    <string name="own_api_explainer">Use OpenRouter’s free “:free” models with your own key — translations cost you $0. Get a key at openrouter.ai/keys.</string>
+    <string name="own_api_explainer">Use OpenRouter’s free “:free” models with your own key — translations cost you $0. Get a free key at openrouter.ai/keys.</string>
     <string name="own_api_status_on">Active — free models unlocked</string>
     <string name="own_api_clear">Remove key</string>
     <string name="own_api_placeholder">Paste your OpenRouter API key</string>
     <string name="own_api_save">Save key</string>
     <string name="own_api_howto">How to get a key</string>
-    <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing. Generate your key at openrouter.ai/keys.</string>
+    <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing. Generate your free key at openrouter.ai/keys.</string>
     <string name="topup_button">Top up wallet</string>
     <string name="topup_dialog_title">Top up your wallet</string>
     <string name="topup_dialog_subtitle">Credit for paid online models and the Pro voice</string>
@@ -627,4 +627,10 @@
     <string name="read_pro_failed">Read Pro failed</string>
     <string name="phone_verify_error_unknown">Nie udało się potwierdzić numeru. Spróbuj ponownie później.</string>
 
+    <string name="profile_contact_label">CONTACT</string>
+    <string name="profile_contact_text">Questions, feedback or ideas about the app? Share them with us - we would love to hear from you.</string>
+    <string name="profile_contact_cta">Contact us</string>
+    <string name="help_profile_contact">A question, a bug, or a missing feature? The contact form opens in your browser - you do not need to be signed in. We reply to the e-mail address you enter in the form.</string>
+    <string name="profile_nickname_taken">That nickname is already taken. Pick another.</string>
+    <string name="profile_nickname_error">Could not save the nickname. Check your connection and try again.</string>
 </resources>

@@ -22,7 +22,7 @@ data class OnlineModel(
 
 object OnlineModels {
     /** Shipped default — best quality-per-dollar of the curated three. */
-    const val DEFAULT_ID = "deepseek/deepseek-v4-flash-latest"
+    const val DEFAULT_ID = "deepseek/deepseek-v4.1-flash"
 
     val CURATED: List<OnlineModel> = listOf(
         OnlineModel(

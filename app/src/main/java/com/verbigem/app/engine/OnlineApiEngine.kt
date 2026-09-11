@@ -45,7 +45,7 @@ class OnlineApiEngine {
         text: String,
         from: LangCode,
         to: LangCode,
-        model: String = "deepseek/deepseek-v4-flash-latest",
+        model: String = "deepseek/deepseek-v4.1-flash",
         apiKey: String? = null
     ): String = withContext(Dispatchers.IO) {
         if (apiKey != null) {

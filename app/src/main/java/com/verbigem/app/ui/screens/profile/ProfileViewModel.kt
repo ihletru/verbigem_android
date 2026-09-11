@@ -12,6 +12,8 @@ import com.verbigem.app.data.model.OnlineModels
 import com.verbigem.app.data.model.UserProfile
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.R
+import com.verbigem.app.data.repository.NicknameClaim
+import com.verbigem.app.data.repository.NicknameRepository
 import com.verbigem.app.data.repository.PhoneVerificationRepository
 import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.ModelDownloader
@@ -35,12 +37,22 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val authRepository = AuthRepository()
     private val preferencesManager = PreferencesManager(application)
     private val phoneVerificationRepository = PhoneVerificationRepository()
+    private val nicknameRepository = NicknameRepository()
 
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
 
     private val _nicknameInput = MutableStateFlow("")
     val nicknameInput: StateFlow<String> = _nicknameInput.asStateFlow()
+
+    /**
+     * Wynik ostatniej próby zmiany nicku. `null` = brak komunikatu.
+     *
+     * Trzymamy tu [NicknameClaim], a nie gotowy tekst, bo ViewModel nie ma dostępu
+     * do kontekstu wybranego języka UI — tekst dobiera ekran przez `stringResource`.
+     */
+    private val _nicknameClaim = MutableStateFlow<NicknameClaim?>(null)
+    val nicknameClaim: StateFlow<NicknameClaim?> = _nicknameClaim.asStateFlow()
 
     val currentTheme = preferencesManager.themeFlow
     val currentMode = preferencesManager.modeFlow
@@ -117,14 +129,43 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun onNicknameChanged(nick: String) {
         _nicknameInput.value = nick
+        // Nowy tekst = poprzedni komunikat przestaje być prawdą.
+        _nicknameClaim.value = null
     }
 
+    /** Zamyka komunikat o nicku (np. po tapnięciu w niego). */
+    fun dismissNicknameClaim() {
+        _nicknameClaim.value = null
+    }
+
+    /**
+     * Zapisuje nick, ale najpierw REZERWUJE go w `nicknames` — dopiero udana
+     * rezerwacja pozwala zmienić profil. Kolejność jest istotna: gdyby najpierw
+     * poszedł zapis profilu, a potem rezerwacja, przegrany wyścig zostawiłby
+     * użytkownika z nickiem, którego nie ma w indeksie unikalności.
+     *
+     * Stara rezerwacja jest zwalniana DOPIERO po udanym zapisie i tylko wtedy, gdy
+     * faktycznie zmieniliśmy nick — inaczej zapis samej wielkości liter kasowałby
+     * rezerwację, którą przed chwilą zajęliśmy pod innym kluczem.
+     */
     fun saveNickname() {
         val user = authRepository.currentUser ?: return
         val newNick = _nicknameInput.value.trim()
-        if (newNick.isNotBlank()) {
-            viewModelScope.launch {
-                authRepository.updateProfile(user.uid, mapOf("nickname" to newNick))
+        if (newNick.isBlank()) return
+        viewModelScope.launch {
+            val oldNick = _userProfile.value?.nickname.orEmpty()
+            when (nicknameRepository.claim(newNick, user.uid)) {
+                NicknameClaim.CLAIMED -> {
+                    _nicknameClaim.value = null
+                    authRepository.updateProfile(user.uid, mapOf("nickname" to newNick))
+                    if (oldNick.isNotBlank() &&
+                        nicknameRepository.normalize(oldNick) != nicknameRepository.normalize(newNick)
+                    ) {
+                        nicknameRepository.release(oldNick, user.uid)
+                    }
+                }
+                NicknameClaim.TAKEN -> _nicknameClaim.value = NicknameClaim.TAKEN
+                NicknameClaim.ERROR -> _nicknameClaim.value = NicknameClaim.ERROR
             }
         }
     }

@@ -572,8 +572,8 @@
     <string name="online_recommended">polecany</string>
     <string name="online_paid_no_credits">Brak środków — doładuj portfel, by używać płatnych modeli</string>
     <string name="help_online_model">Który model tłumaczy tekst przy użyciu silnika Online. Trzy wymienione modele są hostowane przez Verbigem i obciążają Twój portfel (najpierw ten z najlepszą relacją jakość/cena). Jeśli wkleisz własny klucz OpenRouter poniżej, pojawią się darmowe modele „:free” i tłumaczą za 0 zł.</string>
-    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
-    <string name="online_model_deepseek_desc">Najlepsza wartość — szybki i wysokiej jakości (~0,14 $ / 1 mln tokenów).</string>
+    <string name="online_model_deepseek_label">DeepSeek V4.1 Flash</string>
+    <string name="online_model_deepseek_desc">Najlepsza wartość — szybki i wysokiej jakości (~0,15 $ / 1 mln tokenów).</string>
     <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
     <string name="online_model_gemini_desc">Dobry uniwersalny model, duży kontekst (~0,75 $ / 1 mln tokenów).</string>
     <string name="online_model_claude_label">Claude Opus 5</string>
@@ -585,13 +585,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">Własny klucz OpenRouter</string>
-    <string name="own_api_explainer">Używaj darmowych modeli „:free” OpenRouter na własny klucz — tłumaczenia kosztują 0 zł. Klucz wygenerujesz na openrouter.ai/keys.</string>
+    <string name="own_api_explainer">Używaj darmowych modeli „:free” OpenRouter na własny klucz — tłumaczenia kosztują 0 zł. Darmowy klucz wygenerujesz na openrouter.ai/keys.</string>
     <string name="own_api_status_on">Aktywny — odblokowano darmowe modele</string>
     <string name="own_api_clear">Usuń klucz</string>
     <string name="own_api_placeholder">Wklej swój klucz API OpenRouter</string>
     <string name="own_api_save">Zapisz klucz</string>
     <string name="own_api_howto">Jak zdobyć klucz</string>
-    <string name="help_own_api">OpenRouter to usługa kierująca tłumaczenia do wielu modeli AI. Załóż darmowe konto na openrouter.ai, otwórz stronę Keys i kliknij „Create Key”. Skopiuj klucz i wklej go tutaj. Jest przechowywany tylko na tym telefonie. Po dodaniu w liście modeli online pojawią się darmowe modele „:free” i nic nie kosztują. Klucz wygenerujesz na openrouter.ai/keys.</string>
+    <string name="help_own_api">OpenRouter to usługa kierująca tłumaczenia do wielu modeli AI. Załóż darmowe konto na openrouter.ai, otwórz stronę Keys i kliknij „Create Key”. Skopiuj klucz i wklej go tutaj. Jest przechowywany tylko na tym telefonie. Po dodaniu w liście modeli online pojawią się darmowe modele „:free” i nic nie kosztują. Darmowy klucz wygenerujesz na openrouter.ai/keys.</string>
     <string name="topup_button">Doładuj portfel</string>
     <string name="topup_dialog_title">Doładuj portfel</string>
     <string name="topup_dialog_subtitle">Saldo na płatne modele online i głos Pro</string>
@@ -626,4 +626,10 @@
     <string name="read_pro_failed">Nie udało się odtworzyć Czytaj Pro</string>
     <string name="phone_verify_error_unknown">Could not verify the number. Try again later.</string>
 
+    <string name="profile_contact_label">KONTAKT</string>
+    <string name="profile_contact_text">Masz pytania, uwagi lub pomysły związane z aplikacją - podziel się nimi. Chętnie wysłuchamy.</string>
+    <string name="profile_contact_cta">Napisz do nas</string>
+    <string name="help_profile_contact">Masz pytanie, znalazłeś błąd albo brakuje Ci jakiejś funkcji? Formularz kontaktowy otwiera się w przeglądarce - nie musisz być zalogowany. Odpowiadamy na adres e-mail, który podasz w formularzu.</string>
+    <string name="profile_nickname_taken">Ten nick jest już zajęty. Wybierz inny.</string>
+    <string name="profile_nickname_error">Nie udało się zapisać nicku. Sprawdź połączenie i spróbuj ponownie.</string>
 </resources>

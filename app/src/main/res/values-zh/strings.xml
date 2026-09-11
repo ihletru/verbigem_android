@@ -544,8 +544,8 @@
     <string name="online_recommended">推荐</string>
     <string name="online_paid_no_credits">余额不足——请充值钱包以使用付费模型</string>
     <string name="help_online_model">使用在线引擎时，由哪个模型来翻译你的文本。列出的三个模型由 Verbigem 托管，并从你的钱包扣费（性价比最高的排在最前）。如果你在下方粘贴自己的 OpenRouter 密钥，免费“:free”模型会出现在这里，且翻译不花你一分钱。</string>
-    <string name="online_model_deepseek_label">DeepSeek V4 Flash</string>
-    <string name="online_model_deepseek_desc">最佳性价比——快速且高质量（约 0.14 美元 / 100 万 token）。</string>
+    <string name="online_model_deepseek_label">DeepSeek V4.1 Flash</string>
+    <string name="online_model_deepseek_desc">最佳性价比——快速且高质量（约 0.15 美元 / 100 万 token）。</string>
     <string name="online_model_gemini_label">Gemini 3.8 Flash</string>
     <string name="online_model_gemini_desc">均衡全能，上下文很长（约 0.75 美元 / 100 万 token）。</string>
     <string name="online_model_claude_label">Claude Opus 5</string>
@@ -557,13 +557,13 @@
 
     <!-- Własne API OpenRouter -->
     <string name="own_api_title">你自己的 OpenRouter 密钥</string>
-    <string name="own_api_explainer">用你自己的密钥使用 OpenRouter 的免费“:free”模型——翻译零花费。在 openrouter.ai/keys 生成你的密钥。</string>
+    <string name="own_api_explainer">用你自己的密钥使用 OpenRouter 的免费“:free”模型——翻译零花费。在 openrouter.ai/keys 生成你的免费密钥。</string>
     <string name="own_api_status_on">已启用——免费模型已解锁</string>
     <string name="own_api_clear">移除密钥</string>
     <string name="own_api_placeholder">粘贴你的 OpenRouter API 密钥</string>
     <string name="own_api_save">保存密钥</string>
     <string name="own_api_howto">如何获取密钥</string>
-    <string name="help_own_api">OpenRouter 是一项把翻译请求路由到多种 AI 模型的服务。在 openrouter.ai 注册免费账号，打开 Keys 页面，点击“Create Key”。复制密钥并粘贴到这里。它只存储在本机。添加后，免费“:free”模型会出现在上方在线模型列表中，且完全免费。在 openrouter.ai/keys 生成你的密钥。</string>
+    <string name="help_own_api">OpenRouter 是一项把翻译请求路由到多种 AI 模型的服务。在 openrouter.ai 注册免费账号，打开 Keys 页面，点击“Create Key”。复制密钥并粘贴到这里。它只存储在本机。添加后，免费“:free”模型会出现在上方在线模型列表中，且完全免费。在 openrouter.ai/keys 生成你的免费密钥。</string>
     <string name="topup_button">充值钱包</string>
     <string name="topup_dialog_title">充值钱包</string>
     <string name="topup_dialog_subtitle">用于付费在线模型和 Pro 语音的余额</string>
@@ -598,4 +598,10 @@
     <string name="read_pro_failed">朗读 Pro 失败</string>
     <string name="phone_verify_error_unknown">无法验证该号码。请稍后重试。</string>
 
+    <string name="profile_contact_label">联系我们</string>
+    <string name="profile_contact_text">对应用有疑问、意见或想法？欢迎与我们分享，我们很乐意倾听。</string>
+    <string name="profile_contact_cta">联系我们</string>
+    <string name="help_profile_contact">有疑问、发现错误或缺少某个功能？联系表单会在浏览器中打开——无需登录。我们会回复你在表单中填写的邮箱。</string>
+    <string name="profile_nickname_taken">该昵称已被占用，请换一个。</string>
+    <string name="profile_nickname_error">昵称保存失败，请检查网络后重试。</string>
 </resources>

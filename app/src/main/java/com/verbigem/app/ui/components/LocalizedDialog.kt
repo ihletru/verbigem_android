@@ -1,8 +1,8 @@
 package com.verbigem.app.ui.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -10,8 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.verbigem.app.ui.theme.VerbigemTheme
 
 /**
  * Okna z zachowanym językiem interfejsu.
@@ -80,16 +82,19 @@ fun LocalizedAlertDialog(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     text: (@Composable () -> Unit)? = null,
-    shape: Shape = AlertDialogDefaults.shape,
-    // `AlertDialogDefaults.containerColor` to w M3 `colorScheme.surfaceContainerHigh` —
-    // VerbigemTheme ustawia tylko `surface`/`primary`, więc ten token zostaje domyślny
-    // (lawendowy z M3 light ≈ #E8DEF8), stąd "różowe tło" w light mode.
-    // Dajemy wprost `colorScheme.surface` (= brand surface), żeby dialogi pasowały
-    // do reszty aplikacji.
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    iconContentColor: Color = AlertDialogDefaults.iconContentColor,
-    titleContentColor: Color = AlertDialogDefaults.titleContentColor,
-    textContentColor: Color = AlertDialogDefaults.textContentColor,
+    // Domyślne wartości biorą się z motywu Verbigem (Calm/Sharp/Playful), a NIE
+    // z MaterialTheme — inaczej okno nie pasuje do wybranego layoutu:
+    //   * `AlertDialogDefaults.shape` = 28 dp, a karty w apce mają 20 dp;
+    //   * `titleContentColor`/`textContentColor` to tokeny M3 (`onSurfaceVariant`),
+    //     których VerbigemTheme w ogóle nie ustawia → tekst w kolorach Material,
+    //     nie w naszym `ink`/`muted`.
+    // Ustawiamy je tutaj, bo to JEDNO miejsce, przez które przechodzą wszystkie
+    // okna w aplikacji (Profil, Czat, Kontakty, modele).
+    shape: Shape = RoundedCornerShape(20.dp),
+    containerColor: Color = VerbigemTheme.colors.surface,
+    iconContentColor: Color = VerbigemTheme.colors.accent,
+    titleContentColor: Color = VerbigemTheme.colors.ink,
+    textContentColor: Color = VerbigemTheme.colors.muted,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
     properties: DialogProperties = DialogProperties(),
 ) {

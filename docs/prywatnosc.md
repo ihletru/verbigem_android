@@ -18,9 +18,11 @@ cd verbigem/mini && firebase deploy --only hosting --project mini-verbigem
 | Miejsce | Plik | Co robi |
 |---|---|---|
 | Profil → karta „Polityka prywatności" | `ProfileScreen.kt` | otwiera `/privacy/<uiLang>/` w przeglądarce |
+| Profil → karta „Kontakt" | `ProfileScreen.kt` | otwiera `/contact/<uiLang>/` w przeglądarce (`AppLinks.contact`) |
 | Kontakty → prominent disclosure | `ContactsPermissionScreen.kt` | ekran wyjaśnienia **przed** systemowym dialogiem `READ_CONTACTS` (wymóg Play) |
 
-URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy): `privacyPolicy(uiLang)` i `privacyPolicyFor(context)`. Oba otwierają **przeglądarkę, nie WebView**.
+URL-e buduje **`data/AppLinks.kt`** (jedno źródło prawdy): `privacyPolicy(uiLang)`,
+`privacyPolicyFor(context)` i `contact(uiLang)`. Wszystkie otwierają **przeglądarkę, nie WebView**.
 
 **Zasada spójności:** treść disclosure (stringi `contacts_perm_*` × 6) musi zgadzać się z opublikowaną polityką. Zmiana polityki na stronie **nie wymaga** nowego APK; zmiana stringów — tak.
 

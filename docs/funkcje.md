@@ -103,7 +103,18 @@
 Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` jest publiczne, więc podpisany token byłby nadmiarowy). Jeden parser `ProfileLinks.uidFromUrl` obsługuje skaner i App Links — zmiana schematu nie rozjeżdża się między kodem generującym a czytającym.
 
 - **Mój kod QR** — `MyQrScreen` + ZXing `core` 3.5.3 (`data/QRBitmap.kt`), trasa `Screen.MyQr`.
+  Wejście jest **z dwóch miejsc**: karta w Profilu oraz nagłówek Kontaktów (patrz niżej).
+  ⚠️ To ten sam ekran i ta sama trasa — drugie wejście nie duplikuje kodu, tylko dodaje skrót.
 - **Skaner** — `ScanScreen` na GMS Code Scanner (`play-services-code-scanner` 18.3.0). Obcy link → komunikat „to nie kod Verbigem", nie otwieramy obcych stron. Trasa `Screen.Scan`.
+- **Dwa wejścia w nagłówku Kontaktów (od v1.0.72)** — `ScreenHeader.trailing` to teraz `Row`
+  z dwoma ikonami o **różnych kolorach**, bo obie dotyczą kodów QR i bez tego wyglądały jak
+  jedna funkcja:
+  * **Mój kod QR** — `Icons.Default.QrCode2`, `tint = accent`. Długie przytrzymanie → okno
+    pomocy (`qr_my_code` + `help_profile_qr`) wyjaśniające, jak pokazać kod i co zrobić,
+    gdy rozmówca nie ma skanera.
+  * **Skanuj kod** — `Icons.Default.QrCodeScanner`, `tint = ink`. Zachowanie bez zmian.
+  ⚠️ Wcześniej nagłówek używał `Icons.Default.QrCode` — po zmianie obie ikony są wariantami
+  `QrCode*`, więc `grep` po `QrCode` zwraca trzy różne rzeczy. Nie usuwaj `QrCode` z Profilu.
 - **App Links** — `intent-filter` VIEW z `autoVerify="true"`. Obsługa w `MainActivity.handleDeepLink` + `AppNavigation.openProfileUid`.
   > ✅ **Skonfigurowane i zweryfikowane (sprawdzone 2026-09-10):** `mini/public/.well-known/assetlinks.json`
   > istnieje (commit `3f3c796`), `https://mini.verbigem.com/.well-known/assetlinks.json` zwraca
@@ -126,6 +137,19 @@ Jeden surowy link profilowy: `https://mini.verbigem.com/u/<uid>` (`usersPublic` 
 - Motywy: **Calm 🌊**, **Sharp ⚡**, **Playful 🎨**. Tryby: **Dzień ☀️** / **Noc 🌙**.
 - Wybór języka interfejsu i domyślnej pary językowej. Wektorowe flagi SVG.
 - Karta **Polityka prywatności** otwierająca `mini.verbigem.com/privacy/` w przeglądarce, w języku interfejsu.
+- Karta **Kontakt** (`profile_contact_label`) przed kartą wylogowania: tekst
+  „Masz pytania, uwagi lub pomysły związane z aplikacją - podziel się nimi. Chętnie wysłuchamy."
+  + przycisk `profile_contact_cta` otwierający `mini.verbigem.com/contact/<uiLang>/` w przeglądarce
+  (`AppLinks.contact`). Długie przytrzymanie → `help_profile_contact`. **Ten sam tekst i ten sam
+  formularz są w webappie** (`ProfilePage.tsx`, `/contact/`) — zmiana treści wymaga obu stron.
+- **Nick jest unikalny w całej aplikacji.** Karta nicku zapisuje przez rezerwację, nie bezpośrednio
+  do profilu: `NicknameRepository.claim()` robi transakcję na `nicknames/{sha256(trim+lowercase)}`,
+  a dopiero po sukcesie `AuthRepository.updateProfile`. Zajęty nick → komunikat
+  `profile_nickname_taken` pod polem (bez zmiany profilu), brak sieci → `profile_nickname_error`.
+  ⚠️ Kolejność jest istotna: zapis profilu przed rezerwacją zostawiłby użytkownika z nickiem,
+  którego nie ma w indeksie unikalności. ⚠️ ID dokumentu to **SHA-256**, nie sam nick — nick może
+  zawierać `/`, a ID nie może zaczynać się od `__`. Ten sam algorytm jest w webappie
+  (`src/auth/nicknameService.ts`); rozjazd = dwie rezerwacje tego samego nicku.
 - Karta **O aplikacji** (`R.string.about_label`) pod polityką prywatności: `Wersja <versionName> · build <versionCode>` z `BuildConfig` + link **Co nowego** otwierający `AppLinks.whatsNew(uiLang)` — czyli `https://mini.verbigem.com/android/changelog[-<lang>].html` (hostowany statycznie, ten sam skrypt `genChangelogHtml.mjs` co strona www; **NIE** `/whatsnew/` — Firebase catch-all rewrite serwowałby stronę webappy zamiast treści).
 
 ---
