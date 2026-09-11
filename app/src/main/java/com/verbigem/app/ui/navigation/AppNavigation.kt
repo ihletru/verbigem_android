@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
+import com.verbigem.app.data.local.AccountScope
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.data.repository.AuthRepository
 import com.verbigem.app.data.repository.PhoneVerificationRepository
@@ -77,6 +78,12 @@ fun AppNavigation(
 ) {
     val authRepository = AuthRepository()
     val currentUser = authRepository.currentUser
+    // Point the local database at this account BEFORE the NavHost builds any
+    // ViewModel. On a cold start the auth-state listener in VerbigemApplication may
+    // not have fired yet, and a repository built against the wrong file would show
+    // an empty history until the next sign-in. `bind` is idempotent, so the
+    // recomposition this sits in costs nothing.
+    AccountScope.bind(currentUser?.uid)
     val startDestination = if (currentUser != null) Screen.Translator.route else Screen.Login.route
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

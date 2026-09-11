@@ -601,19 +601,4 @@
     <string name="read_pro_failed">Vorlesen Pro fehlgeschlagen</string>
     <string name="phone_verify_error_unknown">Die Nummer konnte nicht bestätigt werden. Versuche es später noch einmal.</string>
 
-    <string name="ads_diag_title">Anzeigen-Diagnose</string>
-    <string name="ads_diag_sdk">Anzeigen-SDK</string>
-    <string name="ads_diag_consent">Einwilligung</string>
-    <string name="ads_diag_status">Einwilligungsstatus</string>
-    <string name="ads_diag_unit">Anzeigeneinheit</string>
-    <string name="ads_diag_unit_live">Produktion</string>
-    <string name="ads_diag_unit_test">Google-Test</string>
-    <string name="ads_diag_error">Letzter Fehler</string>
-    <string name="ads_diag_error_none">keine</string>
-    <string name="ads_diag_error_value">Code %1$s - %2$s</string>
-    <string name="ads_diag_yes">ja</string>
-    <string name="ads_diag_no">nein</string>
-    <string name="ads_diag_test_title">Google-Testanzeigen</string>
-    <string name="ads_diag_test_desc">Einschalten, wenn der Banner leer bleibt. Die Test-Einheit von Google wird immer gefuellt - wenn sie laedt und unsere nicht, liegt es am Slot oder am AdMob-Konto.</string>
-    <string name="ads_diag_debug_menu">AdMob-Debugmenue</string>
 </resources>

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.verbigem.app.data.model.OnlineModels
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "verbigem_preferences")
@@ -25,8 +26,16 @@ class PreferencesManager(private val context: Context) {
         private val KEY_ENGINE = stringPreferencesKey("engine_choice")
         private val KEY_PROMPTED_FAST = booleanPreferencesKey("prompted_fast")
         private val KEY_PROMPTED_ACCURATE = booleanPreferencesKey("prompted_accurate")
-        private val KEY_LAST_SYNC_HISTORY = longPreferencesKey("last_sync_history")
-        private val KEY_LAST_SYNC_OCR = longPreferencesKey("last_sync_ocr")
+        /**
+         * Sync watermarks are PER ACCOUNT, keyed by uid.
+         *
+         * A single shared watermark silently breaks a second account: the pull is
+         * `whereGreaterThan("updatedAt", lastSync)`, so a watermark left high by
+         * account A hides every row of account B's history — B would look empty
+         * even though Firestore has the data.
+         */
+        private fun keyLastSyncHistory(uid: String) = longPreferencesKey("last_sync_history_$uid")
+        private fun keyLastSyncOcr(uid: String) = longPreferencesKey("last_sync_ocr_$uid")
         /**
          * Whether the POST_NOTIFICATIONS prompt has already been shown.
          *
@@ -74,8 +83,13 @@ class PreferencesManager(private val context: Context) {
     val engineFlow: Flow<String> = context.dataStore.data.map { it[KEY_ENGINE] ?: "localFast" }
     val promptedFastFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_PROMPTED_FAST] ?: false }
     val promptedAccurateFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_PROMPTED_ACCURATE] ?: false }
-    val lastSyncHistoryFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_HISTORY] ?: 0L }
-    val lastSyncOcrFlow: Flow<Long> = context.dataStore.data.map { it[KEY_LAST_SYNC_OCR] ?: 0L }
+    /** Last successful history sync for [uid] (0 = never). */
+    suspend fun lastSyncHistory(uid: String): Long =
+        context.dataStore.data.map { it[keyLastSyncHistory(uid)] ?: 0L }.first()
+
+    /** Last successful OCR sync for [uid] (0 = never). */
+    suspend fun lastSyncOcr(uid: String): Long =
+        context.dataStore.data.map { it[keyLastSyncOcr(uid)] ?: 0L }.first()
     val askedNotifPermFlow: Flow<Boolean> = context.dataStore.data.map { it[KEY_ASKED_NOTIF_PERM] ?: false }
     val phoneGateSkippedAtFlow: Flow<Long> =
         context.dataStore.data.map { it[KEY_PHONE_GATE_SKIPPED_AT] ?: 0L }
@@ -93,8 +107,11 @@ class PreferencesManager(private val context: Context) {
     suspend fun setEngine(engine: String) = context.dataStore.edit { it[KEY_ENGINE] = engine }
     suspend fun setPromptedFast(prompted: Boolean) = context.dataStore.edit { it[KEY_PROMPTED_FAST] = prompted }
     suspend fun setPromptedAccurate(prompted: Boolean) = context.dataStore.edit { it[KEY_PROMPTED_ACCURATE] = prompted }
-    suspend fun setLastSyncHistory(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_HISTORY] = ts }
-    suspend fun setLastSyncOcr(ts: Long) = context.dataStore.edit { it[KEY_LAST_SYNC_OCR] = ts }
+    suspend fun setLastSyncHistory(uid: String, ts: Long) =
+        context.dataStore.edit { it[keyLastSyncHistory(uid)] = ts }
+
+    suspend fun setLastSyncOcr(uid: String, ts: Long) =
+        context.dataStore.edit { it[keyLastSyncOcr(uid)] = ts }
     suspend fun setAskedNotifPerm(asked: Boolean) =
         context.dataStore.edit { it[KEY_ASKED_NOTIF_PERM] = asked }
 

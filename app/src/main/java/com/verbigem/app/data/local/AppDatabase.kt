@@ -44,6 +44,10 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var instance: AppDatabase? = null
 
+        /** Account the cached [instance] belongs to (see [AccountScope]). */
+        @Volatile
+        private var instanceKey: String? = null
+
         // Returns true if [column] already exists in [table].
         private fun hasColumn(db: SupportSQLiteDatabase, table: String, column: String): Boolean {
             var cursor: Cursor? = null
@@ -325,12 +329,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Database for the account that is currently signed in ([AccountScope]).
+         *
+         * One file per account (`verbigem_db_<uid>`) — this is what stops local
+         * history, OCR history and chat caches from leaking between accounts on a
+         * shared device. The signature stays `getInstance(context)` on purpose: the
+         * account is ambient state, so none of the ~14 call sites had to change.
+         *
+         * The previous instance is deliberately NOT closed when the account changes.
+         * ViewModels hold DAOs, and closing the file underneath them turns a stale
+         * read into an `IllegalStateException: attempt to re-open an already-closed
+         * object`. Signing out tears those screens down anyway (`AppNavigation`
+         * navigates to Login with `popUpTo(0)`), so at most a handful of files stay
+         * open for the lifetime of the process.
+         */
         fun getInstance(context: Context): AppDatabase {
-            return instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
+            val key = AccountScope.key()
+            synchronized(this) {
+                val current = instance
+                if (current != null && instanceKey == key) return current
+                val db = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "verbigem_db"
+                    "verbigem_db_$key"
                 ).addMigrations(
                     MIGRATION_1_2,
                     MIGRATION_2_3,
@@ -341,7 +363,10 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_7_8,
                     MIGRATION_8_9,
                     MIGRATION_9_10
-                ).build().also { instance = it }
+                ).build()
+                instance = db
+                instanceKey = key
+                return db
             }
         }
     }

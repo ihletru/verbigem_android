@@ -17,7 +17,8 @@ app/src/main/
 │   │   └── AdsConsent.kt               # Zgody UMP (RODO/EOG) + inicjalizacja AdMob — kolejnosc wymuszona kodem
 │   ├── data/
 │   │   ├── ConnectivityObserver.kt  # callbackFlow na NetworkCallback — emituje isOnline
-│   │   ├── local/                  # Room v9: History, OcrHistory, TtsConfig, PendingDelete,
+│   │   ├── local/                  # Room v10, JEDEN PLIK NA KONTO (verbigem_db_<uid>,
+│   │   │                           #   AccountScope): History, OcrHistory, TtsConfig, PendingDelete,
 │   │   │                           #   ChatRoomEntities (chat_translations, chat_outbox, chat_reads,
 │   │   │                           #   chat_deleted_messages, chat_hidden), external_* + DataStore
 │   │   ├── model/                  # LangCode, UserProfile, PublicProfile, ChatMessage, ChatSummary,
@@ -53,9 +54,49 @@ app/src/main/
 │       └── theme/                  # Color, Theme, Type (Calm/Sharp/Playful × Day/Night)
 ```
 
-**Migracje Room (skrót):** v2→v3 `pending_deletes` (kolejka tombstone'ów) · v3→v4 `ocr_history` (+ kolumna `collection` w `PendingDeleteEntity`) · v5→v6 cztery tabele czatu · v6→v7 `chat_hidden` · v7→v8 `external_contacts` + `external_outbox` · **v8→v9 `glossary`** (słownik użytkownika, patrz niżej).
+**Migracje Room (skrót):** v2→v3 `pending_deletes` (kolejka tombstone'ów) · v3→v4 `ocr_history` (+ kolumna `collection` w `PendingDeleteEntity`) · v4→v5 naprawa zepsutych v3/v4 (guard `PRAGMA`) · v5→v6 cztery tabele czatu · v6→v7 `chat_hidden` · v7→v8 `external_contacts` + `external_outbox` · v8→v9 `glossary` (słownik użytkownika, patrz niżej) · **v9→v10** `chat_outbox` dostaje `type`/`attachmentUrl`/`localUri`/`transcript`/`ocrText` (README §5.4).
 
 ⚠️ **Room WALIDUJE schemat PO migracji — `CREATE TABLE` z głowy to rosyjska ruletka.** Po każdej migracji Room odpala `onValidateSchema` i rzuca `IllegalStateException: Migration didn't properly handle: <tabela>` przy każdej różnicy względem encji. **Autorytatywne DDL jest w `app/build/generated/ksp/debug/java/.../AppDatabase_Impl.java` — skopiuj je stamtąd.** Room porównuje `name` / `notNull` / `affinity` / `primaryKeyPosition` oraz `defaultValue`, ale `defaultValue` **tylko wtedy, gdy encja sama je deklaruje** (`@ColumnInfo(defaultValue=…)`). Zwykłe `= ""` w Kotlinie to domyślna wartość konstruktora, nie kolumny — generowany `TableInfo.Column` dostaje `null`, więc klauzula `DEFAULT` w migracji jest tolerowana (tak żyje `MIGRATION_7_8`). Nie ma `fallbackToDestructiveMigration` i nie wolno go dodać — to kasuje dane użytkowników.
+
+## Baza lokalna jest PER KONTO (`AccountScope`, v1.0.68)
+
+Do v1.0.68 istniała **jedna wspólna baza** `verbigem_db`, więc na urządzeniu z kilkoma
+kontami (Milosz testuje na kilku) każdy zalogowany widział historię tłumaczeń i OCR
+poprzednika. Firestore od zawsze był per konto (`users/{uid}/…`) — tylko kopia na
+urządzeniu nie była. To był prawdziwy wyciek między kontami, nie kosmetyka.
+
+Naprawa: **jeden plik bazy na konto** — `verbigem_db_<uid>` (`verbigem_db_anon` przed
+zalogowaniem). `AccountScope` (`data/local/AccountScope.kt`) trzyma aktualny uid,
+a `AppDatabase.getInstance(context)` buduje albo reużywa plik dla niego. Sygnatura
+została `getInstance(context)`, więc ~14 miejsc wywołania się nie zmieniło — konto jest
+stanem otoczenia, nie parametrem.
+
+Kto ustawia konto:
+- `VerbigemApplication.onCreate` — `install(this)` + seed z `currentUser`,
+- listener `addAuthStateListener` — pokrywa logowanie **i** wylogowanie,
+- `AppNavigation` przed `NavHost` — to ostatnie jest istotne: na zimnym starcie listener
+  może jeszcze nie wystrzelić, a ViewModel zdążyłby zbudować repozytorium na złym pliku
+  i pokazać pustą historię do końca życia.
+
+⚠️ **Nie zamykamy starej instancji przy zmianie konta.** ViewModele trzymają DAO,
+a zamknięcie pliku pod nimi to `IllegalStateException: attempt to re-open an
+already-closed object`. Przy wylogowaniu nawigacja robi `popUpTo(0)`, więc ViewModele
+giną — ale kolejność nie jest gwarantowana, więc plik zostaje otwarty. Otwartych
+plików jest tyle, ile kont w jednej sesji procesu.
+
+⚠️ **Znaczniki synchronizacji są per uid** (`PreferencesManager.lastSyncHistory(uid)`).
+Wspólny znacznik zostawiony wysoko przez konto A ukrywa **całą** historię konta B,
+bo pull to `whereGreaterThan("updatedAt", lastSync)` — B wyglądałoby na puste, mimo że
+Firestore ma dane.
+
+Migracja danych: stara `verbigem_db` jest **adoptowana** przez pierwsze konto, które
+zaloguje się po aktualizacji (`renameTo` na `verbigem_db_<uid>` wraz z `-shm`/`-wal`).
+Bez tego przepadłyby tabele, których Firestore nie odtworzy: glosariusz, kontakty
+zewnętrzne, klucz TTS.
+
+⚠️ **Nadal wspólne na urządzeniu (świadomie):** motyw, język interfejsu, pary języków.
+**Do rozważenia:** `KEY_OPENROUTER_KEY` w DataStore też jest wspólny — klucz API jednego
+konta jest widoczny dla drugiego na tym samym telefonie.
 
 ---
 

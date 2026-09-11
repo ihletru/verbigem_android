@@ -70,22 +70,25 @@ byłaby drogą do zamknięcia konta AdMob).
    „Dokończ konfigurację" → weryfikacja właściciela (link do Play Store). Bez tego
    serwowanie reklam jest zablokowane niezależnie od kodu.
 
-## Diagnostyka reklam w aplikacji (v1.0.67, karta w Profilu)
+## Diagnostyka reklam — USUNIĘTA (v1.0.68)
 
-Baner, który się nie wypełnia, nie mówi nic o przyczynie — dlatego od v1.0.67 w
-Profilu jest karta **„Diagnostyka reklam"**, pokazująca na żywo:
+Do v1.0.67 w Profilu była karta **„Diagnostyka reklam"**: stan `MobileAds.isInitialized`,
+`canRequestAds`/`consentStatus` z UMP, ładowana jednostka, nazwa ostatniego błędu,
+przełącznik „Reklamy testowe Google" (jednostka `ca-app-pub-3940256099942544/6300978111`,
+zawsze się wypełnia) i guzik „Menu debugowania AdMob" (`MobileAds.openDebugMenu`).
+Persystencja: `SharedPreferences("ads_diagnostics")`.
 
-- `MobileAds.isInitialized` (właściwość, **nie** metoda — pułapka w SDK nowej generacji),
-- `canRequestAds` i `consentStatus` z UMP,
-- która jednostka banera jest ładowana (produkcyjna vs testowa Google),
-- **nazwę** ostatniego błędu (`LoadAdError.ErrorCode.name`, np. `ERROR_CODE_NO_FILL`).
+**Usunięta na polecenie Milosza:** reklamy i tak nie włączą się, dopóki aplikacja nie
+wejdzie na produkcję w Play, więc diagnostyka była przedwczesna i tylko zaśmiecała Profil.
 
-Przełącznik **„Reklamy testowe Google"** podmienia jednostkę na
-`ca-app-pub-3940256099942544/6300978111` (zawsze się wypełnia). To rozstrzyga, czy
-winny jest kod/SDK, czy konto/slot: testowa działa + produkcyjna nie → konsola.
-Persystowane w `SharedPreferences("ads_diagnostics")`. Guzik **„Menu debugowania
-AdMob"** otwiera `MobileAds.openDebugMenu(activity, unitId)` — podgląd stanu slotu
-bez logcata.
+Infrastruktura **została** w kodzie i czeka na produkcję: `AdsConsent.testAdsEnabled`,
+`AdsConsent.lastBannerError`, `AdsConsent.bannerUnitId()` oraz podmiana jednostki
+w `AdBannerView`. Bez karty nie ma jednak UI, który by je włączył — przy pierwszym
+wydaniu produkcyjnym trzeba przywrócić przełącznik (albo wołać
+`AdsConsent.setTestAdsEnabled(true)` ręcznie).
+
+Pułapka z tego kodu, nadal aktualna: `MobileAds.isInitialized` to **właściwość**,
+nie metoda — tak jest w SDK nowej generacji.
 
 ⚠️ **Sideload (`com.verbigem.app.sideload`) ma osobny problem:** AdMob weryfikuje
 aplikacje per pakiet, a weryfikacja wymaga wpisu w Play Store. Sideload nie ma wpisu

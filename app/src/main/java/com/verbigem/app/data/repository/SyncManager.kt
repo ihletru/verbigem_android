@@ -52,11 +52,11 @@ class SyncManager(context: Context) {
         val userId = uid ?: FirebaseAuth.getInstance().currentUser?.uid ?: return
         try {
             syncProfile(userId)
-            syncCollection(userId, "history", historyRepository, preferencesManager.lastSyncHistoryFlow.first()) { ts ->
-                preferencesManager.setLastSyncHistory(ts)
+            syncCollection(userId, "history", historyRepository, preferencesManager.lastSyncHistory(userId)) { ts ->
+                preferencesManager.setLastSyncHistory(userId, ts)
             }
-            syncCollection(userId, "ocr_history", ocrHistoryRepository, preferencesManager.lastSyncOcrFlow.first()) { ts ->
-                preferencesManager.setLastSyncOcr(ts)
+            syncCollection(userId, "ocr_history", ocrHistoryRepository, preferencesManager.lastSyncOcr(userId)) { ts ->
+                preferencesManager.setLastSyncOcr(userId, ts)
             }
             ttsConfigSync.syncFromRemote()
         } catch (e: Exception) {

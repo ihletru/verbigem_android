@@ -17,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import com.verbigem.app.data.local.AccountScope
 import com.verbigem.app.data.local.PreferencesManager
 import com.verbigem.app.util.UiLangState
 import kotlinx.coroutines.flow.first
@@ -42,6 +43,12 @@ class VerbigemApplication : Application() {
         // in functions/src/contacts.ts says exactly where.
         AppCheckProvider.install(FirebaseAppCheck.getInstance())
 
+        // The local database is per account (see AccountScope). Install the context
+        // here and seed the uid if Firebase already restored the session; the
+        // auth-state listener below covers the case where it has not yet.
+        AccountScope.install(this)
+        AccountScope.bind(FirebaseAuth.getInstance().currentUser?.uid)
+
         // Język interfejsu musi być znany, ZANIM cokolwiek rozwiąże tekst. Ten kod
         // biegnie bez kompozycji i bez LocalContext (usługa FCM też), więc bez tego
         // kanał powiadomień i etykiety akcji były w języku TELEFONU, nie w wybranym.
@@ -64,6 +71,10 @@ class VerbigemApplication : Application() {
         val auth = FirebaseAuth.getInstance()
         auth.addAuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
+            // Fires on sign-in AND sign-out: keeps the local database pointed at the
+            // account that is actually signed in, so a shared device never shows one
+            // user the other's local history.
+            AccountScope.bind(user?.uid)
             if (user != null && !syncStarted) {
                 syncStarted = true
                 appScope.launch {

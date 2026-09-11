@@ -601,19 +601,4 @@
     <string name="read_pro_failed">La lectura Pro ha fallado</string>
     <string name="phone_verify_error_unknown">No se pudo verificar el número. Inténtalo de nuevo más tarde.</string>
 
-    <string name="ads_diag_title">Diagnostico de anuncios</string>
-    <string name="ads_diag_sdk">SDK de anuncios</string>
-    <string name="ads_diag_consent">Consentimiento</string>
-    <string name="ads_diag_status">Estado del consentimiento</string>
-    <string name="ads_diag_unit">Unidad</string>
-    <string name="ads_diag_unit_live">produccion</string>
-    <string name="ads_diag_unit_test">prueba de Google</string>
-    <string name="ads_diag_error">Ultimo error</string>
-    <string name="ads_diag_error_none">ninguno</string>
-    <string name="ads_diag_error_value">codigo %1$s - %2$s</string>
-    <string name="ads_diag_yes">si</string>
-    <string name="ads_diag_no">no</string>
-    <string name="ads_diag_test_title">Anuncios de prueba de Google</string>
-    <string name="ads_diag_test_desc">Activalo si el banner queda vacio. La unidad de prueba de Google siempre se rellena - si carga y la nuestra no, el problema es el slot o la cuenta de AdMob.</string>
-    <string name="ads_diag_debug_menu">Menu de depuracion de AdMob</string>
 </resources>
