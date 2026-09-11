@@ -652,7 +652,12 @@ Stringi: `privacy_ad_settings` / `privacy_ad_settings_desc` × 6 języków.
 **AdMob obsługuje wyłącznie aplikacje mobilne.** Na stronę potrzebny jest osobny produkt:
 **Google AdSense** (osobna rejestracja + weryfikacja domeny). Checklista:
 
-1. Zgłosić `mini.verbigem.com` do AdSense i przejść weryfikację domeny. **← tu jesteśmy**
+1. **← TU JESTEŚMY ZABLOKOWANI (stan 2026-09-11).** Menu konta AdSense Milosza ma
+   tylko: `Strona główna · Raporty · Płatności · Konto · Opinie`.
+   **Nie ma sekcji „Witryny" ani „Reklamy"** — nie da się dodać witryny ani
+   utworzyć jednostki reklamowej. W „Informacjach o koncie" widnieje wyłącznie
+   „Aktywne usługi: AdMob". **Przyczyna nieustalona** — nie zgadywać, wymaga
+   zajrzenia w konto (CDP do Chrome Milosza albo jego zrzut „Strona główna").
 2. **`mini/public/ads.txt`** → `google.com, pub-<TWOJE-ID>, DIRECT, f08c47fec0942fa0`
    (Vite kopiuje `public/` → `dist/`). Czeka na `pub-ID`.
 3. ~~**Polityka prywatności kłamie.**~~ — ✅ **zrobione 2026-09-09**, wdrożone na produkcję:
@@ -672,6 +677,61 @@ Stringi: `privacy_ad_settings` / `privacy_ad_settings_desc` × 6 języków.
    Bez CMP Google serwuje w EOG reklamy niedopasowane (legalne, ale mniej płatne).
    ⚠️ Deploy: procedura z sekcji *„mini.verbigem.com to TA SAMA webapp"* — `npm run build`
    przebudowuje całą stronę, nie tylko reklamy.
+
+### 🔒 Reklamy za logowaniem wymagają loginu dla robota — to WARUNEK, nie opcja
+
+Źródło: [Wyświetlanie reklam na stronach wymagających logowania](https://support.google.com/adsense/answer/161351?hl=pl)
+(Google AdSense Help). Cytat oryginalny:
+
+> Po **aktywacji konta** reklamy Google **mogą** być wyświetlane na stronach Twojej
+> witryny wymagających logowania, **pod warunkiem że zostanie utworzony login dla
+> robota**. Umożliwi to robotowi indeksującemu AdSense odwiedzanie Twojej witryny
+> i wyświetlanie reklam.
+
+Czyli: **bez loginu dla robota reklamy na stronach za logowaniem nie wyświetlą się.**
+(To sprostowanie — wcześniej twierdziłem, że brak dostępu robota tylko „obniża
+trafność". Oficjalny tekst mówi wprost o warunku. Milosz miał rację od początku.)
+
+Kolejność wymagana przez Google (wszystkie kroki z tego artykułu):
+
+1. **Aktywacja konta AdSense** ← zablokowane, patrz punkt 1 wyżej
+2. **Konto → Dostęp i autoryzacja → Dostęp dla robota → „Dodaj dane logowania"**,
+   gdzie trzeba podać:
+   - **Zastrzeżony katalog lub URL** — adres, do którego robot ma zablokowany dostęp
+   - **URL logowania** — strona, na którą robot wchodzi, żeby się zalogować
+   - **Metoda logowania** — POST lub GET (w UI Milosza dostępne też „HTTP")
+   - **Parametry logowania** — pary klucz–wartość, **„tak aby serwer zwracał plik
+     cookie do dostępu po zalogowaniu"**
+3. **Weryfikacja witryny w Search Console** (to osobny produkt — `search.google.com/search-console`)
+
+**Dlaczego to nie zadziała z naszym obecnym kodem** (fakty z kodu, nie domysły):
+
+| Wymóg Google | Stan u nas |
+|---|---|
+| Serwer, który przyjmie POST/GET i **zwróci cookie sesyjne** | `firebase.json` = hosting statyczny + rewrite `**` → `/index.html`. Serwera nie ma. |
+| Formularz z `action`/`method` i polami `name` | Wszystkie formularze to React `onSubmit` bez `action`/`method`; inputy bez `name` |
+| Metoda HTTP (Basic) | Wymaga `401 WWW-Authenticate` — hosting statyczny tego nie zrobi |
+| Endpoint logowania w backendzie | Funkcje to: `deepseekProxy`, `googleTranslateProxy`, `visionProxy`, `walletTopUp`, `createCheckout`, `paddleWebhook`, `portalSession` — **żadnego logowania** |
+
+Logowanie idzie przez **Firebase Auth JS SDK** (XHR do `identitytoolkit`), które
+**nie używa cookies** — sesja siedzi w IndexedDB/localStorage. Żeby spełnić wymóg
+„serwer zwraca cookie", trzeba by dobudować: Cloud Function przyjmującą POST,
+weryfikującą hasło i wystawiającą cookie sesyjne Firebase — **a potem jeszcze
+nauczyć SPA czytać to cookie** (dziś `RequireAuth` patrzy wyłącznie na klienta
+Firebase). To poważna zmiana w uwierzytelnianiu, nie „dodanie formularza".
+
+⚠️ **Nierozstrzygnięte:** czy robot AdSense wykonuje nasz JavaScript. `/app` to SPA —
+bez renderowania JS robot zobaczy pustą skorupkę `index.html`. **Nie zaczynać
+przebudowy logowania, dopóki to nie jest pewne.**
+
+### 🚫 Landing celowo BEZ reklam (decyzja 2026-09-11)
+
+Reklamy AdSense mają być **tylko w webappie** (`/app/*`, za `RequireAuth`).
+`LandingPage.tsx` nie ma już slotu — w jego miejscu jest komentarz ostrzegawczy.
+`AdBanner` jest używany wyłącznie w `Layout` (`App.tsx:36`), a `index.html` nie ma
+wpisu AdSense. Efekt: skrypt AdSense ładuje się tylko w `/app`, więc **Auto ads nie
+wejdą na publiczną stronę**. Prop `hidePlaceholder` usunięty (był potrzebny tylko
+landingowi).
 
 ---
 
