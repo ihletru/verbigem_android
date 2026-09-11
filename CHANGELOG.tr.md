@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.71 (2026-09-11) — versionCode 71
+
+**Düzeltildi: cüzdan yüklendikten sonra ücretli modeller „bakiye yok“ diyordu.**
+
+- Bakiye, çeviri ekranı sunucuya sormadan ücretli bir modelin karşılanabilir olup olmadığını bilsin diye cihazda tutulur. Ancak onu yalnızca Profil ekranı yazıyordu.
+- Sonuç: bakiye yükleyip Profili hiç açmayan biri her ücretli modelde „bakiye yok” cevabı alıyordu. 1.0.70'e kadar bunu cihaz genelinde ortak bir alan gizliyordu — ilk hesap önceki oturumdan kalanı devralıyordu. Bakiye hesaba özel olunca bu her hesabı vurdu.
+- Bakiye artık uygulama açılışında ve bağlantı her geri geldiğinde, herhangi bir ekran istemeden önce yazılıyor.
+
 ## v1.0.70 (2026-09-11) — versionCode 70
 
 **OpenRouter anahtarı ve cüzdan bakiyesi artık hesaba ait.**

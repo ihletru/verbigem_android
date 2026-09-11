@@ -64,8 +64,25 @@ class SyncManager(context: Context) {
         }
     }
 
+    /**
+     * Fetches the profile and mirrors the wallet balance into DataStore.
+     *
+     * The mirror exists so any ViewModel can gate paid models without re-fetching the
+     * user document — but until v1.0.71 the only writer was `ProfileViewModel`, so a
+     * user who had topped up and never opened Profile was told "no credits" on every
+     * paid online model. The old device-wide slot hid that for the first account
+     * (it inherited whatever the previous session had left); once v1.0.70 made the slot
+     * per account, every account hit it. Writing it here closes the gap: this runs at
+     * startup and on every connectivity regain, before any screen asks.
+     *
+     * The uid is passed on, not read from `AccountScope`, so the balance can only ever
+     * land in the slot of the account it was fetched for.
+     */
     private suspend fun syncProfile(uid: String) {
-        firestore.collection("users").document(uid).get().await()
+        val doc = firestore.collection("users").document(uid).get().await()
+        // Defensive: Firestore hands back Double for some numeric fields.
+        val cents = (doc.get("walletCreditsCents") as? Number)?.toLong() ?: 0L
+        preferencesManager.setWalletCents(uid, cents)
     }
 
     /**

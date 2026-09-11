@@ -120,6 +120,16 @@ z listenera auth w `VerbigemApplication`). Klucz OpenRouter istnieje tylko na ur
 nie ma kopii w chmurze, więc bez tego zniknąłby z Profilu. Jednorazowy znacznik
 `account_prefs_adopted` pilnuje, żeby nie przejęło ich drugie konto.
 
+⚠️ **Kto zapisuje saldo (v1.0.71).** Do v1.0.71 jedynym pisarzem był `ProfileViewModel`,
+więc użytkownik, który doładował portfel i nie wszedł w Profil, słyszał „brak środków"
+na każdym płatnym modelu (`TranslatorViewModel` bramkuje po `_walletCents <= 0`). Przy
+wspólnym wpisie maskowało to dziedziczenie po poprzedniej sesji; po rozdzieleniu na konta
+trafiało w każde konto. Teraz zapisuje je także `SyncManager.syncProfile(uid)`, czyli przy
+starcie aplikacji i po każdym odzyskaniu internetu — zanim jakikolwiek ekran zapyta.
+`setWalletCents(uid, cents)` przyjmuje uid **jawnie** (inaczej niż `setOpenRouterKey`):
+wpisanie salda jednego konta w slot drugiego byłoby dokładnie tym wyciekiem, któremu ten
+podział ma zapobiegać.
+
 ---
 
 ## 🔄 Synchronizacja danych (startup sync, last-write-wins)

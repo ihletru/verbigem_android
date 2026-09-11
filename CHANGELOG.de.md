@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.71 (2026-09-11) — versionCode 71
+
+**Behoben: Nach dem Aufladen des Guthabens meldeten kostenpflichtige Modelle „kein Guthaben“.**
+
+- Das Guthaben wird auf dem Gerät gehalten, damit der Übersetzungsbildschirm ohne Serverabfrage weiß, ob ein kostenpflichtiges Modell bezahlbar ist. Geschrieben hat es aber nur der Profil-Bildschirm.
+- Die Folge: Wer aufgeladen und das Profil nie geöffnet hatte, bekam bei jedem kostenpflichtigen Modell „kein Guthaben“. Bis 1.0.70 hat ein geräteweiter Speicherplatz das verdeckt — das erste Konto erbte, was die vorige Sitzung hinterlassen hatte. Seit das Guthaben zum Konto gehört, traf es jedes Konto.
+- Das Guthaben wird jetzt beim App-Start und bei jeder zurückkehrenden Verbindung geschrieben, bevor ein Bildschirm danach fragt.
+
 ## v1.0.70 (2026-09-11) — versionCode 70
 
 **Der OpenRouter-Schlüssel und das Guthaben gehören jetzt ebenfalls zum Konto.**

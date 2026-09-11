@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.71 (2026-09-11) — versionCode 71
+
+**Naprawione: po doładowaniu portfela płatne modele mówiły „brak środków”.**
+
+- Saldo portfela jest trzymane na urządzeniu, żeby ekran tłumaczenia wiedział, czy stać go na płatny model, bez pytania serwera. Zapisywał je jednak tylko ekran Profilu.
+- Skutek: kto doładował portfel i nie wszedł w Profil, słyszał „brak środków” przy każdym płatnym modelu. Do wersji 1.0.70 maskowało to wspólne saldo — pierwsze konto przejmowało to, co zostało po poprzedniej sesji. Odkąd saldo jest przypisane do konta, trafiało to na każde konto.
+- Saldo jest teraz zapisywane przy starcie aplikacji i po odzyskaniu internetu, zanim jakikolwiek ekran o nie zapyta.
+
 ## v1.0.70 (2026-09-11) — versionCode 70
 
 **Klucz OpenRouter i saldo portfela też należą teraz do konta.**

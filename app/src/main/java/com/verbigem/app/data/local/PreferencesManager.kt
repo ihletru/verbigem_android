@@ -171,9 +171,16 @@ class PreferencesManager(private val context: Context) {
     suspend fun setOnlineModel(id: String) =
         context.dataStore.edit { it[KEY_ONLINE_MODEL] = id }
 
-    /** Per account — see [keyWalletCents]. */
-    suspend fun setWalletCents(cents: Long) =
-        context.dataStore.edit { it[keyWalletCents(AccountScope.key())] = cents }
+    /**
+     * Per account — see [keyWalletCents].
+     *
+     * ⚠️ Takes the uid **explicitly**, unlike [setOpenRouterKey]. Callers here know which
+     * account they just read the profile for (sync runs with a uid it was handed), and
+     * writing one account's balance into another's slot would be exactly the leak this
+     * per-account split exists to prevent.
+     */
+    suspend fun setWalletCents(uid: String, cents: Long) =
+        context.dataStore.edit { it[keyWalletCents(uid)] = cents }
 
     /**
      * One-shot: hand the pre-v1.0.70 shared slots to the first account that signs in.

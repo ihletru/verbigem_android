@@ -108,7 +108,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     }
                     // Mirror the wallet into DataStore so other screens can gate
                     // paid models without re-fetching the user document.
-                    preferencesManager.setWalletCents(profile?.walletCreditsCents ?: 0L)
+                    preferencesManager.setWalletCents(user.uid, profile?.walletCreditsCents ?: 0L)
                 }
             }
         }

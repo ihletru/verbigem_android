@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.71 (2026-09-11) — versionCode 71
+
+**Corregido: tras recargar la cartera, los modelos de pago decían „sin saldo“.**
+
+- El saldo se guarda en el dispositivo para que la pantalla de traducción sepa si un modelo de pago es asequible sin preguntar al servidor. Pero solo lo escribía la pantalla de Perfil.
+- El efecto: quien recargaba y nunca abría el Perfil veía „sin saldo“ en todos los modelos de pago. Hasta la 1.0.70 lo enmascaraba un hueco compartido por dispositivo — la primera cuenta heredaba lo que hubiera dejado la sesión anterior. Al pasar el saldo a ser por cuenta, afectaba a todas.
+- El saldo ahora se escribe al arrancar la app y cada vez que vuelve la conexión, antes de que ninguna pantalla lo pida.
+
 ## v1.0.70 (2026-09-11) — versionCode 70
 
 **La clave de OpenRouter y el saldo de la cartera ahora también pertenecen a la cuenta.**

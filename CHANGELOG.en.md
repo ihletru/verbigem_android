@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.71 (2026-09-11) — versionCode 71
+
+**Fixed: after topping up the wallet, paid models said "no credits".**
+
+- The wallet balance is kept on the device so the translation screen can tell whether a paid model is affordable without asking the server. But only the Profile screen ever wrote it.
+- The effect: anyone who topped up and never opened Profile was told "no credits" on every paid model. Until 1.0.70 a device-wide slot masked this — the first account inherited whatever the previous session had left. Once the balance became per account, every account hit it.
+- The balance is now written at app start and whenever the connection returns, before any screen asks for it.
+
 ## v1.0.70 (2026-09-11) — versionCode 70
 
 **The OpenRouter key and the wallet balance now belong to the account too.**
