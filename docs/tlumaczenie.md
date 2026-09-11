@@ -86,8 +86,16 @@ lokalnego lub dla lepszej jakości. Dwa niezależne źródła:
    GET `/api/v1/models`, filtruj `id` kończące się na `:free` + cena 0, sortuj wg
    `context_length`). Lista **NIE jest hardkodowana** — free modele zmieniają się codziennie.
 
+   ⚠️ **Klucz jest PER KONTO od v1.0.70** — wpis `openrouter_api_key_<uid>` w DataStore,
+   nie `openrouter_api_key`. Wcześniej był wspólny dla telefonu, więc drugie konto
+   wydawało limit pierwszego bez wpisywania czegokolwiek. Szczegóły i migracja:
+   [`architektura.md`](architektura.md), sekcja „Klucz OpenRouter i saldo portfela też
+   są PER KONTO".
+
 **Gating portfelem (`walletCents`):** modele płatne są nieaktywne, gdy
-`KEY_WALLET_CENTS <= 0` (mirror `UserProfile.walletCreditsCents` w `PreferencesManager`).
+`wallet_credits_cents_<uid> <= 0` (mirror `UserProfile.walletCreditsCents` w
+`PreferencesManager`; **per konto od v1.0.70** — wspólny wpis pokazywał kontu B saldo
+konta A i pozwalał B korzystać z płatnych modeli, gdy wczytanie profilu B zawiodło).
 Wtedy płatna translacja online kończy się `R.string.online_no_credits`. Modele `:free`
 (z własnym kluczem) działają **BEZ środków**. Silnik `ONLINE` w `EnginePicker` jest aktywny,
 gdy `isPro || hasOwnKey`.

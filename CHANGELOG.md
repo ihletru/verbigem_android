@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.70 (2026-09-11) — versionCode 70
+
+**Klucz OpenRouter i saldo portfela też należą teraz do konta.**
+
+- Były wspólne dla całego telefonu: po zalogowaniu na drugie konto widziało ono klucz OpenRouter pierwszego i jego saldo. Klucz to czyjś prywatny limit u dostawcy modeli, a saldo to stan konta — jedno i drugie powinno być przypisane do konta, tak jak historia.
+- Po aktualizacji pierwsze konto, na które się zalogujesz, przejmuje dotychczasowy klucz i saldo — nie musisz niczego wpisywać od nowa. Kolejne konta zaczynają z pustym kluczem.
+- Motyw, język interfejsu, para językowa i wybrany model online zostają wspólne dla urządzenia — to ustawienia aplikacji, nie dane konta.
+
 ## v1.0.69 (2026-09-11) — versionCode 69
 
 **Historia tłumaczeń należy teraz do konta, a nie do telefonu.**

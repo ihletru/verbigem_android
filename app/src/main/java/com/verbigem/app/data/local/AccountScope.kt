@@ -28,6 +28,13 @@ object AccountScope {
     private const val LEGACY_DB = "verbigem_db"
     private const val DB_PREFIX = "verbigem_db_"
 
+    /**
+     * Suffix used while nobody is signed in. Screens reachable before login (phone
+     * gate, legal pages) still need a database, and it must not be one of the real
+     * accounts' files.
+     */
+    const val ANON = "anon"
+
     /** SQLite sidecar files that must move together with the main one. */
     private val SUFFIXES = listOf("", "-shm", "-wal")
 
@@ -50,7 +57,7 @@ object AccountScope {
     }
 
     /** Database name for the account that is currently signed in. */
-    fun key(): String = uid ?: "anon"
+    fun key(): String = uid ?: ANON
 
     /**
      * Point the scope at [newUid] (null = signed out).
@@ -68,7 +75,7 @@ object AccountScope {
         // Firestore cannot restore (glossary, external contacts, TTS key) is not
         // silently lost.
         if (newUid != null) adoptLegacyDatabase(newUid)
-        Log.i(TAG, "account scope: ${previous ?: "anon"} -> ${newUid ?: "anon"}")
+        Log.i(TAG, "account scope: ${previous ?: ANON} -> ${newUid ?: ANON}")
     }
 
     private fun adoptLegacyDatabase(newUid: String) {

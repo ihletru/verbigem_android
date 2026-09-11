@@ -75,6 +75,19 @@ class VerbigemApplication : Application() {
             // account that is actually signed in, so a shared device never shows one
             // user the other's local history.
             AccountScope.bind(user?.uid)
+            if (user != null) {
+                // One-shot: the first account to sign in inherits the pre-v1.0.70
+                // device-wide OpenRouter key and wallet mirror (see
+                // PreferencesManager.adoptLegacyAccountPreferences). A flag inside
+                // guarantees no later account can pick them up.
+                appScope.launch {
+                    try {
+                        PreferencesManager(this@VerbigemApplication).adoptLegacyAccountPreferences()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Legacy preference adoption failed", e)
+                    }
+                }
+            }
             if (user != null && !syncStarted) {
                 syncStarted = true
                 appScope.launch {

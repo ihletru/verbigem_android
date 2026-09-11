@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.70 (2026-09-11) — versionCode 70
+
+**Der OpenRouter-Schlüssel und das Guthaben gehören jetzt ebenfalls zum Konto.**
+
+- Beide waren für das ganze Telefon gemeinsam: Wer sich mit einem zweiten Konto anmeldete, sah den OpenRouter-Schlüssel und das Guthaben des ersten Kontos. Der Schlüssel ist ein persönliches Kontingent beim Modellanbieter, das Guthaben ist Kontostand — beides muss dem Konto folgen, genau wie der Verlauf.
+- Nach dem Update übernimmt das erste Konto, mit dem du dich anmeldest, den bisherigen Schlüssel und das Guthaben. Es muss nichts neu eingegeben werden. Spätere Konten starten mit leerem Schlüssel.
+- Design, UI-Sprache, Sprachpaar und das gewählte Online-Modell bleiben geräteweit gemeinsam — das sind App-Einstellungen, keine Kontodaten.
+
 ## v1.0.69 (2026-09-11) — versionCode 69
 
 **Der Übersetzungsverlauf gehört jetzt zum Konto, nicht zum Telefon.**

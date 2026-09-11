@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.70 (2026-09-11) — versionCode 70
+
+**OpenRouter anahtarı ve cüzdan bakiyesi artık hesaba ait.**
+
+- İkisi de tüm telefon için ortaktı: ikinci bir hesapla giriş yaptığınızda ilk hesabın OpenRouter anahtarını ve bakiyesini görüyordu. Anahtar, model sağlayıcısındaki kişisel kotadır; bakiye ise hesap durumudur — ikisi de tıpkı geçmiş gibi hesabı takip etmelidir.
+- Güncellemeden sonra giriş yaptığınız ilk hesap mevcut anahtarı ve bakiyeyi devralır; hiçbir şeyi yeniden girmeniz gerekmez. Sonraki hesaplar boş anahtarla başlar.
+- Tema, arayüz dili, dil çifti ve seçili çevrimiçi model cihaz genelinde ortak kalır — bunlar uygulama ayarlarıdır, hesap verisi değil.
+
 ## v1.0.69 (2026-09-11) — versionCode 69
 
 **Çeviri geçmişi artık telefonun değil, hesabın.**

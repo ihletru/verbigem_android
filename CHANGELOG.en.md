@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.70 (2026-09-11) — versionCode 70
+
+**The OpenRouter key and the wallet balance now belong to the account too.**
+
+- They were shared across the whole phone: signing in as a second account showed it the first account's OpenRouter key and balance. The key is someone's private quota with the model provider and the balance is account state — both should follow the account, exactly like the history does.
+- After the update, the first account you sign in as inherits the existing key and balance, so nothing has to be re-entered. Later accounts start with an empty key.
+- Theme, UI language, language pair and the chosen online model stay shared per device — those are app settings, not account data.
+
 ## v1.0.69 (2026-09-11) — versionCode 69
 
 **Translation history now belongs to the account, not to the phone.**

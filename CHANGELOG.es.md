@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.70 (2026-09-11) — versionCode 70
+
+**La clave de OpenRouter y el saldo de la cartera ahora también pertenecen a la cuenta.**
+
+- Eran comunes a todo el teléfono: al iniciar sesión con una segunda cuenta, esta veía la clave de OpenRouter y el saldo de la primera. La clave es un cupo privado con el proveedor de modelos y el saldo es estado de la cuenta — ambos deben seguir a la cuenta, igual que el historial.
+- Tras la actualización, la primera cuenta con la que inicies sesión hereda la clave y el saldo existentes, así que no hay que volver a introducir nada. Las cuentas posteriores empiezan con la clave vacía.
+- El tema, el idioma de la interfaz, el par de idiomas y el modelo online elegido siguen siendo comunes por dispositivo: son ajustes de la app, no datos de la cuenta.
+
 ## v1.0.69 (2026-09-11) — versionCode 69
 
 **El historial de traducciones ahora pertenece a la cuenta, no al teléfono.**

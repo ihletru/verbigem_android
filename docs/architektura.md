@@ -94,9 +94,31 @@ zaloguje się po aktualizacji (`renameTo` na `verbigem_db_<uid>` wraz z `-shm`/`
 Bez tego przepadłyby tabele, których Firestore nie odtworzy: glosariusz, kontakty
 zewnętrzne, klucz TTS.
 
-⚠️ **Nadal wspólne na urządzeniu (świadomie):** motyw, język interfejsu, pary języków.
-**Do rozważenia:** `KEY_OPENROUTER_KEY` w DataStore też jest wspólny — klucz API jednego
-konta jest widoczny dla drugiego na tym samym telefonie.
+⚠️ **Nadal wspólne na urządzeniu (świadomie):** motyw, język interfejsu, para językowa,
+wybrany model online. To ustawienia aplikacji, nie dane konta.
+
+## Klucz OpenRouter i saldo portfela też są PER KONTO (v1.0.70)
+
+Do v1.0.70 dwa wpisy w DataStore nie miały uid, więc były wspólne dla całego telefonu:
+`openrouter_api_key` i `wallet_credits_cents`. Skutki: konto B widziało klucz konta A
+(czyli wydawało cudzy limit u dostawcy modeli), a saldo konta A bramkowało płatne modele
+dla B — a gdy wczytanie profilu B zawiodło, B zostawało z saldem A.
+
+Naprawa jest lustrzana do bazy: nazwy wpisów dostają sufiks uid
+(`openrouter_api_key_<uid>`, `wallet_credits_cents_<uid>`), a bieżące konto bierze się
+z `AccountScope.key()`. Sygnatury metod się nie zmieniły, więc żaden ViewModel nie
+wymagał poprawek.
+
+⚠️ **`openRouterKeyFlow` i `walletCentsFlow` to gettery (`get()`), nie `val`.** Nazwa wpisu
+zależy od *bieżącego* konta, a `PreferencesManager` to singleton tworzony przed
+zalogowaniem — `val` zamroziłby nazwę na starcie aplikacji, czyli zawsze `..._anon`.
+Getter czyta konto przy każdej emisji, więc nadąża za logowaniem.
+
+Migracja: stare, wspólne wpisy są **adoptowane** przez pierwsze konto, które zaloguje się
+po aktualizacji (`PreferencesManager.adoptLegacyAccountPreferences()`, wywoływane
+z listenera auth w `VerbigemApplication`). Klucz OpenRouter istnieje tylko na urządzeniu —
+nie ma kopii w chmurze, więc bez tego zniknąłby z Profilu. Jednorazowy znacznik
+`account_prefs_adopted` pilnuje, żeby nie przejęło ich drugie konto.
 
 ---
 
