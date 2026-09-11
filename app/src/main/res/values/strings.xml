@@ -595,11 +595,10 @@
     <string name="help_own_api">OpenRouter is a service that routes translations to many AI models. Create a free account at openrouter.ai, open the Keys page, and click “Create Key”. Copy the key and paste it here. It is stored only on this phone. Once added, the free “:free” models become available in the online model list above and cost nothing. Generate your key at openrouter.ai/keys.</string>
     <string name="topup_button">Top up wallet</string>
     <string name="topup_dialog_title">Top up your wallet</string>
-    <string name="topup_dialog_subtitle">Choose a credit package</string>
-    <string name="topup_small">Small</string>
-    <string name="topup_medium">Medium</string>
-    <string name="topup_large">Large</string>
-    <string name="topup_credits">%1$d credits</string>
+    <string name="topup_dialog_subtitle">Balance for paid online models · 1 USD = 1 USD credit</string>
+    <string name="topup_3">$3</string>
+    <string name="topup_5">$5</string>
+    <string name="topup_10">$10</string>
     <string name="topup_pay">Continue to payment</string>
     <string name="topup_error">Couldn\'t start the payment</string>
     <string name="topup_loading">Opening payment…</string>

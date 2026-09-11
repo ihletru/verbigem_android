@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.66 (2026-09-10) — versionCode 66
+
+**Fixed: the payment opened our website instead of the Paddle checkout.**
+
+- After picking a wallet or "Remove ads" package the browser showed our homepage and nothing happened — there was no way to reach the payment at all.
+- Cause: Paddle builds the checkout link from your own domain and expects that page to load Paddle.js. Our homepage did not, so the checkout had nothing to open on.
+- There is now a dedicated checkout page which opens the payment at once, also when nobody is signed in in the browser.
+- Wallet packages used to read "300 / 500 / 1000 credits" although those were cents. You now see the real prices: $3, $5 and $10 (1 USD paid = 1 USD of balance), the same as on the website.
+
 ## v1.0.65 (2026-09-10) — versionCode 65
 
 **Fixed: some messages ignored the chosen interface language.**

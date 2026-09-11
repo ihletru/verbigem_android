@@ -489,13 +489,32 @@ każdej zmianie ceny u dostawcy). `requireProUser` wymaga tylko `walletCreditsCe
 - Zmiana modelu: `ProfileViewModel.setOnlineModel(id)` → `KEY_ONLINE_MODEL`
   (domyślnie `OnlineModels.DEFAULT_ID`).
 - **Doładowanie portfela w apce:** karta „Status konta" w `ProfileScreen` ma guzik
-  **Doładuj portfel**, który otwiera dialog z 3 pakietami (300/500/1000 kredytów →
-  `wallet3/5/10`). `ProfileViewModel.topUp(type)` woła Cloud Function **`createCheckout`**
-  (Paddle, sandbox), tworzącą transakcję z `customData.uid` i zwracającą hosted
+  **Doładuj portfel**, który otwiera dialog z 3 pakietami pokazującymi **realne ceny**
+  `$3 / $5 / $10` (klucze `topup_3` / `topup_5` / `topup_10`, typy `wallet3/5/10`).
+  1 USD zapłaty = 1 USD salda, więc „kredyty" w starym dialogu były w istocie centami
+  (300/500/1000) i wprowadzały w błąd — od v1.0.66 pokazujemy po prostu cenę, jak na stronie.
+  `ProfileViewModel.topUp(type)` woła Cloud Function **`createCheckout`**
+  (Paddle, LIVE), tworzącą transakcję z `customData.uid` i zwracającą
   `checkout.url`; apka otwiera go w przeglądarce. Po opłaceniu `paddleWebhook`
   (`transaction.completed`, `customData.type` zaczynające się na `wallet`) dopisuje
   `wallet.creditsCents` — portfel odświeża się na żywo (snapshota `users/{uid}`).
   ⚠️ `walletTopUp` to funkcja **admin-only** (ręczne dopisywanie) — NIE używana z apki.
+
+- ⚠️ **`checkout.url` MUSI być ustawione jawnie (v1.0.66).** `createCheckout` wysyła
+  `checkout: { url: 'https://mini.verbigem.com/checkout' }` do `paddle.transactions.create`.
+  Bez tego Paddle podstawia **domyślny payment link** — w naszym przypadku
+  `https://mini.verbigem.com?_ptxn=<id>`, czyli **landing bez Paddle.js**: przeglądarka
+  pokazywała stronę główną i kasa nigdy się nie otwierała („płatność przekierowuje do
+  webapp zamiast do Paddle"). Paddle **nie serwuje własnej kasy na naszej domenie** —
+  zwraca `<checkout.url>?_ptxn=<id>` i wymaga, żeby ta strona ładowała Paddle.js.
+  Domena musi być **zatwierdzona w Paddle → Checkout domains** (inaczej 400).
+- **Strona kasy `mini.verbigem.com/checkout`** (`mini/src/billing/CheckoutPage.tsx`) —
+  trasa **publiczna** w `src/App.tsx`, poza `RequireAuth`: z apki nikt nie ma sesji
+  w przeglądarce, a `PaddleListener` montuje się dopiero wewnątrz `RequireAuth`.
+  Strona czyta `_ptxn` z URL-a, **usuwa go przez `history.replaceState` jeszcze przed**
+  `initializePaddle()` (inaczej Paddle.js sam otworzyłby kasę i otworzyłyby się dwie),
+  po czym woła `Paddle.Checkout.open({ transactionId, settings: { variant: 'one-page' } })`.
+  Brak `txn` albo brak tokenu → ekran błędu z guzikiem powrotu (klucze `checkout.*`).
 - **Usuń reklamy (od v1.0.46):** obok „Doładuj portfel" jest guzik **Usuń reklamy** z 4
   pakietami `$1/$3/$5/$10 → 1/3/5/10 msc` (`noAds1/3/5/10`). To **przedpłata jednorazowa**
   (ceny Paddle bez `billingCycle`) — NIE abonament; ten sam `createCheckout`, a
@@ -935,7 +954,7 @@ Projekt `mini-verbigem` jest **współdzielony z webappem `verbigem/mini`**, kt�
 | `portalSession` | us-central1 | portal klienta Paddle |
 | `visionProxy` | us-central1 | OCR online |
 | `walletTopUp` | us-central1 | doładowanie portfela |
-| `createCheckout` | us-central1 | otwiera checkout Paddle (APK: doładowanie portfela) |
+| `createCheckout` | us-central1 | otwiera checkout Paddle (APK: doładowanie portfela); od v1.0.66 z `checkout.url = /checkout` |
 
 Oba projekty mają `codebase: default`, więc Firebase widzi **jeden** zbiór funkcji. `firebase deploy --only functions` uruchomiony stąd uznaje tamte pięć za osierocone i chce je **usunąć**. W trybie nieinteraktywnym na szczęście się wykłada (`Aborting because deletion cannot proceed in non-interactive mode`) — z `--force` po prostu by je skasowało: **płatności, OCR i portfel przestałyby działać.**
 

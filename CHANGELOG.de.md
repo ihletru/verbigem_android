@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.66 (2026-09-10) — versionCode 66
+
+**Behoben: die Zahlung öffnete unsere Website statt der Paddle-Kasse.**
+
+- Nach der Wahl eines Guthaben- oder „Keine Werbung“-Pakets zeigte der Browser die Startseite und nichts passierte — zur Zahlung kam man überhaupt nicht.
+- Ursache: Paddle baut den Kassen-Link aus der eigenen Domain und erwartet, dass diese Seite Paddle.js lädt. Unsere Startseite tat das nicht, also hatte die Kasse nichts, worauf sie sich öffnen konnte.
+- Es gibt jetzt eine eigene Kassenseite, die die Zahlung sofort öffnet — auch wenn im Browser niemand angemeldet ist.
+- Die Guthaben-Pakete zeigten „300 / 500 / 1000 Credits“, obwohl das Cent waren. Jetzt stehen die echten Preise da: 3, 5 und 10 USD (1 USD gezahlt = 1 USD Guthaben), genau wie auf der Website.
+
 ## v1.0.65 (2026-09-10) — versionCode 65
 
 **Behoben: Einige Meldungen ignorierten die gewählte Oberflächensprache.**

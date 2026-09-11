@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.66 (2026-09-10) — versionCode 66
+
+**Düzeltildi: ödeme Paddle kasası yerine web sitemizi açıyordu.**
+
+- Cüzdan veya «Reklamsız» paketi seçildiğinde tarayıcı ana sayfayı gösteriyor ve hiçbir şey olmuyordu — ödemeye ulaşmak mümkün değildi.
+- Sebep: Paddle kasa bağlantısını kendi alan adınızdan oluşturur ve o sayfanın Paddle.js yüklemesini bekler. Ana sayfamız bunu yapmıyordu, bu yüzden kasanın açılacağı bir yer yoktu.
+- Artık ödemeyi hemen açan ayrı bir kasa sayfası var; tarayıcıda kimse giriş yapmamış olsa bile.
+- Cüzdan paketleri «300 / 500 / 1000 kredi» gösteriyordu, oysa bunlar sentti. Artık gerçek fiyatlar görünüyor: 3, 5 ve 10 USD (ödenen 1 USD = 1 USD bakiye), web sitesindekiyle aynı.
+
 ## v1.0.65 (2026-09-10) — versionCode 65
 
 **Düzeltildi: bazı mesajlar seçilen arayüz dilini yok sayıyordu.**

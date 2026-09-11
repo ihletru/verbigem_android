@@ -973,11 +973,14 @@ fun ProfileScreen(
                 Column {
                     Text(stringResource(R.string.topup_dialog_subtitle), fontSize = 13.sp, color = VerbigemTheme.colors.muted)
                     Spacer(modifier = Modifier.height(10.dp))
+                    // Kwoty to REALNE ceny z katalogu Paddle (Wallet top-up $3/$5/$10),
+                    // a nie „kredyty": 1 USD zapłaty = 1 USD salda, więc pokazujemy
+                    // po prostu cenę, tak samo jak w webappie.
                     listOf(
-                        Triple("wallet3", R.string.topup_small, 300),
-                        Triple("wallet5", R.string.topup_medium, 500),
-                        Triple("wallet10", R.string.topup_large, 1000),
-                    ).forEach { (type, labelRes, credits) ->
+                        "wallet3" to R.string.topup_3,
+                        "wallet5" to R.string.topup_5,
+                        "wallet10" to R.string.topup_10,
+                    ).forEach { (type, labelRes) ->
                         Button(
                             onClick = { showTopUp = false; viewModel.topUp(type) },
                             enabled = !dialogLoading,
@@ -988,8 +991,6 @@ fun ProfileScreen(
                                 .padding(vertical = 3.dp)
                         ) {
                             Text(stringResource(labelRes), color = VerbigemTheme.colors.ink, fontWeight = FontWeight.SemiBold)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.topup_credits, credits), color = VerbigemTheme.colors.muted, fontSize = 12.sp)
                         }
                     }
                     dialogError?.let {

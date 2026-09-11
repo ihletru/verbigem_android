@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.66 (2026-09-10) — versionCode 66
+
+**Corregido: el pago abría nuestra web en lugar de la caja de Paddle.**
+
+- Al elegir un paquete de cartera o «Sin anuncios», el navegador mostraba la página de inicio y no pasaba nada: era imposible llegar al pago.
+- Causa: Paddle construye el enlace de la caja con tu propio dominio y espera que esa página cargue Paddle.js. Nuestra página de inicio no lo hacía, así que la caja no tenía dónde abrirse.
+- Ahora hay una página de pago propia que abre el pago de inmediato, también cuando nadie ha iniciado sesión en el navegador.
+- Los paquetes de cartera mostraban «300 / 500 / 1000 créditos» cuando en realidad eran centavos. Ahora ves los precios reales: 3, 5 y 10 USD (1 USD pagado = 1 USD de saldo), igual que en la web.
+
 ## v1.0.65 (2026-09-10) — versionCode 65
 
 **Corregido: algunos mensajes ignoraban el idioma de interfaz elegido.**

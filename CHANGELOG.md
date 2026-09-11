@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.66 (2026-09-10) — versionCode 66
+
+**Naprawione: płatność otwierała naszą stronę zamiast kasy Paddle.**
+
+- Po wybraniu pakietu portfela albo „Bez reklam” przeglądarka pokazywała stronę główną i nic się nie działo — do płatności nie dało się w ogóle dojść.
+- Przyczyna: Paddle składa link do kasy z naszej własnej domeny i wymaga, żeby ta strona ładowała Paddle.js. Strona główna tego nie robiła, więc kasa nie miała się na czym otworzyć.
+- Jest teraz osobna strona kasy, która otwiera płatność od razu — również wtedy, gdy w przeglądarce nikt nie jest zalogowany.
+- Pakiety portfela pokazywały „300 / 500 / 1000 kredytów”, choć były to centy. Teraz widać realne ceny: 3, 5 i 10 USD (1 USD zapłaty = 1 USD salda), tak samo jak na stronie.
+
 ## v1.0.65 (2026-09-10) — versionCode 65
 
 **Naprawione: część komunikatów ignorowała wybrany język interfejsu.**

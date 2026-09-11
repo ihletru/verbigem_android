@@ -569,11 +569,10 @@
     <string name="help_own_api">OpenRouter ist ein Dienst, der Übersetzungen an viele KI-Modelle weiterleitet. Erstelle ein kostenloses Konto auf openrouter.ai, öffne die Keys-Seite und klicke auf „Create Key”. Kopiere den Schlüssel und füge ihn hier ein. Er wird nur auf diesem Telefon gespeichert. Sobald er hinzugefügt ist, erscheinen die kostenlosen „:free”-Modelle in der Onlineliste und kosten nichts. Den Schlüssel erstellst du auf openrouter.ai/keys.</string>
     <string name="topup_button">Wallet aufladen</string>
     <string name="topup_dialog_title">Wallet aufladen</string>
-    <string name="topup_dialog_subtitle">Wähle ein Kredit-Paket</string>
-    <string name="topup_small">Klein</string>
-    <string name="topup_medium">Mittel</string>
-    <string name="topup_large">Groß</string>
-    <string name="topup_credits">%1$d Credits</string>
+    <string name="topup_dialog_subtitle">Guthaben für kostenpflichtige Online-Modelle · 1 USD = 1 USD Guthaben</string>
+    <string name="topup_3">$3</string>
+    <string name="topup_5">$5</string>
+    <string name="topup_10">$10</string>
     <string name="topup_pay">Zur Zahlung</string>
     <string name="topup_error">Zahlung konnte nicht gestartet werden</string>
     <string name="topup_loading">Zahlung wird geöffnet…</string>
