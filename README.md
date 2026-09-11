@@ -1,5 +1,7 @@
 # Verbigem Android — Natywny Tłumacz Hy-MT2 (100% Kotlin + NDK)
 
+> 🤖 **Agent AI: nie czytaj dalej — zacznij od [`AGENTS.md`](AGENTS.md).** Tam jest tablica routingu (zadanie → który plik z `docs/` wczytać). Ten plik jest tylko indeksem dla ludzi.
+
 > 📦 **Aktualna wersja: `v1.0.68`** (versionCode 68) —
 > [Releases](https://github.com/ihletru/verbigem_android/releases) ·
 > [Historia zmian (CHANGELOG.md)](CHANGELOG.md) ·
@@ -8,7 +10,6 @@
 > ℹ️ Wersja trzymana jest w `app/build.gradle.kts` (`versionCode` / `versionName`).
 > 🔢 **Konwencja od 2026-09-10: `versionCode` = patch w `versionName`** (68 → `1.0.68`).
 > 🏪 **Google Play (flavor `play`):** ostatni zbudowany AAB to **1.0.68 (versionCode 68)** — czeka na ręczne wgranie. `versionCode` w Play **musi rosnąć**.
-> 🤖 **Jesteś agentem AI? Zacznij od [`AGENTS.md`](AGENTS.md)** — tam jest tablica routingu.
 
 Natywna aplikacja na Androida stworzona w **100% w języku Kotlin** (Jetpack Compose) z natywnym silnikiem wnioskowania **Hy-MT2-1.8B** (Tencent Hunyuan) w formacie **GGUF** przez mostek **C++/JNI (llama.cpp NDK)**.
 
