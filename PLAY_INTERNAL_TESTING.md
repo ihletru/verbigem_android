@@ -63,6 +63,14 @@ Google Play podpisuje aplikację **własnym kluczem** (Play App Signing) — inn
 
 Uwaga: `app/google-services.json` ma w polu `certificate_hash` odcisk **debug**. To pole czyta tylko plugin Gradle (kontrola spójności) — nie bierze udziału w autoryzacji. O autoryzacji rozstrzyga wyłącznie rejestracja w konsoli Firebase, dlatego sama podmiana pliku niczego nie naprawi.
 
+**Drugi odcisk, o którym łatwo zapomnieć — `com.verbigem.app.sideload`.** Aplikacja ma dwa smaki i **dwa wpisy w Firebase**. Ten drugi („Verbigem Sideload") nie ma **żadnego** klienta OAuth dla Androida — w `google-services.json` figuruje wyłącznie `client_type: 3` (web). Bez klienta typu 1 dla pary *pakiet + odcisk* Google odrzuca logowanie przez Google w wersji sideload, mimo że klucz web jest obecny.
+
+**Do zrobienia:** Firebase Console → ⚙️ Project settings → **Your apps** → `com.verbigem.app.sideload` → **Add fingerprint** → wklej odcisk **debug**: `ec9deb58cdf2483a7efe2b73c2c7901b9d6d3ccc`.
+
+Kolejność ma znaczenie przy wydaniu na stronę: **najpierw odcisk, potem deploy**. APK z pakietem `com.verbigem.app.sideload` bez tego wpisu daje użytkownikom stronę logowania, na której Google nie działa (e-mail/hasło i SMS działają normalnie).
+
+⚠️ Do 2026-09-10 strona podawała do pobrania APK z pakietem **`com.verbigem.app`** — czyli tym samym co wersja z Google Play, tylko podpisany kluczem debug. Skutek: nie dało się mieć obu wersji naraz (ta sama nazwa pakietu, inny podpis), a instalacja jednej blokowała drugą. Poprawione w `mini/` (commit `bf2f2ab`): APK pochodzi teraz ze smaku `standalone` i ma pakiet `.sideload`.
+
 ### Zasady → Zawartość aplikacji (Policy → App content)
 - [ ] **Bezpieczeństwo danych (Data safety)** — wg `PLAY_PUBLISHING_PLAN.md` §3.1:
       e-mail, historia tłumaczeń i OCR, zdjęcia (OCR lokalnie), audio (STT
