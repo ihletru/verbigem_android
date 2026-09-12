@@ -1,0 +1,42 @@
+{
+  "_opis": "Wektory E2E Verbigem. Wszystkie wartości base64. Klucze prywatne są JAWNIE testowe.",
+  "_wersja": 1,
+  "_alg": "AES-256-GCM+HKDF-SHA256+ECDH-P256",
+  "_info": "verbigem-chat-v1-wrap",
+  "_krzywa": "prime256v1",
+  "klucze": {
+    "a_priv_hex": "1111111111111111111111111111111111111111111111111111111111111111",
+    "a_pub_b64": "BAIX5hfwtkQ5KCePlpmeaaI6TywVK99tbN9m5bgCgtTtGUp968uXcS0t2jyoWqh2Wlb0X8dYWZZS8ol8ZTBuV5Q=",
+    "b_priv_hex": "2222222222222222222222222222222222222222222222222222222222222222",
+    "b_pub_b64": "BNZak5d8qj0bCBhS/1ennkZfFmBXcwS66tUF3TpIWJzzUBheiVNy32Ih6joTdVfkc/3bZ1XwW9UHw8Uz/OnJEoU=",
+    "eph_priv_hex": "3333333333333333333333333333333333333333333333333333333333333333",
+    "eph_pub_b64": "BFGnWAgziY6hsYPL1zUKQJkHjG7xweGOlwzXaDA18l59ARBSJxKwtafP8IFoVIaYSpTmgx7axG5zYPqdg0p6gaE="
+  },
+  "hkdf": {
+    "_wejscie": "shared(A,eph) + wrapIvB + info",
+    "shared_hex": "5f1c591a4bba11bee0d5a2a642eef6385d59aab8d6a6f151d8d857e2e822a67f",
+    "prk_hex": "d466efee7130e3a6eece3e5f138c9be314cc429b89e0d1aa560f09fe77a8e185",
+    "okm_b64": "OWOowK54XOW7DbL7AoAAgvm6turNPXtGoKd2KgB7uZQ="
+  },
+  "wiadomosc": {
+    "plaintext_utf8": "Zażółć gęślą jaźń — kot ma Alego 🐈",
+    "mk_b64": "c5uzOP6NJ4jBResaA6i5qh2my/ooJaWzFX3/ZbPcBJg=",
+    "body_iv_b64": "AAECAwQFBgcICQoL",
+    "body_b64": "Iu02B3uT0LkfF1uc9b2lGX9rNIpKog9LJG2qhZTqEtdYhPbWYsCals++8TSSOZP2EOk2u2wpX7p2CnBrW4avPA==",
+    "wrap_iv_b64": "CwoJCAcGBQQDAgEA",
+    "wrap_b64": "RlRN4QLVVgKzAc25L6AmtVEg86IRT7VUuwOxFbxL1l7BIs5jpooxvJRjCL3fU19+",
+    "envelope": {
+      "v": 1,
+      "alg": "AES-256-GCM+HKDF-SHA256+ECDH-P256",
+      "epk": "BFGnWAgziY6hsYPL1zUKQJkHjG7xweGOlwzXaDA18l59ARBSJxKwtafP8IFoVIaYSpTmgx7axG5zYPqdg0p6gaE=",
+      "bodyIv": "AAECAwQFBgcICQoL",
+      "keys": {
+        "04d65a93977caa3d": {
+          "iv": "CwoJCAcGBQQDAgEA",
+          "wrap": "RlRN4QLVVgKzAc25L6AmtVEg86IRT7VUuwOxFbxL1l7BIs5jpooxvJRjCL3fU19+"
+        }
+      }
+    }
+  },
+  "_sprawdzenie": "OK — odbiorca odtworzyl tresc"
+}

@@ -123,6 +123,31 @@ urządzeniu i pokazana raz do zapisania — łatwiejsza do przepisania na nowy t
 niż wymyślone hasło i odporna na zapomnienie w większym stopniu. Użytkownik może
 też wpisać własne hasło, jeśli woli.
 
+### Gdzie leżą klucze
+
+| Co | Gdzie | Kto czyta | Kto pisze |
+|---|---|---|---|
+| klucz publiczny | `usersPublic/{uid}.chatKey = {v, pub, updatedAt}` | każdy zalogowany | tylko właściciel (reguły już to wymuszają) |
+| klucz prywatny (roboczy) | lokalnie: PKCS#8 zaszyfrowany kluczem AES z Android Keystore, per konto | tylko to urządzenie | tylko to urządzenie |
+| kopia klucza prywatnego | `users/{uid}/chatKeyBackup/main` — `AES-GCM(PBKDF2(hasło, sól), PKCS#8)` | tylko właściciel (jak `users/{uid}/history`) | tylko właściciel |
+
+Dlaczego klucz publiczny ląduje na `usersPublic`, a nie w osobnej kolekcji: i tak
+czytamy ten dokument przy każdej rozmowie (nazwa, avatar), więc nie dokładamy
+ani jednego odczytu. `AuthRepository.syncPublicProfile` używa `SetOptions.merge()`
+i wypisuje tylko swoje pola, więc **nie skasuje** `chatKey` — ale każda przyszła
+zmiana tego rzutu musi o tym pamiętać.
+
+⚠️ **Klucz prywatny NIE może być kluczem z Android Keystore.** Keystore nie pozwala
+wyeksportować klucza, a my musimy umieć zapisać jego kopię zapasową — więc para
+powstaje w oprogramowaniu (`KeyPairGenerator`), a Keystore służy tylko jako
+sejf na klucz AES, którym szyfrujemy PKCS#8 w spoczynku. To jest konsekwencja
+wybranego modelu (kopia zapasowa) i nie da się jej obejść.
+
+⚠️ Klucz AES w Keystore jest **per urządzenie**, a nie per konto — dlatego
+szyfrogram klucza prywatnego trzymamy w osobnym wpisie dla każdego `uid`.
+Bez tego wylogowanie i zalogowanie na inne konto próbowałoby odszyfrować cudzy
+klucz (dokładnie ten sam błąd, co wspólny znacznik synchronizacji przed v1.0.68).
+
 ### Koperta wiadomości
 
 Per wiadomość, nie per para urządzeń — dzięki temu mamy **forward secrecy**
@@ -217,8 +242,19 @@ użytkownika w błąd.
 
 | Faza | Stan |
 |---|---|
-| 1 — format i wektory | **zrobione**: `mini/scripts/e2e-vectors.mjs` (referencja na wbudowanym `crypto` Node, zero zależności) → `mini/scripts/e2e_vectors.json`. Generator sam sprawdza, że odbiorca odtworzy treść, i wypisuje „OK". Uruchomienie: `node scripts/e2e-vectors.mjs` |
-| 2–7 | **nie zaczęte** |
+| 1 — format i wektory | **zrobione i zweryfikowane po obu stronach**: referencja `mini/scripts/e2e-vectors.mjs` → `mini/scripts/e2e_vectors.json` (kopia w `app/src/test/resources/`). Kotlin: `E2eCrypto` + `E2eCryptoVectorsTest` — **10 testów, 0 błędów**, odtwarza wektory bajt w bajt (ECDH, HKDF, epk, body, wrap). Uruchomienie: `node scripts/e2e-vectors.mjs` (referencja) i `:app:testStandaloneDebugUnitTest --tests "*E2eCryptoVectorsTest*"` (Kotlin) |
+| 2 — klucz konta | **kod gotowy, brakuje UI**: `E2eCrypto` (pary, koperta, kopia klucza), `E2eKeyStore` (lokalny sejf: PKCS#8 pod kluczem AES z Keystore, wpisy per `uid`), `ChatKeyRepository` (stan / utworzenie / odtworzenie / publikacja klucza i kopii), reguły na `users/{uid}/chatKeyBackup/{doc}`. Brakuje ekranu ustawiania hasła odzyskiwania |
+| 3 — koperta w wysyłce/odbiorze (Android) | nie zaczęte |
+| 4 — koperta w webappie | nie zaczęte |
+| 5 — usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd | nie zaczęte |
+| 6 — wyszukiwanie lokalne + TOFU | nie zaczęte |
+| 7 — teksty w UI | nie zaczęte (celowo na końcu) |
+
+**Czego faza 1 NIE dowodzi:** testy używają kluczy z wektorów, więc nie sprawdzają
+jednej rzeczy — że `KeyPairGenerator` produkuje parę, której klucz publiczny da się
+zakodować tą samą drogą. Pokrywa to test „świeżo wygenerowane klucze działają dla
+dwóch odbiorców" (pełny obieg na prawdziwych parach), ale to jest jedyne miejsce,
+gdzie wektory milczą. Warto o tym pamiętać, jeśli kiedyś zmieni się dostawca JCA.
 
 ⚠️ Wektory są **źródłem prawdy formatu**: stałe klucze, stałe IV-y, wynik
 bajt w bajt. Implementacja w Kotlinie i w webappie musi je odtworzyć — inaczej

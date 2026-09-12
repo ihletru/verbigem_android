@@ -21,6 +21,9 @@ googleid = "1.1.1"
 zxing = "3.5.3"
 codeScanner = "16.1.0"
 coil = "2.7.0"
+# Testy JVM. Istnieja WYLACZNIE po to, zeby sprawdzic format koperty E2E
+# (E2eCrypto jest czystym JCA, wiec nie potrzebuje telefonu ani emulatora).
+junit = "4.13.2"
 # AdMob: GMA Next-Gen SDK (nie klasyczny play-services-ads). Wymaga Kotlin 1.9+,
 # minSdk 24+, compileSdk 35+ — project spelnia wszystkie trzy.
 admobNextGen = "1.2.1"
@@ -89,6 +92,9 @@ zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" 
 play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "codeScanner" }
 # Obrazki w czatach (Faza 5): Coil ładuje/miniaturyzuje URL z Storage + cache (5.4)
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# Testy JVM — patrz komentarz przy wersji `junit`.
+junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 # Reklamy (AdMob): SDK nowej generacji + osobno SDK zgód (UMP, RODO/EOG/UK/CH).
 gma-ads = { group = "com.google.android.libraries.ads.mobile.sdk", name = "ads-mobile-sdk", version.ref = "admobNextGen" }

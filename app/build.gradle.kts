@@ -277,4 +277,10 @@ dependencies {
     implementation(libs.ump.user.messaging)
 
     debugImplementation(libs.androidx.ui.tooling)
+
+    // Testy JVM (nie instrumentowane). Jedyne, co tu testujemy, to format koperty
+    // E2E — `E2eCrypto` jest czystym JCA, więc chodzi bez telefonu. Wektory leżą
+    // w `src/test/resources/e2e_vectors.json` i pochodzą z `mini/scripts/e2e-vectors.mjs`
+    // (tam jest źródło prawdy — patrz docs/czat-e2e.md).
+    testImplementation(libs.junit)
 }
