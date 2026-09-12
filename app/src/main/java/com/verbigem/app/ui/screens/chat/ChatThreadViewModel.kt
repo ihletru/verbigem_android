@@ -16,6 +16,7 @@ import com.verbigem.app.data.model.ChatMessage
 import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.data.crypto.E2eCrypto
+import com.verbigem.app.data.crypto.E2ePeerKeyStore
 import com.verbigem.app.data.crypto.MessageCipher
 import com.verbigem.app.data.model.EncEnvelope
 import com.verbigem.app.data.model.PublicProfile
@@ -82,6 +83,16 @@ data class ChatBubble(
     val type: String = "text",
     /** Faza 3 (E2E): czy i jak ten dymek jest zaszyfrowany. */
     val encryption: EncState = EncState.PLAIN
+)
+
+/**
+ * Wynik TOFU dla klucza rozmówcy — patrz `docs/czat-e2e.md` §6 i webappowe
+ * `watchPeerKey`. `status` = NEW / SAME / CHANGED; `fingerprint` to odcisk
+ * klucza (4×4 hex) do pokazania w ostrzeżeniu o zmianie.
+ */
+data class PeerKeyInfo(
+    val status: E2ePeerKeyStore.PeerKeyStatus,
+    val fingerprint: String,
 )
 
 class ChatThreadViewModel(application: Application) : AndroidViewModel(application) {
@@ -230,6 +241,41 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private val _loadingOlder = MutableStateFlow(false)
     val loadingOlder: StateFlow<Boolean> = _loadingOlder.asStateFlow()
 
+    // ---------------------------------------------------------- Faza 6: szukanie
+    /** Tekst szukania w wątku — filtruje [visibleBubbles] (podciąg, bez wielkości liter). */
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    /** Wynik TOFU dla klucza rozmówcy — `null` przed pierwszą obserwacją. */
+    private val _peerKeyStatus = MutableStateFlow<PeerKeyInfo?>(null)
+    val peerKeyStatus: StateFlow<PeerKeyInfo?> = _peerKeyStatus.asStateFlow()
+
+    /**
+     * Dymki do wyświetlenia: [bubbles] przefiltrowane przez [searchQuery].
+     * Szukamy w treści źródłowej I w tłumaczeniu (jak webappka:
+     * `translatedText || text`), oraz w podpowiedzi nadawcy. Pomijamy dymki
+     * nieczytelne (NO_KEY / FAILED) — nie mają tekstu do znalezienia.
+     */
+    val visibleBubbles: StateFlow<List<ChatBubble>> =
+        combine(_bubbles, _searchQuery, _translations) { bubbles, q, translations ->
+            val term = q.trim().lowercase()
+            if (term.isBlank()) return@combine bubbles
+            bubbles.filter { bubble ->
+                if (bubble.encryption == EncState.NO_KEY || bubble.encryption == EncState.FAILED) {
+                    return@filter false
+                }
+                val haystack = listOfNotNull(
+                    bubble.text.takeIf { it.isNotBlank() },
+                    translations[bubble.id]?.takeIf { it.isNotBlank() },
+                    bubble.hintText.takeIf { it.isNotBlank() },
+                )
+                haystack.any { it.lowercase().contains(term) }
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Anuluje bieżący nasłuch klucza rozmówcy (TOFU). */
+    private var peerWatchUnsub: (() -> Unit)? = null
+
     /** Faza 5.3: czy trwa nagrywanie/rozpoznawanie głosu (SpeechRecognizer na żywo). */
     private val _isListening = MutableStateFlow(false)
     val isListening: StateFlow<Boolean> = _isListening.asStateFlow()
@@ -323,6 +369,11 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         _isPro.value = isPro
     }
 
+    /** Faza 6: zmiana tekstu szukania w wątku. */
+    fun onSearchChanged(text: String) {
+        _searchQuery.value = text
+    }
+
     /** Called once per thread; repeated calls with the same uid are ignored. */
     fun openThread(otherUid: String) {
         if (otherUid.isBlank() || _otherUid.value == otherUid) return
@@ -343,6 +394,11 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         keysLoaded = false
         decryptedCache.clear()
         _e2eActive.value = false
+        // Faza 6: czyścimy szukanie i nanosłuch klucza z poprzedniego wątku.
+        _searchQuery.value = ""
+        peerWatchUnsub?.invoke()
+        peerWatchUnsub = null
+        _peerKeyStatus.value = null
 
         val id = chatRepository.getChatId(me, otherUid)
         chatId = id
@@ -372,6 +428,11 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             loadKeys(me, otherUid)
             recompute()
+        }
+        // TOFU (faza 6): żywa obserwacja klucza rozmówcy. Każda zmiana na serwerze
+        // porównywana jest z zapisaną lokalnie — zmiana = ostrzeżenie w wątku.
+        peerWatchUnsub = chatKeyRepository.watchPeerKey(otherUid) { status, fp ->
+            _peerKeyStatus.value = PeerKeyInfo(status, fp)
         }
         // Alias + per-contact translation language. Changing the language invalidates
         // the in-memory map exactly like a profile language change does (the Room
@@ -1109,6 +1170,8 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
 
     override fun onCleared() {
         super.onCleared()
+        peerWatchUnsub?.invoke()
+        peerWatchUnsub = null
         viewModelScope.launch { stopTyping() }
         hyMt2Engine.release()
         speechManager.release()

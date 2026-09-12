@@ -5,6 +5,7 @@ import java.security.AlgorithmParameters
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
@@ -73,6 +74,20 @@ object E2eCrypto {
     private val keyFactory: KeyFactory by lazy { KeyFactory.getInstance("EC") }
 
     fun randomBytes(size: Int): ByteArray = ByteArray(size).also { random.nextBytes(it) }
+
+    /**
+     * Odcisk klucza publicznego do porównania poza kanałem (TOFU) — patrz
+     * `docs/czat-e2e.md` §6 i `e2eKeys.ts` w webappce. 16 hexów z SHA-256,
+     * w 4 grupach, wielkie litery: „ABCD EFGH IJKL MNOP". Format MUSI być
+     * zgodny z `fingerprintOf` z webappki (tam: `hex.slice(0,16)` + `.match(/.{4}/g)`).
+     */
+    fun fingerprint(publicKeyBytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(publicKeyBytes)
+        return digest.take(8)
+            .joinToString("") { "%02X".format(it) }
+            .chunked(4)
+            .joinToString(" ")
+    }
 
     // ------------------------------------------------------------------ klucze
 

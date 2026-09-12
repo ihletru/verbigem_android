@@ -668,4 +668,13 @@
     <string name="help_profile_contact">A question, a bug, or a missing feature? The contact form opens in your browser - you do not need to be signed in. We reply to the e-mail address you enter in the form.</string>
     <string name="profile_nickname_taken">That nickname is already taken. Pick another.</string>
     <string name="profile_nickname_error">Could not save the nickname. Check your connection and try again.</string>
+    <string name="chat_e2e_key_changed">Your contact\'s security key changed (fingerprint: %1$s).</string>
+    <string name="chat_e2e_key_changed_body">This may be a new device of your contact, or — less often — a key swapped by the server. Chat keeps working, but if neither you nor your contact changed devices, verify out of band that you are talking to the right person.</string>
+    <string name="e2e_help_title">How encryption works</string>
+    <string name="e2e_help_intro">The content of your messages is end-to-end encrypted: the server stores and forwards the ciphertext but has no key to read it. Only you and your contact can see the content.</string>
+    <string name="e2e_help_protected">What is protected: the message content (text, translation, attachments) — the server does not read it, does not train models on it, and does not share it with third parties.</string>
+    <string name="e2e_help_limits">What we do NOT protect: who talked to whom, when, and how much (metadata stays visible, as in Telegram and WhatsApp). We do not verify your contact\'s identity — if the server swaps their key on first contact, we cannot detect it.</string>
+    <string name="e2e_help_new_device">A new device cannot read old messages. The key belongs to the account, not the phone, but history from before encryption (or before a key change) stays unreadable on the new device.</string>
+    <string name="e2e_help_pass_lost">A forgotten recovery phrase means lost history. There is no “reset password”: resetting creates a new key and a new identity, and old messages become permanently unreadable.</string>
+    <string name="e2e_help_learn_more">Learn more about encryption</string>
 </resources>

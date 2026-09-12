@@ -642,4 +642,13 @@
     <string name="help_profile_contact">Bir soru, bir hata veya eksik bir özellik mi? İletişim formu tarayıcıda açılır - oturum açmanız gerekmez. Formda girdiğiniz e-posta adresine yanıt veririz.</string>
     <string name="profile_nickname_taken">Bu takma ad zaten alınmış. Başka bir tane seç.</string>
     <string name="profile_nickname_error">Takma ad kaydedilemedi. Bağlantını kontrol edip tekrar dene.</string>
+    <string name="chat_e2e_key_changed">Karşı tarafın güvenlik anahtarı değişti (parmak izi: %1$s).</string>
+    <string name="chat_e2e_key_changed_body">Bu, karşı tarafın yeni bir cihazı olabilir ya da — daha nadiren — sunucu tarafından değiştirilmiş bir anahtar olabilir. Sohbet çalışmaya devam eder, ancak ne siz ne de karşı taraf cihaz değiştirdiyse, doğru kişiyle konuştuğunuzu başka bir kanaldan doğrulayın.</string>
+    <string name="e2e_help_title">Şifreleme nasıl çalışır</string>
+    <string name="e2e_help_intro">Mesajlarınızın içeriği uçtan uca şifrelenir: sunucu şifreli metni saklar ve iletir, ancak onu okuyacak anahtara sahip değildir. İçeriği yalnızca siz ve karşı taraf görür.</string>
+    <string name="e2e_help_protected">Korunanlar: mesaj içeriği (metin, çeviri, ekler) — sunucu bunu okumaz, bununla model eğitmez ve bunu üçüncü taraflarla paylaşmaz.</string>
+    <string name="e2e_help_limits">Korumadıklarımız: kimin kiminle, ne zaman ve ne kadar yazdığı (meta veriler, Telegram ve WhatsApp\'teki gibi görünür kalır). Karşı tarafın kimliğini doğrulamayız — sunucu ilk temasta anahtarını değiştirirse bunu fark edemeyiz.</string>
+    <string name="e2e_help_new_device">Yeni cihaz eski mesajları okuyamaz. Anahtar telefona değil hesaba aittir, ancak şifrelemeden önceki (veya anahtar değişiminden önceki) geçmiş yeni cihazda okunamaz kalır.</string>
+    <string name="e2e_help_pass_lost">Unutulan kurtarma parolası, geçmişin kaybı demektir. «Parola sıfırla» yoktur: sıfırlama yeni bir anahtar ve yeni bir kimlik oluşturur, eski mesajlar kalıcı olarak okunamaz hâle gelir.</string>
+    <string name="e2e_help_learn_more">Şifreleme hakkında daha fazlası</string>
 </resources>

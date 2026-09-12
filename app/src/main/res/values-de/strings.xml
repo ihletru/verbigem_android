@@ -642,4 +642,13 @@
     <string name="help_profile_contact">Eine Frage, ein Fehler oder eine fehlende Funktion? Das Kontaktformular öffnet sich im Browser - du musst nicht angemeldet sein. Wir antworten an die E-Mail-Adresse, die du im Formular angibst.</string>
     <string name="profile_nickname_taken">Dieser Nickname ist bereits vergeben. Wähle einen anderen.</string>
     <string name="profile_nickname_error">Der Nickname konnte nicht gespeichert werden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="chat_e2e_key_changed">Der Sicherheitsschlüssel des Gesprächspartners hat sich geändert (Fingerabdruck: %1$s).</string>
+    <string name="chat_e2e_key_changed_body">Das kann ein neues Gerät des Gesprächspartners sein oder — seltener — ein vom Server ausgetauschter Schlüssel. Der Chat läuft weiter, aber wenn weder du noch dein Gesprächspartner das Gerät gewechselt habt, prüfe auf einem anderen Kanal, ob du mit der richtigen Person sprichst.</string>
+    <string name="e2e_help_title">So funktioniert die Verschlüsselung</string>
+    <string name="e2e_help_intro">Der Inhalt deiner Nachrichten ist ende-zu-ende verschlüsselt: Der Server speichert und leitet den verschlüsselten Text, hat aber keinen Schlüssel, um ihn zu lesen. Den Inhalt sehen nur du und dein Gesprächspartner.</string>
+    <string name="e2e_help_protected">Was geschützt ist: der Nachrichteninhalt (Text, Übersetzung, Anhänge) — der Server liest ihn nicht, trainiert keine Modelle damit und gibt ihn nicht an Dritte weiter.</string>
+    <string name="e2e_help_limits">Was wir NICHT schützen: wer mit wem, wann und wie viel geschrieben hat (Metadaten bleiben sichtbar, wie bei Telegram und WhatsApp). Wir verifizieren die Identität des Gesprächspartners nicht — wenn der Server seinen Schlüssel beim ersten Kontakt austauscht, bemerken wir das nicht.</string>
+    <string name="e2e_help_new_device">Ein neues Gerät kann alte Nachrichten nicht lesen. Der Schlüssel gehört zum Konto, nicht zum Telefon, aber der Verlauf vor der Verschlüsselung (oder vor einem Schlüsselwechsel) bleibt auf dem neuen Gerät unlesbar.</string>
+    <string name="e2e_help_pass_lost">Eine vergessene Wiederherstellungs-Passphrase bedeutet verlorene Geschichte. Es gibt kein „Passwort vergessen": Ein Reset erzeugt einen neuen Schlüssel und eine neue Identität, und alte Nachrichten werden unwiderruflich unlesbar.</string>
+    <string name="e2e_help_learn_more">Mehr über Verschlüsselung</string>
 </resources>

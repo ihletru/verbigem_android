@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Warning
@@ -79,6 +80,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
+import com.verbigem.app.data.crypto.E2ePeerKeyStore
 import com.verbigem.app.data.model.LangCode
 import com.verbigem.app.ui.components.FlagIcon
 import com.verbigem.app.ui.components.HelpIconButton
@@ -110,6 +112,9 @@ fun ChatThreadScreen(
     onOpenContactCard: () -> Unit
 ) {
     val bubbles by viewModel.bubbles.collectAsState()
+    val visibleBubbles by viewModel.visibleBubbles.collectAsState()
+    val peerKeyInfo by viewModel.peerKeyStatus.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val inputText by viewModel.inputText.collectAsState()
     val translationLang by viewModel.translationLang.collectAsState()
     val contactSettings by viewModel.contactSettings.collectAsState()
@@ -127,6 +132,8 @@ fun ChatThreadScreen(
 
     val listState = rememberLazyListState()
     var menuFor by remember { mutableStateOf<String?>(null) }
+    // Faza 6: czy pasek szukania jest rozwinięty (przełączany ikoną w nagłówku).
+    var searchActive by remember { mutableStateOf(false) }
     // Faza 5.4: URL zdjęcia otwartego w podglądzie na pełnym ekranie (null = zamknięte).
     var previewImageUrl by remember { mutableStateOf<String?>(null) }
 
@@ -173,21 +180,23 @@ fun ChatThreadScreen(
     }
 
     // Only stick to the bottom when the user is already there — yanking the list down
-    // while they are reading history is the classic chat bug.
-    LaunchedEffect(bubbles.size) {
-        if (bubbles.isEmpty()) return@LaunchedEffect
+    // while they are reading history is the classic chat bug. While searching we stay
+    // put (the user is scanning results, not following the live tail).
+    LaunchedEffect(visibleBubbles.size, searchQuery) {
+        if (searchQuery.isNotBlank()) return@LaunchedEffect
+        if (visibleBubbles.isEmpty()) return@LaunchedEffect
         val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-        if (lastVisible >= bubbles.lastIndex - 3) {
-            listState.animateScrollToItem(bubbles.lastIndex)
+        if (lastVisible >= visibleBubbles.lastIndex - 3) {
+            listState.animateScrollToItem(visibleBubbles.lastIndex)
         }
     }
 
     // Reaching the top of the thread pulls in the previous page.
-    LaunchedEffect(listState, canLoadMore, bubbles.size) {
+    LaunchedEffect(listState, canLoadMore, visibleBubbles.size) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .distinctUntilChanged()
             .collect { index ->
-                if (index == 0 && canLoadMore && bubbles.isNotEmpty()) viewModel.loadOlder()
+                if (index == 0 && canLoadMore && visibleBubbles.isNotEmpty()) viewModel.loadOlder()
             }
     }
 
@@ -264,7 +273,94 @@ fun ChatThreadScreen(
                 }
             }
 
+            // -------------------------                }
+
+                // Faza 6: ikona szukania w wątku — rozwija pasek wyszukiwania.
+                IconButton(
+                    onClick = { searchActive = true },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = stringResource(R.string.chat_search_placeholder),
+                        tint = VerbigemTheme.colors.muted
+                    )
+                }
+
             // ----------------------------------------------------------- messages
+
+            // Faza 6: pasek szukania (rozwijany ikoną w nagłówku).
+            if (searchActive) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(VerbigemTheme.colors.surface)
+                        .border(1.dp, VerbigemTheme.colors.border)
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.onSearchChanged(it) },
+                        placeholder = { Text(stringResource(R.string.chat_search_placeholder), fontSize = 13.sp) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = VerbigemTheme.colors.accent,
+                            unfocusedBorderColor = VerbigemTheme.colors.border
+                        )
+                    )
+                    if (searchQuery.isNotBlank()) {
+                        TextButton(
+                            onClick = {
+                                viewModel.onSearchChanged("")
+                                searchActive = false
+                            }
+                        ) {
+                            Text(
+                                stringResource(R.string.chat_search_clear),
+                                fontSize = 13.sp,
+                                color = VerbigemTheme.colors.muted
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Faza 6: ostrzeżenie TOFU o zmianie klucza rozmówcy (nie blokuje czatu).
+            if (peerKeyInfo?.status == E2ePeerKeyStore.PeerKeyStatus.CHANGED) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(VerbigemTheme.colors.danger.copy(alpha = 0.08f))
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = VerbigemTheme.colors.danger,
+                        modifier = Modifier.size(18.dp).padding(top = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.chat_e2e_key_changed, peerKeyInfo!!.fingerprint),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = VerbigemTheme.colors.danger
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.chat_e2e_key_changed_body),
+                            fontSize = 12.sp,
+                            color = VerbigemTheme.colors.danger
+                        )
+                    }
+                }
+            }
+
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -294,8 +390,8 @@ fun ChatThreadScreen(
                     }
                 }
 
-                itemsIndexed(bubbles, key = { _, bubble -> bubble.id }) { index, bubble ->
-                    val previousStamp = if (index > 0) bubbles[index - 1].createdAt else -1L
+                itemsIndexed(visibleBubbles, key = { _, bubble -> bubble.id }) { index, bubble ->
+                    val previousStamp = if (index > 0) visibleBubbles[index - 1].createdAt else -1L
                     val showDayHeader =
                         dayLabel(bubble.createdAt, labelToday, labelYesterday) !=
                             dayLabel(previousStamp, labelToday, labelYesterday)
@@ -338,7 +434,7 @@ fun ChatThreadScreen(
                     }
                 }
 
-                if (bubbles.isEmpty()) {
+                if (visibleBubbles.isEmpty()) {
                     item {
                         Box(
                             modifier = Modifier
@@ -346,11 +442,19 @@ fun ChatThreadScreen(
                                 .padding(vertical = 32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = stringResource(R.string.chat_new_thread_hint),
-                                fontSize = 13.sp,
-                                color = VerbigemTheme.colors.muted
-                            )
+                            if (searchQuery.isNotBlank()) {
+                                Text(
+                                    text = stringResource(R.string.chat_search_no_results, searchQuery),
+                                    fontSize = 13.sp,
+                                    color = VerbigemTheme.colors.muted
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.chat_new_thread_hint),
+                                    fontSize = 13.sp,
+                                    color = VerbigemTheme.colors.muted
+                                )
+                            }
                         }
                     }
                 }

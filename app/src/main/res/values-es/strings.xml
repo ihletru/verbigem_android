@@ -642,4 +642,13 @@
     <string name="help_profile_contact">¿Una pregunta, un error o una función que falta? El formulario de contacto se abre en el navegador - no necesitas iniciar sesión. Respondemos a la dirección de correo que indiques en el formulario.</string>
     <string name="profile_nickname_taken">Ese apodo ya está en uso. Elige otro.</string>
     <string name="profile_nickname_error">No se pudo guardar el apodo. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="chat_e2e_key_changed">La clave de seguridad de tu contacto cambió (huella: %1$s).</string>
+    <string name="chat_e2e_key_changed_body">Puede ser un nuevo dispositivo de tu contacto o, más raramente, una clave sustituida por el servidor. El chat sigue funcionando, pero si ni tú ni tu contacto cambiasteis de dispositivo, confirma por otro canal que hablas con la persona correcta.</string>
+    <string name="e2e_help_title">Cómo funciona el cifrado</string>
+    <string name="e2e_help_intro">El contenido de tus mensajes está cifrado de extremo a extremo: el servidor guarda y retransmite el cifrado, pero no tiene clave para leerlo. Solo tú y tu contacto veis el contenido.</string>
+    <string name="e2e_help_protected">Qué está protegido: el contenido del mensaje (texto, traducción, adjuntos) — el servidor no lo lee, no entrena modelos con él y no lo comparte con terceros.</string>
+    <string name="e2e_help_limits">Qué NO protegemos: quién habló con quién, cuándo y cuánto (los metadatos siguen visibles, como en Telegram y WhatsApp). No verificamos la identidad de tu contacto — si el servidor sustituye su clave en el primer contacto, no lo detectamos.</string>
+    <string name="e2e_help_new_device">Un dispositivo nuevo no lee los mensajes antiguos. La clave pertenece a la cuenta, no al teléfono, pero el historial anterior al cifrado (o a un cambio de clave) sigue sin poder leerse en el nuevo dispositivo.</string>
+    <string name="e2e_help_pass_lost">Una frase de recuperación olvidada significa historial perdido. No hay «restablecer contraseña»: el reinicio crea una clave nueva y una identidad nueva, y los mensajes antiguos quedan permanentemente ilegibles.</string>
+    <string name="e2e_help_learn_more">Saber más sobre el cifrado</string>
 </resources>

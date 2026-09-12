@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.verbigem.app.data.crypto.E2eCrypto
 import com.verbigem.app.data.crypto.E2eKeyStore
+import com.verbigem.app.data.crypto.E2ePeerKeyStore
 import kotlinx.coroutines.tasks.await
 import java.security.KeyPair
 import java.util.Base64
@@ -58,6 +59,7 @@ class ChatKeyRepository(context: Context) {
 
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val store = E2eKeyStore(context)
+    private val peerStore = E2ePeerKeyStore(context)
 
     // ------------------------------------------------------------------ stan
 
@@ -199,6 +201,38 @@ class ChatKeyRepository(context: Context) {
 
     private fun backupDoc(uid: String) =
         firestore.collection("users").document(uid).collection("chatKeyBackup").document("main")
+
+    // ----------------------------------------------------- TOFU: obserwacja klucza
+    /**
+     * Żywa obserwacja klucza publicznego rozmówcy (`usersPublic/{otherUid}.chatKey.pub`).
+     * Za każdym razem, gdy serwer zgłosi nową wartość, porównujemy ją z zapisaną
+     * lokalnie: pierwszy raz = [PeerKeyStatus.NEW], zgodna = [PeerKeyStatus.SAME],
+     * inna = [PeerKeyStatus.CHANGED]. Zwraca `(status, odcisk)`. Patrz
+     * `chatService.watchPeerKey` w webappce.
+     *
+     * ⚠️ Zmiana klucza przy pierwszym kontakcie nie jest wykrywalna (cena braku
+     * weryfikacji tożsamości, §4) — wykrywamy ją od drugiej rozmowy. Ostrzeżenie
+     * informuje, nie blokuje. Błąd nasłuchu (np. brak praw) po prostu milczy,
+     * czat działa dalej.
+     *
+     * Zwraca funkcję anulującą nasłuch — wołaj ją przy zamknięciu wątku.
+     */
+    fun watchPeerKey(
+        otherUid: String,
+        cb: (E2ePeerKeyStore.PeerKeyStatus, String) -> Unit,
+    ): () -> Unit {
+        if (otherUid.isBlank()) return { }
+        val ref = firestore.collection("usersPublic").document(otherUid)
+        val registration = ref.addSnapshotListener { snap, _ ->
+            @Suppress("UNCHECKED_CAST")
+            val pub = ((snap?.get("chatKey") as? Map<String, Any?>)?.get("pub") as? String)
+                ?: return@addSnapshotListener
+            val status = peerStore.observePeerKey(otherUid, pub)
+            val fingerprint = peerStore.peerFingerprint(otherUid) ?: ""
+            cb(status, fingerprint)
+        }
+        return { registration.remove() }
+    }
 
     companion object {
         private const val TAG = "ChatKeyRepository"

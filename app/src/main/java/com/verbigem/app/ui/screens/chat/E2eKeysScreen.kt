@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.verbigem.app.R
+import com.verbigem.app.data.AppLinks
+import com.verbigem.app.data.openUrl
 import com.verbigem.app.ui.components.HelpIconButton
 import com.verbigem.app.ui.components.HelpWindow
 import com.verbigem.app.ui.components.LocalizedAlertDialog
@@ -318,6 +321,66 @@ fun E2eKeysScreen(
                 fontSize = 13.sp,
                 color = if (isBad) VerbigemTheme.colors.danger else VerbigemTheme.colors.success
             )
+        }
+
+        // ------------------------------------------------- Faza 7: uczciwe wyjaśnienie
+        // To samo co webappowe `chat.e2eHelp*` — pełna prawda o szyfrowaniu, w tym
+        // to, czego NIE chronimy (metadane, brak weryfikacji tożsamości) i że
+        // zapomniane hasło = utracona historia. Treść jest w zasobach (6 języków).
+        Spacer(modifier = Modifier.height(24.dp))
+        val ctx = LocalContext.current
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(VerbigemTheme.colors.surface)
+                .border(1.dp, VerbigemTheme.colors.border, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.e2e_help_title),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = VerbigemTheme.colors.ink
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.e2e_help_intro),
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.e2e_help_protected),
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.e2e_help_limits),
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.e2e_help_new_device),
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.e2e_help_pass_lost),
+                fontSize = 13.sp,
+                color = VerbigemTheme.colors.muted
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            TextButton(onClick = { ctx.openUrl(AppLinks.privacyPolicyFor(ctx)) }) {
+                Text(
+                    text = stringResource(R.string.e2e_help_learn_more),
+                    fontSize = 13.sp,
+                    color = VerbigemTheme.colors.accent
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(28.dp))

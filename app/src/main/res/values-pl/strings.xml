@@ -667,4 +667,13 @@
     <string name="help_profile_contact">Masz pytanie, znalazłeś błąd albo brakuje Ci jakiejś funkcji? Formularz kontaktowy otwiera się w przeglądarce - nie musisz być zalogowany. Odpowiadamy na adres e-mail, który podasz w formularzu.</string>
     <string name="profile_nickname_taken">Ten nick jest już zajęty. Wybierz inny.</string>
     <string name="profile_nickname_error">Nie udało się zapisać nicku. Sprawdź połączenie i spróbuj ponownie.</string>
+    <string name="chat_e2e_key_changed">Klucz bezpieczeństwa rozmówcy się zmienił (odcisk: %1$s).</string>
+    <string name="chat_e2e_key_changed_body">To może być nowe urządzenie rozmówcy albo — rzadziej — podmiana klucza przez serwer. Czat działa dalej, ale jeśli to nie Ty ani rozmówca zmieniliście sprzęt, upewnij się poza tym czatem, że rozmawiasz z właściwą osobą.</string>
+    <string name="e2e_help_title">Jak działa szyfrowanie</string>
+    <string name="e2e_help_intro">Treść Twoich wiadomości jest szyfrowana end-to-end: serwer przechowuje i przekazuje szyfrogram, ale nie ma klucza, którym można go odczytać. Treść widzisz tylko Ty i rozmówca.</string>
+    <string name="e2e_help_protected">Co jest chronione: treść wiadomości (tekst, tłumaczenie, załączniki) — serwer jej nie czyta, nie trenuje na niej modeli i nie udostępnia jej osobom trzecim.</string>
+    <string name="e2e_help_limits">Czego NIE chronimy: kto, z kim, kiedy i ile pisał (metadane zostają jawne, jak w Telegramie i WhatsAppie). Nie weryfikujemy tożsamości rozmówcy — jeśli serwer podmieni jego klucz przy pierwszym kontakcie, tego nie wykryjemy.</string>
+    <string name="e2e_help_new_device">Nowe urządzenie nie odczyta starych wiadomości. Klucz należy do konta, a nie do telefonu, ale historia sprzed dodania szyfrowania (lub sprzed zmiany klucza) pozostaje nieczytelna na nowym urządzeniu.</string>
+    <string name="e2e_help_pass_lost">Zapomniana fraza odzyskiwania = utracona historia. Nie mamy „przypomnij hasło”: reset oznacza nowy klucz i nową tożsamość, a stare wiadomości stają się nieodwracalnie nieczytelne.</string>
+    <string name="e2e_help_learn_more">Dowiedz się więcej o szyfrowaniu</string>
 </resources>
