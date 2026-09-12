@@ -1,10 +1,8 @@
 package com.verbigem.app.data.repository
 
-import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.verbigem.app.BuildConfig
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -56,12 +54,13 @@ class AuthRepository {
         val user = result.user ?: throw IllegalStateException("createUserWithEmailAndPassword returned null user")
         // Wymuszenie weryfikacji e-maila: konto nie dostaje pełnego dostępu, póki
         // użytkownik nie kliknie linku z maila (bramka znajduje się w AppNavigation).
+        // Celowo zwykły link WWW (sendEmailVerification bez ActionCodeSettings):
+        // strona Firebase oznacza adres jako zweryfikowany, a przycisk "Sprawdź
+        // ponownie" w bramce robi reload(). Gdybyśmy włączyli setHandleCodeInApp,
+        // link otworzyłby aplikację, która nie ma obsługi deep-linku/applyActionCode
+        // i użytkownik utknąłby na zawsze na ekranie weryfikacji.
         try {
-            val actionCodeSettings = ActionCodeSettings.newBuilder()
-                .setHandleCodeInApp(true)
-                .setAndroidPackageName(BuildConfig.APPLICATION_ID, true, null)
-                .build()
-            user.sendEmailVerification(actionCodeSettings).await()
+            user.sendEmailVerification().await()
         } catch (e: Exception) {
             // Wysyłka linku nie może zablokować zakładania konta — bramka i tak
             // zmusi do weryfikacji przy następnym logowaniu.

@@ -5,9 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
-import com.verbigem.app.BuildConfig
 import com.verbigem.app.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,11 +40,6 @@ class EmailVerificationViewModel(application: Application) : AndroidViewModel(ap
         _email.value = auth.currentUser?.email ?: ""
     }
 
-    private fun actionCodeSettings() = ActionCodeSettings.newBuilder()
-        .setHandleCodeInApp(true)
-        .setAndroidPackageName(BuildConfig.APPLICATION_ID, true, null)
-        .build()
-
     /** Ponowne wysłanie linku aktywacyjnego. */
     fun resend(context: Context) {
         val user = auth.currentUser ?: run {
@@ -57,7 +50,7 @@ class EmailVerificationViewModel(application: Application) : AndroidViewModel(ap
         _error.value = null
         viewModelScope.launch {
             try {
-                user.sendEmailVerification(actionCodeSettings()).await()
+                user.sendEmailVerification().await()
                 _status.value = EmailVerificationStatus.SENT
                 _error.value = null
             } catch (e: Exception) {
