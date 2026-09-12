@@ -1,8 +1,10 @@
 package com.verbigem.app.data.repository
 
+import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.verbigem.app.BuildConfig
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -52,6 +54,19 @@ class AuthRepository {
     suspend fun signUpEmail(email: String, pass: String): FirebaseUser {
         val result = auth.createUserWithEmailAndPassword(email, pass).await()
         val user = result.user ?: throw IllegalStateException("createUserWithEmailAndPassword returned null user")
+        // Wymuszenie weryfikacji e-maila: konto nie dostaje pełnego dostępu, póki
+        // użytkownik nie kliknie linku z maila (bramka znajduje się w AppNavigation).
+        try {
+            val actionCodeSettings = ActionCodeSettings.newBuilder()
+                .setHandleCodeInApp(true)
+                .setAndroidPackageName(BuildConfig.APPLICATION_ID, true, null)
+                .build()
+            user.sendEmailVerification(actionCodeSettings).await()
+        } catch (e: Exception) {
+            // Wysyłka linku nie może zablokować zakładania konta — bramka i tak
+            // zmusi do weryfikacji przy następnym logowaniu.
+            android.util.Log.w("AuthRepository", "sendEmailVerification failed", e)
+        }
         ensureProfile(user)
         return user
     }

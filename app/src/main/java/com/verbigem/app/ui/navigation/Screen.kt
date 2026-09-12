@@ -45,6 +45,12 @@ sealed class Screen(val route: String) {
      */
     data object PhoneVerification : Screen("phone_verification")
 
+    /**
+     * Bramka weryfikacji e-maila (zamknięcie dziury z nieograniczonym zakładaniem
+     * kont). Trafia tu każde konto e-mail+hasło, które nie potwierdziło adresu.
+     */
+    data object EmailVerification : Screen("email_verification")
+
     data object Profile : Screen("profile")
     data object Ocr : Screen("ocr")
     data object Login : Screen("login")

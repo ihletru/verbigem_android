@@ -19,6 +19,17 @@
     <string name="google_signup">Zarejestruj się przez Google</string>
     <string name="auth_error_password">Hasło musi mieć co najmniej 6 znaków</string>
 
+    <!-- Bramka weryfikacji e-maila -->
+    <string name="email_verify_title">Potwierdź adres e-mail</string>
+    <string name="email_verify_intro">Wysłaliśmy link aktywacyjny na adres %1$s. Kliknij go, aby dokończyć zakładanie konta.</string>
+    <string name="email_verify_check">Już aktywowałem — przejdź dalej</string>
+    <string name="email_verify_resend">Wyślij link ponownie</string>
+    <string name="email_verify_signout">Wyloguj się</string>
+    <string name="email_verify_not_yet">Link nie został jeszcze kliknięty. Sprawdź skrzynkę odbiorczą (i folder spam), a potem spróbuj ponownie.</string>
+    <string name="email_verify_error_no_user">Brak zalogowanego konta — zaloguj się ponownie.</string>
+    <string name="email_verify_error_send">Nie udało się wysłać linku: %1$s</string>
+    <string name="email_verify_error_check">Nie udało się odświeżyć konta: %1$s</string>
+
     <!-- Translator -->
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Ze zdjęcia (OCR)</string>

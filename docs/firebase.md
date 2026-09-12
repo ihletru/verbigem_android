@@ -22,3 +22,24 @@
   - ☠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi zapisać cudzy dokument, którego aplikacja nie ruszy. Dlatego `backfill_faza0.js` domyślnie robi dry-run i wymaga `--apply`. (Drugi skrypt, `backfill_searchtext.js`, został usunięty w fazie 5 E2E — patrz `docs/czat-e2e.md` §6.)
 
 ---
+
+## Weryfikacja e-maila przy rejestracji (2026-09-12)
+
+Konta zakładane przez e-mail+hasło muszą potwierdzić adres przed wejściem do
+aplikacji — inaczej ktokolwiek mógł założyć nieograniczoną liczbę kont na dowolny
+e-mail (dziura zgłoszona 2026-09-12).
+
+- `AuthRepository.signUpEmail` po `createUserWithEmailAndPassword` wysyła
+  `sendEmailVerification` (ActionCodeSettings `handleCodeInApp=true`, pakiet z
+  `BuildConfig.APPLICATION_ID`).
+- Bramka w `AppNavigation` (wzorowana na bramce weryfikacji telefonu): konto
+  e-mail+hasło z `isEmailVerified == false` ląduje na `EmailVerificationScreen`
+  zamiast aplikacji — przy zimnym starcie (`startDestination`) i zaraz po
+  zalogowaniu (`onLoginSuccess`).
+- Przepuszczone: Google (`providerId == "google.com"`) i telefon
+  (`providerId == "phone"`) — sprawdzenie opiera się na
+  `providerData.any { it.providerId == "password" }`.
+- Nowe pliki: `EmailVerificationViewModel.kt`, `EmailVerificationScreen.kt`,
+  trasa `Screen.EmailVerification`, stringi `email_verify_*` (values + values-pl).
+- Po kliknięciu linku użytkownik wciska „Sprawdź ponownie" -> `reload()` ->
+  `isEmailVerified` -> przejście do Translatora.

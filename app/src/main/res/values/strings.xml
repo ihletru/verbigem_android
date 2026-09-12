@@ -19,6 +19,17 @@
     <string name="google_signup">Sign up with Google</string>
     <string name="auth_error_password">Password must be at least 6 characters</string>
 
+    <!-- Email verification gate -->
+    <string name="email_verify_title">Confirm your e-mail</string>
+    <string name="email_verify_intro">We sent an activation link to %1$s. Open it to finish creating your account.</string>
+    <string name="email_verify_check">I have confirmed — continue</string>
+    <string name="email_verify_resend">Resend the link</string>
+    <string name="email_verify_signout">Sign out</string>
+    <string name="email_verify_not_yet">The link has not been clicked yet. Check your inbox (and spam), then try again.</string>
+    <string name="email_verify_error_no_user">No signed-in account — please sign in again.</string>
+    <string name="email_verify_error_send">Could not send the link: %1$s</string>
+    <string name="email_verify_error_check">Could not refresh account: %1$s</string>
+
     <!-- Translator -->
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">From photo (OCR)</string>

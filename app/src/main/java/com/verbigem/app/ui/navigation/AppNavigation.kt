@@ -34,6 +34,8 @@ import com.verbigem.app.data.repository.PhoneVerificationRepository
 import com.verbigem.app.data.repository.SyncManager
 import com.verbigem.app.ui.components.BottomNav
 import com.verbigem.app.ui.screens.auth.AuthViewModel
+import com.verbigem.app.ui.screens.auth.EmailVerificationScreen
+import com.verbigem.app.ui.screens.auth.EmailVerificationViewModel
 import com.verbigem.app.ui.screens.auth.LoginScreen
 import com.verbigem.app.ui.screens.chat.ChatListScreen
 import com.verbigem.app.ui.screens.chat.ChatListViewModel
@@ -86,7 +88,17 @@ fun AppNavigation(
     // an empty history until the next sign-in. `bind` is idempotent, so the
     // recomposition this sits in costs nothing.
     AccountScope.bind(currentUser?.uid)
-    val startDestination = if (currentUser != null) Screen.Translator.route else Screen.Login.route
+    // Bramka weryfikacji e-maila: konto e-mail+hasło, które nie potwierdziło
+    // adresu, nie wchodzi do aplikacji — ląduje na ekranie weryfikacji. Google i
+    // telefon są już zweryfikowane (brak providera "password" / isEmailVerified==true).
+    val needsEmailVerification = currentUser != null &&
+        currentUser.providerData.any { it.providerId == "password" } &&
+        !currentUser.isEmailVerified
+    val startDestination = when {
+        currentUser == null -> Screen.Login.route
+        needsEmailVerification -> Screen.EmailVerification.route
+        else -> Screen.Translator.route
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: startDestination
@@ -198,8 +210,31 @@ fun AppNavigation(
                     LoginScreen(
                         viewModel = authViewModel,
                         onLoginSuccess = {
-                            navController.navigate(Screen.Translator.route) {
+                            val fu = authRepository.currentUser
+                            val needs = fu != null &&
+                                fu.providerData.any { it.providerId == "password" } &&
+                                !fu.isEmailVerified
+                            navController.navigate(
+                                if (needs) Screen.EmailVerification.route else Screen.Translator.route
+                            ) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                composable(Screen.EmailVerification.route) {
+                    val emailVm: EmailVerificationViewModel = viewModel()
+                    EmailVerificationScreen(
+                        viewModel = emailVm,
+                        onVerified = {
+                            navController.navigate(Screen.Translator.route) {
+                                popUpTo(Screen.EmailVerification.route) { inclusive = true }
+                            }
+                        },
+                        onSignOut = {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
                             }
                         }
                     )
