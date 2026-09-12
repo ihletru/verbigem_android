@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.73 (2026-09-12) — versionCode 73
+
+**Kayıt sırasında e-posta adresi doğrulama (bir açığı kapatıyor).**
+
+- E-posta+parola ile oluşturulan hesaplar, uygulamaya girmeden önce adreslerini doğrulamalıdır — aksi halde herkes istediği adrese sınırsız sayıda hesap açabilirdi.
+- Bir gezinme kapısı, doğrulanmamış hesabı doğrulama ekranına yönlendirir; Google ve telefon bunu atlar.
+- E-postadaki bağlantıya tıkladıktan sonra kullanıcı „Yeniden kontrol et"e dokunur → durum yenilenir → uygulamaya girer.
+- 6 dilde (PL, EN, DE, ES, ZH, TR) 9 yeni `email_verify_*` dizgesi eklendi.
+
 ## v1.0.72 (2026-09-12) — versionCode 72
 
 **Uçtan uca şifreli sohbet: arama ve uyarılar.**

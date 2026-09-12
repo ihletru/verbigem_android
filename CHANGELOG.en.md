@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.73 (2026-09-12) — versionCode 73
+
+**Email address verification at sign-up (closing a hole).**
+
+- Accounts created with email+password must confirm their address before entering the app — otherwise anyone could create unlimited accounts on any address.
+- A navigation gate routes an unverified account to the verification screen; Google and phone sign-in skip it.
+- After clicking the link from the email the user taps "Check again" → state refresh → enters the app.
+- 9 new `email_verify_*` strings added in 6 languages (PL, EN, DE, ES, ZH, TR).
+
 ## v1.0.72 (2026-09-12) — versionCode 72
 
 **End-to-end encrypted chat: search and warnings.**

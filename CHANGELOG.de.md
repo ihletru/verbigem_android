@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.73 (2026-09-12) — versionCode 73
+
+**Bestätigung der E-Mail-Adresse bei der Registrierung (Schließung einer Lücke).**
+
+- Konten, die mit E-Mail+Passwort erstellt wurden, müssen ihre Adresse bestätigen, bevor sie die App nutzen können — sonst konnte jeder unbegrenzt viele Konten auf beliebige Adressen anlegen.
+- Ein Navigations-Gate leitet ein unbestätigtes Konto auf den Bestätigungsbildschirm; Google und Telefon überspringen ihn.
+- Nach dem Klick auf den Link aus der E-Mail tippt der Nutzer auf „Erneut prüfen" → Statusaktualisierung → Eintritt in die App.
+- 9 neue `email_verify_*` Strings in 6 Sprachen hinzugefügt (PL, EN, DE, ES, ZH, TR).
+
 ## v1.0.72 (2026-09-12) — versionCode 72
 
 **Ende-zu-Ende-verschlüsselter Chat: Suche und Warnungen.**

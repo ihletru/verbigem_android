@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.73 (2026-09-12) — versionCode 73
+
+**Weryfikacja adresu e-mail przy rejestracji (zamknięcie luki).**
+
+- Konta zakładane przez e-mail+hasło muszą potwierdzić adres przed wejściem do aplikacji — inaczej ktokolwiek mógł założyć nieograniczoną liczbę kont na dowolny adres.
+- Bramka w nawigacji kieruje niezweryfikowane konto na ekran weryfikacji; Google i telefon ją omijają.
+- Po kliknięciu linku z maila użytkownik wciska „Sprawdź ponownie" → odświeżenie stanu → przejście do aplikacji.
+- 9 nowych stringów `email_verify_*` dodanych w 6 językach (PL, EN, DE, ES, ZH, TR).
+
 ## v1.0.72 (2026-09-12) — versionCode 72
 
 **Czat szyfrowany end-to-end: szukanie i ostrzeżenia.**

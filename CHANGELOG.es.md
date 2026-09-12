@@ -2,6 +2,15 @@
 
 ---
 
+## v1.0.73 (2026-09-12) — versionCode 73
+
+**Verificación de la dirección de correo al registrarse (cierre de un agujero).**
+
+- Las cuentas creadas con correo+contraseña deben confirmar su dirección antes de entrar en la app; si no, cualquiera podría crear cuentas ilimitadas en cualquier dirección.
+- Una puerta de navegación envía la cuenta no verificada a la pantalla de verificación; Google y teléfono la omiten.
+- Tras pulsar el enlace del correo, el usuario toca „Comprobar de nuevo" → actualización del estado → entra en la app.
+- 9 nuevos strings `email_verify_*` añadidos en 6 idiomas (PL, EN, DE, ES, ZH, TR).
+
 ## v1.0.72 (2026-09-12) — versionCode 72
 
 **Chat cifrado de extremo a extremo: búsqueda y avisos.**
