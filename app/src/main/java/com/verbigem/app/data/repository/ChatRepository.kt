@@ -8,6 +8,7 @@ import com.verbigem.app.data.MessageSearch
 import com.verbigem.app.data.model.ChatMessage
 import com.verbigem.app.data.model.ChatSummary
 import com.verbigem.app.data.model.ContactSettings
+import com.verbigem.app.data.model.EncEnvelope
 import com.verbigem.app.data.model.Friendship
 import com.verbigem.app.data.model.SenderTranslation
 import kotlinx.coroutines.Dispatchers
@@ -118,6 +119,12 @@ class ChatRepository {
                             .await()
                             .documents
                             .mapNotNull { doc ->
+                                // ⚠️ Wiadomości szyfrowane pomijamy: `text` to w nich
+                                // base64 szyfrogramu, więc pokazanie wyniku dałoby bełkot.
+                                // Serwerowy indeks `searchText` też jest wtedy indeksem
+                                // szyfrogramu — wyszukiwanie po treści wróci w fazie 6
+                                // jako lokalne, po odszyfrowanych wiadomościach.
+                                if (doc.get("enc") != null) return@mapNotNull null
                                 val text = doc.getString("text") ?: return@mapNotNull null
                                 val createdAt = doc.getTimestamp("createdAt")?.toDate()?.time
                                     ?: return@mapNotNull null
@@ -163,6 +170,16 @@ class ChatRepository {
      * The chat document is upserted first and MUST carry `members`: the security
      * rules for `messages` do `get(/chats/$(chatId)).data.members`, so a message
      * written into a chat without a document is always denied.
+     *
+     * ⚠️ **Gdy [enc] nie jest null, [text] i [hintText] to już SZYFROGRAM** (base64).
+     * To repozytorium nie wie nic o kluczach — dostaje gotową kopertę i tylko ją
+     * zapisuje. Szyfrowanie należy do `MessageCipher` i jest wywoływane przez
+     * ViewModel, bo tylko on ma klucz tożsamości tego konta.
+     *
+     * ⚠️ [previewOverride] istnieje dla wiadomości szyfrowanych: skrzynka nie może
+     * pokazać szyfrogramu (byłby to bełkot, a nie podgląd), więc nadawca podaje
+     * neutralny tekst, a `lastMessageType` decyduje o zlokalizowanym placeholderze.
+     * Zaszyfrowany podgląd odszyfrowywany lokalnie to faza 5 — patrz `docs/czat-e2e.md` §6.
      */
     suspend fun sendMessage(
         chatId: String,
@@ -176,7 +193,10 @@ class ChatRepository {
         type: String = "text",
         attachmentUrl: String = "",
         ocrText: String = "",
-        transcript: String = ""
+        transcript: String = "",
+        /** Koperta E2E. Null = wiadomość jawna (brak klucza u którejkolwiek ze stron). */
+        enc: EncEnvelope? = null,
+        previewOverride: String? = null
     ) {
         val msg = ChatMessage(
             authorId = authorId,
@@ -188,11 +208,12 @@ class ChatRepository {
             attachmentUrl = attachmentUrl,
             ocrText = ocrText,
             transcript = transcript,
+            enc = enc,
             createdAt = Timestamp.now()
         )
         // Podgląd w inboxie: dla mediów pokazujemy OCR/transkrypcję (jeśli jest),
         // w przeciwnym razie puste — i tak zlokalizowany placeholder wg lastMessageType.
-        val preview = when (type) {
+        val preview = previewOverride ?: when (type) {
             "image" -> ocrText.takeIf { it.isNotBlank() } ?: ""
             "audio" -> transcript.takeIf { it.isNotBlank() } ?: ""
             else -> text

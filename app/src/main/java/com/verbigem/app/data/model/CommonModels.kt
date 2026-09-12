@@ -17,6 +17,36 @@ data class SenderTranslation(
 )
 
 /**
+ * Klucz wiadomości zawinięty dla JEDNEGO urządzenia odbiorcy.
+ *
+ * `keyId` identyfikuje urządzenie (na razie `uid` — model tożsamości jest
+ * jeden na konto, patrz `docs/czat-e2e.md` §5). Zawartość `wrap` to
+ * `AES-GCM(HKDF(ECDH(esk, pub_i)), klucz wiadomości)`.
+ */
+data class EncWrappedKey(
+    val iv: String = "",
+    val wrap: String = ""
+)
+
+/**
+ * Koperta E2E zapisywana razem z wiadomością — patrz [`ChatMessage.enc`].
+ *
+ * Wszystkie pola są base64, bo Firestore nie ma typu binarnego, a wpisywanie
+ * tablic liczb byłoby kilkukrotnie większe i trudniejsze do zdiagnozowania.
+ *
+ * ⚠️ `epk` jest **jedno na wiadomość** (nie na odbiorcę) — dzięki temu
+ * ujawnienie później klucza tożsamości nie odsłania starych wiadomości.
+ */
+data class EncEnvelope(
+    val v: Int = 1,
+    val alg: String = "",
+    val epk: String = "",
+    val bodyIv: String = "",
+    /** keyId urządzenia -> zawinięty klucz wiadomości. */
+    val keys: Map<String, EncWrappedKey> = emptyMap()
+)
+
+/**
  * A chat message.
  *
  * `text` is ALWAYS the original, in `sourceLang`. Translation happens on the
@@ -29,6 +59,16 @@ data class SenderTranslation(
  *
  * `translatedText` is legacy: messages written before phase 1 stored the hint as a
  * plain string. It is kept so old threads still render (see [hintText]).
+ *
+ * ⚠️ **Gdy `enc` nie jest null, pola tekstowe są SZYFROGRAMEM** (base64), a nie
+ * treścią: `text` to `AES-GCM` z JSON-a ze wszystkimi wrażliwymi polami
+ * (`text`, `hintText`, `ocrText`, `transcript`) — patrz `MessageCipher`.
+ * Metadane (`type`, `sourceLang`, `attachmentUrl`, `authorId`, `createdAt`)
+ * zostają jawne, bo są potrzebne do routingu i pokazywania wiersza w skrzynce,
+ * i nie zdradzają treści.
+ *
+ * ⚠️ Brak `enc` = wiadomość sprzed szyfrowania, czytana jak dotąd. To jest cała
+ * migracja: nic nie przepisujemy, stare wątki renderują się dalej.
  */
 data class ChatMessage(
     val id: String = "",
@@ -44,6 +84,8 @@ data class ChatMessage(
     val ocrText: String = "",
     /** Faza 5.3: transkrypcja STT z nagrania, obliczona na urządzeniu nadawcy. */
     val transcript: String = "",
+    /** Koperta E2E. Null = wiadomość jawna (sprzed szyfrowania albo bez kluczy). */
+    val enc: EncEnvelope? = null,
     /** LEGACY (pre-phase-1) sender hint. Never written any more, still read. */
     val translatedText: String = "",
     @ServerTimestamp
@@ -63,6 +105,9 @@ data class ChatMessage(
 
     /** Czy wiadomość niesie załącznik w Storage. */
     fun hasAttachment(): Boolean = attachmentUrl.isNotBlank()
+
+    /** Czy treść jest zaszyfrowana (wymaga klucza tożsamości). */
+    fun isEncrypted(): Boolean = enc != null
 }
 
 /**

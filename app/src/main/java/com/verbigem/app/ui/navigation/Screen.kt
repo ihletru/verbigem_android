@@ -19,6 +19,12 @@ sealed class Screen(val route: String) {
     data object Contacts : Screen("contacts")
 
     /**
+     * Tozsamosc E2E konta: klucz, haslo odzyskiwania, odtworzenie na nowym
+     * urzadzeniu. Wejscie z naglowka skrzynki (ikona klodki).
+     */
+    data object E2eKeys : Screen("e2e_keys")
+
+    /**
      * One-way thread with somebody from the address book who has no Verbigem
      * account (3.6).
      *

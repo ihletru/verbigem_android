@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -78,7 +79,8 @@ import com.verbigem.app.util.uiLocale
 fun ChatListScreen(
     viewModel: ChatListViewModel,
     onOpenThread: (String) -> Unit,
-    onOpenContacts: () -> Unit
+    onOpenContacts: () -> Unit,
+    onOpenE2eKeys: () -> Unit
 ) {
     val rows by viewModel.rows.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -124,18 +126,35 @@ fun ChatListScreen(
             helpTitle = stringResource(R.string.help_intro_chat_title),
             helpText = stringResource(R.string.help_intro_chat),
             trailing = {
-                HelpIconButton(
-                    onClick = onOpenContacts,
-                    helpState = help,
-                    helpTitle = stringResource(R.string.chat_open_contacts),
-                    helpText = stringResource(R.string.help_chat_contacts_btn),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Group,
-                        contentDescription = stringResource(R.string.chat_open_contacts),
-                        modifier = Modifier.size(22.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Klodka = stan szyfrowania. Stoi obok kontaktow, bo to jedyne
+                    // miejsce, w ktorym uzytkownik i tak mysli o czacie.
+                    HelpIconButton(
+                        onClick = onOpenE2eKeys,
+                        helpState = help,
+                        helpTitle = stringResource(R.string.e2e_keys_title),
+                        helpText = stringResource(R.string.help_chat_e2e_btn),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = stringResource(R.string.e2e_keys_title),
+                            modifier = Modifier.size(21.dp)
+                        )
+                    }
+                    HelpIconButton(
+                        onClick = onOpenContacts,
+                        helpState = help,
+                        helpTitle = stringResource(R.string.chat_open_contacts),
+                        helpText = stringResource(R.string.help_chat_contacts_btn),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Group,
+                            contentDescription = stringResource(R.string.chat_open_contacts),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         )

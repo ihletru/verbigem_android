@@ -243,8 +243,8 @@ użytkownika w błąd.
 | Faza | Stan |
 |---|---|
 | 1 — format i wektory | **zrobione i zweryfikowane po obu stronach**: referencja `mini/scripts/e2e-vectors.mjs` → `mini/scripts/e2e_vectors.json` (kopia w `app/src/test/resources/`). Kotlin: `E2eCrypto` + `E2eCryptoVectorsTest` — **10 testów, 0 błędów**, odtwarza wektory bajt w bajt (ECDH, HKDF, epk, body, wrap). Uruchomienie: `node scripts/e2e-vectors.mjs` (referencja) i `:app:testStandaloneDebugUnitTest --tests "*E2eCryptoVectorsTest*"` (Kotlin) |
-| 2 — klucz konta | **kod gotowy, brakuje UI**: `E2eCrypto` (pary, koperta, kopia klucza), `E2eKeyStore` (lokalny sejf: PKCS#8 pod kluczem AES z Keystore, wpisy per `uid`), `ChatKeyRepository` (stan / utworzenie / odtworzenie / publikacja klucza i kopii), reguły na `users/{uid}/chatKeyBackup/{doc}`. Brakuje ekranu ustawiania hasła odzyskiwania |
-| 3 — koperta w wysyłce/odbiorze (Android) | nie zaczęte |
+| 2 — klucz konta | **zrobione**: `E2eCrypto` (pary, koperta, kopia klucza), `E2eKeyStore` (lokalny sejf: PKCS#8 pod kluczem AES z Keystore, wpisy per `uid`), `ChatKeyRepository` (stan / utworzenie / odtworzenie / publikacja klucza i kopii), reguły na `users/{uid}/chatKeyBackup/{doc}`, ekran `E2eKeysScreen` + `E2eKeysViewModel` (wejście: kłódka w nagłówku skrzynki) |
+| 3 — koperta w wysyłce/odbiorze (Android) | **zrobione**: `MessageCipher` (jedna koperta na cały wrażliwy payload), `ChatMessage.enc` + `EncEnvelope`, szyfrowanie w `ChatThreadViewModel.outgoing()` (tekst / zdjęcie / głosówka), odszyfrowanie w `recompute()` z cache po `msg.id`, `EncState` (PLAIN / ENCRYPTED / NO_KEY / FAILED) i kłódka w dymku. Stare wiadomości bez `enc` czytane jak dotąd. Podgląd w skrzynce dla wiadomości szyfrowanej to na razie **opis, nie treść** — deszyfrowalny podgląd dochodzi w fazie 5 |
 | 4 — koperta w webappie | nie zaczęte |
 | 5 — usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd | nie zaczęte |
 | 6 — wyszukiwanie lokalne + TOFU | nie zaczęte |
@@ -283,6 +283,26 @@ która faktycznie pójdzie na produkcji.
   atakujący z kontem może podmienić klucz ofiary na własny i czytać jej
   wiadomości — a to jest dokładnie ten scenariusz, którego brak weryfikacji
   nie neutralizuje.
+* ⚠️ **Klucze wczytują się asynchronicznie, a kolejka startuje od razu.**
+  `openThread()` woła `flushOutbox()` w tej samej chwili, w której zaczyna
+  pobierać klucze. Bez `ensureKeys()` na wejściu do `flushRow` wiadomość
+  wysłana tuż po wejściu w wątek poleciałaby **jawnie**, mimo że obie strony
+  mają klucze — czyli cicho, dokładnie w tym momencie, w którym użytkownik
+  najbardziej liczy na szyfrowanie.
+* ⚠️ **Brak klucza lokalnego nie znaczy „nie da się odszyfrować”.**
+  `decryptCached()` celowo NIE zapamiętuje wyniku, gdy `myIdentity` jest
+  jeszcze `null`. Inaczej pierwszy przebieg `recompute()` — a ten leci
+  z `watchLatestMessages`, zanim tożsamość zdąży się wczytać — zamurowałby
+  wszystkie dymki jako nieczytelne na stałe.
+* ⚠️ **Szyfrowanie nie może po cichu zejść do jawności.** Gdy klucze są,
+  a `MessageCipher.encrypt` rzuci, wyjątek leci do `flushOutbox` i wiersz
+  dostaje „nie wysłano / ponów”. Cicha wysyłka jawna byłaby dokładnie tym,
+  przed czym to szyfrowanie ma chronić. Jawność jest dozwolona TYLKO wtedy,
+  gdy którejś ze stron brakuje klucza.
+* ⚠️ **Szyfrowanie samego `text` to za mało.** Koperta musi objąć `hintText`,
+  `ocrText` i `transcript`, a przy wysyłce te pola muszą zostać PUSTE —
+  inaczej jawna treść leży obok koperty w tym samym dokumencie i cała
+  robota jest teatrem. Pilnuje tego jedna funkcja: `outgoing()`.
 * ⚠️ `chats.lastMessage` jest dziś jawnym tekstem. Jeśli zostawimy go jawnego,
   podgląd w skrzynce nadal zdradza treść. Do decyzji w fazie 5.
 

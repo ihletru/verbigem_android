@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Translate
@@ -641,11 +642,26 @@ private fun MessageBubble(
                     )
                 }
             } else {
-                Text(
-                    text = displayText,
-                    color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,
-                    fontSize = 15.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Klodka przy kazdym dymku z koperta — tak jak w czatach tajnych
+                    // Telegrama. Bez niej uzytkownik nie ma jak odroznic szyfrowanej
+                    // rozmowy od jawnej, a to jest cala obietnica punktu 4.
+                    if (bubble.encryption != EncState.PLAIN) {
+                        Icon(
+                            imageVector = Icons.Filled.Lock,
+                            contentDescription = stringResource(R.string.chat_enc_badge),
+                            tint = if (bubble.isMine) Color.White.copy(alpha = 0.85f)
+                            else VerbigemTheme.colors.muted,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                    }
+                    Text(
+                        text = displayText,
+                        color = if (bubble.isMine) Color.White else VerbigemTheme.colors.ink,
+                        fontSize = 15.sp
+                    )
+                }
             }
 
             // Translated incoming message: keep the original visible under it.

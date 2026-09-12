@@ -40,6 +40,8 @@ import com.verbigem.app.ui.screens.chat.ChatListViewModel
 import com.verbigem.app.ui.screens.chat.ChatThreadScreen
 import com.verbigem.app.ui.screens.chat.ChatThreadViewModel
 import com.verbigem.app.ui.screens.chat.ContactCardScreen
+import com.verbigem.app.ui.screens.chat.E2eKeysScreen
+import com.verbigem.app.ui.screens.chat.E2eKeysViewModel
 import com.verbigem.app.ui.screens.chat.ContactCardViewModel
 import com.verbigem.app.ui.screens.contacts.ContactsScreen
 import com.verbigem.app.ui.screens.contacts.ContactsViewModel
@@ -236,7 +238,16 @@ fun AppNavigation(
                     ChatListScreen(
                         viewModel = chatListViewModel,
                         onOpenThread = { uid -> navController.navigate(Screen.ChatThread.createRoute(uid)) },
-                        onOpenContacts = { navController.navigate(Screen.Contacts.route) }
+                        onOpenContacts = { navController.navigate(Screen.Contacts.route) },
+                        onOpenE2eKeys = { navController.navigate(Screen.E2eKeys.route) }
+                    )
+                }
+
+                composable(Screen.E2eKeys.route) {
+                    val e2eKeysViewModel: E2eKeysViewModel = viewModel()
+                    E2eKeysScreen(
+                        viewModel = e2eKeysViewModel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 

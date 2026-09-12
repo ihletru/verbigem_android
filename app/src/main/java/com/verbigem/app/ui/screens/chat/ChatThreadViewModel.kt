@@ -15,8 +15,12 @@ import com.verbigem.app.data.local.ChatTranslationEntity
 import com.verbigem.app.data.model.ChatMessage
 import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.LangCode
+import com.verbigem.app.data.crypto.E2eCrypto
+import com.verbigem.app.data.crypto.MessageCipher
+import com.verbigem.app.data.model.EncEnvelope
 import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.data.repository.ChatKeyRepository
 import com.verbigem.app.data.repository.ChatRepository
 import com.verbigem.app.data.repository.ProTtsRepository
 import com.verbigem.app.data.repository.StorageRepository
@@ -24,6 +28,7 @@ import com.verbigem.app.engine.HyMt2NativeEngine
 import com.verbigem.app.engine.OcrManager
 import com.verbigem.app.engine.ProTtsEngine
 import com.verbigem.app.engine.SpeechManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,10 +40,24 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import java.security.KeyPair
 import java.util.UUID
 import com.verbigem.app.util.uiString
 
 enum class BubbleStatus { SENT, SENDING, FAILED }
+
+/**
+ * Jak ten dymek ma sie do szyfrowania E2E — patrz `docs/czat-e2e.md`.
+ *
+ * Trzy stany sa celowo rozne, bo znacza rozne rzeczy i tylko jeden jest awaria:
+ *  * [PLAIN] — wiadomosc sprzed E2E albo od nadawcy, ktory nie ma jeszcze klucza.
+ *  * [ENCRYPTED] — odszyfrowana, pokazujemy tresc.
+ *  * [NO_KEY] — koperta nie ma wpisu dla TEGO urzadzenia. Normalne na nowym telefonie.
+ *  * [FAILED] — wpis jest, ale sie nie odszyfrowal. **To sygnal ostrzegawczy**:
+ *    podmieniony klucz albo uszkodzone dane. Nie wolno go pokazac jako pustego dymka.
+ */
+enum class EncState { PLAIN, ENCRYPTED, NO_KEY, FAILED }
 
 /**
  * One message as the thread renders it.
@@ -60,7 +79,9 @@ data class ChatBubble(
     // mógł go przetłumaczyć tak samo jak zwykły tekst.
     val attachmentUrl: String = "",
     val ocrText: String = "",
-    val type: String = "text"
+    val type: String = "text",
+    /** Faza 3 (E2E): czy i jak ten dymek jest zaszyfrowany. */
+    val encryption: EncState = EncState.PLAIN
 )
 
 class ChatThreadViewModel(application: Application) : AndroidViewModel(application) {
@@ -80,6 +101,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private val ocrManager = OcrManager(application)
     private val storageRepository = StorageRepository(application)
     private val connectivity = ConnectivityObserver(application)
+    private val chatKeyRepository = ChatKeyRepository(application)
 
     private val db = AppDatabase.getInstance(application)
     private val translationDao = db.chatTranslationDao()
@@ -105,6 +127,19 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
     private var reflush = false
     private var olderExhausted = false
 
+    // -------------------------------------------------------------------- E2E
+    /** Wlasny klucz tozsamosci z sejfu Keystore — `null`, gdy konto go nie ma. */
+    private var myIdentity: KeyPair? = null
+    /** Klucz publiczny rozmowcy — `null`, gdy rozmowca nie ma jeszcze tozsamosci E2E. */
+    private var otherPublicKey: ByteArray? = null
+    /** Czy probowalismy juz wczytac klucze w tym watku (zeby nie siegac do sieci co wiersz). */
+    private var keysLoaded = false
+    /**
+     * Wyniki odszyfrowania, klucz = id wiadomosci. Bez tego kazde [recompute]
+     * (a wola je kazda zmiana w kolejce i kazda nowa wiadomosc) liczyloby ECDH od nowa.
+     */
+    private val decryptedCache = mutableMapOf<String, MessageCipher.Decrypted>()
+
     /**
      * Auto-translation is switched off by the FIRST failure. In practice a failure
      * means the model is not downloaded, and re-attempting it for every message in a
@@ -118,6 +153,13 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _otherProfile = MutableStateFlow<PublicProfile?>(null)
     val otherProfile: StateFlow<PublicProfile?> = _otherProfile.asStateFlow()
+
+    /**
+     * Czy ten watek leci szyfrowany: mamy wlasna tozsamosc I znamy klucz rozmowcy.
+     * Do plakietki w naglowku (faza 7 doda teksty pomocy).
+     */
+    private val _e2eActive = MutableStateFlow(false)
+    val e2eActive: StateFlow<Boolean> = _e2eActive.asStateFlow()
 
     private val _myLang = MutableStateFlow(LangCode.PL)
     val myLang: StateFlow<LangCode> = _myLang.asStateFlow()
@@ -289,6 +331,11 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         _bubbles.value = emptyList()
         olderExhausted = false
         lastReadWritten = 0L
+        myIdentity = null
+        otherPublicKey = null
+        keysLoaded = false
+        decryptedCache.clear()
+        _e2eActive.value = false
 
         val id = chatRepository.getChatId(me, otherUid)
         chatId = id
@@ -312,6 +359,13 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 _otherLang.value = LangCode.fromCode(public.speakLangSource)
             }
         }
+        // Klucze E2E: wlasna tozsamosc z sejfu + klucz publiczny rozmowcy. Osobno od
+        // profilu publicznego, bo brak klucza NIE jest bledem — to stan "konto sprzed
+        // E2E" i wtedy piszemy jawnie, tak jak przed wprowadzeniem szyfrowania.
+        viewModelScope.launch {
+            loadKeys(me, otherUid)
+            recompute()
+        }
         // Alias + per-contact translation language. Changing the language invalidates
         // the in-memory map exactly like a profile language change does (the Room
         // cache is keyed by language, so old rows survive untouched).
@@ -329,6 +383,112 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
         flushOutbox()
+    }
+
+    // -------------------------------------------------------------------- E2E
+
+    /**
+     * Wczytuje klucze raz na otwarcie watku. Siec i Keystore ida na IO —
+     * `publicKeyOf` czyta Firestore, a `localIdentity` odszyfrowuje klucz prywatny
+     * kluczem z Keystore, co na watku glownym potrafi zamulic liste wiadomosci.
+     */
+    private suspend fun loadKeys(me: String, other: String) {
+        keysLoaded = true
+        myIdentity = withContext(Dispatchers.IO) { chatKeyRepository.localIdentity(me) }
+        otherPublicKey = withContext(Dispatchers.IO) { chatKeyRepository.publicKeyOf(other) }
+        _e2eActive.value = myIdentity != null && otherPublicKey != null
+        // Klucz wlasnie sie pojawil — poprzednie przebiegi mogly oznaczyc dymki
+        // jako nieczytelne tylko dlatego, ze tozsamosc jeszcze sie nie wczytala.
+        if (myIdentity != null) decryptedCache.clear()
+    }
+
+    /**
+     * Klucze wczytane na zadanie — [openThread] startuje wysylke kolejki od razu,
+     * a wczytanie kluczy jest asynchroniczne. Bez tego wiadomosc wpisana offline
+     * i wyslana natychmiast po wejsciu w watek polecialaby jawnie, mimo ze obie
+     * strony maja klucze — czyli cicho, dokladnie w tym momencie, w ktorym
+     * uzytkownik najbardziej liczy na szyfrowanie.
+     */
+    private suspend fun ensureKeys() {
+        if (keysLoaded) return
+        val me = currentUid
+        val other = _otherUid.value.orEmpty()
+        if (me.isBlank() || other.isBlank()) return
+        loadKeys(me, other)
+    }
+
+    private fun decryptCached(msg: ChatMessage): MessageCipher.Decrypted {
+        decryptedCache[msg.id]?.let { return it }
+        // Brak klucza lokalnego NIE znaczy "nie da sie odszyfrowac" — tozsamosc moze
+        // sie jeszcze wczytywac. Dlatego tego wyniku NIE zapamietujemy: inaczej
+        // pierwszy przebieg zamurowalby wszystkie dymki jako nieczytelne na stale.
+        val identity = myIdentity ?: return MessageCipher.Decrypted.NoKeyForThisDevice
+        val result = MessageCipher.decrypt(msg, currentUid, identity.private)
+        decryptedCache[msg.id] = result
+        return result
+    }
+
+    /**
+     * Pola wiadomosci gotowe do zapisu. Dla wiadomosci szyfrowanej KAZDE wrazliwe
+     * pole jest albo puste, albo szyfrogramem — inaczej szyfrowanie byloby teatrem,
+     * bo jawny tekst wyladowalby obok koperty w tym samym dokumencie.
+     */
+    private data class Outgoing(
+        val text: String,
+        val hintLang: String,
+        val hintText: String,
+        val ocrText: String,
+        val transcript: String,
+        val enc: EncEnvelope?,
+        /** Podglad do skrzynki; `null` = niech repozytorium wybierze samodzielnie. */
+        val preview: String?,
+    )
+
+    /**
+     * Buduje [Outgoing]. Szyfruje tylko wtedy, gdy OBIE strony maja klucze;
+     * brak klucza = wysylka jawna (cala migracja z `docs/czat-e2e.md` par. 5).
+     *
+     * Gdy szyfrowanie jest mozliwe, ale sie nie powiedzie, leci wyjatek — wiersz
+     * dostaje stan "nie wyslano / ponow". Ciche zejscie do jawnosci byloby dokladnie
+     * tym, przed czym to szyfrowanie ma chronic.
+     *
+     * Podglad w skrzynce dla wiadomosci szyfrowanej to opis, nie tresc. Deszyfrowalny
+     * podglad (osobna mala koperta) dojdzie w fazie 5 razem ze skrzynka.
+     */
+    private fun outgoing(payload: MessageCipher.SecretPayload, hint: String): Outgoing {
+        val myKey = myIdentity
+        val theirKey = otherPublicKey
+        val other = _otherUid.value.orEmpty()
+        if (myKey == null || theirKey == null || other.isBlank()) {
+            return Outgoing(
+                text = payload.text.orEmpty(),
+                hintLang = payload.hintLang.orEmpty(),
+                hintText = hint,
+                ocrText = payload.ocrText.orEmpty(),
+                transcript = payload.transcript.orEmpty(),
+                enc = null,
+                preview = null,
+            )
+        }
+        val sealed = MessageCipher.encrypt(
+            payload = payload,
+            // Wlasny uid MUSI byc na liscie odbiorcow: inaczej po zmianie telefonu
+            // nie odczytasz tego, co sam wyslales.
+            recipients = listOf(
+                currentUid to E2eCrypto.encodePublicKey(myKey.public),
+                other to theirKey,
+            ),
+            ephemeral = E2eCrypto.generateEphemeralKeyPair(),
+        )
+        return Outgoing(
+            text = sealed.body,
+            hintLang = "",
+            hintText = "",
+            ocrText = "",
+            transcript = "",
+            enc = sealed.envelope,
+            preview = uiString(R.string.chat_enc_preview),
+        )
     }
 
     // ---------------------------------------------------------------- sending
@@ -524,20 +684,36 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
 
     /** Wysyła jeden wiersz kolejki; rzuca, gdy się nie uda — patrz [flushOutbox]. */
     private suspend fun flushRow(chatId: String, row: ChatOutboxEntity) {
+        // Klucze moga sie jeszcze wczytywac (patrz [ensureKeys]) — bez tego kroku
+        // pierwsza wysylka po wejsciu w watek poszlaby jawnie.
+        ensureKeys()
         val source = LangCode.fromCode(row.sourceLang)
         val target = _otherLang.value
         when (row.type) {
             "image" -> sendImageRow(chatId, row, source, target)
             "audio" -> sendAudioRow(chatId, row, source, target)
-            else -> chatRepository.sendMessage(
-                chatId = chatId,
-                authorId = currentUid,
-                text = row.text,
-                sourceLang = row.sourceLang,
-                hintLang = target.code,
-                hintText = translateHint(row.text, source, target),
-                clientMsgId = row.clientMsgId
-            )
+            else -> {
+                val hint = translateHint(row.text, source, target)
+                val out = outgoing(
+                    MessageCipher.SecretPayload(
+                        text = row.text,
+                        hintLang = target.code,
+                        hintText = hint,
+                    ),
+                    hint,
+                )
+                chatRepository.sendMessage(
+                    chatId = chatId,
+                    authorId = currentUid,
+                    text = out.text,
+                    sourceLang = row.sourceLang,
+                    hintLang = out.hintLang,
+                    hintText = out.hintText,
+                    clientMsgId = row.clientMsgId,
+                    enc = out.enc,
+                    previewOverride = out.preview
+                )
+            }
         }
     }
 
@@ -559,17 +735,30 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             Log.w(TAG, "OCR rozpoznawania tekstu nie powiodło się", e)
             ""
         }
+        val hint = translateHint(ocr, source, target)
+        val out = outgoing(
+            MessageCipher.SecretPayload(
+                text = "",
+                hintLang = target.code,
+                hintText = hint,
+                ocrText = ocr,
+            ),
+            hint,
+        )
         chatRepository.sendMessage(
             chatId = chatId,
             authorId = currentUid,
-            text = "",
+            text = out.text,
             sourceLang = row.sourceLang,
-            hintLang = target.code,
-            hintText = translateHint(ocr, source, target),
+            hintLang = out.hintLang,
+            hintText = out.hintText,
             clientMsgId = row.clientMsgId,
             type = "image",
             attachmentUrl = url,
-            ocrText = ocr
+            ocrText = out.ocrText,
+            transcript = out.transcript,
+            enc = out.enc,
+            previewOverride = out.preview
         )
     }
 
@@ -580,16 +769,29 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         source: LangCode,
         target: LangCode
     ) {
+        val hint = translateHint(row.transcript, source, target)
+        val out = outgoing(
+            MessageCipher.SecretPayload(
+                text = "",
+                hintLang = target.code,
+                hintText = hint,
+                transcript = row.transcript,
+            ),
+            hint,
+        )
         chatRepository.sendMessage(
             chatId = chatId,
             authorId = currentUid,
-            text = "",
+            text = out.text,
             sourceLang = row.sourceLang,
-            hintLang = target.code,
-            hintText = translateHint(row.transcript, source, target),
+            hintLang = out.hintLang,
+            hintText = out.hintText,
             clientMsgId = row.clientMsgId,
             type = "audio",
-            transcript = row.transcript
+            ocrText = out.ocrText,
+            transcript = out.transcript,
+            enc = out.enc,
+            previewOverride = out.preview
         )
     }
 
@@ -642,6 +844,11 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         val target = translationLang.value
         _bubbles.value.forEach { bubble ->
             if (bubble.isMine || bubble.status != BubbleStatus.SENT) return@forEach
+            // Nieczytelny dymek to nie tekst do tlumaczenia — placeholder w obcym
+            // jezyku albo base64 tylko zasmiecilby liste i wywolal tlumaczenie smieci.
+            if (bubble.encryption == EncState.NO_KEY || bubble.encryption == EncState.FAILED) {
+                return@forEach
+            }
             if (LangCode.fromCode(bubble.sourceLang) == target) return@forEach
             if (_translations.value.containsKey(bubble.id) || bubble.id in requested) return@forEach
             translateInto(bubble, target)
@@ -756,12 +963,29 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             if (msg.id !in _deletedIds) merged[msg.id] = msg
         }
         val remoteBubbles = merged.values.map { msg ->
+            // Wiadomości szyfrowane przechodzą przez kopertę; jawne (sprzed E2E albo
+            // od rozmówcy bez klucza) idą starą ścieżką bez żadnej zmiany.
+            val secret = if (msg.enc == null) null else decryptCached(msg)
+            val payload = (secret as? MessageCipher.Decrypted.Ok)?.payload
+            val encryption = when {
+                msg.enc == null -> EncState.PLAIN
+                payload != null -> EncState.ENCRYPTED
+                secret is MessageCipher.Decrypted.Failed -> EncState.FAILED
+                else -> EncState.NO_KEY
+            }
             ChatBubble(
                 id = msg.id,
                 // Dla zdjęcia `text` niesie OCR, a dla głosówki `transcript` — żeby
                 // istniejąca logika tłumaczenia (enqueueTranslations / translateInto)
                 // przetłumaczyła je jak zwykły tekst u odbiorcy.
                 text = when {
+                    encryption == EncState.NO_KEY -> uiString(R.string.chat_enc_no_key)
+                    encryption == EncState.FAILED -> uiString(R.string.chat_enc_failed)
+                    payload != null -> when {
+                        msg.isAudio() -> payload.transcript.orEmpty()
+                        msg.isImage() -> payload.ocrText.orEmpty()
+                        else -> payload.text.orEmpty()
+                    }
                     msg.isAudio() -> msg.transcript
                     msg.isImage() -> msg.ocrText
                     else -> msg.text
@@ -770,11 +994,14 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 isMine = msg.authorId == me,
                 createdAt = msg.createdAt?.toDate()?.time ?: System.currentTimeMillis(),
                 status = BubbleStatus.SENT,
-                hintText = msg.hintText(),
-                hintLang = msg.hintLang(),
+                // Podpowiedź i OCR dla wiadomości szyfrowanej siedzą w kopercie, nie
+                // w dokumencie — dlatego sięgamy najpierw do payloadu.
+                hintText = payload?.hintText?.takeIf { it.isNotBlank() } ?: msg.hintText(),
+                hintLang = payload?.hintLang?.takeIf { it.isNotBlank() } ?: msg.hintLang(),
                 attachmentUrl = msg.attachmentUrl,
-                ocrText = msg.ocrText,
-                type = msg.type
+                ocrText = payload?.ocrText?.takeIf { it.isNotBlank() } ?: msg.ocrText,
+                type = msg.type,
+                encryption = encryption
             )
         }
         val pendingBubbles = _pendingRows.value.map { row ->
