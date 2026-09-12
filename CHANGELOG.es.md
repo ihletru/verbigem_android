@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.72 (2026-09-12) — versionCode 72
+
+**Chat cifrado de extremo a extremo: búsqueda y avisos.**
+
+- Ahora se puede buscar texto en una conversación — localmente, en los mensajes ya cargados. El servidor nunca ve el contenido, así que no hay índice de su lado; la búsqueda abarca el texto, la traducción y la sugerencia.
+- Cuando cambia la clave de seguridad de un contacto, en la conversación aparece un aviso con la huella de la clave (la salvaguarda TOFU — *trust on first use*). No bloquea el chat, solo informa.
+- Los ajustes del chat incluyen ahora una descripción honesta: qué protege el cifrado y qué no (entre otras cosas, los metadatos y la lectura del historial en un dispositivo nuevo sin la contraseña de recuperación).
+
 ## v1.0.71 (2026-09-11) — versionCode 71
 
 **Corregido: tras recargar la cartera, los modelos de pago decían „sin saldo“.**

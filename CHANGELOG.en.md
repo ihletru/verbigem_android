@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.72 (2026-09-12) — versionCode 72
+
+**End-to-end encrypted chat: search and warnings.**
+
+- A thread can now be searched — locally, in the messages already loaded. The server never sees the content, so there is no index on its side; the search covers the message, the translation and the hint.
+- When a contact's security key changes, the thread shows a warning with the key fingerprint (the TOFU — *trust on first use* — safeguard). It does not block the chat, it only informs.
+- The chat settings now carry an honest description: what the encryption protects and what it does not (metadata, and reading the history on a new device without the recovery password).
+
 ## v1.0.71 (2026-09-11) — versionCode 71
 
 **Fixed: after topping up the wallet, paid models said "no credits".**

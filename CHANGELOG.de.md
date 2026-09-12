@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.72 (2026-09-12) — versionCode 72
+
+**Ende-zu-Ende-verschlüsselter Chat: Suche und Warnungen.**
+
+- In einem Verlauf kann jetzt gesucht werden — lokal, in den bereits geladenen Nachrichten. Der Server sieht die Inhalte nie, also gibt es auf seiner Seite keinen Index; die Suche umfasst den Text, die Übersetzung und den Hinweis.
+- Ändert sich der Sicherheitsschlüssel eines Kontakts, erscheint im Verlauf eine Warnung mit dem Schlüssel-Fingerabdruck (die TOFU-Absicherung — *trust on first use*). Sie blockiert den Chat nicht, sie informiert nur.
+- Die Chat-Einstellungen enthalten jetzt eine ehrliche Beschreibung: was die Verschlüsselung schützt und was nicht (u. a. Metadaten sowie das Lesen des Verlaufs auf einem neuen Gerät ohne Wiederherstellungspasswort).
+
 ## v1.0.71 (2026-09-11) — versionCode 71
 
 **Behoben: Nach dem Aufladen des Guthabens meldeten kostenpflichtige Modelle „kein Guthaben“.**

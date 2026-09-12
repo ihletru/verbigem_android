@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.72 (2026-09-12) — versionCode 72
+
+**Uçtan uca şifreli sohbet: arama ve uyarılar.**
+
+- Artık bir sohbette metin aranabiliyor — yerel olarak, hâlihazırda yüklenmiş mesajlarda. Sunucu içeriği hiç görmez, dolayısıyla kendi tarafında bir dizin yok; arama metni, çeviriyi ve ipucunu kapsar.
+- Bir kişinin güvenlik anahtarı değiştiğinde sohbette anahtarın parmak iziyle birlikte bir uyarı görünür (TOFU — *trust on first use* — koruması). Sohbeti engellemez, yalnızca bilgilendirir.
+- Sohbet ayarlarında artık dürüst bir açıklama var: şifrelemenin neyi koruduğu, neyi korumadığı (diğerlerinin yanı sıra üst veriler ve kurtarma parolası olmadan yeni bir cihazda geçmişin okunması).
+
 ## v1.0.71 (2026-09-11) — versionCode 71
 
 **Düzeltildi: cüzdan yüklendikten sonra ücretli modeller „bakiye yok“ diyordu.**
