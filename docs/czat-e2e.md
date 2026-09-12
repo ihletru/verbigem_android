@@ -254,6 +254,15 @@ użytkownika w błąd.
 | 6 — wyszukiwanie lokalne + TOFU | **zrobione (obie strony)**: webappka (patrz wyżej) + Android — `E2ePeerKeyStore` (SharedPreferences per urządzenie `verbigem_e2e_peer_keys`, `observePeerKey` → `NEW\|SAME\|CHANGED`, `fingerprint` z SHA-256 w 4 grupach zgodny z webappką), `ChatKeyRepository.watchPeerKey` (nasłuch `addSnapshotListener` na `usersPublic.{uid}.chatKey.pub`), `ChatThreadViewModel` (`searchQuery`/`visibleBubbles` — filtr podciągu po `text`+tłumaczenie+`hintText`, pomija `NO_KEY`/`FAILED`; `peerKeyStatus`/`PeerKeyInfo`), `ChatThreadScreen` (rozwijane pole szukania + baner TOFU `chat_e2e_key_changed` przy `status==CHANGED`, odcisk przez `E2eCrypto.fingerprint`). Kompiluje się (`:app:compileStandaloneDebugKotlin` BUILD SUCCESSFUL 2026-09-11) |
 | 7 — teksty w UI | **zrobione (obie strony)**: webappka (wdrożona na produkcję) + Android — `E2eKeysScreen` (blok uczciwej pomocy E2E `e2e_help_*`: co chroni, co NIE chroni, nowe urządzenie, utracone hasło + `TextButton` do polityki `AppLinks.privacyPolicyFor`), 9 nowych kluczy i18n we wszystkich 6 językach (`chat_e2e_key_changed*`, `e2e_help_*`) dodanych do `values*/strings.xml`, sekcja E2E w polityce prywatności webappki (wszystkie 6 języków, 2026-09-12). Android kompiluje się; **sekcja E2E w polityce aplikacji** — polityka webappki (hostowana) jest linkowana z ekranu Androida przez `e2e_help_learn_more`, więc na Androidzie nie trzeba osobnej kopii (jak w webappce) |
 
+**Wydanie v1.0.72 (2026-09-12).** Fazy 6 i 7 są domknięte po obu stronach i **wyszły
+na produkcję**: `versionCode 72` / `versionName 1.0.72` w `app/build.gradle.kts`, APK
+sideload zbudowany (`app-standalone-debug.apk`, 38 482 498 B, sha256 `38e0cdf8…`) i
+wdrożony na `mini.verbigem.com/android/app-debug-v72.apk` — pobrany z CDN plik jest
+**bit-identyczny** z lokalnym buildem. `vite.config.ts`, redirect `/download/android`
+w `firebase.json` i `APK_URL` w `Sections.tsx` podbite na 72, changelog Androida
+odświeżony we wszystkich 6 językach. AAB dla Google Play zbudowany i wgrany przez
+Milosza (jego potwierdzenie; nie było weryfikowane z tej sesji).
+
 **Czego faza 1 NIE dowodzi:** testy używają kluczy z wektorów, więc nie sprawdzają
 jednej rzeczy — że `KeyPairGenerator` produkuje parę, której klucz publiczny da się
 zakodować tą samą drogą. Pokrywa to test „świeżo wygenerowane klucze działają dla
