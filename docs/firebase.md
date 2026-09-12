@@ -30,8 +30,11 @@ aplikacji — inaczej ktokolwiek mógł założyć nieograniczoną liczbę kont 
 e-mail (dziura zgłoszona 2026-09-12).
 
 - `AuthRepository.signUpEmail` po `createUserWithEmailAndPassword` wysyła
-  `sendEmailVerification` (ActionCodeSettings `handleCodeInApp=true`, pakiet z
-  `BuildConfig.APPLICATION_ID`).
+  `sendEmailVerification()` — **zwykły link WWW, bez `ActionCodeSettings`**.
+  ⚠️ Celowo NIE używamy `handleCodeInApp=true`: link otworzyłby aplikację, która
+  nie ma obsługi deep-linku ani `applyActionCode`, więc użytkownik utknąłby na
+  ekranie weryfikacji na zawsze. Strona Firebase oznacza adres jako zweryfikowany,
+  a przycisk „Sprawdź ponownie" robi `reload()`.
 - Bramka w `AppNavigation` (wzorowana na bramce weryfikacji telefonu): konto
   e-mail+hasło z `isEmailVerified == false` ląduje na `EmailVerificationScreen`
   zamiast aplikacji — przy zimnym starcie (`startDestination`) i zaraz po
@@ -40,6 +43,7 @@ e-mail (dziura zgłoszona 2026-09-12).
   (`providerId == "phone"`) — sprawdzenie opiera się na
   `providerData.any { it.providerId == "password" }`.
 - Nowe pliki: `EmailVerificationViewModel.kt`, `EmailVerificationScreen.kt`,
-  trasa `Screen.EmailVerification`, stringi `email_verify_*` (values + values-pl).
+  trasa `Screen.EmailVerification`, stringi `email_verify_*` we **wszystkich 6
+  locale** (PL, EN, DE, ES, ZH, TR — zgodnie z `docs/jezyki-ui.md`).
 - Po kliknięciu linku użytkownik wciska „Sprawdź ponownie" -> `reload()` ->
   `isEmailVerified` -> przejście do Translatora.
