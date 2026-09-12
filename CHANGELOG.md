@@ -2,6 +2,14 @@
 
 ---
 
+## v1.0.72 (2026-09-12) — versionCode 72
+
+**Czat szyfrowany end-to-end: szukanie i ostrzeżenia.**
+
+- W wątku można teraz szukać tekstu — lokalnie, w już wczytanych wiadomościach. Serwer nie widzi treści, więc nie ma indeksu po jego stronie; wyszukiwanie obejmuje treść, tłumaczenie i podpowiedź.
+- Gdy klucz bezpieczeństwa rozmówcy się zmieni, w wątku pojawia się ostrzeżenie z odciskiem klucza (zabezpieczenie TOFU — *trust on first use*). Nie blokuje czatu, tylko informuje.
+- W ustawieniach czatu jest teraz uczciwy opis: co szyfrowanie chroni, a czego nie (m.in. metadane oraz odczyt historii na nowym urządzeniu bez hasła odzyskiwania).
+
 ## v1.0.71 (2026-09-11) — versionCode 71
 
 **Naprawione: po doładowaniu portfela płatne modele mówiły „brak środków”.**
