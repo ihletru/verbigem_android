@@ -90,6 +90,13 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         private const val TAG = "ChatThreadViewModel"
         /** Minimum gap between two "I am typing" writes to Firestore. */
         private const val TYPING_REFRESH_MS = 4_000L
+
+        /**
+         * Dlugosc podgladu w skrzynce. MUSI być zgodna z `preview.take(80)`
+         * w `ChatRepository.sendMessage` — inaczej podgląd szyfrowany i jawny
+         * miałyby różne długości i skrzynka zmieniałaby wygląd po zaszyfrowaniu.
+         */
+        private const val PREVIEW_MAX_CHARS = 80
     }
 
     private val authRepository = AuthRepository()
@@ -442,6 +449,9 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
         val enc: EncEnvelope?,
         /** Podglad do skrzynki; `null` = niech repozytorium wybierze samodzielnie. */
         val preview: String?,
+        /** Podglad zaszyfrowany (druga, mala koperta) — patrz [outgoing]. */
+        val previewEnc: EncEnvelope? = null,
+        val previewBody: String = "",
     )
 
     /**
@@ -452,10 +462,19 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
      * dostaje stan "nie wyslano / ponow". Ciche zejscie do jawnosci byloby dokladnie
      * tym, przed czym to szyfrowanie ma chronic.
      *
-     * Podglad w skrzynce dla wiadomosci szyfrowanej to opis, nie tresc. Deszyfrowalny
-     * podglad (osobna mala koperta) dojdzie w fazie 5 razem ze skrzynka.
+     * Podglad w skrzynce: `lastMessage` dostaje zlokalizowany OPIS (dla starszych
+     * wersji aplikacji, ktore nie umieja odszyfrowac), a obok leci druga, malutka
+     * koperta z prawdziwym podgladem. Dzieki temu skrzynka nie musi czytac
+     * dokumentu wiadomosci, zeby cokolwiek pokazac.
+     *
+     * [previewText] to tresc podgladu w jezyku oryginalu (dla zdjecia OCR, dla
+     * glosowki transkrypcja) — dokladnie to, co przed E2E trafialo do `lastMessage`.
      */
-    private fun outgoing(payload: MessageCipher.SecretPayload, hint: String): Outgoing {
+    private fun outgoing(
+        payload: MessageCipher.SecretPayload,
+        hint: String,
+        previewText: String,
+    ): Outgoing {
         val myKey = myIdentity
         val theirKey = otherPublicKey
         val other = _otherUid.value.orEmpty()
@@ -480,6 +499,21 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             ),
             ephemeral = E2eCrypto.generateEphemeralKeyPair(),
         )
+        // Osobna para efemeryczna na podglad, a nie ta z koperty wiadomosci:
+        // wspolny sekret ECDH użyty dwa razy to niepotrzebne powtorzenie,
+        // a koszt drugiej pary jest na tyle maly, ze nie warto go oszczedzac.
+        val previewSealed = if (previewText.isBlank()) {
+            null
+        } else {
+            MessageCipher.encrypt(
+                payload = MessageCipher.SecretPayload(text = previewText.take(PREVIEW_MAX_CHARS)),
+                recipients = listOf(
+                    currentUid to E2eCrypto.encodePublicKey(myKey.public),
+                    other to theirKey,
+                ),
+                ephemeral = E2eCrypto.generateEphemeralKeyPair(),
+            )
+        }
         return Outgoing(
             text = sealed.body,
             hintLang = "",
@@ -488,6 +522,8 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             transcript = "",
             enc = sealed.envelope,
             preview = uiString(R.string.chat_enc_preview),
+            previewEnc = previewSealed?.envelope,
+            previewBody = previewSealed?.body.orEmpty(),
         )
     }
 
@@ -701,6 +737,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                         hintText = hint,
                     ),
                     hint,
+                    previewText = row.text,
                 )
                 chatRepository.sendMessage(
                     chatId = chatId,
@@ -711,7 +748,9 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                     hintText = out.hintText,
                     clientMsgId = row.clientMsgId,
                     enc = out.enc,
-                    previewOverride = out.preview
+                    previewOverride = out.preview,
+                    previewEnc = out.previewEnc,
+                    previewBody = out.previewBody
                 )
             }
         }
@@ -744,6 +783,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 ocrText = ocr,
             ),
             hint,
+            previewText = ocr,
         )
         chatRepository.sendMessage(
             chatId = chatId,
@@ -758,7 +798,9 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             ocrText = out.ocrText,
             transcript = out.transcript,
             enc = out.enc,
-            previewOverride = out.preview
+            previewOverride = out.preview,
+            previewEnc = out.previewEnc,
+            previewBody = out.previewBody
         )
     }
 
@@ -778,6 +820,7 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
                 transcript = row.transcript,
             ),
             hint,
+            previewText = row.transcript,
         )
         chatRepository.sendMessage(
             chatId = chatId,
@@ -791,7 +834,9 @@ class ChatThreadViewModel(application: Application) : AndroidViewModel(applicati
             ocrText = out.ocrText,
             transcript = out.transcript,
             enc = out.enc,
-            previewOverride = out.preview
+            previewOverride = out.preview,
+            previewEnc = out.previewEnc,
+            previewBody = out.previewBody
         )
     }
 

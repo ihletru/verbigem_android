@@ -11,9 +11,6 @@ const db = admin.firestore();
  * data-only message has no `notification` block to put them in.
  */
 
-/** Lock-screen previews are capped so a long message cannot flood the shade. */
-const PREVIEW_MAX_CHARS = 120;
-
 /**
  * Tokens that will never work again. FCM tells us the token is dead, so keeping
  * it would mean a failing send on every single message forever — delete it.
@@ -33,24 +30,21 @@ const NEW_MESSAGE_LABELS: Record<string, string> = {
   tr: "Yeni mesaj",
 };
 
-interface SenderHint {
-  lang?: string;
-  text?: string;
-}
-
 /**
  * Pushes a notification to every other member of a chat when a message is written.
  *
  * Three things here are deliberate and easy to get wrong:
  *
- * 1. **The preview text comes from `senderTranslation`, not from `text`.** The
- *    sender's hint was produced *for this recipient's language* (decision D1), so
- *    it is the one version of the message they can actually read. The raw `text`
- *    is in the sender's language and would be nonsense on the lock screen.
- * 2. **Previews are OFF unless `app_config/notifications.showMessagePreview` is
- *    true.** Push payloads leave the device and pass through Google's servers,
- *    which is a different privacy story from "translation happens on your phone".
- *    The switch lives in Firestore so it can be flipped without a new APK.
+ * 1. **The push carries NO message content — only the sender's name and "new
+ *    message".** Push payloads leave the device and pass through Google's servers,
+ *    so a preview there leaks exactly what the E2E envelope protects. Since phase 5
+ *    `text` is base64 of that envelope anyway, the old preview would not even be
+ *    readable — it would be gibberish on the lock screen. The label is localised
+ *    here rather than on the device because the cloud knows the recipient's
+ *    `uiLang`.
+ * 2. **`app_config/notifications.showMessagePreview` is no longer consulted.**
+ *    It used to gate the preview. There is nothing left to gate, and leaving the
+ *    switch in the code would suggest message content could be turned back on.
  * 3. **The message is data-only — there is no `notification` payload.** With a
  *    notification payload Android renders the notification itself while the app is
  *    backgrounded and never calls `onMessageReceived`, so the reply / mark-as-read
@@ -85,13 +79,8 @@ export const onMessageCreated = onDocumentCreated(
     );
     if (recipients.length === 0) return;
 
-    // One read shared by everyone in the thread.
-    const showPreview = await messagePreviewEnabled();
-
     const results = await Promise.allSettled(
-      recipients.map((uid) =>
-        notifyRecipient({ recipientUid: uid, authorId, chatId, msgId, msg, showPreview })
-      )
+      recipients.map((uid) => notifyRecipient({ recipientUid: uid, authorId, chatId, msgId }))
     );
     results.forEach((r, i) => {
       if (r.status === "rejected") {
@@ -108,12 +97,10 @@ interface NotifyArgs {
   authorId: string;
   chatId: string;
   msgId: string;
-  msg: admin.firestore.DocumentData;
-  showPreview: boolean;
 }
 
 async function notifyRecipient(args: NotifyArgs): Promise<void> {
-  const { recipientUid, authorId, chatId, msgId, msg, showPreview } = args;
+  const { recipientUid, authorId, chatId, msgId } = args;
 
   // "Mute" is stored per contact on MY side, so it is honoured here rather than
   // filtered on the device — a muted chat should not even be woken up.
@@ -127,7 +114,7 @@ async function notifyRecipient(args: NotifyArgs): Promise<void> {
 
   const [title, body] = await Promise.all([
     senderNickname(authorId),
-    buildBody(msg, recipientUid, showPreview),
+    newMessageLabel(recipientUid),
   ]);
 
   const response = await admin.messaging().sendEachForMulticast({
@@ -176,60 +163,21 @@ async function senderNickname(authorId: string): Promise<string> {
 }
 
 /**
- * Picks the text for the lock screen.
+ * The whole notification body: "New message", in the recipient's UI language.
  *
- * The recipient's own language is read from `usersPublic`, which is the same
- * document the app uses to decide its own translation target — so the preview and
- * the in-app translation agree.
+ * ⚠️ This replaces the old `buildBody`, which read `senderTranslation` and `text`.
+ * Neither is read any more — see point 1 of the comment on `onMessageCreated`.
+ * Do not reintroduce a preview here: FCM payloads are readable by Google, and
+ * after phase 5 `text` is base64 of an E2E envelope, so a "preview" would be
+ * simultaneously a leak and gibberish.
  */
-async function buildBody(
-  msg: admin.firestore.DocumentData,
-  recipientUid: string,
-  showPreview: boolean
-): Promise<string> {
+async function newMessageLabel(recipientUid: string): Promise<string> {
   let uiLang = "en";
-  let speakLang = "";
   try {
     const snap = await db.doc(`usersPublic/${recipientUid}`).get();
     uiLang = (snap.get("uiLang") as string | undefined) ?? "en";
-    speakLang = (snap.get("speakLangSource") as string | undefined) ?? "";
   } catch (e) {
     logger.warn("Could not read recipient profile", { recipientUid, error: e });
   }
-
-  const generic = NEW_MESSAGE_LABELS[uiLang] ?? NEW_MESSAGE_LABELS.en;
-  if (!showPreview) return generic;
-
-  const hint = msg.senderTranslation as SenderHint | undefined;
-  if (hint?.text && hint.lang && hint.lang === speakLang) {
-    return truncate(hint.text, PREVIEW_MAX_CHARS);
-  }
-  const text = msg.text;
-  if (typeof text === "string" && text.trim().length > 0) {
-    return truncate(text.trim(), PREVIEW_MAX_CHARS);
-  }
-  return generic;
-}
-
-/**
- * Whether lock-screen previews are on, read from `app_config/notifications`.
- *
- * Default is FALSE: a privacy-relevant default should fail closed, and the
- * document is operator-controlled so it can be turned on with no new release.
- */
-async function messagePreviewEnabled(): Promise<boolean> {
-  try {
-    const snap = await db.doc("app_config/notifications").get();
-    return snap.get("showMessagePreview") === true;
-  } catch (e) {
-    logger.warn(
-      "app_config/notifications unreadable; assuming previews are off",
-      { error: e }
-    );
-    return false;
-  }
-}
-
-function truncate(value: string, max: number): string {
-  return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
+  return NEW_MESSAGE_LABELS[uiLang] ?? NEW_MESSAGE_LABELS.en;
 }

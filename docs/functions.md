@@ -11,7 +11,6 @@ Backend czatu. **Wymaga planu Blaze** (wykupiony). Kod w `functions/src/`, kompi
 | `inviteByPhone` | callable | zapraszanie numerów bez konta |
 | `verifyPhone` | callable | zapis faktu „to konto ma zweryfikowany numer" |
 | `onPhoneVerified` | trigger `users/{uid}` | uzgadnia `phoneDirectory`, rozwiązuje zaproszenia |
-| `onMessageSearchIndex` | trigger `chats/{chatId}/messages/{msgId}` | zapisuje znormalizowane `searchText` |
 | `suggestFriends` | callable | „Możesz znać" — znajomi moich znajomych (3.9) |
 
 ## Jak deployować
@@ -55,9 +54,37 @@ Zawsze podawaj nazwy:
 ```bash
 firebase deploy --only functions:onMessageCreated,functions:matchContacts,\
 functions:inviteByPhone,functions:verifyPhone,functions:onPhoneVerified,\
-functions:onMessageSearchIndex \
+functions:suggestFriends \
   --project mini-verbigem
 ```
+
+## Kasowanie funkcji — `functions:delete`, nie deploy
+
+`firebase deploy --only functions:<nazwa>` **nie usunie** funkcji, której nie ma już
+w źródłach — zostanie w projekcie i dalej będzie działać. Do usuwania jest
+osobne polecenie:
+
+```bash
+firebase functions:delete onMessageSearchIndex --project mini-verbigem --force
+```
+
+⚠️ To polecenie wypisze `Error: The specified filters do not match any existing
+functions in project mini-verbigem`, jeśli trafi na **drugi przebieg** — powłoka
+w tym projekcie wykonuje polecenia dwukrotnie, a pierwszy przebieg już skasował
+funkcję. **Ten błąd nie znaczy, że się nie udało** — potwierdź przez
+`firebase functions:list`.
+
+⚠️ Po **każdym** deployu funkcji zrób `firebase functions:list` i policz funkcje
+(2026-09-11: 14). To jedyny sposób, żeby zauważyć, że CLI uznało funkcje webappki
+za osierocone.
+
+⚠️ **Zweryfikowane 2026-09-11:** `firebase deploy --only functions:onMessageCreated`
+**nie skasowało** żadnej funkcji webappki — po deployu `firebase functions:list`
+pokazał wszystkie 14. Kasowanie pojedynczej funkcji robi wyłącznie
+`functions:delete`. Etykiety wdrożonych funkcji **nie zawierają**
+`firebase-functions-codebase` (sprawdzone REST-em), więc nie wiadomo dokładnie,
+po czym CLI rozpoznaje przynależność — dlatego zasada „zawsze podawaj nazwy"
+zostaje.
 
 Dopiero nadanie obu projektom różnych `codebase` w `firebase.json` (np. `android` i `mini`) trwale rozwiązałoby problem — wymagałoby przewalczenia już wdrożonych funkcji, więc na razie zostawiamy jak jest i uważamy.
 

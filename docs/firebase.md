@@ -19,6 +19,6 @@
 - **CLI:** `firebase.cmd` (npm global). ⚠️ `firebase firestore:set` **NIE istnieje** w tym CLI — do zapisu używamy Firestore REST API (Node.js) z tokenem z `%USERPROFILE%\.config\configstore\firebase-tools.json`.
   - ⚠️ **Token wygasa po ~1 h** (`expires_at`, ms). Starsze skrypty (`write_firestore.js`, `update_firestore_update.js`) odświeżają go samodzielnie przez `oauth2.googleapis.com` z wpisanymi na sztywno `client_id`/`client_secret` — **to już nie działa** (Google: `invalid_client`).
   - **Działające odświeżanie:** odpalić dowolne polecenie CLI (np. `firebase projects:list` — czysty odczyt). CLI ma poprawne poświadczenia i zapisuje świeży `access_token` z powrotem do configstore (tak robi `backfill_faza0.js` → `refreshViaCli()`).
-  - ☠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi zapisać cudzy dokument, którego aplikacja nie ruszy. Dlatego `backfill_faza0.js` i `backfill_searchtext.js` domyślnie robią dry-run i wymagają `--apply`.
+  - ☠️ **REST z tokenem właściciela projektu OMJA reguły bezpieczeństwa.** Backfill potrafi zapisać cudzy dokument, którego aplikacja nie ruszy. Dlatego `backfill_faza0.js` domyślnie robi dry-run i wymaga `--apply`. (Drugi skrypt, `backfill_searchtext.js`, został usunięty w fazie 5 E2E — patrz `docs/czat-e2e.md` §6.)
 
 ---

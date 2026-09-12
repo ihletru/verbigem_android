@@ -1,6 +1,7 @@
 package com.verbigem.app.data.repository
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
@@ -179,7 +180,8 @@ class ChatRepository {
      * ⚠️ [previewOverride] istnieje dla wiadomości szyfrowanych: skrzynka nie może
      * pokazać szyfrogramu (byłby to bełkot, a nie podgląd), więc nadawca podaje
      * neutralny tekst, a `lastMessageType` decyduje o zlokalizowanym placeholderze.
-     * Zaszyfrowany podgląd odszyfrowywany lokalnie to faza 5 — patrz `docs/czat-e2e.md` §6.
+     * To jest wersja dla STARYCH klientów. Ten klient bierze podgląd z [previewEnc]
+     * i odszyfrowuje go lokalnie — patrz `docs/czat-e2e.md` §6.
      */
     suspend fun sendMessage(
         chatId: String,
@@ -196,7 +198,13 @@ class ChatRepository {
         transcript: String = "",
         /** Koperta E2E. Null = wiadomość jawna (brak klucza u którejkolwiek ze stron). */
         enc: EncEnvelope? = null,
-        previewOverride: String? = null
+        previewOverride: String? = null,
+        /**
+         * Zaszyfrowany podgląd do skrzynki — druga, mała koperta nad [previewOverride].
+         * Null = podgląd jawny (albo brak podglądu).
+         */
+        previewEnc: EncEnvelope? = null,
+        previewBody: String = ""
     ) {
         val msg = ChatMessage(
             authorId = authorId,
@@ -219,16 +227,24 @@ class ChatRepository {
             else -> text
         }
         val chatRef = firestore.collection("chats").document(chatId)
-        chatRef.set(
-            mapOf(
-                "members" to membersFromChatId(chatId),
-                "lastMessage" to preview.take(80),
-                "lastMessageType" to type,
-                "lastMessageAuthorId" to authorId,
-                "lastMessageAt" to System.currentTimeMillis()
-            ),
-            SetOptions.merge()
-        ).await()
+        val chatData = mutableMapOf<String, Any>(
+            "members" to membersFromChatId(chatId),
+            "lastMessage" to preview.take(80),
+            "lastMessageType" to type,
+            "lastMessageAuthorId" to authorId,
+            "lastMessageAt" to System.currentTimeMillis()
+        )
+        // ⚠️ Gdy koperty podglądu nie ma, pole MUSI zostać USUNIĘTE, a nie pominięte.
+        // Pominięcie zostawiłoby w skrzynce nieaktualny podgląd z poprzedniej
+        // wiadomości — czyli pokazywałoby treść, której nadawca już nie wysyła.
+        if (previewEnc != null && previewBody.isNotBlank()) {
+            chatData["lastMessageEnc"] = previewEnc
+            chatData["lastMessageBody"] = previewBody
+        } else {
+            chatData["lastMessageEnc"] = FieldValue.delete()
+            chatData["lastMessageBody"] = FieldValue.delete()
+        }
+        chatRef.set(chatData, SetOptions.merge()).await()
         chatRef.collection("messages").document(clientMsgId).set(msg).await()
     }
 

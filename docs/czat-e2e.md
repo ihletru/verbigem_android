@@ -27,18 +27,22 @@ ma takiej weryfikacji, a E2E ma.
 To nie jest luka do „dokręcenia". Dziś serwer czyta każdą wiadomość w całości,
 i to w dwóch miejscach:
 
-| Miejsce | Co robi z treścią |
-|---|---|
-| `functions/src/searchIndex.ts` → `onMessageSearchIndex` | czyta pole `text` z `chats/{id}/messages/{msgId}` i zapisuje znormalizowaną kopię w `searchText` — czyli **buduje pełnotekstowy indeks treści** |
-| `functions/src/messaging.ts` → `onMessageCreated` | czyta treść, żeby wstawić ją do treści powiadomienia push |
+| Miejsce | Co robiło z treścią | Stan po fazie 5 |
+|---|---|---|
+| `functions/src/searchIndex.ts` → `onMessageSearchIndex` | czytało pole `text` z `chats/{id}/messages/{msgId}` i zapisywało znormalizowaną kopię w `searchText` — czyli **budowało pełnotekstowy indeks treści** | **usunięte**: kod skasowany, funkcja skasowana w projekcie |
+| `functions/src/messaging.ts` → `onMessageCreated` | czytało treść, żeby wstawić ją do powiadomienia push | **treść usunięta**: push niesie tylko „Nowa wiadomość” |
 
-Dodatkowo `ChatRepository.sendMessage` zapisuje `text` jawnym tekstem, a reguły
-Firestore (`firestore.rules`, blok `messages`) **zabraniają klientowi pisania
-`searchText`** — bo indeks należy do funkcji. Wyszukiwanie w aplikacji działa
-wyłącznie po tym serwerowym indeksie (`ChatRepository.searchMessages`).
+Dodatkowo `ChatRepository.sendMessage` zapisywał `text` jawnym tekstem — teraz
+zapisuje szyfrogram, a jawny zostaje tylko wtedy, gdy którejś stronie brakuje klucza.
 
-Wniosek: dopóki `searchText` istnieje, E2E jest fikcją — treść i tak leży
-odczytana na serwerze w drugim dokumencie.
+Wniosek: dopóki `searchText` istniał, E2E było fikcją — treść leżała odczytana
+na serwerze w drugim dokumencie. Po fazie 5 **żadna funkcja nie czyta już treści**.
+
+⚠️ **Konsekwencja dla wyszukiwania, która jest stanem przejściowym:** indeks
+serwerowy zniknął, a wyszukiwanie lokalne dochodzi dopiero w fazie 6. Do tego
+czasu wyszukiwanie znajduje wyłącznie wiadomości **już zaindeksowane** (sprzed
+fazy 5). Nowe są dla wyszukiwania niewidoczne — dotyczy to także starego APK
+v1.0.71, który szuka po serwerowym `searchText`.
 
 ---
 
@@ -202,9 +206,9 @@ tekst. To jest cała migracja: nic nie przepisujemy, nic nie tracimy.
 
 | Funkcja | Dziś | Po E2E |
 |---|---|---|
-| Wyszukiwanie w czacie | serwerowy indeks `searchText`, prefiksowy, po wszystkich rozmowach | **tylko lokalnie**, po wiadomościach już wczytanych do wątku (ostatnie 50 na rozmowę, doładowywane przy przewijaniu) |
-| Treść powiadomienia push | fragment wiadomości | „Nowa wiadomość" (bez treści) — inaczej FCM = wyciek |
-| Podgląd ostatniej wiadomości w skrzynce | `chats.lastMessage` jawny | jawny **placeholder** (`„Wiadomość"`) albo zaszyfrowany i odszyfrowywany lokalnie |
+| Wyszukiwanie w czacie | serwerowy indeks `searchText`, prefiksowy, po wszystkich rozmowach | **tylko lokalnie**, po wiadomościach już wczytanych do wątku (ostatnie 50 na rozmowę, doładowywane przy przewijaniu). ⚠️ **JESZCZE NIE ZROBIONE (faza 6)** — indeks serwerowy już zniknął, więc nowe wiadomości są na razie niewyszukiwalne |
+| Treść powiadomienia push | fragment wiadomości | „Nowa wiadomość” (bez treści) — inaczej FCM = wyciek. **Zrobione w fazie 5** |
+| Podgląd ostatniej wiadomości w skrzynce | `chats.lastMessage` jawny | `lastMessage` zostaje jako **placeholder** dla klientów bez klucza, a obok leci **`lastMessageEnc` + `lastMessageBody`** (druga, mała koperta) odszyfrowywana lokalnie. **Zrobione w fazie 5** |
 | Odtworzenie historii na nowym urządzeniu | pełne | **tylko nowe wiadomości** — nowe urządzenie nie ma klucza do kopert sprzed dodania |
 
 ⚠️ Ostatni punkt jest najważniejszą konsekwencją i musi być napisany wprost
@@ -246,7 +250,7 @@ użytkownika w błąd.
 | 2 — klucz konta | **zrobione**: `E2eCrypto` (pary, koperta, kopia klucza), `E2eKeyStore` (lokalny sejf: PKCS#8 pod kluczem AES z Keystore, wpisy per `uid`), `ChatKeyRepository` (stan / utworzenie / odtworzenie / publikacja klucza i kopii), reguły na `users/{uid}/chatKeyBackup/{doc}`, ekran `E2eKeysScreen` + `E2eKeysViewModel` (wejście: kłódka w nagłówku skrzynki) |
 | 3 — koperta w wysyłce/odbiorze (Android) | **zrobione**: `MessageCipher` (jedna koperta na cały wrażliwy payload), `ChatMessage.enc` + `EncEnvelope`, szyfrowanie w `ChatThreadViewModel.outgoing()` (tekst / zdjęcie / głosówka), odszyfrowanie w `recompute()` z cache po `msg.id`, `EncState` (PLAIN / ENCRYPTED / NO_KEY / FAILED) i kłódka w dymku. Stare wiadomości bez `enc` czytane jak dotąd. Podgląd w skrzynce dla wiadomości szyfrowanej to na razie **opis, nie treść** — deszyfrowalny podgląd dochodzi w fazie 5 |
 | 4 — koperta w webappie | **zrobione**: `mini/src/chat/e2eCrypto.ts` (WebCrypto: ECDH P-256, HKDF, AES-GCM, PBKDF2, kopia klucza w tym samym układzie bajtów), `mini/src/chat/e2eKeys.ts` (tożsamość w IndexedDB + publikacja klucza i kopii), `chatService.sendMessage`/`watchMessages` (szyfrowanie i odszyfrowanie z cache po `msg.id`), `E2ePanel.tsx` + `ChatPage.tsx` (pasek stanu, panel hasła, kłódka i placeholdery w dymkach). Weryfikacja: `npm run e2e:parity` — **31 sprawdzeń, 0 błędów** |
-| 5 — usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd | nie zaczęte |
+| 5 — usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd | **zrobione**: `functions/src/searchIndex.ts` i `backfill_searchtext.js` skasowane, funkcja `onMessageSearchIndex` skasowana w projekcie (`firebase functions:delete`), `messaging.ts` nie czyta już ani `text`, ani `senderTranslation` (zawsze „Nowa wiadomość”, `app_config/notifications.showMessagePreview` przestał być konsultowany), `MessageCipher.decryptPreview` + `ChatSummary.lastMessageEnc/lastMessageBody` + deszyfrowanie w `ChatListViewModel.refreshPreviews` (w tle, cache po `lastMessageAt`), webappka zapisuje te same pola. Reguły: whitelista `chats` rozszerzona o `lastMessageEnc`/`lastMessageBody`. Wdrożone: `functions:onMessageCreated` + `firestore:rules` |
 | 6 — wyszukiwanie lokalne + TOFU | nie zaczęte |
 | 7 — teksty w UI | nie zaczęte (celowo na końcu) |
 
@@ -267,6 +271,37 @@ która faktycznie pójdzie na produkcji.
 ---
 
 ## 8. Pułapki
+
+* ⚠️ **Kasowanie funkcji: `firebase functions:delete`, NIE deploy.** `firebase deploy
+  --only functions:<nazwa>` **nie usuwa** funkcji, której nie ma już w źródłach —
+  zostaje w projekcie i dalej czyta treść. Właściwe polecenie:
+  `firebase functions:delete onMessageSearchIndex --project mini-verbigem --force`.
+  ⚠️ To polecenie **wypisze błąd** `The specified filters do not match any existing
+  functions`, jeśli trafi na drugi przebieg — powłoka w tym projekcie wykonuje
+  polecenia dwukrotnie, a pierwszy przebieg już skasował funkcję. **Ten błąd nie
+  oznacza niepowodzenia** — sprawdź `firebase functions:list`.
+  ⚠️ **Nigdy `firebase deploy --only functions`** (bez nazw): codebase `default`
+  jest wspólna z webappką, więc CLI uzna jej funkcje za osierocone i skasuje je
+  — razem z płatnościami, portfelem i OCR. Po każddym deployu funkcji zrób
+  `firebase functions:list` i policz, czy nadal jest ich 14.
+* ⚠️ **Whitelista pól w regułach `chats` to nie kosmetyka.** `allow update` ma
+  `affectedKeys().hasOnly([...])`, więc **każde nowe pole dokumentu rozmowy wymaga
+  dopisania go tam**. Bez tego zapis jest odrzucany jako `PERMISSION_DENIED`, a objaw
+  jest mylący: outbox ponawia wysyłkę w nieskończoność (dokładnie jak przy
+  `lastMessageType`). Faza 5 dopisała `lastMessageEnc` i `lastMessageBody`.
+* ⚠️ **Nieaktualny podgląd w skrzynce to cichy błąd.** Gdy wiadomość jest jawna,
+  pola `lastMessageEnc`/`lastMessageBody` muszą być **usunięte** (`FieldValue.delete()`
+  / `deleteField()`), a nie pominięte — inaczej w skrzynce zostaje podgląd
+  z poprzedniej wiadomości i pokazuje treść, której nadawca już nie wysłał.
+* ⚠️ **Odszyfrowanie podglądów nie może biec w `recompute()`.** `recompute()` jest
+  wołane przy każdym sygnale z kilku listenerów, a ECDH na kilkadziesiąt rozmów
+  na wątku głównym to widoczne zacięcie. Dlatego `refreshPreviews()` liczy
+  w `Dispatchers.Default`, tylko dla rozmów o zmienionym `lastMessageAt`,
+  i trzyma wynik w cache.
+* ⚠️ **Długość podglądu musi być ta sama w obu ścieżkach** — `PREVIEW_MAX_CHARS`
+  w `ChatThreadViewModel` i `preview.take(80)` w `ChatRepository`. Rozjazd
+  oznacza, że skrzynka zmienia długość tekstu tylko dlatego, że rozmowa
+  przeszła na szyfrowanie.
 
 * ⚠️ **`crypto.subtle` nie istnieje poza HTTPS/localhost.** Webapp działa na
   HTTPS, ale trzeba to sprawdzić i zwrócić błąd, a nie cicho wysłać jawny tekst.

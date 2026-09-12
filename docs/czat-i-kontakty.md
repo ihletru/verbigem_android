@@ -34,9 +34,10 @@ przed nim **v33 (1.0.32)** z 3.9 („Możesz znać").
 **Testy na telefonie (0.9, 1.14, 1.16, 1.17 push, 1.18 numer, 1.19 wyszukiwanie)
 nadal są u Milosza** — bez nich nie ma podstaw, żeby uznać fazę 1 i 2 za domknięte.
 - **1.18** wymaga wpisania odcisków SHA w konsoli Firebase (blok w sekcji 1).
-- **1.19** wymaga **najpierw testu 0.9, potem backfillu** (`node
-  backfill_searchtext.js --apply`) — `chats` jest w produkcji puste, nie ma czego
-  indeksować, dopóki nie powstanie pierwsza rozmowa.
+- **1.19** (wyszukiwanie) **jest nieaktualny** — serwerowy indeks `searchText`
+  został usunięty w fazie 5 E2E (trigger `onMessageSearchIndex` skasowany w kodzie
+  i w projekcie), a wyszukiwanie lokalne dochodzi dopiero w fazie 6.
+  Patrz `docs/czat-e2e.md` §6.
 
 > **B6 rozstrzygnięte 2026-09-03 — Milosz miał rację tylko połowicznie.**
 > Zweryfikowane na żywym kodzie (`ui/components/BottomNav.kt`):
@@ -84,7 +85,7 @@ bez 0.9 i backfillu zwróci zero, bo w produkcji nie ma jeszcze żadnej wiadomo�
 |---|---|---|---|
 | **1.18** | Weryfikacja numeru (2.6) | Profil → potwierdź numer → „wyślij SMS" → SMS przychodzi (lub weryfikacja w locie), ekran przechodzi do DONE. **Crash po kliknięciu naprawiony w v38** (usunięte `requireSmsValidation(true)`). Wcześniej „no activity" naprawione w v37. | — |
 | **0.9** | Dodanie znajomego + pierwsza wiadomość | Znajomi → dodaj → napisz cokolwiek. Bez tego `chats` i `friendships` są w produkcji puste. | 1.19 |
-| — | **Backfill** (po 0.9) | `cd functions && npm run build && cd .. && node backfill_searchtext.js` (dry run), potem `--apply` | 1.19 |
+| — | ~~**Backfill** (po 0.9)~~ | **nieaktualne** — skrypt `backfill_searchtext.js` usunięty razem z serwerowym indeksem (faza 5 E2E) | — |
 | **1.19** | Wyszukiwanie w wiadomościach | Napisz „kot ma Alego", szukaj `kot` (znajdzie), `kota` (**nie** znajdzie — to poprawne), `KOT` (znajdzie), `jęść`/`jesc` (znajdzie) | — |
 | **1.14** | Czat — faza 1 | Skrzynka, wątek, tłumaczenie u odbiorcy, „pokaż oryginał", menu po długim naciśnięciu (kopiuj/czytaj/cytuj/usuń) | — |
 | **1.16** | Karta kontaktu | Kliknięcie awatara/nicku w wątku → karta z aliasem, językiem, blokadą | — |
@@ -232,21 +233,15 @@ WYDANE w v38):**
   - **Szukamy tylko w rozmowach widocznych w skrzynce** — zablokowane i usunięte
     są wykluczone, bo i tak bierzemy `chatId` z listy, którą widzi użytkownik.
     Szukanie w czymś, czego celowo nie pokazujemy, byłoby niespójne.
-  - **Backfill `backfill_searchtext.js`** (dry run domyślnie, `--apply` zapisuje).
-    Trigger indeksuje tylko nowe wiadomości. Skrypt **importuje** normalizację ze
-    zbudowanego `functions/lib/searchIndex` — celowo nie niesie własnej kopii.
-    Wymaga `cd functions && npm run build`.
+  - ~~Backfill `backfill_searchtext.js`~~ — **usunięty** w fazie 5 E2E razem
+    z triggerem `onMessageSearchIndex`. Serwerowy indeks treści nie może istnieć
+    w czacie szyfrowanym end-to-end; wyszukiwanie przechodzi na urządzenie
+    (`docs/czat-e2e.md` §6).
 
-**⚠️ KOLEJNOŚĆ: najpierw test 0.9, potem backfill, potem test 1.19.**
+**⚠️ KOLEJNOŚĆ: najpierw test 0.9, potem test 1.19.**
 `chats` i `friendships` są w produkcji **puste** (sprawdzone REST-em) — nie ma
-czego indeksować, dopóki Milosz nie doda znajomego i nie napisze pierwszej
-wiadomości. Po teście 0.9:
-
-```bash
-cd functions && npm run build && cd ..
-node backfill_searchtext.js            # dry run — sprawdzić liczniki
-node backfill_searchtext.js --apply
-```
+czego wyszukiwać, dopóki Milosz nie doda znajomego i nie napisze pierwszej
+wiadomości. Backfill odpadł: skrypt usunięty razem z serwerowym indeksem.
 
 - **1.19** — scenariusz testu: napisz „kot ma Alego", potem szukaj `kot`
   (znajdzie), `kota` (**nie** znajdzie — to jest poprawne zachowanie), `KOT`
@@ -654,9 +649,11 @@ dopóki faza 2 nie dowiezie prawdziwej blokady.
 
 **Odłożone z fazy 1 (świadomie, nie zapomniane):**
 
-- ~~**1.12 Wyszukiwanie w wiadomościach**~~ — **WYKONANE** (2026-09-04), patrz
-  blok niżej. Czekało dokładnie na to, po co była mowa w fazie 1: trigger
-  zapisujący `searchText`. Backend istnieje od 2.x, więc przeszkoda zniknęła.
+- ~~**1.12 Wyszukiwanie w wiadomościach**~~ — **WYKONANE, POTEM WYCOFANE**
+  (2026-09-04, cofnięte 2026-09-11). Trigger zapisujący `searchText` powstał
+  i działał, ale był **serwerowym indeksem treści** — a czat jest szyfrowany
+  end-to-end, więc indeks musiał zniknąć (faza 5 w `docs/czat-e2e.md`).
+  Wyszukiwanie wraca w fazie 6 jako lokalne.
 - ~~**1.13 Karta kontaktu**~~ — **WYKONANE** (2026-09-04), patrz blok wyżej.
   Zrobione bez czekania na test telefonu, bo to własny tor: nie dotyka
   wysyłania ani tłumaczenia, tylko nakłada się na już działającą skrzynkę.
@@ -1014,8 +1011,10 @@ Czat 1:1 w pełni użyteczny, **bez backendu**.
       własny klucz w `readBy` i `readState`. Wskaźniki ✓ / ✓✓.
 - [ ] **1.11** Wskaźnik „pisze…" + obecność (Firestore z throttlem 5 s; RTDB jest
       tańszy do presence — do rozważenia, jeśli koszty urosną).
-- [x] **1.12** Wyszukiwanie w wiadomościach — pole `searchText` zapisywane przez
-      Cloud Function, zapytanie prefiksowe per czat. **Zostaje:** test 1.19.
+- [~] **1.12** Wyszukiwanie w wiadomościach — pole `searchText` zapisywane przez
+      Cloud Function, zapytanie prefiksowe per czat. **WYCOFANE 2026-09-11** (faza 5
+      E2E): serwerowy indeks treści nie może istnieć w czacie szyfrowanym
+      end-to-end. Wyszukiwanie wraca jako **lokalne** w fazie 6 (`docs/czat-e2e.md`).
 - [x] **1.13** Karta kontaktu (`users/{uid}/contacts/{otherUid}`): alias,
       język tłumaczenia (ręczne nadpisanie profilu), wycisz, zablokuj, przypnij,
       notatka, usuń rozmowę (ukrycie lokalne). Ekran `contact/{uid}`,

@@ -32,10 +32,19 @@ export { matchContacts } from "./contacts";
 // why both import the same declaration instead of each calling `defineSecret`.
 export { verifyPhone, inviteByPhone, onPhoneVerified } from "./invites";
 
-// Search indexing (task 1.12), 2026-09-04. Reacts to the same document as
-// `onMessageCreated` on purpose — see the comment in `searchIndex.ts` for why they
-// are two functions and not one.
-export { onMessageSearchIndex } from "./searchIndex";
+// ⚠️ `onMessageSearchIndex` (zadanie 1.12) został USUNIĘTY 2026-09-11 wraz z fazą 5
+// E2E czatu. Indeks `searchText` to znormalizowana TREŚĆ wiadomości, więc dopóki
+// trigger istniał, każda nowa wiadomość trafiała na serwer w postaci nadającej się do
+// przeszukania — także zaszyfrowana, bo `text` to wtedy base64 szyfrogramu (bezużyteczne
+// jako wyniki, ale wciąż zapisywane). Wyszukiwanie przeniosło się na urządzenie:
+// `MessageSearch` po odszyfrowanych wiadomościach (faza 6).
+//
+// ⚠️ Usunięcie eksportu NIE wystarczy — funkcja dalej działa w projekcie, dopóki nie
+// zostanie skasowana: `firebase functions:delete onMessageSearchIndex --project mini-verbigem`
+//
+// ⚠️ NIE używaj do tego `firebase deploy --only functions`: codebase `default`
+// dzielą funkcje Androida i webappki, więc pełny deploy z jednego repo skasowałby
+// wszystkie funkcje drugiego. Kasowanie pojedynczej funkcji robi się przez `functions:delete`.
 
 // "Możesz znać" / people-you-may-know (task 3.9), 2026-09-04. Computed server-side
 // because the client only reads its own friendships — the social graph has to be

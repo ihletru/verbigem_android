@@ -126,12 +126,45 @@ object MessageCipher {
         } catch (e: Exception) {
             return Decrypted.Failed
         }
+        return open(envelope, body, keyId, identity, message.id)
+    }
 
+    /**
+     * Odszyfrowuje podgląd skrzynki — kopertę, która nie należy do żadnej wiadomości,
+     * tylko do dokumentu `chats/{chatId}` (pola `lastMessageEnc` + `lastMessageBody`).
+     *
+     * **Dlaczego druga koperta, a nie odczyt wiadomości:** skrzynka nie ma prawa
+     * czytać dokumentów wiadomości tylko po to, by pokazać podgląd — to jedno
+     * dodatkowe czytanie na rozmowę przy każdym odświeżeniu listy. Nadawca
+     * dokłada więc malutką kopertę z samym podglądem do dokumentu rozmowy.
+     */
+    fun decryptPreview(
+        envelope: EncEnvelope,
+        body: String,
+        keyId: String,
+        identity: PrivateKey,
+    ): Decrypted {
+        val bytes = try {
+            decode(body)
+        } catch (e: Exception) {
+            return Decrypted.Failed
+        }
+        return open(envelope, bytes, keyId, identity, "podglad")
+    }
+
+    /** Wspólna ścieżka: koperta + szyfrogram -> payload. */
+    private fun open(
+        envelope: EncEnvelope,
+        body: ByteArray,
+        keyId: String,
+        identity: PrivateKey,
+        label: String,
+    ): Decrypted {
         val plaintext = try {
             E2eCrypto.open(envelope.toCrypto(), keyId, identity, body)
         } catch (e: Exception) {
             // GCM nie odszyfrował — podmieniony klucz albo uszkodzone dane.
-            android.util.Log.w(TAG, "Nie moge odszyfrowac wiadomosci ${message.id}", e)
+            android.util.Log.w(TAG, "Nie moge odszyfrowac koperty ($label)", e)
             return Decrypted.Failed
         } ?: return Decrypted.NoKeyForThisDevice
 
@@ -140,7 +173,7 @@ object MessageCipher {
                 gson.fromJson(String(plaintext, Charsets.UTF_8), SecretPayload::class.java).normalized()
             )
         } catch (e: Exception) {
-            android.util.Log.w(TAG, "Odszyfrowana tresc nie jest poprawnym payloadem ${message.id}", e)
+            android.util.Log.w(TAG, "Odszyfrowana tresc nie jest poprawnym payloadem ($label)", e)
             Decrypted.Failed
         }
     }

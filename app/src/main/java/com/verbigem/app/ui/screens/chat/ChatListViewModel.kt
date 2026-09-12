@@ -4,11 +4,13 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.verbigem.app.data.crypto.MessageCipher
 import com.verbigem.app.data.local.AppDatabase
 import com.verbigem.app.data.model.ChatSummary
 import com.verbigem.app.data.model.ContactSettings
 import com.verbigem.app.data.model.PublicProfile
 import com.verbigem.app.data.repository.AuthRepository
+import com.verbigem.app.data.repository.ChatKeyRepository
 import com.verbigem.app.data.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.KeyPair
 
 /** One row of the inbox: the conversation plus everything needed to draw it. */
 data class ChatRow(
@@ -59,6 +62,7 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
 
     private val authRepository = AuthRepository()
     private val chatRepository = ChatRepository()
+    private val chatKeyRepository = ChatKeyRepository(application)
     private val readDao = AppDatabase.getInstance(application).chatReadDao()
     private val hiddenDao = AppDatabase.getInstance(application).chatHiddenDao()
 
@@ -87,6 +91,21 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
     private val _searchDone = MutableStateFlow(false)
     val searchDone: StateFlow<Boolean> = _searchDone.asStateFlow()
 
+    /**
+     * chatId -> odszyfrowany podglad ostatniej wiadomosci.
+     *
+     * Osobny strumien, bo odszyfrowanie jest kosztowne (ECDH na kazda rozmowe)
+     * i NIE MOZE biec w [recompute] — a [recompute] jest wolane przy kazdym
+     * sygnale z kilku listenerow naraz.
+     */
+    private val previewTexts = MutableStateFlow<Map<String, String>>(emptyMap())
+
+    /** chatId -> (lastMessageAt, podglad). Klucz czasu uniewaznia wpis po nowej wiadomosci. */
+    private val previewCache = mutableMapOf<String, Pair<Long, String>>()
+
+    /** Klucz tozsamosci tego konta; `null` = E2E nieskonfigurowane (podglad zostaje opisem). */
+    private var myIdentity: KeyPair? = null
+
     private val chats = MutableStateFlow<List<ChatSummary>>(emptyList())
     private val profiles = MutableStateFlow<Map<String, PublicProfile>>(emptyMap())
     private val friendNicks = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -102,6 +121,13 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
         if (uid.isBlank()) {
             _isLoading.value = false
         } else {
+            // Klucz tozsamosci wczytujemy raz na zycie ViewModelu. Bez niego podglad
+            // szyfrowany zostaje opisem — dokladnie tak, jak widzi go starsza wersja
+            // aplikacji, ktora nie umie odszyfrowac.
+            viewModelScope.launch {
+                myIdentity = withContext(Dispatchers.IO) { chatKeyRepository.localIdentity(uid) }
+                refreshPreviews(uid, chats.value)
+            }
             viewModelScope.launch {
                 chatRepository.watchChats(uid).collect { list ->
                     chats.value = list
@@ -115,6 +141,7 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                         }
                     }
                     recompute()
+                    refreshPreviews(uid, list)
                 }
             }
             // Friendships are a cheaper source of nicknames (already one listener,
@@ -202,6 +229,46 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
         _isSearching.value = false
     }
 
+    /**
+     * Odszyfrowuje podglady rozmow, ktore dostaly nowa wiadomosc.
+     *
+     * Trzy rzeczy sa tu celowe:
+     * 1. **Liczone w tle** ([Dispatchers.Default]) — ECDH na kilkadziesiat rozmow na
+     *    watku glownym to widoczne zaciecie przy przewijaniu skrzynki.
+     * 2. **Tylko dla zmienionych rozmow** — klucz w [previewCache] to `lastMessageAt`,
+     *    wiec powrot do skrzynki nie liczy niczego drugi raz.
+     * 3. **Brak klucza = brak wpisu**, a nie blad: skrzynka pokaze wtedy opis od
+     *    nadawcy. To normalny stan konta bez skonfigurowanego E2E.
+     */
+    private suspend fun refreshPreviews(uid: String, list: List<ChatSummary>) {
+        val identity = myIdentity ?: return
+        val pending = list.filter { summary ->
+            summary.lastMessageEnc != null &&
+                summary.lastMessageBody.isNotBlank() &&
+                previewCache[summary.chatId]?.first != summary.lastMessageAt
+        }
+        if (pending.isEmpty()) return
+
+        val decoded = withContext(Dispatchers.Default) {
+            pending.mapNotNull { summary ->
+                val envelope = summary.lastMessageEnc ?: return@mapNotNull null
+                val result = MessageCipher.decryptPreview(
+                    envelope = envelope,
+                    body = summary.lastMessageBody,
+                    keyId = uid,
+                    identity = identity.private,
+                )
+                val text = (result as? MessageCipher.Decrypted.Ok)?.payload?.text
+                if (text.isNullOrBlank()) null else summary.chatId to (summary.lastMessageAt to text)
+            }
+        }
+        if (decoded.isEmpty()) return
+
+        decoded.forEach { (chatId, entry) -> previewCache[chatId] = entry }
+        previewTexts.value = previewCache.mapValues { it.value.second }
+        recompute()
+    }
+
     private fun fetchProfile(uid: String) {
         viewModelScope.launch {
             try {
@@ -235,7 +302,9 @@ class ChatListViewModel(application: Application) : AndroidViewModel(application
                     otherUid = other,
                     nickname = displayName(other, contact.alias),
                     avatar = profiles.value[other]?.photoURL?.takeIf { it.isNotBlank() } ?: "🙂",
-                    lastMessage = summary.lastMessage,
+                    // Podglad odszyfrowany lokalnie wygrywa z opisem. Gdy klucza nie ma
+                    // albo wiadomosc jest jawna, zostaje to, co zapisal nadawca.
+                    lastMessage = previewTexts.value[summary.chatId] ?: summary.lastMessage,
                     lastMessageAt = summary.lastMessageAt,
                     lastMessageType = summary.lastMessageType,
                     lastMessageIsMine = summary.lastMessageAuthorId == me,

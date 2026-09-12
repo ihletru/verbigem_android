@@ -125,7 +125,19 @@ data class ChatSummary(
     val lastMessageAuthorId: String = "",
     val lastMessageAt: Long = 0,
     /** Faza 5: rodzaj ostatniej wiadomości — inbox pokazuje zlokalizowany placeholder. */
-    val lastMessageType: String = "text"
+    val lastMessageType: String = "text",
+    /**
+     * Faza 5: podgląd ostatniej wiadomości jako druga, mała koperta E2E.
+     *
+     * `lastMessage` zostaje jako zlokalizowany placeholder (albo treść dla wiadomości
+     * jawnej) — dzięki temu starsza wersja aplikacji nie pokaże base64, tylko
+     * sensowny tekst. Ta wersja sięga najpierw tutaj i odszyfrowuje lokalnie.
+     *
+     * ⚠️ `lastMessageBody` to szyfrogram (base64), nie treść — tak samo jak `text`
+     * w wiadomości z kopertą.
+     */
+    val lastMessageEnc: EncEnvelope? = null,
+    val lastMessageBody: String = ""
 ) {
     fun otherUid(me: String): String = members.firstOrNull { it != me }.orEmpty()
 }

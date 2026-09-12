@@ -129,6 +129,19 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            // Atrapa `android.jar` w testach JVM rzuca wyjątek na KAŻDĄ metodę
+            // `android.util.Log`. A właśnie te linie stoją na ścieżkach błędów
+            // (np. nieudane odszyfrowanie GCM), które najbardziej warto testować:
+            // bez tego test odrzucenia podmienionego szyfrogramu kończy się
+            // `RuntimeException: Method w in android.util.Log not mocked`, czyli
+            // błędem atrapy, a nie kodem. Ustawienie sprawia, że niezaimplementowane
+            // metody `android.*` zwracają wartości domyślne zamiast rzucać.
+            isReturnDefaultValues = true
+        }
+    }
+
     // Dwa kanały dystrybucji (patrz PLAY_PUBLISHING_PLAN.md):
     //  - play:      wersja do Google Play (bez samodzielnej aktualizacji APK),
     //               package com.verbigem.app, BuildConfig.PLAY_BUILD = true.
