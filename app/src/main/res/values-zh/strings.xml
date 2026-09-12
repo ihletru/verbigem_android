@@ -18,6 +18,16 @@
     <string name="google_signup">使用 Google 注册</string>
     <string name="auth_error_password">密码至少需要 6 个字符</string>
 
+    <string name="email_verify_title">验证你的电子邮件</string>
+    <string name="email_verify_intro">我们已向 %1$s 发送了激活链接。请打开它以完成账号注册。</string>
+    <string name="email_verify_check">我已验证 — 继续</string>
+    <string name="email_verify_resend">重新发送链接</string>
+    <string name="email_verify_signout">退出登录</string>
+    <string name="email_verify_not_yet">链接尚未被点击。请检查你的收件箱（和垃圾邮件），然后重试。</string>
+    <string name="email_verify_error_no_user">没有已登录的账号 — 请重新登录。</string>
+    <string name="email_verify_error_send">无法发送链接：%1$s</string>
+    <string name="email_verify_error_check">无法刷新账号：%1$s</string>
+
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">从照片（OCR）</string>
     <string name="translate_hint">输入要翻译的文本…</string>

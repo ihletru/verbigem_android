@@ -18,6 +18,16 @@
     <string name="google_signup">Google ile kayıt ol</string>
     <string name="auth_error_password">Şifre en az 6 karakter olmalı</string>
 
+    <string name="email_verify_title">E-posta adresinizi doğrulayın</string>
+    <string name="email_verify_intro">%1$s adresine bir etkinleştirme bağlantısı gönderdik. Hesap oluşturmayı tamamlamak için onu açın.</string>
+    <string name="email_verify_check">Doğruladım — devam et</string>
+    <string name="email_verify_resend">Bağlantıyı yeniden gönder</string>
+    <string name="email_verify_signout">Çıkış yap</string>
+    <string name="email_verify_not_yet">Bağlantıya henüz tıklanmadı. Gelen kutunuzu (ve spam klasörünü) kontrol edin, sonra tekrar deneyin.</string>
+    <string name="email_verify_error_no_user">Oturum açmış hesap yok — lütfen tekrar giriş yapın.</string>
+    <string name="email_verify_error_send">Bağlantı gönderilemedi: %1$s</string>
+    <string name="email_verify_error_check">Hesap yenilenemedi: %1$s</string>
+
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Fotoğraftan (OCR)</string>
     <string name="translate_hint">Çevrilecek metni gir…</string>

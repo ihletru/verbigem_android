@@ -18,6 +18,16 @@
     <string name="google_signup">Mit Google registrieren</string>
     <string name="auth_error_password">Passwort muss mindestens 6 Zeichen haben</string>
 
+    <string name="email_verify_title">Bestätigen Sie Ihre E-Mail</string>
+    <string name="email_verify_intro">Wir haben einen Aktivierungslink an %1$s gesendet. Öffnen Sie ihn, um die Kontoerstellung abzuschließen.</string>
+    <string name="email_verify_check">Ich habe bestätigt — weiter</string>
+    <string name="email_verify_resend">Link erneut senden</string>
+    <string name="email_verify_signout">Abmelden</string>
+    <string name="email_verify_not_yet">Der Link wurde noch nicht angeklickt. Prüfen Sie Ihr Postfach (und den Spam-Ordner) und versuchen Sie es erneut.</string>
+    <string name="email_verify_error_no_user">Kein angemeldetes Konto — bitte melden Sie sich erneut an.</string>
+    <string name="email_verify_error_send">Link konnte nicht gesendet werden: %1$s</string>
+    <string name="email_verify_error_check">Konto konnte nicht aktualisiert werden: %1$s</string>
+
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Aus Foto (OCR)</string>
     <string name="translate_hint">Text zum Übersetzen eingeben…</string>

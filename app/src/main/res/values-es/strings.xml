@@ -18,6 +18,16 @@
     <string name="google_signup">Registrarse con Google</string>
     <string name="auth_error_password">La contraseña debe tener al menos 6 caracteres</string>
 
+    <string name="email_verify_title">Confirma tu correo electrónico</string>
+    <string name="email_verify_intro">Enviamos un enlace de activación a %1$s. Ábrelo para terminar de crear tu cuenta.</string>
+    <string name="email_verify_check">Ya confirmé — continuar</string>
+    <string name="email_verify_resend">Reenviar el enlace</string>
+    <string name="email_verify_signout">Cerrar sesión</string>
+    <string name="email_verify_not_yet">El enlace aún no se ha abierto. Revisa tu bandeja de entrada (y el spam) e inténtalo de nuevo.</string>
+    <string name="email_verify_error_no_user">No hay ninguna cuenta iniciada — inicia sesión de nuevo.</string>
+    <string name="email_verify_error_send">No se pudo enviar el enlace: %1$s</string>
+    <string name="email_verify_error_check">No se pudo actualizar la cuenta: %1$s</string>
+
     <string name="app_title">Mini Verbigem</string>
     <string name="ocr_shortcut">Desde foto (OCR)</string>
     <string name="translate_hint">Escribe el texto a traducir…</string>
