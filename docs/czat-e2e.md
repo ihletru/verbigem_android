@@ -245,7 +245,7 @@ użytkownika w błąd.
 | 1 — format i wektory | **zrobione i zweryfikowane po obu stronach**: referencja `mini/scripts/e2e-vectors.mjs` → `mini/scripts/e2e_vectors.json` (kopia w `app/src/test/resources/`). Kotlin: `E2eCrypto` + `E2eCryptoVectorsTest` — **10 testów, 0 błędów**, odtwarza wektory bajt w bajt (ECDH, HKDF, epk, body, wrap). Uruchomienie: `node scripts/e2e-vectors.mjs` (referencja) i `:app:testStandaloneDebugUnitTest --tests "*E2eCryptoVectorsTest*"` (Kotlin) |
 | 2 — klucz konta | **zrobione**: `E2eCrypto` (pary, koperta, kopia klucza), `E2eKeyStore` (lokalny sejf: PKCS#8 pod kluczem AES z Keystore, wpisy per `uid`), `ChatKeyRepository` (stan / utworzenie / odtworzenie / publikacja klucza i kopii), reguły na `users/{uid}/chatKeyBackup/{doc}`, ekran `E2eKeysScreen` + `E2eKeysViewModel` (wejście: kłódka w nagłówku skrzynki) |
 | 3 — koperta w wysyłce/odbiorze (Android) | **zrobione**: `MessageCipher` (jedna koperta na cały wrażliwy payload), `ChatMessage.enc` + `EncEnvelope`, szyfrowanie w `ChatThreadViewModel.outgoing()` (tekst / zdjęcie / głosówka), odszyfrowanie w `recompute()` z cache po `msg.id`, `EncState` (PLAIN / ENCRYPTED / NO_KEY / FAILED) i kłódka w dymku. Stare wiadomości bez `enc` czytane jak dotąd. Podgląd w skrzynce dla wiadomości szyfrowanej to na razie **opis, nie treść** — deszyfrowalny podgląd dochodzi w fazie 5 |
-| 4 — koperta w webappie | nie zaczęte |
+| 4 — koperta w webappie | **zrobione**: `mini/src/chat/e2eCrypto.ts` (WebCrypto: ECDH P-256, HKDF, AES-GCM, PBKDF2, kopia klucza w tym samym układzie bajtów), `mini/src/chat/e2eKeys.ts` (tożsamość w IndexedDB + publikacja klucza i kopii), `chatService.sendMessage`/`watchMessages` (szyfrowanie i odszyfrowanie z cache po `msg.id`), `E2ePanel.tsx` + `ChatPage.tsx` (pasek stanu, panel hasła, kłódka i placeholdery w dymkach). Weryfikacja: `npm run e2e:parity` — **31 sprawdzeń, 0 błędów** |
 | 5 — usunięcie `onMessageSearchIndex` + push bez treści + szyfrowany podgląd | nie zaczęte |
 | 6 — wyszukiwanie lokalne + TOFU | nie zaczęte |
 | 7 — teksty w UI | nie zaczęte (celowo na końcu) |
@@ -303,6 +303,23 @@ która faktycznie pójdzie na produkcji.
   `ocrText` i `transcript`, a przy wysyłce te pola muszą zostać PUSTE —
   inaczej jawna treść leży obok koperty w tym samym dokumencie i cała
   robota jest teatrem. Pilnuje tego jedna funkcja: `outgoing()`.
+* ⚠️ **JCA koduje klucz prywatny EC w 67 bajtach — BEZ klucza publicznego**
+  (pole `[1]` w `ECPrivateKey` jest opcjonalne). Sprawdzone realnym kluczem
+  z SunEC: WebCrypto taki PKCS#8 przyjmuje, liczy identyczne ECDH i odszyfrowuje
+  szyfrogram. Gdyby tego nie potrafiło, odtworzenie historii w przeglądarce nie
+  działałoby **wcale**, a testy webapp → webapp by tego nie wykryły. Fixture:
+  `mini/scripts/jca_pkcs8_fixture.json`, sekcja 8 w `npm run e2e:parity`.
+* ⚠️ **Przeglądarka nie ma Keystore.** Klucz prywatny w IndexedDB jest czytelny
+  dla każdego, kto uruchomi JS w tej domenie (XSS, złośliwe rozszerzenie).
+  To jest słabsze niż Android i jest zapisane tutaj jako znana różnica —
+  nie udajemy, że jest inaczej.
+* ⚠️ **`crypto.subtle` istnieje tylko w HTTPS.** Poza nim `encryptionAvailable()`
+  zwraca `false` i wysyłka jest jawna — ale UI MUSI o tym powiedzieć
+  (`chat.e2eNoHttps`). Cicha wysyłka jawna „bo się nie udało" jest niedopuszczalna.
+* ⚠️ **Strażnik i18n (`npm run i18n:code`) flaguje KAŻDY tekst podany wprost do
+  `new Error(...)`** — niezależnie od języka. Komunikaty techniczne trzymamy
+  więc w stałej (`ERR`) i rzucamy przez `fail(ERR.x)`; zdania dla użytkownika
+  są w słownikach i idą przez `t(uiLang, …)`.
 * ⚠️ `chats.lastMessage` jest dziś jawnym tekstem. Jeśli zostawimy go jawnego,
   podgląd w skrzynce nadal zdradza treść. Do decyzji w fazie 5.
 
