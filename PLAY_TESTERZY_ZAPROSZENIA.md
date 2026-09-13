@@ -343,10 +343,73 @@ Play nie wie, że jej członkowie mają dostęp.
 Dlatego ostrzeżenie `IMPORTANT` w ogłoszeniu nie jest ozdobnikiem — to najczęstszy powód
 komunikatu „nie masz dostępu" u testerów, którzy kliknęli link opt-in jako pierwsi.
 
-⚠️ Zanim wkleisz ogłoszenie: podmień nic, jeśli linki się zgadzają — ale **sprawdź, czy
+⚠️ Zanim wkleisz ogłoszenie: nie zmieniaj nic, jeśli linki się zgadzają — ale **sprawdź, czy
 wszystkie trzy adresy działają** (grupa, opt-in, strona w Sklepie). Wpis z martwym linkiem
 na `r/AndroidTesting` zbierze same negatywne komentarze. I **faktycznie odwzajemniaj**:
 ten subreddit pamięta, kto bierze i nie daje.
+
+---
+
+## 5e. Grupa Google NIE jest obowiązkowa — i co robić, gdy jej założenie się blokuje
+
+To najważniejsza rzecz w tym pliku, jeśli utkniesz. **Play Console przyjmuje testerów na dwa
+sposoby**, a grupa dyskusyjna jest tylko jednym z nich:
+
+| Sposób | Gdzie | Kiedy się opłaca |
+|---|---|---|
+| **Lista adresów e-mail** (wklejana albo CSV) | Play Console, wewnątrz aplikacji | Mała, stała grupa; zero zależności od Google Groups |
+| **Grupa dyskusyjna Google** | `groups.google.com` + podpięcie w Play Console | Wymiana testerów (T4T) — ludzie dochodzą sami, bez edycji listy |
+
+Czyli: **jeśli nie możesz założyć grupy, nie utknąłeś.** Ścieżka z listą e-mail działa w 100%
+wewnątrz Play Console i nie wymaga przechodzenia przez żadną CAPTCHA Google Groups.
+
+### Ścieżka „lista e-mail" (dokładne kliknięcia)
+
+1. Play Console → **Testuj i publikuj** → **Test zamknięty** → wybierz ścieżkę
+2. zakładka **Testerzy** → **Utwórz listę adresów e-mail** → nadaj nazwę
+3. wklej adresy (jeden na linię) albo wgraj CSV → **Zapisz zmiany**
+4. ⚠️ **teraz zaznacz checkbox obok utworzonej listy** i kliknij **Zapisz** na dole strony
+
+⚠️ **Krok 3 i krok 4 to dwie osobne operacje.** Wgranie adresów *tworzy* listę, ale dopiero
+zaznaczenie checkboxa *podpina* ją do ścieżki. Bez kroku 4 lista jest niewidoczna dla wydania
+i testerzy dostają „nie masz dostępu" — mimo że lista wygląda na poprawną.
+
+⚠️ **Testerzy muszą mieć konto Google** (Gmail albo Google Workspace). Adres na innym
+dostawcy nie przejdzie opt-inu — nie zbieraj adresów „na outlooku".
+
+### Gdy zakładanie grupy zapętla CAPTCHA
+
+Objawy z 2026-09-13: CAPTCHA wraca mimo poprawnego rozwiązywania, czerwony pasek
+„Please input your API key!" (to **wtyczka przeglądarki**, nie Google — patrz pamięć
+użytkownika). Co zostało **wykluczone eksperymentem**:
+
+| Test | Wynik | Wniosek |
+|---|---|---|
+| Hotspot z telefonu (inny operator, inny ASN) | CAPTCHA dalej | **To NIE jest blokada IP** — Starlink jest czysty |
+| Nowa przeglądarka Brave (czysty profil, zero wtyczek) | CAPTCHA dalej | **To NIE jest wtyczka ani profil** |
+| Chrome | CAPTCHA dalej | — |
+
+Skoro sieć i przeglądarka odpadają, **przyczyna siedzi w koncie Google**. Konsekwencja
+praktyczna: **VPN nie pomoże** — i to jest już ustalone eksperymentem, a nie domysłem.
+Nie tracić na to czasu.
+
+Najbardziej prawdopodobna przyczyna i kolejność działań:
+
+1. **Wiele kont Google zalogowanych jednocześnie.** Zakładanie grupy w tym stanie jest
+   znanym źródłem zapętlonych weryfikacji. Wyloguj się ze **wszystkich** kont Google, zaloguj
+   **dokładnie jedno**, wejdź bezpośrednio na `groups.google.com` (nie przez Play Console).
+2. **Brak zweryfikowanego numeru telefonu na koncie** — najskuteczniejsza dźwignia obniżenia
+   CAPTCHY dla kont o niskim zaufaniu. Dodaj numer w ustawieniach konta Google.
+3. **Przestać próbować na 24–48 h.** Każda nieudana próba podnosi ocenę ryzyka; dobijanie
+   się do formularza pogarsza sprawę, nie poprawia.
+4. **Założyć grupę z innego, starszego konta Google** i dodać się jako właściciel. Grupa nie
+   musi należeć do tego samego konta co konto deweloperskie w Play — liczy się tylko to, że
+   jest podpięta jako lista testerów.
+
+⚠️ **Nie zakładaj nowej grupy „na zapas", jeśli masz działającą.** Milosz ma już
+`groups.google.com/g/verbigem`; nowa grupa była tworzona „by nie było problemów", ale to
+właśnie ta nowa grupa wpędziła w pętlę CAPTCHA. Sensowna kolejność: sprawdź, czy **istniejąca**
+grupa jest dołączalna dla obcych i podpięta w Play Console — jeśli tak, problemu nie ma.
 
 ---
 
