@@ -51,6 +51,8 @@ wyjściem do produkcji** — to osobny krok, nie teraz.
 
 ### Firebase — odcisk podpisu (bez tego Google Sign-In nie działa w wersji z Play)
 
+⚠️ **NAJPIERW USTAL PROJEKT — najczęstsza pomyłka.** Aplikacja Android siedzi w projekcie **`mini-verbigem`**, a **NIE** w projekcie `verbigem-app-7k2`. Projekt `verbigem-app-7k2` („Verbigem") obsługuje wyłącznie **webappkę** `verbigem.com` — nie ma w nim **żadnej** aplikacji Android, więc szukanie tam `com.verbigem.app` kończy się pustą listą. Potwierdzone przez API 2026-09-12: `mini-verbigem` = 2× Android (`com.verbigem.app`, `com.verbigem.app.sideload`) + `mini-web`; `verbigem-app-7k2` = tylko `web`. To także wyjaśnia, dlaczego backend płatności leży w `mini/functions/` — apka i webappka dzielą jeden projekt Firebase.
+
 Google Play podpisuje aplikację **własnym kluczem** (Play App Signing) — innym niż klucz uploadu i innym niż debug. Firebase musi znać ten odcisk; bez niego logowanie przez Google w wersji z Play kończy się błędem „No credentials available", choć w APK sideload działa bez zarzutu.
 
 | Klucz | SHA-1 |
@@ -58,6 +60,15 @@ Google Play podpisuje aplikację **własnym kluczem** (Play App Signing) — inn
 | **Play App Signing** — tym podpisany jest APK, który dostaje telefon | `b09748e2d639f0e28f89b013f5b6f983d70babc7` |
 | Klucz uploadu — tym podpisujesz AAB | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
 | Debug — sideload z naszej strony | `ec9deb58cdf2483a7efe2b73c2c7901b9d6d3ccc` |
+
+**Stan faktyczny w Firebase (`mini-verbigem`, odczyt przez API 2026-09-12):**
+
+| Aplikacja | Zarejestrowane odciski | Ocena |
+|---|---|---|
+| `com.verbigem.app` | SHA-1 `b09748e2…babc7`, SHA-1 `1a9b770a…8a1f`, SHA-256 `c92aba6c…33b7` | komplet dla ścieżki Play ✅; brak odciska wewnętrznego udostępniania ❌ |
+| `com.verbigem.app.sideload` | SHA-1 `ec9deb58…d3ccc`, SHA-1 `b09748e2…babc7` | debug jest ✅; **brak SHA-256** dla debug |
+
+Dwie uwagi do tego stanu: odcisk `b09748e2…` na wpisie `.sideload` jest **zbędny** (klucz Play App Signing nigdy nie podpisuje pakietu sideload) — prawdopodobnie dodany przez pomyłkę, nie szkodzi. Natomiast brak **SHA-256 klucza debug** dla `.sideload` nie przeszkadza logowaniu, ale bywa potrzebny przy weryfikacji App Links (`assetlinks.json` wymaga SHA-256, nie SHA-1).
 
 **Do zrobienia:** Firebase Console → ⚙️ Project settings → **Your apps** → `com.verbigem.app` → **Add fingerprint** → wklej SHA-1 Play App Signing. Dodaj też SHA-256: `c92aba6c54cfe933cd411eca8d1138f8ed9795058190345fe4ce424ba88033b7`. Propagacja zajmuje kilka minut i **nie wymaga przebudowy AAB**.
 
