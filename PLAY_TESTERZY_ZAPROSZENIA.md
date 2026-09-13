@@ -8,24 +8,39 @@ nieprzerwanie, tylko test zamknięty) opisany jest w `PLAY_INTERNAL_TESTING.md`.
 
 ## 0. Punkt wyjścia — co już masz
 
-Odczyt z Firestore (`mini-verbigem`, 2026-09-12):
+⚠️ **Sprostowanie (2026-09-13).** Wcześniej zapisałem tu „9 kont = najcieplejsza pula".
+To był **błąd we wniosku, nie w liczbie**: 9 to prawdziwy wynik zapytania do Firestore, ale
+**4 z tych kont to konta testowe Milosza** — czyli realnych osób jest **5**. Nie wolno
+budować planu na liczbie 9.
 
-| Kolekcja | Liczba |
-|---|---|
-| `usersPublic` | **9** |
-| `chats` | **0** |
+Odczyt z Firestore (`mini-verbigem`):
 
-Dwa wnioski, oba ważne dla planu:
+| Kolekcja | Liczba | Po odjęciu kont testowych |
+|---|---|---|
+| `usersPublic` | **9** | **5** |
+| `chats` | **0** | — |
 
-1. **Masz 9 zarejestrowanych kont.** To najcieplejsza pula, jaka istnieje — ci ludzie
-   sami ściągnęli apkę z `mini.verbigem.com` i założyli konto. Nie musisz ich przekonywać,
-   że aplikacja istnieje.
-2. **Zero czatów** oznacza, że część z tych 9 kont to prawdopodobnie Twoje własne testy,
-   a nie obcy użytkownicy. Realna liczba osób do policzenia, nie do przyjęcia na wiarę.
+**Wszystkie 9 kont pochodzi z APK sideload, nie z Google Play.** Wynika to wprost
+z chronologii: wydanie `v1.0.72` (pierwsze z pakietem `com.verbigem.app`) weszło
+2026-09-12, a ścieżka testowa w Play nie ma jeszcze nikogo. Zanim więc ktokolwiek
+zainstaluje wersję Play, **nie może istnieć żaden użytkownik z pakietu `com.verbigem.app`**.
+Wszyscy dotychczasowi to `com.verbigem.app.sideload` — czyli apka z `mini.verbigem.com`.
 
-**Pierwszy krok:** Firebase Console → **Authentication → Users** (projekt `mini-verbigem`)
-→ przejrzyj listę i policz, ile adresów należy do prawdziwych ludzi. Adresy z
-`@gmail.com` z sensowną nazwą to kandydaci; własne aliasy i konta testowe odpadają.
+⚠️ **Konsekwencja, którą łatwo przeoczyć:** te 5 osób **nie liczy się** jako testerzy.
+Sideload i Play to **dwa różne pakiety**, więc żadna z nich nie ma jeszcze wersji testowej.
+Każda musi przejść pełną ścieżkę opt-in i zainstalować `com.verbigem.app` z Play. Dobra
+wiadomość: oba pakiety instalują się obok siebie, więc nie muszą niczego odinstalowywać.
+
+Czego **nie da się** ustalić z danych: Firestore nie zapisuje, z jakiego pakietu ani wersji
+przyszedł użytkownik. Pola w `usersPublic` to wyłącznie `nickname`, `photoURL`, `searchEmail`,
+`searchNick`, `speakLangSource/Target`, `uiLang`, `uid`. Podział smaków trzeba znać z pamięci,
+nie z bazy.
+
+Rozkład `uiLang` wśród tych 9: `pl` 6, `es` 2, `en` 1 — czyli obraz zgodny z „krąg własny
+plus znajomi z Paragwaju", a nie z ruchem organicznym.
+
+**Realny plan, licząc uczciwie:** masz **5 realnych osób** (nie 12, nie 9). Brakuje
+**7–10**, żeby mieć bufor. To dokładnie ta luka, którą domyka sekcja C (`r/AndroidTesting`).
 
 ---
 
@@ -256,9 +271,14 @@ Trzy najczęstsze powody, dla których licznik nie działa:
 
 ## 7. Kolejność działań
 
-1. Policz prawdziwych ludzi na liście kont (Firebase Console → Authentication → Users).
-2. Napisz do nich pojedynczo (sekcja 2/3/4 — w zależności od języka).
-3. Uruchom **test wewnętrzny** na 2–3 osobach od razu — waliduje build, nie ma wymogów,
+Punkt wyjścia jest już policzony (sekcja 0): **5 realnych osób**, nie 9.
+
+1. Napisz do tych 5 pojedynczo (sekcja 2/3/4 — w zależności od języka). Pamiętaj, że żadna
+   z nich nie ma jeszcze pakietu Play — muszą przejść pełny opt-in.
+2. Uruchom **test wewnętrzny** na 2–3 osobach od razu — waliduje build, nie ma wymogów,
    nie zużywa niczego z puli na test zamknięty.
+3. Brakujące **7–10 osób** dobierz przez `r/AndroidTesting` (sekcja C). Licz się z tym, że
+   T4T działa **1:1** — za każdego pozyskanego testera sam musisz przetestować czyjąś apkę
+   przez pełne 14 dni. To realna praca, nie formalność.
 4. Równolegle zbieraj resztę na **test zamknięty**. Zaproś 14–15 osób.
 5. Gdy wszyscy się zapiszą — **zanotuj datę**. Od niej liczy się 14 dni.
