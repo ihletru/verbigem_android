@@ -211,7 +211,13 @@ Wersja hiszpańska:
 
 ---
 
-## 5b. Wpis na Reddita (r/AndroidTesting) — gotowy do wklejenia
+## 5b. Wpis na Reddita (r/AndroidTesting) — wersja z grupą Google
+
+Przeredagowane na wzór ogłoszenia innego dewelopera z tego subreddita (schemat:
+krótki opis → prośba → trzy kroki `HOW TO JOIN` → ostrzeżenie o kolejności → osobista nota).
+Zmiany względem tamtego wzoru: **nie ma zdania „there are no ads"** — Twoja darmowa wersja
+ma baner AdMob i testerzy i tak go zobaczą. Ukrycie tego kosztowałoby Cię zaufanie przy
+pierwszej opinii.
 
 Tytuł:
 
@@ -219,33 +225,128 @@ Tytuł:
 
 Treść:
 
-> Hi everyone,
+> **Need Testers**
 >
-> I need 12 testers for the closed testing of my Android app and I'm happy to test yours in
-> return for the full 14 days. Active T4T.
+> Verbigem is an offline translator for Android. It translates text and photos **without an
+> internet connection**, in six languages (Polish, English, German, Spanish, Chinese,
+> Turkish). It's built for the situations where you can't count on the network — travelling,
+> abroad, on a bad connection — and for people who don't want everything they type sent to a
+> server.
 >
-> **What it is:** Verbigem — an offline translator. It translates text and photos without an
-> internet connection, in 6 languages (PL, EN, DE, ES, ZH, TR). Built for travel and for
-> people who don't want to send everything they type to a server.
+> The app is now entering Google Play Closed Testing, and I need **at least 12 testers** willing
+> to stay opted in for **14 consecutive days**. Actually using it and telling me what feels off
+> would be hugely appreciated.
 >
-> **What I need:** 12 testers, 14 days, no uninstalling in between. You just need to open the
-> app a few times during that period.
+> The free version shows a small banner ad; PRO removes it. There's nothing to unlock — it's a
+> tool, not a game.
 >
-> **How to join:**
-> 1. Open this link on an Android phone: [OPT-IN LINK]
-> 2. Sign in with the Google account you added — tap "Become a tester"
-> 3. Then "Download from Play Store"
+> HOW TO JOIN:
 >
-> Note: it won't show up in Play Store search, only this link works.
+> 1. Join the Google Group:
 >
-> **Drop your app + link in the comments and I'll install it today.** I'll keep it for the
-> full 14 days.
+> https://groups.google.com/g/verbigem
 >
-> Thanks!
+> 2. Opt into the Closed Test:
+>
+> https://play.google.com/apps/testing/com.verbigem.app
+>
+> 3. Download the app:
+>
+> https://play.google.com/store/apps/details?id=com.verbigem.app
+>
+> IMPORTANT: please join the Google Group BEFORE using the opt-in link, otherwise Google Play
+> may tell you that you don't have access.
+>
+> If you can help, please stay opted in for the full 14 days. You don't need to use it
+> constantly, although any feedback is extremely useful — especially if a translation comes out
+> wrong, or if something in the interface is confusing.
+>
+> This is an app I'm building on my own, and having people actually test what I've been working
+> on means a lot. If you find a bug, have a suggestion, or just want to tell me what you think,
+> leave a comment or message me.
+>
+> **If you're a developer:** drop your app and opt-in link in the comments and I'll install it
+> and keep it for the full 14 days. Active T4T.
+>
+> Thanks to anyone willing to give it a shot.
+>
+> — Milosz
 
-⚠️ Zanim wkleisz: podmień `[OPT-IN LINK]` na link z konsoli, i **faktycznie odwzajemniaj**.
-Ten subreddit pamięta, kto bierze i nie daje — jeden spalony wątek i nikt Ci nie zaufa
-przy kolejnej aplikacji.
+---
+
+## 5c. Wersja polska — dla własnego kręgu (Facebook, WhatsApp, e-mail)
+
+> **Szukam testerów**
+>
+> Verbigem to tłumacz offline na Androida. Tłumaczy tekst i zdjęcia **bez internetu**,
+> w sześciu językach (polski, angielski, niemiecki, hiszpański, chiński, turecki). Powstał
+> dla sytuacji, w których nie można liczyć na sieć — w podróży, za granicą, przy słabym
+> zasięgu — i dla ludzi, którzy nie chcą, żeby wszystko, co wpisują, leciało na serwer.
+>
+> Aplikacja wchodzi właśnie do zamkniętych testów w Google Play i potrzebuję **co najmniej
+> 12 testerów**, którzy zostaną zapisani przez **14 dni bez przerwy**. Naprawdę przydałoby
+> się, gdybyście jej użyli i powiedzieli, co zgrzyta.
+>
+> W darmowej wersji jest mały baner reklamowy; PRO go usuwa. Nie ma nic do odblokowywania —
+> to narzędzie, nie gra.
+>
+> JAK DOŁĄCZYĆ:
+>
+> 1. Zapisz się do grupy Google: https://groups.google.com/g/verbigem
+> 2. Włącz test: https://play.google.com/apps/testing/com.verbigem.app
+> 3. Pobierz aplikację: https://play.google.com/store/apps/details?id=com.verbigem.app
+>
+> WAŻNE: najpierw zapisz się do grupy, a dopiero potem użyj linku do testu — inaczej Sklep
+> Play powie, że nie masz dostępu.
+>
+> Jeśli możesz pomóc, zostań zapisany przez pełne 14 dni. Nie musisz używać jej bez przerwy,
+> ale każda uwaga jest bezcenna — zwłaszcza gdy tłumaczenie wyjdzie źle albo coś w interfejsie
+> jest niejasne.
+>
+> Buduję tę aplikację sam i to, że ktoś naprawdę ją sprawdzi, znaczy dla mnie dużo. Błąd,
+> sugestia, albo po prostu opinia — napisz w komentarzu albo w wiadomości.
+>
+> Dzięki, że dajesz jej szansę.
+>
+> — Milosz
+
+---
+
+## 5d. Grupa Google jako lista testerów — co musi być ustawione
+
+Wybór grupy dyskusyjnej zamiast listy adresów e-mail ma jedną wielką zaletę: **nie dopisujesz
+ludzi ręcznie** — kto dołączy do grupy, ten jest testerem. Ma też dwa warunki, od których
+zależy, czy cała instrukcja w ogłoszeniu w ogóle zadziała.
+
+**1. Grupa musi być dostępna dla obcych.** Nie mogłem tego sprawdzić anonimowo — strona
+`groups.google.com/g/verbigem` zwraca „Content unavailable" bez logowania, co jest normalne
+dla grupy wymagającej zalogowania, ale **nie przesądza, czy da się do niej dołączyć**.
+Sprawdź sam, wylogowany albo w oknie incognito:
+
+- Grupa → **Ustawienia grupy** → **Uprawnienia** → „Kto może dołączyć" musi pozwalać na
+  dołączenie osobom spoza domeny. Jeśli jest ustawione na „tylko zaproszeni" albo na Twoją
+  domenę, **nikt z Reddita nie dołączy** i cały ogłoszenie spali się na pierwszym kroku.
+
+Jeśli grupa ma zostać zamknięta, to jedyna droga to lista adresów e-mail (sekcje 2–4),
+a nie grupa.
+
+**2. Grupa musi być dodana jako lista testerów w Play Console.**
+**Testuj i publikuj → Test zamknięty → Testerzy → zakładka „Grupy dyskusyjne Google"** →
+wybierz `verbigem`. Samo istnienie grupy nic nie daje — dopóki nie jest podpięta do ścieżki,
+Play nie wie, że jej członkowie mają dostęp.
+
+**3. Kolejność jest obowiązkowa.** Oficjalna dokumentacja Google:
+
+> „W przypadku testów zamkniętych z wykorzystaniem Grupy dyskusyjnej Google użytkownicy muszą
+> dołączyć do grupy, zanim wezmą udział w teście."
+
+Dlatego ostrzeżenie `IMPORTANT` w ogłoszeniu nie jest ozdobnikiem — to najczęstszy powód
+komunikatu „nie masz dostępu" u testerów, którzy kliknęli link opt-in jako pierwsi.
+
+⚠️ Zanim wkleisz ogłoszenie: podmień nic, jeśli linki się zgadzają — ale **sprawdź, czy
+wszystkie trzy adresy działają** (grupa, opt-in, strona w Sklepie). Wpis z martwym linkiem
+na `r/AndroidTesting` zbierze same negatywne komentarze. I **faktycznie odwzajemniaj**:
+ten subreddit pamięta, kto bierze i nie daje.
 
 ---
 
