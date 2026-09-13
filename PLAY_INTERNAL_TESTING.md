@@ -161,6 +161,68 @@ Wymagane, żeby recenzja w ogóle ruszyła:
 ⚠️ **Najczęstszy powód „aplikacja nie istnieje":** tester nie kliknął „Zostań
 testerem" albo otworzył link na innym koncie Google niż zaproszony.
 
+### ⚠️ Test wewnętrzny NIE odblokowuje produkcji — wymóg 12 × 14 dni
+
+To najważniejsza rzecz na tym etapie i najczęstsze źródło rozczarowania. Oficjalna
+strona Google („Wymagania dotyczące testowania w Konsoli Play"):
+
+> „Deweloperzy, którzy mają konta osobiste utworzone po 13 listopada 2023 roku, muszą
+> przeprowadzić testy zamknięte aplikacji z udziałem co najmniej 12 testerów, którzy
+> nieprzerwanie uczestniczyli w programie testowania przez co najmniej 14 dni."
+
+Kluczowe konsekwencje:
+
+- Chodzi o **test zamknięty**, nie wewnętrzny. Testerzy z testu wewnętrznego **nie liczą się**
+  do tego wymogu — Google wymienia wprost „mniej niż 12 testerów, którzy wyrazili zgodę".
+- 14 dni musi być **nieprzerwane**. Tester, który zniknie w połowie, psuje licznik.
+- Google ocenia też **zaangażowanie** testerów — sama obecność na liście nie wystarcza.
+- Do spełnienia wymogu wersja produkcyjna jest **zablokowana** (podobnie rejestracja przed premierą).
+- Po złożeniu prośby o dostęp do produkcji weryfikacja trwa **do 7 dni**.
+
+Wymóg dotyczy **kont osobistych założonych po 13.11.2023**. Konta organizacji i starsze
+konta osobiste go nie mają — warto to sprawdzić w ustawieniach konta, zanim zacznie się
+zbierać ludzi. Najprostszy test: spróbować utworzyć wersję produkcyjną; jeśli jest
+zablokowana komunikatem o testach, wymóg obowiązuje.
+
+**Wniosek praktyczny:** test wewnętrzny uruchom od razu na 2–3 osobach (szybka walidacja
+builda, bez wymogów), a **równolegle** zacznij zbierać 12 osób na test zamknięty, bo
+14 dni liczy się od momentu, gdy wszyscy się zapiszą.
+
+### Skąd wziąć 12 testerów (sprawdzone sposoby, bez kupowania)
+
+Wymagania wobec testera: **konto Google lub Workspace** + telefon z Androidem. Nie musi
+znać polskiego — apka ma 6 języków (PL, EN, DE, ES, ZH, TR), więc znajomi z Paragwaju
+(ES) są równie dobrzy jak ci z Polski.
+
+1. **Własna sieć — zawsze zaczynaj tutaj.** Rodzina, znajomi, współpracownicy. Realny
+   człowiek z telefonem, który faktycznie otworzy apkę przez 2 tygodnie, jest wart więcej
+   niż pięciu „testerów" z farmy.
+2. **Zaproszenie na piśmie, nie sam link.** Wyślij instrukcję: (1) otwórz link **na
+   telefonie**, (2) zaloguj się tym kontem Google, które podałeś, (3) kliknij „Zostań
+   testerem", (4) dopiero potem „Pobierz ze Sklepu Play". Bez punktu 3 link prowadzi do
+   strony bez przycisku instalacji.
+3. **Wymień się z innymi deweloperami.** Społeczności wzajemnego testowania (subreddity
+   poświęcone testom zamkniętym, serwery Discord dla twórców Androida) działają na zasadzie
+   „ja zainstaluję twoją, ty moją". To legalne i zgodne z regulaminem.
+4. **⚠️ Nie kupuj testerów z farm.** Firmy sprzedające „12 testerów w 24 h" generują konta
+   bez realnej aktywności. Google odrzuca takie prośby, powołując się właśnie na
+   niewystarczające zaangażowanie — a stracony czas liczy się od nowa.
+5. **Zaplanuj bufor.** Zaproś 14–15 osób, nie 12. Jeden tester z Androidem 32-bitowym,
+   jeden z krajem poza dystrybucją, jeden który odinstaluje — i spadasz poniżej progu.
+
+### Gdzie to jest w konsoli
+
+| Ścieżka | Gdzie w Play Console |
+|---|---|
+| Test wewnętrzny | Testuj i publikuj → Testowanie → **Test wewnętrzny** |
+| Test zamknięty | Testuj i publikuj → Testowanie → **Test zamknięty** |
+| Testerzy (lista) | zakładka **Testerzy** → **Utwórz listę e-mail** |
+| Link przystąpienia | zakładka **Testerzy** → **Skopiuj link** |
+
+⚠️ Link przystąpienia jest widoczny **tylko gdy aplikacja ma stan „Opublikowana"**
+(„Wersja robocza" i „Czeka na publikację" go nie pokazują). Po pierwszej publikacji
+ścieżki testowej udostępnienie linku może zająć **kilka godzin**.
+
 ---
 
 ## 5. Diagnostyka — objaw → prawdziwa przyczyna
