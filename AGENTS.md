@@ -38,7 +38,7 @@
 | **Czat, kontakty, znajomi** | [`docs/czat-i-kontakty.md`](docs/czat-i-kontakty.md) + [`docs/funkcje.md`](docs/funkcje.md) |
 | **Szyfrowanie czatu E2E, klucze, model zagrożeń** | [`docs/czat-e2e.md`](docs/czat-e2e.md) |
 | **Build, Gradle, NDK, środowisko Windows** | [`docs/uruchomienie.md`](docs/uruchomienie.md) |
-| **Play Console: opis, Data Safety, testowanie** | `PLAY_INTERNAL_TESTING.md`, `PLAY_CONSOLE_FILLIN.md`, `PLAY_PUBLISHING_PLAN.md` |
+| **Play Console: opis, Data Safety, testowanie** | `PLAY_INTERNAL_TESTING.md`, `PLAY_TESTERZY_ZAPROSZENIA.md` (gotowe zaproszenia + gdzie szukać testerów), `PLAY_CONSOLE_FILLIN.md`, `PLAY_PUBLISHING_PLAN.md` |
 | **Webapp `mini.verbigem.com`** | osobne repo `verbigem-mini` — tutaj tylko kontekst |
 
 Wiedza długoterminowa projektu (decyzje, pułapki, ID) jest też w `.workbuddy-ai/memory/MEMORY.md` i dziennikach `.workbuddy-ai/memory/YYYY-MM-DD.md`.

@@ -48,7 +48,7 @@ Dawniej cała dokumentacja żyła tutaj — 1190 linii, 111 kB, cztery różne d
 
 Badania i wątki poboczne: `docs/SILNIK_PRO_RESEARCH.md`, `docs/PRO_MODEL_RESEARCH_2.md`.
 
-Procedury operacyjne Play Store (wciąż w katalogu głównym): `PLAY_INTERNAL_TESTING.md`, `PLAY_CONSOLE_FILLIN.md`, `PLAY_PUBLISHING_PLAN.md`, `PLAY_RELEASE_NOTES_EN.md`, `Dystrybucja aplikacji Android i iPhone.md`.
+Procedury operacyjne Play Store (wciąż w katalogu głównym): `PLAY_INTERNAL_TESTING.md`, `PLAY_TESTERZY_ZAPROSZENIA.md`, `PLAY_CONSOLE_FILLIN.md`, `PLAY_PUBLISHING_PLAN.md`, `PLAY_RELEASE_NOTES_EN.md`, `Dystrybucja aplikacji Android i iPhone.md`.
 
 ---
 
