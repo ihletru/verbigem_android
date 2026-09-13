@@ -42,19 +42,41 @@ Tester **nie musi znać polskiego**: apka ma 6 języków interfejsu (PL, EN, DE,
 więc znajomi z Paragwaju są tak samo użyteczni jak ci z Polski. Wymagania: konto Google
 + telefon z Androidem **64-bitowym** (AAB jest budowany wyłącznie dla `arm64-v8a`).
 
-### C. Społeczności wzajemnego testowania
+### C. Społeczności wzajemnego testowania — **ZWERYFIKOWANE 2026-09-13**
 
-Reddit i serwery Discord dla twórców Androida, gdzie działa zasada „zainstaluję Twoją,
-zainstalujesz moją". **⚠️ Nie mogłem zweryfikować konkretnych adresów** — Reddit blokuje
-automatyczny dostęp, a pierwsza strona wyników Google jest dziś zajęta przez komercyjne
-serwisy sprzedające testerów. Wyszukaj sam, wpisując na Reddicie:
+**`r/AndroidTesting`** na Reddicie: <https://www.reddit.com/r/AndroidTesting/>
 
-- `closed testing 12 testers`
-- `closed testing exchange`
-- `Android closed testing`
+To jest właściwe miejsce i jest bardzo żywe. Sprawdzone bezpośrednio — na jednej stronie
+`/new/` było **28 świeżych wątków**, praktycznie wszystkie o wymianie testerów. Przykłady
+tytułów z tej jednej strony (żeby było jasne, jaki to typ społeczności):
 
-Zwróć uwagę, czy w wątku są **żywi deweloperzy odpowiadający sobie nawzajem**, czy tylko
-reklamy firm. To jedyny wiarygodny test.
+- „[Test for Test] Looking for Android testers – will test back for 14 days"
+- „Google Play rejected you too? Let's form a 14-day survival pact (Active T4T)!"
+- „[Need Testers] 12 testers for ReplyPixel — 14-day closed test"
+- „[TEST4TEST] 6 Android apps — AR travel guides, survival guide, game & more. Will test yours back!"
+- „2 testers needed for 14 days for StudyBuddy app"
+
+**Jak to działa:** publikujesz własny wątek w konwencji `[Test for Test]` / `T4T` — opisujesz
+apkę, mówisz ile testerów potrzebujesz i deklarujesz, że **odwzajemnisz się** testowaniem
+ich aplikacji. Wchodzisz też w istniejące wątki i oferujesz pomoc w zamian za to samo.
+Zasada wzajemności jest tu normą, nie wyjątkiem.
+
+**Zasady, żeby nie zostać zignorowanym:**
+
+- W tytule zaznacz `[Test for Test]` albo `T4T` — bez tego wątek wygląda jak prośba bez
+  oferty i ludzie go pomijają.
+- Napisz, **ile testerów** potrzebujesz i że chodzi o **14 dni**.
+- W treści podaj link do opt-in (ten z sekcji 4 w `PLAY_INTERNAL_TESTING.md`) i krótko opisz
+  apkę — jedna linia, bez marketingowego lania wody.
+- Odwzajemniaj się **szybko**. Licznik 14 dni działa w obie strony: jeśli Ty nie zainstalujesz
+  ich apki, oni odinstalują Twoją i spadniesz poniżej progu.
+
+⚠️ Uwaga na podział na wątki: `r/AndroidTesting` (pisownia z wielkimi literami) to ta aktywna
+społeczność. Trafiają się też starsze/porzucone subreddity o podobnych nazwach — przed
+publikacją sprawdź, czy najnowsze wątki są z **ostatnich dni**, a nie sprzed roku.
+
+⚠️ Nie kupuj testerów z farm (patrz sekcja E) — ale uwaga: **wzajemne testowanie z żywymi
+deweloperami to coś zupełnie innego** i jest w pełni zgodne z regulaminem Google.
 
 ### D. Nisze, w których tłumacz jest komuś naprawdę potrzebny
 
@@ -171,6 +193,44 @@ Wersja hiszpańska:
 > ¡Hola! Estoy haciendo un traductor offline para Android y Google pide 12 testers por
 > 14 días. ¿Me ayudarías? Son 2 minutos: abrí [LINK] en el teléfono → „Ser tester" →
 > „Descargar de Play Store". Después solo no la desinstales por 2 semanas. ¡Gracias!
+
+---
+
+## 5b. Wpis na Reddita (r/AndroidTesting) — gotowy do wklejenia
+
+Tytuł:
+
+> [Test for Test] Offline translator, 6 languages — need 12 testers for 14 days, I'll test yours back
+
+Treść:
+
+> Hi everyone,
+>
+> I need 12 testers for the closed testing of my Android app and I'm happy to test yours in
+> return for the full 14 days. Active T4T.
+>
+> **What it is:** Verbigem — an offline translator. It translates text and photos without an
+> internet connection, in 6 languages (PL, EN, DE, ES, ZH, TR). Built for travel and for
+> people who don't want to send everything they type to a server.
+>
+> **What I need:** 12 testers, 14 days, no uninstalling in between. You just need to open the
+> app a few times during that period.
+>
+> **How to join:**
+> 1. Open this link on an Android phone: [OPT-IN LINK]
+> 2. Sign in with the Google account you added — tap "Become a tester"
+> 3. Then "Download from Play Store"
+>
+> Note: it won't show up in Play Store search, only this link works.
+>
+> **Drop your app + link in the comments and I'll install it today.** I'll keep it for the
+> full 14 days.
+>
+> Thanks!
+
+⚠️ Zanim wkleisz: podmień `[OPT-IN LINK]` na link z konsoli, i **faktycznie odwzajemniaj**.
+Ten subreddit pamięta, kto bierze i nie daje — jeden spalony wątek i nikt Ci nie zaufa
+przy kolejnej aplikacji.
 
 ---
 
