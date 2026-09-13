@@ -42,6 +42,33 @@ plus znajomi z Paragwaju", a nie z ruchem organicznym.
 **Realny plan, licząc uczciwie:** masz **5 realnych osób** (nie 12, nie 9). Brakuje
 **7–10**, żeby mieć bufor. To dokładnie ta luka, którą domyka sekcja C (`r/AndroidTesting`).
 
+### Stan na 2026-09-13 — kanał zaproszeń jest GOTOWY
+
+Milosz założył grupę z innego konta Google i przekazał działające linki. Poniżej stan
+**zweryfikowany własnym odczytem**, nie przepisany z jego wiadomości:
+
+| Element | Wartość | Weryfikacja |
+|---|---|---|
+| Grupa Google | `https://groups.google.com/g/verbigem-mini` | HTTP 200; strona publiczna renderuje się bez logowania |
+| Nazwa / adres grupy | „Verbigem mini" / `verbigem-mini@googlegroups.com` | odczytane z HTML strony grupy |
+| Opt-in (test) | `https://play.google.com/apps/testing/com.verbigem.app` | HTTP 200, przekierowuje na logowanie Google |
+| Sklep (bezpośredni) | `https://play.google.com/store/apps/details?id=com.verbigem.app` | ⚠️ **HTTP 404 dla nie-testerów** — patrz sekcja 5f |
+| Stara grupa `verbigem` | `groups.google.com/g/verbigem` | **nie używać** — zastąpiona przez `verbigem-mini` |
+
+⚠️ **Grupa jest dołączalna dla obcych — to potwierdzone, nie założone.** Odczyt z publicznej
+strony „O grupie" (bez logowania):
+
+| Kto | Co może |
+|---|---|
+| Anyone on the web | can see group |
+| Anyone on the web | **can join group** ✓ |
+| Group members | can view members |
+| Group members | can view conversations |
+| Group members | can post |
+
+To jest dokładnie ten warunek, od którego zależy powodzenie ogłoszenia na `r/AndroidTesting`
+(sekcja 5d). Brak bramki „ask to join" — dołączenie jest bezpośrednie.
+
 ---
 
 ## 1. Gdzie szukać — kolejność od najskuteczniejszych
@@ -126,10 +153,13 @@ tylko przenosi ryzyko na Ciebie.
 >
 > Co trzeba zrobić (jednorazowo, około 2 minut):
 >
-> 1. Otwórz ten link **na telefonie z Androidem**: [LINK]
-> 2. Zaloguj się kontem Google, na które dostałeś tę wiadomość.
-> 3. Kliknij **„Zostań testerem"** — to najważniejszy krok, bez niego link nie zadziała.
-> 4. Kliknij **„Pobierz ze Sklepu Play"** i zainstaluj.
+> 1. Zapisz się do grupy (jeden klik): https://groups.google.com/g/verbigem-mini
+> 2. Otwórz ten link **na telefonie z Androidem** i kliknij **„Zostań testerem"**:
+>    https://play.google.com/apps/testing/com.verbigem.app
+> 3. Pobierz aplikację ze Sklepu Play (przycisk pojawi się na tej samej stronie).
+>
+> Kolejność ma znaczenie — najpierw grupa, potem „Zostań testerem". Inaczej Sklep powie,
+> że nie masz dostępu.
 >
 > Potem przez 14 dni nie odinstalowuj aplikacji i zajrzyj do niej kilka razy. To wszystko.
 >
@@ -153,10 +183,13 @@ tylko przenosi ryzyko na Ciebie.
 >
 > Qué hay que hacer (una sola vez, unos 2 minutos):
 >
-> 1. Abrí este enlace **en un teléfono Android**: [LINK]
-> 2. Iniciá sesión con la cuenta de Google a la que te llegó este mensaje.
-> 3. Tocá **„Ser tester"** — es el paso más importante, sin eso el enlace no funciona.
-> 4. Tocá **„Descargar de Play Store"** e instalá.
+> 1. Unite al grupo (un clic): https://groups.google.com/g/verbigem-mini
+> 2. Abrí este enlace **en un teléfono Android** y tocá **„Ser tester"**:
+>    https://play.google.com/apps/testing/com.verbigem.app
+> 3. Descargá la app desde Play Store (el botón aparece en esa misma página).
+>
+> El orden importa — primero el grupo, después „Ser tester". Si no, Play dice que no
+> tenés acceso.
 >
 > Después, durante 14 días no desinstales la app y abrila algunas veces. Eso es todo.
 >
@@ -180,10 +213,13 @@ tylko przenosi ryzyko na Ciebie.
 >
 > What to do (one time, about 2 minutes):
 >
-> 1. Open this link **on an Android phone**: [LINK]
-> 2. Sign in with the Google account this message was sent to.
-> 3. Tap **"Become a tester"** — this is the most important step; without it the link won't work.
-> 4. Tap **"Download from Play Store"** and install.
+> 1. Join the group (one click): https://groups.google.com/g/verbigem-mini
+> 2. Open this link **on an Android phone** and tap **"Become a tester"**:
+>    https://play.google.com/apps/testing/com.verbigem.app
+> 3. Download the app from Play Store (the button appears on that same page).
+>
+> The order matters — group first, then "Become a tester". Otherwise Play will tell you
+> that you don't have access.
 >
 > Then, for 14 days, don't uninstall the app and open it a few times. That's all.
 >
@@ -200,14 +236,19 @@ tylko przenosi ryzyko na Ciebie.
 Długa wiadomość na WhatsAppie nie zostanie przeczytana. Do znajomych wyślij to:
 
 > Cześć! Robię tłumacza offline na Androida i Google wymaga 12 testerów na 14 dni.
-> Pomógłbyś? To 2 minuty: otwórz [LINK] na telefonie → „Zostań testerem" → „Pobierz
-> z Play Store". Potem tylko nie odinstalowuj przez 2 tygodnie. Dzięki!
+> Pomógłbyś? To 2 minuty. Najpierw zapisz się do grupy (jeden klik):
+> https://groups.google.com/g/verbigem-mini — a potem otwórz to na telefonie:
+> https://play.google.com/apps/testing/com.verbigem.app i kliknij „Zostań testerem".
+> Aplikacja zainstaluje się z tej samej strony. Potem tylko nie odinstalowuj przez
+> 2 tygodnie. Dzięki!
 
 Wersja hiszpańska:
 
 > ¡Hola! Estoy haciendo un traductor offline para Android y Google pide 12 testers por
-> 14 días. ¿Me ayudarías? Son 2 minutos: abrí [LINK] en el teléfono → „Ser tester" →
-> „Descargar de Play Store". Después solo no la desinstales por 2 semanas. ¡Gracias!
+> 14 días. ¿Me ayudarías? Son 2 minutos. Primero unite al grupo (un clic):
+> https://groups.google.com/g/verbigem-mini — y después abrí esto en el teléfono:
+> https://play.google.com/apps/testing/com.verbigem.app y tocá „Ser tester". La app se
+> instala desde esa misma página. Después solo no la desinstales por 2 semanas. ¡Gracias!
 
 ---
 
@@ -244,13 +285,13 @@ Treść:
 >
 > 1. Join the Google Group:
 >
-> https://groups.google.com/g/verbigem
+> https://groups.google.com/g/verbigem-mini
 >
 > 2. Opt into the Closed Test:
 >
 > https://play.google.com/apps/testing/com.verbigem.app
 >
-> 3. Download the app:
+> 3. Download the app — the Play Store page opens once you're opted in:
 >
 > https://play.google.com/store/apps/details?id=com.verbigem.app
 >
@@ -292,7 +333,7 @@ Treść:
 >
 > JAK DOŁĄCZYĆ:
 >
-> 1. Zapisz się do grupy Google: https://groups.google.com/g/verbigem
+> 1. Zapisz się do grupy Google: https://groups.google.com/g/verbigem-mini
 > 2. Włącz test: https://play.google.com/apps/testing/com.verbigem.app
 > 3. Pobierz aplikację: https://play.google.com/store/apps/details?id=com.verbigem.app
 >
@@ -318,22 +359,39 @@ Wybór grupy dyskusyjnej zamiast listy adresów e-mail ma jedną wielką zaletę
 ludzi ręcznie** — kto dołączy do grupy, ten jest testerem. Ma też dwa warunki, od których
 zależy, czy cała instrukcja w ogłoszeniu w ogóle zadziała.
 
-**1. Grupa musi być dostępna dla obcych.** Nie mogłem tego sprawdzić anonimowo — strona
-`groups.google.com/g/verbigem` zwraca „Content unavailable" bez logowania, co jest normalne
-dla grupy wymagającej zalogowania, ale **nie przesądza, czy da się do niej dołączyć**.
-Sprawdź sam, wylogowany albo w oknie incognito:
+**1. Grupa musi być dostępna dla obcych. ✓ SPRAWDZONE 2026-09-13.**
 
-- Grupa → **Ustawienia grupy** → **Uprawnienia** → „Kto może dołączyć" musi pozwalać na
-  dołączenie osobom spoza domeny. Jeśli jest ustawione na „tylko zaproszeni" albo na Twoją
-  domenę, **nikt z Reddita nie dołączy** i cały ogłoszenie spali się na pierwszym kroku.
+Wcześniej nie dało się tego ustalić anonimowo (strona grupy bez logowania zwracała
+„Content unavailable"). Teraz się udało — dla grupy `verbigem-mini` warunek **jest spełniony**:
 
-Jeśli grupa ma zostać zamknięta, to jedyna droga to lista adresów e-mail (sekcje 2–4),
-a nie grupa.
+| Kto | Co może |
+|---|---|
+| Anyone on the web | can see group |
+| Anyone on the web | **can join group** |
+| Group members | can view members |
+| Group members | can view conversations |
+| Group members | can post |
+
+Dołączenie jest **bezpośrednie** — nie ma bramki „ask to join", więc człowiek z Reddita
+klika i jest w grupie. To jest dokładnie ten warunek, bez którego całe ogłoszenie spaliłoby
+się na pierwszym kroku.
+
+**Jak to sprawdzić ponownie** (np. po zmianie grupy): wylogowany albo w oknie incognito
+otwórz `https://groups.google.com/g/<nazwa-grupy>/about` i poszukaj wiersza
+„Anyone on the web → can join group". Jeśli zamiast tego jest „tylko zaproszeni" albo
+ograniczenie do Twojej domeny — nikt z zewnątrz nie dołączy i trzeba przejść na listę
+adresów e-mail (sekcje 2–5 albo 5e).
 
 **2. Grupa musi być dodana jako lista testerów w Play Console.**
 **Testuj i publikuj → Test zamknięty → Testerzy → zakładka „Grupy dyskusyjne Google"** →
-wybierz `verbigem`. Samo istnienie grupy nic nie daje — dopóki nie jest podpięta do ścieżki,
-Play nie wie, że jej członkowie mają dostęp.
+wklej `verbigem-mini@googlegroups.com`. Samo istnienie grupy nic nie daje — dopóki nie jest
+podpięta do ścieżki, Play nie wie, że jej członkowie mają dostęp.
+
+⚠️ **To jedyny krok, którego nie dało się zweryfikować z zewnątrz** — wymaga zalogowania do
+Play Console. Sprawdź, czy `verbigem-mini@googlegroups.com` faktycznie widnieje na liście
+testerów ścieżki. Jeśli nie, ludzie będą dołączać do grupy i **nic z tego nie wyniknie** —
+dokładnie ten scenariusz, w którym testerzy piszą „nie mam dostępu", a przyczyna leży po
+Twojej stronie.
 
 **3. Kolejność jest obowiązkowa.** Oficjalna dokumentacja Google:
 
@@ -404,12 +462,51 @@ Najbardziej prawdopodobna przyczyna i kolejność działań:
    się do formularza pogarsza sprawę, nie poprawia.
 4. **Założyć grupę z innego, starszego konta Google** i dodać się jako właściciel. Grupa nie
    musi należeć do tego samego konta co konto deweloperskie w Play — liczy się tylko to, że
-   jest podpięta jako lista testerów.
+   jest podpięta jako lista testerów. ✓ **ZADZIAŁAŁO 2026-09-13** — tak powstała grupa
+   `verbigem-mini`, po tym jak założenie jej z konta deweloperskiego zapętlało CAPTCHĘ.
+   To potwierdza, że problem był **na poziomie konta**, a nie sieci.
 
-⚠️ **Nie zakładaj nowej grupy „na zapas", jeśli masz działającą.** Milosz ma już
-`groups.google.com/g/verbigem`; nowa grupa była tworzona „by nie było problemów", ale to
-właśnie ta nowa grupa wpędziła w pętlę CAPTCHA. Sensowna kolejność: sprawdź, czy **istniejąca**
-grupa jest dołączalna dla obcych i podpięta w Play Console — jeśli tak, problemu nie ma.
+⚠️ **ROZWIĄZANE (2026-09-13).** Grupa `verbigem-mini` została założona z innego konta
+i działa. Stara grupa `groups.google.com/g/verbigem` jest **nieaktualna** — nie używać jej
+w żadnym ogłoszeniu ani nie podpinać jej w Play Console. Wszystkie zaproszenia w tym pliku
+wskazują już na `verbigem-mini`.
+
+Wniosek na przyszłość, jeśli problem wróci: nie ma sensu zmieniać sieci ani przeglądarki
+(oba wykluczone eksperymentem) — **zmień konto, z którego zakładasz grupę**.
+
+---
+
+## 5f. ⚠️ Link do Sklepu zwraca 404 dla kogoś, kto nie jest jeszcze testerem
+
+Zmierzone 2026-09-13, tym samym zapytaniem, z tego samego IP i z tym samym User-Agentem:
+
+| Adres | HTTP |
+|---|---|
+| `play.google.com/store/apps/details?id=com.whatsapp` (kontrola) | **200** |
+| `play.google.com/store/apps/details?id=com.verbigem.app` | **404** |
+| `play.google.com/apps/testing/com.verbigem.app` | **200** (przekierowanie na logowanie Google) |
+
+Kontrola na WhatsAppie wyklucza blokadę bota — **404 jest prawdziwe**. Karta aplikacji
+w Sklepie Play nie istnieje publicznie, dopóki aplikacja nie jest opublikowana w produkcji.
+Widzą ją wyłącznie osoby **już zapisane** do testu (po opt-inie).
+
+**Konsekwencja dla ogłoszenia:** jeśli wkleisz goły link do Sklepu jako trzeci krok, **każdy,
+kto kliknie go przed opt-inem, zobaczy „Not Found"** — i napisze w komentarzu, że link jest
+zepsuty. To dokładnie ten rodzaj wpisu, który psuje odbiór ogłoszenia na `r/AndroidTesting`.
+
+Dlatego:
+
+- krok „pobierz aplikację" opisuj jako **„przycisk na tej samej stronie"** — strona opt-inu
+  po zapisie pokazuje przycisk pobierania. Nie jako osobny link do Sklepu.
+- link do Sklepu zostawiaj tylko jako uzupełnienie, z wyraźnym „otwiera się po zapisie do testu"
+  (tak jest już zredagowany krok 3 w sekcji 5b).
+- ⚠️ **Sprawdzenie „czy link działa" zalogowany na koncie deweloperskim nic nie dowodzi** —
+  Tobie zadziała zawsze, bo jesteś zapisany do testu. Testuj wylogowany albo z konta, które
+  nigdy nie było testerem.
+
+Milosz przekazał ten adres jako „link do zaproszenia z Androida" — to link skopiowany
+z Play Store na telefonie, który **już jest zapisany do testu**. Dla obcego ten sam adres
+zwraca 404.
 
 ---
 
@@ -428,15 +525,23 @@ się zapiszą**. Zaproś **14–15 osób**, nie 12.
 Trzy najczęstsze powody, dla których licznik nie działa:
 
 1. **Tester nie kliknął „Zostań testerem"** — sam link nic nie daje.
-2. **Tester zalogował się innym kontem Google** niż to, które dodałeś do listy.
+2. **Tester zalogował się innym kontem Google** niż to, którym dołączył do grupy (albo niż to,
+   które dodałeś do listy e-mail). Konto Google musi być **to samo** na wszystkich etapach.
 3. **Telefon 32-bitowy** — AAB wspiera wyłącznie `arm64-v8a`, taka instalacja się nie powiedzie.
+4. **Grupa nie jest podpięta w Play Console** (sekcja 5d pkt 2) — testerzy dołączają do grupy,
+   a Play o niczym nie wie. Objaw jest identyczny jak przy punkcie 2, więc sprawdź to
+   **w pierwszej kolejności**, bo to jedyna przyczyna leżąca po Twojej stronie.
 
 ---
 
 ## 7. Kolejność działań
 
-Punkt wyjścia jest już policzony (sekcja 0): **5 realnych osób**, nie 9.
+Punkt wyjścia jest już policzony (sekcja 0): **5 realnych osób**, nie 9. Kanał zaproszeń
+jest gotowy (sekcja 0 — grupa `verbigem-mini` działa i jest dołączalna dla obcych).
 
+0. **Zanim ktokolwiek dołączy do grupy:** podepnij `verbigem-mini@googlegroups.com`
+   w Play Console (Test zamknięty → Testerzy → „Grupy dyskusyjne Google"). To jedyny krok,
+   którego nie dało się sprawdzić z zewnątrz, a bez niego cała reszta nie zadziała.
 1. Napisz do tych 5 pojedynczo (sekcja 2/3/4 — w zależności od języka). Pamiętaj, że żadna
    z nich nie ma jeszcze pakietu Play — muszą przejść pełny opt-in.
 2. Uruchom **test wewnętrzny** na 2–3 osobach od razu — waliduje build, nie ma wymogów,
