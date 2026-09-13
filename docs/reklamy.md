@@ -62,10 +62,28 @@ byłaby drogą do zamknięcia konta AdMob).
 
 ## ⚠️ Do domknięcia (tylko w konsolach, nic w kodzie)
 
-1. **Data Safety w Play Console** — zadeklarować zbieranie identyfikatora reklamowego
-   (`AD_ID`) i danych o użytkowaniu. Bez tego kolejne wydanie na produkcję dostanie
+1. **Play Console → „Identyfikator wyświetlania reklam"** — ekran wykrywa AD_ID w
+   scalonym manifeście i wymusza odpowiedź. Właściwa (potwierdzona kodem, 2026-09-12):
+   - **Ekran 1** „Czy Twoja aplikacja korzysta z identyfikatora wyświetlania reklam?":
+     **Tak**.
+   - **Ekran 2** „Dlaczego aplikacja potrzebuje identyfikatora wyświetlania reklam?":
+     zaznaczyć **TYLKO** „Cele marketingowe". Reszta (Funkcje aplikacji, Analityka,
+     Informacje od dewelopera, Zapobieganie oszustwom, Personalizacja, Zarządzanie
+     kontem) = puste.
+
+     Dowód na „Tylko Cele marketingowe": jedyny konsument `AD_ID` w apce to SDK
+     `com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.2.1`
+     (`gradle/libs.versions.toml:29,100`), inicjalizowany w
+     `app/src/main/java/com/verbigem/app/ads/AdsConsent.kt:264`
+     (`MobileAds.initialize(...)`). Baner ładowany w `ui/components/AdBannerView.kt`.
+     Apka **nie** ma analytics SDK (brak `firebase-analytics` i Crashlytics w
+     `libs.versions.toml`), **nie** używa AD_ID do personalizacji, fraud-prevention,
+     zarządzania kontem ani developer-comm — więc tamte checkboxi byłyby kłamstwem.
+2. **Data Safety w Play Console** — OSOBNY formularz (nie ten z punktu 1). Zadeklarować
+   zbieranie `AD_ID` (kategoria „Identyfikatory urządzenia lub inne identyfikatory”)
+   + dane o użytkowaniu aplikacji. Bez tego kolejne wydanie na produkcję dostanie
    ostrzeżenie/blokadę.
-2. **AdMob → Aplikacje do zatwierdzenia** — `com.verbigem.app` jest na liście ze
+3. **AdMob → Aplikacje do zatwierdzenia** — `com.verbigem.app` jest na liście ze
    statusem „Nieukończona konfiguracja" i zero wyświetleń mimo rosnących żądań.
    „Dokończ konfigurację" → weryfikacja właściciela (link do Play Store). Bez tego
    serwowanie reklam jest zablokowane niezależnie od kodu.
