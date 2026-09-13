@@ -47,3 +47,30 @@ e-mail (dziura zgłoszona 2026-09-12).
   locale** (PL, EN, DE, ES, ZH, TR — zgodnie z `docs/jezyki-ui.md`).
 - Po kliknięciu linku użytkownik wciska „Sprawdź ponownie" -> `reload()` ->
   `isEmailVerified` -> przejście do Translatora.
+
+### Wymagania DNS dla poczty (ustalone 2026-09-12)
+
+Domena `verbigem.com` jest zarejestrowana jako **własna domena poczty Firebase**
+(Firebase Auth wysyła maile jako `@verbigem.com` przez infrastrukturę
+`firebasemail.com`). Dlatego w DNS muszą zostać:
+
+- `TXT verbigem.com` → `v=spf1 include:_spf.firebasemail.com ... ~all`
+- `CNAME firebase1._domainkey.verbigem.com` → `mail-verbigem-com.dkim1._domainkey.firebasemail.com`
+- `CNAME firebase2._domainkey.verbigem.com` → `mail-verbigem-com.dkim2._domainkey.firebasemail.com`
+- `TXT verbigem.com` → `hosting-site=verbigem-app-7k2` i `firebase=verbigem-app-7k2`
+  (weryfikacja własności domeny w Firebase Hosting — **nie kasować**)
+
+⚠️ **SPF może być tylko JEDEN na domenę** (RFC 7208: dwa rekordy `v=spf1` = `PermError`).
+Cloudflare Email Routing chce dorzucić swój `v=spf1 include:_spf.mx.cloudflare.net ~all`
+i pokazuje go jako „Missing", a istniejący firebasemail jako „Conflicting".
+**Nie klikać „Add missing records"** — powstanie drugi SPF i maile weryfikacyjne
+Firebase Auth stracą uwierzytelnienie. Zamiast tego **scalić w jeden rekord**:
+
+```
+v=spf1 include:_spf.firebasemail.com include:_spf.mx.cloudflare.net ~all
+```
+
+MX (`route1/2/3.mx.cloudflare.net`) obsługują wyłącznie pocztę **przychodzącą**
+(przekierowanie `privacy@` / `contact@` → Gmail) i nie mają związku z wysyłką
+Firebase Auth. Brak rekordu `_dmarc` — nie dodawać `p=reject` bez pełnego
+uwierzytelnienia wysyłki.
