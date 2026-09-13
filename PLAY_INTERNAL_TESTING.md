@@ -28,7 +28,7 @@ wyjściem do produkcji** — to osobny krok, nie teraz.
 |---|---|
 | Pakiet | `com.verbigem.app` (flavor `play`) |
 | Sideload | osobny pakiet `com.verbigem.app.sideload` (flavor `standalone`) — inny pakiet, więc **instaluje się obok** wersji Play. Konflikt podpisu (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`) grozi tylko wtedy, gdy na telefonie siedzi **stary** build sideload o pakiecie `com.verbigem.app`. |
-| Wersja | `versionCode` = `versionName` patch: **64 / `1.0.64`** (w `app/build.gradle.kts`). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
+| Wersja | `versionCode` = `versionName` patch: **72 / `1.0.72`** (w `app/build.gradle.kts`, stan 2026-09-12). Play nie przyjmie powtórzonego `versionCode` — przy poprawce do już wgranej wersji podbij kod. |
 | `minSdk` / `targetSdk` | 26 / 36 (wymóg Google od 31.08.2026 dla nowych aplikacji — spełniony) |
 | Klucz uploadu | `app/release-keystore.jks`, alias `verbigem` |
 | SHA-1 klucza uploadu | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
@@ -70,6 +70,47 @@ Uwaga: `app/google-services.json` ma w polu `certificate_hash` odcisk **debug**.
 Kolejność ma znaczenie przy wydaniu na stronę: **najpierw odcisk, potem deploy**. APK z pakietem `com.verbigem.app.sideload` bez tego wpisu daje użytkownikom stronę logowania, na której Google nie działa (e-mail/hasło i SMS działają normalnie).
 
 ⚠️ Do 2026-09-10 strona podawała do pobrania APK z pakietem **`com.verbigem.app`** — czyli tym samym co wersja z Google Play, tylko podpisany kluczem debug. Skutek: nie dało się mieć obu wersji naraz (ta sama nazwa pakietu, inny podpis), a instalacja jednej blokowała drugą. Poprawione w `mini/` (commit `bf2f2ab`): APK pochodzi teraz ze smaku `standalone` i ma pakiet `.sideload`.
+
+### TRZY różne klucze — nie pomyl (ustalone 2026-09-12)
+
+„Google sam podpisuje AAB" to prawda, ale **nie jednym kluczem**. W obiegu są trzy certyfikaty i tylko dwa z nich trafiają na urządzenie użytkownika:
+
+| Klucz | Co podpisuje | Trafia na telefon? | SHA-1 |
+|---|---|---|---|
+| **Klucz przesyłania** (upload key) — `app/release-keystore.jks`, alias `verbigem` | AAB, który wgrywasz do konsoli | **NIE** — Play go zdejmuje i podpisuje ponownie | `1A:9B:77:0A:68:1D:77:F5:91:F4:5C:01:AA:FD:5C:74:FF:9C:8A:1F` |
+| **Klucz podpisywania aplikacji** (Play App Signing) | APK z **ścieżek testowych i produkcji** | TAK | `b09748e2d639f0e28f89b013f5b6f983d70babc7` |
+| **Klucz wewnętrznego udostępniania aplikacji** (certyfikat testowy) | APK z **„Wewnętrznego udostępniania aplikacji"** | TAK (tylko ta ścieżka) | `7F:CD:F5:2C:FA:C1:65:CF:F6:29:98:D2:BB:9D:48:31:A2:73:91:59` |
+
+Trzeci klucz to ten z ekranu **Testuj i publikuj → Test wewnętrzny → Wewnętrzne udostępnianie aplikacji → karta „Przesyłający i testerzy" → „Certyfikat testów wewnętrznych"**. Oficjalna dokumentacja Google (PL):
+
+> „Artefakty przesłane do wewnętrznego udostępniania aplikacji można podpisać za pomocą dowolnego klucza. Nie trzeba ich podpisywać kluczem produkcyjnym ani kluczem przesyłania. Są one automatycznie ponownie podpisywane przy użyciu klucza wewnętrznego udostępniania aplikacji, który Google samoczynnie tworzy dla Twojej aplikacji."
+
+Czyli: **niezależnie czym podpiszesz plik, każdy APK z tej ścieżki dostaje ten jeden certyfikat testowy.** Konsola generuje go raz na aplikację (przy pierwszym przesłaniu) i używa do wszystkich kolejnych.
+
+**Jedyny realny skutek dla nas: OAuth.** Google Sign-In (i Firebase Auth przez Google) identyfikuje klienta po parze *nazwa pakietu + odcisk certyfikatu*. Build podpisany certyfikatem testowym nie ma zarejestrowanego klienta OAuth → logowanie Google kończy się błędem, mimo że e-mail+hasło i czat działają normalnie.
+
+**Do zrobienia (bez przebudowy AAB, propagacja kilka minut):** Firebase Console → ⚙️ Project settings → **Your apps** → `com.verbigem.app` → **Add fingerprint**:
+
+- SHA-1: `7F:CD:F5:2C:FA:C1:65:CF:F6:29:98:D2:BB:9D:48:31:A2:73:91:59`
+- SHA-256: `5C:89:F8:4B:B1:71:E8:7A:D3:42:14:DB:86:39:84:F1:91:64:74:5E:FC:40:78:62:9A:62:51:66:78:25:BC:CA`
+
+⚠️ Odciska **klucza przesyłania** (`1A:9B:77:…`) do Firebase **nie dodawaj** — ten klucz nigdy nie ląduje na urządzeniu, więc nie bierze udziału w autoryzacji. Jego miejsce jest w konsoli Play (weryfikacja tożsamości przy wgrywaniu AAB).
+
+### Wewnętrzne udostępnianie ≠ Test wewnętrzny — nie myl ścieżek
+
+|  | Test wewnętrzny (ścieżka) | Wewnętrzne udostępnianie aplikacji |
+|---|---|---|
+| Gdzie | Testuj i publikuj → Test wewnętrzny → **Wersje** | Testuj i publikuj → Test wewnętrzny → **Wewnętrzne udostępnianie aplikacji** |
+| Recenzja Google | tak (zwykle szybka) | **brak** |
+| Kody wersji | muszą być nowe i unikalne | **mogą się powtarzać** |
+| Kto może pobrać | testerzy z listy (opt-in „Zostań testerem") | każdy z linkiem (limit 100 pobrań) |
+| Ważność linku | bezterminowy | **60 dni** od przesłania |
+| Podpis | klucz Play App Signing | certyfikat testowy |
+| Warunek po stronie testera | kliknąć „Zostań testerem" | włączyć przełącznik: Sklep Play → Ustawienia → 7× w „wersja Sklepu Play" → „Wewnętrzne udostępnianie aplikacji" |
+
+Wniosek: **Wewnętrzne udostępnianie** nadaje się do szybkiego sprawdzenia świeżego buildu przez 2–3 osoby bez czekania na recenzję. Do „prawdziwego" testu z testerami zostaje **Test wewnętrzny** — i to jego odcisk (`b09748e2…`) jest tym obowiązkowym.
+
+⚠️ **App Check / Play Integrity:** build z wewnętrznego udostępniania ma certyfikat, który **nie zgadza się z rekordami Google Play**, a Play Integrity ocenia m.in. werdyktem `UNRECOGNIZED_VERSION` („certyfikat lub nazwa pakietu nie zgadzają się z rekordami Google Play"). Google nie opisuje wprost przypadku wewnętrznego udostępniania w dokumentacji Play Integrity — **nie potwierdziliśmy tego punktu źródłowo**, ale to znany praktyczny problem. Dlatego App Check zostaw w trybie monitorowania (bez `enforce`), dopóki nie testujesz na buildzie z Play App Signing.
 
 ### Zasady → Zawartość aplikacji (Policy → App content)
 - [ ] **Bezpieczeństwo danych (Data safety)** — wg `PLAY_PUBLISHING_PLAN.md` §3.1:
